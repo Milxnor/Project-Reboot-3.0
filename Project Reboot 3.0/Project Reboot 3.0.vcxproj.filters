@@ -1,0 +1,403 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="UnrealNames.cpp">
+      <Filter>Engine\Source\Runtime\Core\Private\UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Class.cpp">
+      <Filter>Engine\Source\Runtime\CoreUObject\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="NameTypes.cpp">
+      <Filter>Engine\Source\Runtime\CoreUObject\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="UObjectGlobals.cpp">
+      <Filter>Engine\Source\Runtime\CoreUObject\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="KismetStringLibrary.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortGameModeZone.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="addresses.cpp">
+      <Filter>Reboot</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Engine\Source\Runtime\CoreUObject\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelActor.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortGameModeAthena.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="GameModeBase.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="NetDriver.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortInventory.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="FortInventory.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="FortPawn.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Pawns</Filter>
+    </ClCompile>
+    <ClCompile Include="AbilitySystemComponent_Abilities.cpp">
+      <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortPlayerController.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="UnrealMath.cpp">
+      <Filter>Engine\Source\Runtime\Core\Private\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="FortItem.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="FortItemDefinition.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="BuildingWeapons.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="FortGameStateAthena.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="GameplayStatics.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerController.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="ActorComponent.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="log.h" />
+    <ClInclude Include="finder.h" />
+    <ClInclude Include="inc.h" />
+    <ClInclude Include="Array.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="UnrealString.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="NameTypes.h">
+      <Filter>Engine\Source\Runtime\Core\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="reboot.h">
+      <Filter>Reboot</Filter>
+    </ClInclude>
+    <ClInclude Include="Class.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectMacros.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObjectArray.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObjectGlobals.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Stack.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputDevice.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="NetDriver.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="KismetStringLibrary.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Kismet</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMode.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="FortGameModeZone.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortGameMode.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortGameModeAthena.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortGameModePvPBase.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="addresses.h">
+      <Filter>Reboot</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Quat.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineTypes.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="hooking.h" />
+    <ClInclude Include="GameModeBase.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="Pawn.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSession.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="NetSerialization.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="FortItem.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="FortItemDefinition.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="FortPlayerControllerAthena.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerController.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="FortPlayerController.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="FortPawn.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Pawns</Filter>
+    </ClInclude>
+    <ClInclude Include="FortWeapon.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Weapons</Filter>
+    </ClInclude>
+    <ClInclude Include="FortWorldItemDefinition.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="FortWeaponItemDefinition.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerState.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="FortPlayerState.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="FortPlayerStateAthena.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="FortGameStateAthena.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="GameState.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="AbilitySystemComponent.h">
+      <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="GameplayAbilitySpec.h">
+      <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="KismetSystemLibrary.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Kismet</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingActor.h">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingSMActor.h">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
+    </ClInclude>
+    <ClInclude Include="Rotator.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptInterface.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingWeapons.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Weapons</Filter>
+    </ClInclude>
+    <ClInclude Include="GameplayStatics.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Kismet</Filter>
+    </ClInclude>
+    <ClInclude Include="ActorComponent.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Components</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Engine">
+      <UniqueIdentifier>{b88dd971-6115-4cb9-92c3-7bb9a4d9474a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source">
+      <UniqueIdentifier>{44b71ed5-9173-4e31-9938-2214bbc4b0e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime">
+      <UniqueIdentifier>{3cc1cd7a-b3d3-47e9-960e-3fb3814fb588}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core">
+      <UniqueIdentifier>{f9419e52-4764-4d38-b071-87c82b9c2317}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Private">
+      <UniqueIdentifier>{40e6dd42-e035-44da-8cc3-768d479865f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Private\UObject">
+      <UniqueIdentifier>{9613f557-a37d-4e60-9462-19db955824bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public">
+      <UniqueIdentifier>{eabe5e8e-f084-4bcb-b302-af5d52ebfe39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\Containers">
+      <UniqueIdentifier>{d7b8c9a5-5bbe-49a8-b5b0-3ff6d626534f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\UObject">
+      <UniqueIdentifier>{e959a791-dbdf-4ec3-a3b3-7f75724d3ce5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame">
+      <UniqueIdentifier>{81055b71-1fa3-44f0-b3b8-1b6c8c464514}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Reboot">
+      <UniqueIdentifier>{08555946-4ef9-4777-94fb-9025ca2dfe61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\CoreUObject">
+      <UniqueIdentifier>{34d20f6d-7b34-47a0-b7d5-fcfff1e61401}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\CoreUObject\Private">
+      <UniqueIdentifier>{71e5f0ae-2081-44af-9847-63afa97ecb00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\CoreUObject\Public">
+      <UniqueIdentifier>{b7da14ca-b328-43b1-988b-84af45b808ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\CoreUObject\Public\UObject">
+      <UniqueIdentifier>{493b9ebf-983a-4560-a8fc-72781136acdd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine">
+      <UniqueIdentifier>{a7131bef-c957-4218-a28c-f1ed68b3fcf2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Classes">
+      <UniqueIdentifier>{f889566a-76be-45e4-824e-71bd6d57c8a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Private">
+      <UniqueIdentifier>{58aa6032-1f71-43db-8de6-de3fd72baae5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Classes\Engine">
+      <UniqueIdentifier>{812667a2-87b9-4901-bea3-1b5f9f757892}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\Misc">
+      <UniqueIdentifier>{52fcb572-6fc2-4315-a929-690dc0ab0f97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Classes\GameFramework">
+      <UniqueIdentifier>{a736197d-560f-4eb7-9beb-8add1012ce04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Classes\Kismet">
+      <UniqueIdentifier>{ffd2b7f3-d44a-45f3-8c06-7c24cd9909de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source">
+      <UniqueIdentifier>{2f1b66bd-6006-4ab0-9924-8aaaac4af427}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame">
+      <UniqueIdentifier>{f97d67ee-e06e-4721-8318-a23f4279e620}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private">
+      <UniqueIdentifier>{21ca8107-eea3-4cf5-ae5a-17159838820c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public">
+      <UniqueIdentifier>{717548a7-0c7f-4bdb-bb99-5744b0e206c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\Math">
+      <UniqueIdentifier>{4533fd04-0668-4607-a456-0f781bad54f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Items">
+      <UniqueIdentifier>{02d68293-0dad-48ba-a61f-60fbfdab971e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Items">
+      <UniqueIdentifier>{7b146e1a-c896-42ff-bffe-b7a6f6b0240a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Player">
+      <UniqueIdentifier>{ccf18d87-2aa4-4f58-bd54-7271e99845b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Pawns">
+      <UniqueIdentifier>{3a7564c8-56c2-4273-8a34-67dafe5522c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Pawns">
+      <UniqueIdentifier>{4f177a72-585d-4b79-a258-26bb6d2c225c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Weapons">
+      <UniqueIdentifier>{bcb0d983-0b85-4ca6-9fac-6567c7d79921}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins">
+      <UniqueIdentifier>{826a509f-03f4-4a18-a9bf-d67b69fe3b93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Runtime">
+      <UniqueIdentifier>{55eb1be2-e289-436e-9a10-68ca9f20d6d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Runtime\GameplayAbilities">
+      <UniqueIdentifier>{ff05565d-6ed7-4f30-9378-1951bab60567}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Runtime\GameplayAbilities\Source">
+      <UniqueIdentifier>{d42d8fb0-7e1c-4194-bc0e-a0257dd6dbec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities">
+      <UniqueIdentifier>{a29f6a34-9f04-43ac-adae-48d4751a761d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private">
+      <UniqueIdentifier>{87195f09-7368-4d8d-88cb-224e3f96ae43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public">
+      <UniqueIdentifier>{9cdf2185-5e04-4d3e-82a0-2e936f905379}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Player">
+      <UniqueIdentifier>{a12cb364-3e34-454a-958f-b1fe54534353}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Building">
+      <UniqueIdentifier>{a6fd658c-6824-4186-b45e-2edf5d20eeae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Private\Math">
+      <UniqueIdentifier>{6c0193a3-7b06-4298-99fe-a5a18be27d58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Weapons">
+      <UniqueIdentifier>{4ec49a59-4f0a-424b-9ac7-24901766da09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Classes\Components">
+      <UniqueIdentifier>{aa080dc3-54fb-43f1-b53f-2439e559198d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Private\Components">
+      <UniqueIdentifier>{eab3cd46-ced6-4e56-9fda-ed35ec9f9f64}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="UnrealEngine.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </None>
+  </ItemGroup>
+</Project>
