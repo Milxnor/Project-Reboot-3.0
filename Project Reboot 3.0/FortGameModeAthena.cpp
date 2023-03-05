@@ -30,6 +30,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		else
 		{
 			GameState->Get("CurrentPlaylistData") = Playlist;
+			GameState->OnRep_CurrentPlaylistInfo();
 		}
 	};
 
@@ -121,7 +122,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			GameState->OnRep_GamePhase();
 		}
 
-		auto Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground"); // FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
+		auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
+			// FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
 		SetPlaylist(Playlist);
 
 		GameState->Get<float>("WarmupCountdownEndTime") = TimeSeconds + Duration;
@@ -196,34 +198,41 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 	}
 
-	// if (false)
+	if (false)
 	{
-		static auto GameplayAbilitySet = FindObject<UObject>("/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer");
+		static auto GameplayAbilitySet = FindObject<UObject>("/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
+			FindObject<UObject>("/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") :
+			FindObject<UObject>("/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer");
 
-		static auto GameplayAbilitiesOffset = GameplayAbilitySet->GetOffset("GameplayAbilities");
-		auto GameplayAbilities = GameplayAbilitySet->GetPtr<TArray<UClass*>>(GameplayAbilitiesOffset);
-
-		for (int i = 0; i < GameplayAbilities->Num(); i++)
+		if (GameplayAbilitySet)
 		{
-			UClass* AbilityClass = GameplayAbilities->At(i);
+			static auto GameplayAbilitiesOffset = GameplayAbilitySet->GetOffset("GameplayAbilities");
+			auto GameplayAbilities = GameplayAbilitySet->GetPtr<TArray<UClass*>>(GameplayAbilitiesOffset);
 
-			// LOG_INFO(LogDev, "AbilityClass {}", __int64(AbilityClass));
+			for (int i = 0; i < GameplayAbilities->Num(); i++)
+			{
+				UClass* AbilityClass = GameplayAbilities->At(i);
 
-			if (!AbilityClass)
-				continue;
+				LOG_INFO(LogDev, "AbilityClass {}", __int64(AbilityClass));
 
-			// LOG_INFO(LogDev, "AbilityClass Name {}", AbilityClass->GetFullName());
+				if (!AbilityClass)
+					continue;
 
-			auto DefaultAbility = AbilityClass->CreateDefaultObject();
+				// LOG_INFO(LogDev, "AbilityClass Name {}", AbilityClass->GetFullName());
 
-			// LOG_INFO(LogDev, "DefaultAbility {}", __int64(DefaultAbility));
-			// LOG_INFO(LogDev, "DefaultAbility Name {}", DefaultAbility->GetFullName());
+				// LOG_INFO(LogDev, "DefaultAbility {}", __int64(DefaultAbility));
+				// LOG_INFO(LogDev, "DefaultAbility Name {}", DefaultAbility->GetFullName());
 
-			PlayerStateAthena->GetAbilitySystemComponent()->GiveAbilityEasy(AbilityClass);
+				PlayerStateAthena->GetAbilitySystemComponent()->GiveAbilityEasy(AbilityClass);
+			}
 		}
 	}
 	
+	static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
+
 	// if (false)
+	// if (GameMemberInfoArrayOffset != 0)
+	if (Engine_Version >= 423)
 	{
 		struct FUniqueNetIdRepl
 		{
@@ -268,7 +277,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 		static auto GameMemberInfoArray_MembersOffset = 0x0108;
 
-		static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray");
 		auto GameMemberInfoArray = GameState->GetPtr<FFastArraySerializer>(GameMemberInfoArrayOffset);
 
 		((TArray<FGameMemberInfo>*)(__int64(GameMemberInfoArray) + GameMemberInfoArray_MembersOffset))->Add(*GameMemberInfo, GameMemberInfoStructSize);

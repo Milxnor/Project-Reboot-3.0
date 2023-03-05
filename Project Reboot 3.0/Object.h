@@ -44,7 +44,7 @@ public:
 
 	bool IsA(UClass* Other);
 
-	int GetOffset(const std::string& ChildName);
+	int GetOffset(const std::string& ChildName, bool bWarnIfNotFound = true);
 
 	template <typename T = UObject*>
 	T& Get(int Offset) { return *(T*)(__int64(this) + Offset); }

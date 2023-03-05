@@ -98,8 +98,8 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
     const wchar_t* ValidateWCStr = ValidateWStr.c_str();
     bool bHasValidateFunc = Memcury::Scanner::FindStringRef(ValidateWCStr, false).Get();
 
-    // LOG_INFO(LogDev, "[{}] bHasValidateFunc: {}", Function->GetName(), bHasValidateFunc);
-    // LOG_INFO(LogDev, "NativeAddr: 0x{:x}", __int64(NativeAddr) - __int64(GetModuleHandleW(0)));
+    LOG_INFO(LogDev, "[{}] bHasValidateFunc: {}", Function->GetName(), bHasValidateFunc);
+    LOG_INFO(LogDev, "NativeAddr: 0x{:x}", __int64(NativeAddr) - __int64(GetModuleHandleW(0)));
 
     bool bFoundValidate = !bHasValidateFunc;
 
@@ -139,7 +139,7 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
 
                 std::transform(wtf.begin(), wtf.end(), wtf.begin(), ::toupper);
 
-                // std::cout << "wtf: " << wtf << '\n';
+                LOG_INFO(LogDev, "wtf: {}", wtf);
 
                 return HexToDec(wtf);
             }
@@ -163,17 +163,17 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
 
     if (RetAddr)
     {
-        // LOG_INFO(LogDev, "RetAddr 0x{:x}", RetAddr - __int64(GetModuleHandleW(0)));
+        LOG_INFO(LogDev, "RetAddr 0x{:x}", RetAddr - __int64(GetModuleHandleW(0)));
 
         int i = 0;
 
         for (__int64 CurrentAddy = RetAddr; CurrentAddy != NativeAddr && i < 2000; CurrentAddy -= 1) // Find last call
         {
-            // LOG_INFO(LogDev, "[{}] 0x{:x}", i, *(uint8_t*)CurrentAddy);
+            LOG_INFO(LogDev, "[{}] 0x{:x}", i, *(uint8_t*)CurrentAddy);
 
             if (*(uint8_t*)CurrentAddy == 0xE8)
             {
-                // LOG_INFO(LogDev, "CurrentAddy 0x{:x}", CurrentAddy - __int64(GetModuleHandleW(0)));
+                LOG_INFO(LogDev, "CurrentAddy 0x{:x}", CurrentAddy - __int64(GetModuleHandleW(0)));
                 functionAddy = (CurrentAddy + 1 + 4) + *(int*)(CurrentAddy + 1);
                 break;
             }

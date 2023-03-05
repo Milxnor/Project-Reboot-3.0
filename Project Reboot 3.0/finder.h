@@ -74,15 +74,37 @@ static inline uint64 FindKickPlayer()
 {
 	// return Memcury::Scanner::FindPattern("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC ? 49 8B F0 48 8B DA 48 85 D2").Get(); // 12.41
 
+	uint64 Ret = 0;
+
 	auto Addr = Memcury::Scanner::FindStringRef(L"Validation Failure: %s. kicking %s", false);
 
 	if (Addr.Get())
 	{
-		return FindBytes(Addr, { 0x40, 0x55 }, 2000, 0, true);
+		Ret = Addr.Get() ? FindBytes(Addr, { 0x40, 0x55 }, 1000, 0, true) : Ret;
+
+		if (!Ret)
+			Ret = Addr.Get() ? FindBytes(Addr, { 0x40, 0x53 }, 2000, 0, true) : Ret;
 	}
 
-	auto Addr2 = Memcury::Scanner::FindStringRef(L"KickPlayer %s Reason %s");
-	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true);
+	if (Ret)
+		return Ret;
+
+	auto Addr2 = Memcury::Scanner::FindStringRef(L"Failed to kick player"); // L"KickPlayer %s Reason %s"
+	Ret = Addr2.Get() ? FindBytes(Addr2, { 0x48, 0x89, 0x5C }, 2000, 0, true) : Ret; // s12??
+	// Ret = Addr2.Get() ? FindBytes(Addr2, { 0x48, 0x8B, 0xC4 }, 2000, 0, true) : Ret;
+
+	if (Ret)
+		return Ret;
+
+	/* auto Addr3 = Memcury::Scanner::FindStringRef(L"Game already ended.");
+	Ret = Addr3.Get() ? FindBytes(Addr3, { 0x48, 0x89, 0x5C }, 2000, 0, true) : Ret;
+
+	if (Ret)
+		return Ret; */
+
+	Ret = Memcury::Scanner::FindPattern("40 53 41 56 48 81 EC ? ? ? ? 48 8B 01 48 8B DA 4C 8B F1 FF 90").Get();
+
+	return Ret;
 }
 
 static inline uint64 FindInitHost()
@@ -126,15 +148,35 @@ static inline uint64 FindInitListen()
 	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true, 1);
 }
 
+static inline uint64 FindOnDamageServer()
+{
+	auto Addr = FindFunctionCall(L"OnDamageServer", { 0x40, 0x55 });
+	return Addr;
+}
+
 static inline uint64 FindNoMCP()
 {
+	if (Fortnite_Version == 4)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 83 E0 01").RelativeOffset(1).Get();
+
+	if (Engine_Version == 421 || Engine_Version == 422)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 CE").RelativeOffset(1).Get();
+
+	if (Engine_Version == 423)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 C0").RelativeOffset(1).Get();
+
+	if (Engine_Version == 425)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 C1").RelativeOffset(1).Get();
+
 	// return (uintptr_t)GetModuleHandleW(0) + 0x1791CF0; // 11.01
 	return 0;
-	return (uintptr_t)GetModuleHandleW(0) + 0x161d600;
+	// return (uintptr_t)GetModuleHandleW(0) + 0x161d600; // 10.40
 }
 
 static inline uint64 FindCollectGarbage()
 {
+	return 0;
+
 	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_CollectGarbageInternal");
 	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true, 1);
 }
@@ -158,7 +200,13 @@ static inline uint64 FindGetNetMode()
 
 static inline uint64 FindRealloc()
 {
-	auto Addr = Memcury::Scanner::FindStringRef(L"a.Budget.BudgetMs");
+	auto Addr = Memcury::Scanner::FindStringRef(L"a.Budget.BudgetMs", false);
+
+	if (!Addr.Get())
+	{
+		return Memcury::Scanner::FindPattern("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC ? 48 8B F1 41 8B D8 48 8B 0D ? ? ? ?").Get(); // 4.16-4.20
+	}
+
 	auto BeginningFunction = Memcury::Scanner(FindBytes(Addr, { 0x40, 0x53 }, 1000, 0, true));
 	auto CallToFunc = Memcury::Scanner(FindBytes(BeginningFunction, { 0xE8 }));
 
@@ -169,7 +217,11 @@ static inline uint64 FindRealloc()
 
 static inline uint64 FindPickTeam()
 {
-	auto Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%d]");
+	auto Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%d]", false);
+
+	if (!Addr.Get())
+		Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%s]");
+
 	return FindBytes(Addr, { 0x40, 0x55 }, 1000, 0, true);
 }
 
@@ -187,9 +239,21 @@ static inline uint64 FindGiveAbility()
 	return realGiveAbility;
 }
 
-static inline uint64 FindCantBuild()
+static inline uint64 FindGiveAbilityAndActivateOnce()
 {
-	return Memcury::Scanner::FindPattern("48 89 5C 24 10 48 89 6C 24 18 48 89 74 24 20 41 56 48 83 EC ? 49 8B E9 4D 8B F0").Get();
+	auto Addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!");
+
+	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 1000, 0, true);
+}
+
+static inline uint64 FindCantBuild()
+{	
+	auto add = Memcury::Scanner::FindPattern("48 89 5C 24 10 48 89 6C 24 18 48 89 74 24 20 41 56 48 83 EC ? 49 8B E9 4D 8B F0", false).Get();
+
+	if (!add)
+		add = Memcury::Scanner::FindPattern("48 89 54 24 ? 55 56 41 56 48 83 EC 50").Get(); // 4.20
+
+	return add;
 
 	auto CreateBuildingActorAddr = Memcury::Scanner(GetFunctionIdxOrPtr(FindObject<UFunction>("/Script/FortniteGame.FortAIController.CreateBuildingActor")));
 	auto LikeHuh = Memcury::Scanner(FindBytes(CreateBuildingActorAddr, { 0x40, 0x88 }, 3000));

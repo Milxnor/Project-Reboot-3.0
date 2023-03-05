@@ -3,6 +3,16 @@
 #include "BuildingActor.h"
 #include "PlayerState.h"
 
+enum class EFortResourceType : uint8_t
+{
+	Wood = 0,
+	Stone = 1,
+	Metal = 2,
+	Permanite = 3,
+	None = 4,
+	EFortResourceType_MAX = 5
+};
+
 class ABuildingSMActor : public ABuildingActor
 {
 public:
@@ -32,4 +42,12 @@ public:
 		static auto CurrentBuildingLevelOffset = GetOffset("CurrentBuildingLevel");
 		return Get<int>(CurrentBuildingLevelOffset);
 	}
+
+	EFortResourceType& GetResourceType()
+	{
+		static auto ResourceTypeOffset = GetOffset("ResourceType");
+		return Get<EFortResourceType>(ResourceTypeOffset);
+	}
+
+	static UClass* StaticClass();
 };

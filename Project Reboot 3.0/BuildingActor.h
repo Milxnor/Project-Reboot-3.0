@@ -2,6 +2,9 @@
 
 #include "Actor.h"
 #include "reboot.h" // we want to prevent this but im to lazy to make cpp file
+#include "PlayerController.h"
+
+#include "GameplayTagContainer.h"
 
 class ABuildingActor : public AActor
 {
@@ -18,4 +21,22 @@ public:
 		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.InitializeKismetSpawnedBuildingActor");
 		this->ProcessEvent(fn, &IBAParams);
 	}
+
+	float GetMaxHealth()
+	{
+		float MaxHealth = 0;
+		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.GetMaxHealth");
+		this->ProcessEvent(fn, &MaxHealth);
+		return MaxHealth;
+	}
+
+	static inline void (*OnDamageServerOriginal)(ABuildingActor* BuildingActor, float Damage, FGameplayTagContainer DamageTags,
+		FVector Momentum, /* FHitResult */ __int64  HitInfo, APlayerController* InstigatedBy, AActor* DamageCauser,
+		/* FGameplayEffectContextHandle */ __int64 EffectContext);
+
+	static void OnDamageServerHook(ABuildingActor* BuildingActor, float Damage, FGameplayTagContainer DamageTags,
+		FVector Momentum, /* FHitResult */ __int64  HitInfo, APlayerController* InstigatedBy, AActor* DamageCauser,
+		/* FGameplayEffectContextHandle */ __int64 EffectContext);
+
+	static UClass* StaticClass();
 };

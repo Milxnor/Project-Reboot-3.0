@@ -4,6 +4,6 @@
 
 UClass* AFortWeap_EditingTool::StaticClass()
 {
-	static auto Class = FindObject<UClass>("/Script/FortniteGame.FortWeap_EditingTool");
+	static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortWeap_EditingTool");
 	return Class;
 }

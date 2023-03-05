@@ -13,4 +13,6 @@ struct FName
 	uint32 Number;
 
 	std::string ToString();
+
+	bool IsValid() { return ComparisonIndex.Value > 0; }
 };

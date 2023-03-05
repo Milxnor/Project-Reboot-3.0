@@ -5,7 +5,7 @@
 #include "Class.h"
 #include "KismetSystemLibrary.h"
 
-int UObject::GetOffset(const std::string& ChildName)
+int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound)
 {
 	auto getFNameOfProp = [](void* Property) -> FName*
 	{
@@ -47,7 +47,8 @@ int UObject::GetOffset(const std::string& ChildName)
 		}
 	}
 
-	LOG_WARN(LogFinder, "Unable to find0{}", ChildName);
+	if (bWarnIfNotFound)
+		LOG_WARN(LogFinder, "Unable to find0{}", ChildName);
 
 	return 0;
 }

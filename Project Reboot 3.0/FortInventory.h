@@ -53,7 +53,7 @@ public:
 		ProcessEvent(HandleInventoryLocalUpdateFn);
 	}
 
-	FORCENOINLINE void Update(bool bMarkArrayDirty = false)
+	FORCENOINLINE void Update(bool bMarkArrayDirty = true)
 	{
 		HandleInventoryLocalUpdate();
 

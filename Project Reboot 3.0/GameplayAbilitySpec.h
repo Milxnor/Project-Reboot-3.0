@@ -37,7 +37,7 @@ struct FGameplayAbilitySpec : FFastArraySerializerItem
 	}
 };
 
-static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* SourceObject = nullptr)
+static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* SourceObject = nullptr, bool bAlreadyIsDefault = false)
 {
 	auto NewSpec = Alloc<FGameplayAbilitySpec>(FGameplayAbilitySpec::GetStructSize());
 
@@ -55,7 +55,7 @@ static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* 
 	((FFastArraySerializerItem*)NewSpec)->ReplicationKey = -1;
 
 	NewSpec->GetHandle().GenerateNewHandle();
-	NewSpec->GetAbility() = GameplayAbilityClass->CreateDefaultObject();
+	NewSpec->GetAbility() = bAlreadyIsDefault ? GameplayAbilityClass : GameplayAbilityClass->CreateDefaultObject();
 	*(int*)(__int64(NewSpec) + LevelOffset) = 0;
 	*(int*)(__int64(NewSpec) + InputIDOffset) = -1;
 	*(UObject**)(__int64(NewSpec) + SourceObjectOffset) = SourceObject;

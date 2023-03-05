@@ -12,6 +12,8 @@ struct FCreateBuildingActorData { uint32_t BuildingClassHandle; FVector BuildLoc
 class AFortPlayerController : public APlayerController
 {
 public:
+	void ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot);
+
 	AFortInventory*& GetWorldInventory()
 	{
 		static auto WorldInventoryOffset = GetOffset("WorldInventory");
@@ -23,6 +25,7 @@ public:
 		static auto MyFortPawnOffset = GetOffset("MyFortPawn");
 		return Get<AFortPawn*>(MyFortPawnOffset);
 	}
+
 
 	static UClass* StaticClass()
 	{
@@ -47,6 +50,8 @@ public:
 	static void ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation);
 	static void ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData);
 	
+	static void ServerPlayEmoteItemHook(AFortPlayerController* PlayerController, UObject* EmoteAsset);
+
 	static void ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit);
 	static void ServerEditBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit, UClass* NewBuildingClass, int RotationIterations, char bMirrored);
 	static void ServerEndEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToStopEditing);

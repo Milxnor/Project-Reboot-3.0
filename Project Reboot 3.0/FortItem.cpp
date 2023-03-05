@@ -2,6 +2,6 @@
 
 void UFortItem::SetOwningControllerForTemporaryItem(UObject* Controller)
 {
-	static auto SOCFTIFn = FindObject<UFunction>("/Script/FortniteGame.FortItem.SetOwningControllerForTemporaryItem");
+	static auto SOCFTIFn = FindObject<UFunction>(L"/Script/FortniteGame.FortItem.SetOwningControllerForTemporaryItem");
 	this->ProcessEvent(SOCFTIFn, &Controller);
 }

@@ -8,6 +8,17 @@
 #include "BuildingWeapons.h"
 
 #include "ActorComponent.h"
+#include "FortPlayerStateAthena.h"
+
+void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
+{
+	static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ClientReportDamagedResourceBuilding");
+
+	struct { ABuildingSMActor* BuildingSMActor; EFortResourceType PotentialResourceType; int PotentialResourceCount; bool bDestroyed; bool bJustHitWeakspot; }
+	AFortPlayerController_ClientReportDamagedResourceBuilding_Params{BuildingSMActor, PotentialResourceType, PotentialResourceCount, bDestroyed, bJustHitWeakspot};
+
+	this->ProcessEvent(fn, &AFortPlayerController_ClientReportDamagedResourceBuilding_Params);
+}
 
 void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation)
 {
@@ -94,6 +105,39 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 		return;
 
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
+}
+
+void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* PlayerController, UObject* EmoteAsset)
+{
+	auto PlayerState = (AFortPlayerStateAthena*)PlayerController->GetPlayerState();
+	auto Pawn = PlayerController->GetPawn();
+
+	if (!EmoteAsset || !PlayerState || !Pawn)
+		return;
+
+	UObject* AbilityToUse = nullptr;
+
+	if (!AbilityToUse)
+	{
+		static auto EmoteGameplayAbilityDefault = FindObject("/Game/Abilities/Emotes/GAB_Emote_Generic.Default__GAB_Emote_Generic_C");
+		AbilityToUse = EmoteGameplayAbilityDefault;
+	}
+
+	if (!AbilityToUse)
+		return;
+
+
+	int outHandle = 0;
+
+	FGameplayAbilitySpecHandle Handle{};
+	Handle.GenerateNewHandle();
+
+	FGameplayAbilitySpec* Spec = MakeNewSpec((UClass*)AbilityToUse, EmoteAsset, true);
+
+	static unsigned int* (*GiveAbilityAndActivateOnce)(UAbilitySystemComponent * ASC, int* outHandle, __int64 Spec)
+		= decltype(GiveAbilityAndActivateOnce)(Addresses::GiveAbilityAndActivateOnce);
+
+	GiveAbilityAndActivateOnce(PlayerState->GetAbilitySystemComponent(), &outHandle, __int64(Spec));
 }
 
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)

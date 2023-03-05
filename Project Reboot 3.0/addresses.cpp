@@ -11,10 +11,13 @@
 #include "AbilitySystemComponent.h"
 
 #include "finder.h"
+#include <regex>
+
+#include "BuildingActor.h"
 
 void Addresses::SetupVersion()
 {
-	// if (false)
+	if (false)
 	{
 		Engine_Version = 423;
 		Fortnite_Version = 10.40;
@@ -31,6 +34,74 @@ void Addresses::SetupVersion()
 		Engine_Version = 425;
 		Fortnite_Version = 12.41;
 	}
+
+	static FString(*GetEngineVersion)() = decltype(GetEngineVersion)(Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 41 B8 04 ? ? ? 48 8B D3").Get());
+
+	std::string FullVersion;
+	FString toFree;
+
+	if (!GetEngineVersion)
+	{
+		auto VerStr = Memcury::Scanner::FindPattern("2B 2B 46 6F 72 74 6E 69 74 65 2B 52 65 6C 65 61 73 65 2D ? ? ? ?").Get();
+
+		// if (!VerStr)
+
+		FullVersion = decltype(FullVersion.c_str())(VerStr);
+		Engine_Version = 500;
+	}
+
+	else
+	{
+		toFree = GetEngineVersion();
+		FullVersion = toFree.ToString();
+	}
+
+	std::string FNVer = FullVersion;
+	std::string EngineVer = FullVersion;
+	std::string CLStr;
+	int CL = 0;
+
+	if (!FullVersion.contains("Live") && !FullVersion.contains(("Next")) && !FullVersion.contains(("Cert")))
+	{
+		if (GetEngineVersion)
+		{
+			FNVer.erase(0, FNVer.find_last_of(("-"), FNVer.length() - 1) + 1);
+			EngineVer.erase(EngineVer.find_first_of(("-"), FNVer.length() - 1), 40);
+
+			if (EngineVer.find_first_of(".") != EngineVer.find_last_of(".")) // this is for 4.21.0 and itll remove the .0
+				EngineVer.erase(EngineVer.find_last_of((".")), 2);
+
+			Engine_Version = std::stod(EngineVer) * 100;
+		}
+
+		else
+		{
+			const std::regex base_regex(("-([0-9.]*)-"));
+			std::cmatch base_match;
+
+			std::regex_search(FullVersion.c_str(), base_match, base_regex);
+
+			FNVer = base_match[1];
+		}
+
+		Fortnite_Version = std::stod(FNVer);
+
+		if (Fortnite_Version >= 16.00 && Fortnite_Version <= 18.40)
+			Engine_Version = 427; // 4.26.1;
+	}
+
+	else
+	{
+		// TODO
+		// Engine_Version = FullVersion.contains(("Next")) ? 419 : 416;
+		CLStr = FullVersion.substr(FullVersion.find_first_of('-') + 1);
+		CLStr = CLStr.substr(0, CLStr.find_first_of('+'));
+		CL = std::stoi(CLStr);
+		Engine_Version = CL <= 3775276 ? 416 : 419; // std::stoi(FullVersion.substr(0, FullVersion.find_first_of('-')));
+		Fortnite_Version = FullVersion.contains(("Next")) ? 2.4 : 1.8;
+	}
+
+	// Fortnite_Season = std::floor(Fortnite_Version);
 
 	FFastArraySerializer::bNewSerializer = Fortnite_Version >= 8.30;
 }
@@ -57,6 +128,8 @@ void Addresses::FindAll()
 	Addresses::GiveAbility = FindGiveAbility();
 	Addresses::CantBuild = FindCantBuild();
 	Addresses::ReplaceBuildingActor = FindReplaceBuildingActor();
+	Addresses::GiveAbilityAndActivateOnce = FindGiveAbilityAndActivateOnce();
+	Addresses::OnDamageServer = FindOnDamageServer();
 }
 
 void Addresses::Print()
@@ -84,6 +157,8 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "GiveAbility: 0x{:x}", GiveAbility - Base);
 	LOG_INFO(LogDev, "CantBuild: 0x{:x}", CantBuild - Base);
 	LOG_INFO(LogDev, "ReplaceBuildingActor: 0x{:x}", ReplaceBuildingActor - Base);
+	LOG_INFO(LogDev, "GiveAbilityAndActivateOnce: 0x{:x}", GiveAbilityAndActivateOnce - Base);
+	LOG_INFO(LogDev, "OnDamageServer: 0x{:x}", OnDamageServer - Base);
 }
 
 void Offsets::FindAll()
@@ -95,7 +170,7 @@ void Offsets::FindAll()
 
 	if (Engine_Version == 420 || Engine_Version == 421)
 		Offsets::Func = 0xB0;
-	else if (Engine_Version == 423 || Engine_Version == 424)
+	else if (Engine_Version >= 422 && Engine_Version <= 424)
 		Offsets::Func = 0xC0;
 	else if (Engine_Version == 425)
 		Offsets::Func = 0xF0;
@@ -146,7 +221,25 @@ void Addresses::Init()
 	FMemory::Realloc = decltype(FMemory::Realloc)(Realloc);
 	UAbilitySystemComponent::GiveAbilityOriginal = decltype(UAbilitySystemComponent::GiveAbilityOriginal)(GiveAbility);
 	UAbilitySystemComponent::InternalTryActivateAbilityOriginal = decltype(UAbilitySystemComponent::InternalTryActivateAbilityOriginal)(InternalTryActivateAbility);
+	ABuildingActor::OnDamageServerOriginal = decltype(ABuildingActor::OnDamageServerOriginal)(OnDamageServer);
 
 	// if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
 	// else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);
+}
+
+std::vector<uint64> Addresses::GetFunctionsToNull()
+{
+	std::vector<uint64> toNull;
+
+	if (Engine_Version == 420)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 57 48 81 EC ? ? ? ? 4C 8B 82 ? ? ? ? 48 8B F9 0F 29 70 E8 0F 29 78 D8").Get()); // Pawn Overlap
+	}
+
+	if (Engine_Version == 421)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 57 48 81 EC ? ? ? ? 48 8B BA ? ? ? ? 48 8B DA 0F 29").Get()); // Pawn Overlap
+	}
+
+	return toNull;
 }

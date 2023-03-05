@@ -29,7 +29,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 		// NewItemInstance->GetItemEntry()->GetItemDefinition() = ItemDefinition;
 
-		static auto FortItemEntryStruct = FindObject("/Script/FortniteGame.FortItemEntry");
+		static auto FortItemEntryStruct = FindObject(L"/Script/FortniteGame.FortItemEntry");
 		static auto FortItemEntrySize = *(int*)(__int64(FortItemEntryStruct) + Offsets::PropertiesSize);
 
 		// LOG_INFO(LogDev, "FortItemEntryStruct {}", __int64(FortItemEntryStruct));

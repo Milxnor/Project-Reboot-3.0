@@ -114,6 +114,8 @@ public:
 
 	bool Remove(const int Index)
 	{
+		// return false;
+
 		if (Index < ArrayNum)
 		{
 			if (Index != ArrayNum - 1)
