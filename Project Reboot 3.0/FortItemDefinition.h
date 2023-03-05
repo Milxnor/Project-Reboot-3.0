@@ -10,4 +10,5 @@ class UFortItemDefinition : public UObject
 {
 public:
 	UFortItem* CreateTemporaryItemInstanceBP(int Count, int Level = 1);
+	float GetMaxStackSize();
 };

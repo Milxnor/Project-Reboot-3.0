@@ -4,8 +4,95 @@
 #include "NetSerialization.h"
 #include "FortPlayerControllerAthena.h"
 #include "GameplayStatics.h"
+#include "KismetStringLibrary.h"
+#include "SoftObjectPtr.h"
+#include "FortPickup.h"
+#include "FortLootPackage.h"
+#include "BuildingContainer.h"
 
 static bool bFirstPlayerJoined = false;
+
+enum class EDynamicFoundationEnabledState : uint8_t
+{
+	Unknown = 0,
+	Enabled = 1,
+	Disabled = 2,
+	EDynamicFoundationEnabledState_MAX = 3
+};
+
+
+// Enum FortniteGame.EDynamicFoundationType
+enum class EDynamicFoundationType : uint8_t
+{
+	Static = 0,
+	StartEnabled_Stationary = 1,
+	StartEnabled_Dynamic = 2,
+	StartDisabled = 3,
+	EDynamicFoundationType_MAX = 4
+};
+
+void ShowFoundation(AActor* BuildingFoundation)
+{
+	SetBitfield(BuildingFoundation->GetPtr<PlaceholderBitfield>("bServerStreamedInLevel"), 2, true);
+
+	static auto OnRep_ServerStreamedInLevelFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_ServerStreamedInLevel");
+	BuildingFoundation->ProcessEvent(OnRep_ServerStreamedInLevelFn);
+
+	static auto DynamicFoundationRepDataOffset = BuildingFoundation->GetOffset("DynamicFoundationRepData", false);
+
+	if (DynamicFoundationRepDataOffset != 0)
+	{
+		auto DynamicFoundationRepData = BuildingFoundation->GetPtr(DynamicFoundationRepDataOffset);
+
+		static auto EnabledStateOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "EnabledState");
+
+		*(EDynamicFoundationEnabledState*)(__int64(DynamicFoundationRepData) + EnabledStateOffset) = EDynamicFoundationEnabledState::Enabled;
+
+		static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
+		BuildingFoundation->ProcessEvent(OnRep_DynamicFoundationRepDataFn);
+	}
+
+	static auto FoundationEnabledStateOffset = BuildingFoundation->GetOffset("FoundationEnabledState");
+	BuildingFoundation->Get<EDynamicFoundationEnabledState>(FoundationEnabledStateOffset) = EDynamicFoundationEnabledState::Enabled;
+}
+
+static void StreamLevel(std::string LevelName, FVector Location = {})
+{
+	static auto BuildingFoundation3x3Class = FindObject<UClass>("/Script/FortniteGame.BuildingFoundation3x3");
+	FTransform Transform{};
+	Transform.Scale3D = { 1, 1, 1 };
+	Transform.Translation = Location;
+	auto BuildingFoundation = GetWorld()->SpawnActor<ABuildingSMActor>(BuildingFoundation3x3Class, Transform);
+
+	BuildingFoundation->InitializeBuildingActor(BuildingFoundation, nullptr, false);
+
+	static auto FoundationNameOffset = FindOffsetStruct("/Script/FortniteGame.BuildingFoundationStreamingData", "FoundationName");
+	static auto FoundationLocationOffset = FindOffsetStruct("/Script/FortniteGame.BuildingFoundationStreamingData", "FoundationLocation");
+	static auto StreamingDataOffset = BuildingFoundation->GetOffset("StreamingData");
+	static auto LevelToStreamOffset = BuildingFoundation->GetOffset("LevelToStream");
+
+	auto StreamingData = BuildingFoundation->GetPtr<__int64>(StreamingDataOffset);
+
+	*(FName*)(__int64(StreamingData) + FoundationNameOffset) = UKismetStringLibrary::Conv_StringToName(std::wstring(LevelName.begin(), LevelName.end()).c_str());
+	*(FVector*)(__int64(StreamingData) + FoundationLocationOffset) = Location;
+
+	*(FName*)(__int64(BuildingFoundation) + LevelToStreamOffset) = UKismetStringLibrary::Conv_StringToName(std::wstring(LevelName.begin(), LevelName.end()).c_str());
+	
+	static auto OnRep_LevelToStreamFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_LevelToStream");
+	BuildingFoundation->ProcessEvent(OnRep_LevelToStreamFn);
+
+	ShowFoundation(BuildingFoundation);
+}
+
+UObject* GetPlaylistToUse()
+{
+	auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
+
+	if (Globals::bCreative)
+		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
+
+	return Playlist;
+}
 
 bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode)
 {
@@ -18,9 +105,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 			static auto PlaylistReplicationKeyOffset = FindOffsetStruct("/Script/FortniteGame.PlaylistPropertyArray", "PlaylistReplicationKey");
 			static auto BasePlaylistOffset = FindOffsetStruct("/Script/FortniteGame.PlaylistPropertyArray", "BasePlaylist");
+			static auto OverridePlaylistOffset = FindOffsetStruct("/Script/FortniteGame.PlaylistPropertyArray", "OverridePlaylist");
 
 			*(UObject**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset) = Playlist;
-			// CurrentPlaylistInfo.OverridePlaylist = Playlist;
+			*(UObject**)(__int64(CurrentPlaylistInfo) + OverridePlaylistOffset) = Playlist;
 
 			(*(int*)(__int64(CurrentPlaylistInfo) + PlaylistReplicationKeyOffset))++;
 			CurrentPlaylistInfo->MarkArrayDirty();
@@ -30,7 +118,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		else
 		{
 			GameState->Get("CurrentPlaylistData") = Playlist;
-			GameState->OnRep_CurrentPlaylistInfo();
+			GameState->OnRep_CurrentPlaylistInfo(); // calls OnRep_CurrentPlaylistData
 		}
 	};
 
@@ -47,12 +135,22 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	{
 		LastNum2 = AmountOfRestarts;
 
-		auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
-		// SetPlaylist(Playlist);
+		GameMode->Get<int>("WarmupRequiredPlayerCount") = 1;	
+		
+		auto PlaylistToUse = GetPlaylistToUse();
 
-		GameMode->Get<int>("WarmupRequiredPlayerCount") = 1;
+		if (PlaylistToUse)
+		{
+			static auto AdditionalLevelsOffset = PlaylistToUse->GetOffset("AdditionalLevels");
+			auto& AdditionalLevels = PlaylistToUse->Get<TArray<TSoftObjectPtr<UClass>>>(AdditionalLevelsOffset);
 
-		// LOG_INFO(LogLoading, "Set playlist!");
+			for (int i = 0; i < AdditionalLevels.Num(); i++)
+			{
+				// auto World = Cast<UWorld>(Playlist->AdditionalLevels[i].Get());
+				// StreamLevel(UKismetSystemLibrary::GetPathName(World->PersistentLevel).ToString());
+				StreamLevel(AdditionalLevels.at(i).SoftObjectPtr.ObjectID.AssetPathName.ToString());
+			}
+		}
 	}
 
 	/* static auto FortPlayerStartWarmupClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
@@ -122,9 +220,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			GameState->OnRep_GamePhase();
 		}
 
-		auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
-			// FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
-		SetPlaylist(Playlist);
+		SetPlaylist(GetPlaylistToUse());
 
 		GameState->Get<float>("WarmupCountdownEndTime") = TimeSeconds + Duration;
 		GameMode->Get<float>("WarmupCountdownDuration") = Duration;
@@ -151,8 +247,87 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	return ++NextTeamIndex;
 }
 
+enum class EFortCustomPartType : uint8_t // todo move
+{
+	Head = 0,
+	Body = 1,
+	Hat = 2,
+	Backpack = 3,
+	Charm = 4,
+	Face = 5,
+	NumTypes = 6,
+	EFortCustomPartType_MAX = 7
+};
+
 void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena* GameMode, AActor* NewPlayerActor)
 {
+	auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
+	auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
+
+	TArray<AActor*> SpawnIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnIsland_FloorLoot);
+
+	TArray<AActor*> BRIsland_FloorLoot_Actors =	UGameplayStatics::GetAllActorsOfClass(GetWorld(), BRIsland_FloorLoot);
+
+	auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
+	auto BRIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot");
+
+	float UpZ = 50;
+
+	EFortPickupSourceTypeFlag SpawnFlag = EFortPickupSourceTypeFlag::Container;
+
+	bool bPrintWarmup = false;
+
+	for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
+	{
+		ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
+
+		// CurrentActor->K2_DestroyActor();
+		// continue;
+
+		auto Location = CurrentActor->GetActorLocation();
+		Location.Z += UpZ;
+
+		std::vector<std::pair<UFortItemDefinition*, int>> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
+
+		if (bPrintWarmup)
+		{
+			std::cout << "\n\n";
+		}
+
+		if (LootDrops.size())
+		{
+			for (auto& LootDrop : LootDrops)
+				AFortPickup::SpawnPickup(LootDrop.first, Location, LootDrop.second, SpawnFlag);
+		}
+	}
+
+	bool bPrint = false;
+
+	int spawned = 0;
+
+	for (int i = 0; i < BRIsland_FloorLoot_Actors.Num(); i++)
+	{
+		ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
+
+		// CurrentActor->K2_DestroyActor();
+		spawned++;
+		// continue;
+
+		auto Location = CurrentActor->GetActorLocation();
+		Location.Z += UpZ;
+
+		std::vector<std::pair<UFortItemDefinition*, int>> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
+
+		if (bPrint)
+			std::cout << "\n";
+
+		if (LootDrops.size())
+		{
+			for (auto& LootDrop : LootDrops)
+				AFortPickup::SpawnPickup(LootDrop.first, Location, LootDrop.second, SpawnFlag);
+		}
+	}
+
 	auto GameState = GameMode->GetGameStateAthena();
 
 	auto NewPlayer = (AFortPlayerControllerAthena*)NewPlayerActor;
@@ -179,6 +354,25 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	auto PlayerStateAthena = NewPlayer->GetPlayerStateAthena();
 
+	static auto CharacterPartsOffset = PlayerStateAthena->GetOffset("CharacterParts", false);
+
+	if (CharacterPartsOffset != 0)
+	{
+		auto CharacterParts = PlayerStateAthena->GetPtr<__int64>("CharacterParts");
+		
+		static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts");
+		auto Parts = (UObject**)(__int64(CharacterParts) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
+
+		static auto headPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
+		static auto bodyPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
+
+		Parts[(int)EFortCustomPartType::Head] = headPart;
+		Parts[(int)EFortCustomPartType::Body] = bodyPart;
+
+		static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
+		PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);
+	}
+
 	PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2;
 
 	// if (false)
@@ -200,9 +394,11 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	if (false)
 	{
-		static auto GameplayAbilitySet = FindObject<UObject>("/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
-			FindObject<UObject>("/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") :
-			FindObject<UObject>("/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer");
+		static auto GameplayAbilitySet = LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
+			LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") :
+			LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer");
+
+		// LOG_INFO(LogDev, "GameplayAbilitySet {}", __int64(GameplayAbilitySet));
 
 		if (GameplayAbilitySet)
 		{
@@ -213,7 +409,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			{
 				UClass* AbilityClass = GameplayAbilities->At(i);
 
-				LOG_INFO(LogDev, "AbilityClass {}", __int64(AbilityClass));
+				// LOG_INFO(LogDev, "AbilityClass {}", __int64(AbilityClass));
 
 				if (!AbilityClass)
 					continue;

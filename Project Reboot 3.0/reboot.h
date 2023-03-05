@@ -11,16 +11,37 @@
 	FAILED_STRINGREF = 1,
 	FAILED_CREATE_NETDRIVER = 2,
 	FAILED_LISTEN = 3
-}; */ 
+}; */
+
+namespace Globals
+{
+	extern inline bool bCreative = false;
+}
+
+extern inline UObject* (*StaticLoadObjectOriginal)(UClass*, UObject*, const wchar_t* InName, const wchar_t* Filename, uint32_t LoadFlags, UObject* Sandbox, bool bAllowObjectReconciliation) = nullptr;
 
 template <typename T = UObject>
-static inline T* FindObject(const TCHAR* Name, UClass* Class = nullptr)
+static inline T* LoadObject(const TCHAR* Name, UClass* Class = nullptr, UObject* Outer = nullptr)
 {
-	return StaticFindObject<T>(Class, nullptr, Name);
+	return (T*)StaticLoadObjectOriginal(Class, Outer, Name, nullptr, 0, nullptr, false);
 }
 
 template <typename T = UObject>
-static inline T* FindObject(const std::string& NameStr, UClass* Class = nullptr)
+static inline T* LoadObject(const std::string& NameStr, UClass* Class = nullptr, UObject* Outer = nullptr)
+{
+	auto NameCWSTR = std::wstring(NameStr.begin(), NameStr.end()).c_str();
+	return (T*)StaticLoadObjectOriginal(Class, Outer, NameCWSTR, nullptr, 0, nullptr, false);
+}
+
+template <typename T = UObject>
+static inline T* FindObject(const TCHAR* Name, UClass* Class = nullptr, UObject* Outer = nullptr)
+{
+	auto res = (T*)StaticFindObject/*<T>*/(Class, Outer, Name);
+	return res;
+}
+
+template <typename T = UObject>
+static inline T* FindObject(const std::string& NameStr, UClass* Class = nullptr, UObject* Outer = nullptr)
 {
 	auto NameCWSTR = std::wstring(NameStr.begin(), NameStr.end()).c_str();
 	return StaticFindObject<T>(Class, nullptr, NameCWSTR);

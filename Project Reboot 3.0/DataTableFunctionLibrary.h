@@ -15,7 +15,7 @@ class UDataTableFunctionLibrary : public UObject
 {
 public:
 	static void EvaluateCurveTableRow(UCurveTable* CurveTable, FName RowName, float InXY,
-		FString ContextString, EEvaluateCurveTableResult* OutResult, float* OutXY);
+		const FString& ContextString, EEvaluateCurveTableResult* OutResult, float* OutXY);
 
 	static UClass* StaticClass();
 };

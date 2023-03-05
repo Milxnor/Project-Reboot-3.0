@@ -15,7 +15,7 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 	FVector Momentum, /* FHitResult */ __int64 HitInfo, APlayerController* InstigatedBy, AActor* DamageCauser,
 	/* FGameplayEffectContextHandle */ __int64 EffectContext)
 {
-	LOG_INFO(LogDev, "Befor3e");
+	// LOG_INFO(LogDev, "Befor3e");
 
 	auto BuildingSMActor = Cast<ABuildingSMActor>(BuildingActor);
 	auto PlayerController = Cast<AFortPlayerControllerAthena>(InstigatedBy);
@@ -42,7 +42,7 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 		// auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGGetGameStateAthena);
 		UCurveTable* CurveTable = nullptr; // GameState->CurrentPlaylistInfo.BasePlaylist ? GameState->CurrentPlaylistInfo.BasePlaylist->ResourceRates.Get() : nullptr;
 
-		LOG_INFO(LogDev, "Before1");
+		// LOG_INFO(LogDev, "Before1");
 
 		if (!CurveTable)
 			CurveTable = FindObject<UCurveTable>("/Game/Athena/Balance/DataTables/AthenaResourceRates.AthenaResourceRates");
@@ -50,13 +50,14 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 		{
 			// auto curveMap = ((UDataTable*)CurveTable)->GetRowMap();
 
-			LOG_INFO(LogDev, "Before {}", __int64(CurveTable));
+			// LOG_INFO(LogDev, "Before {}", __int64(CurveTable));
 
 			float Out;
 			FString ContextString;
-			UDataTableFunctionLibrary::EvaluateCurveTableRow(CurveTable, BuildingResourceAmountOverride.RowName, 0, ContextString, nullptr, &Out);
+			EEvaluateCurveTableResult result;
+			UDataTableFunctionLibrary::EvaluateCurveTableRow(CurveTable, BuildingResourceAmountOverride.RowName, 0.f, ContextString, &result, &Out);
 
-			LOG_INFO(LogDev, "Out: {}", Out);
+			// LOG_INFO(LogDev, "Out: {}", Out);
 
 			auto DamageThatWillAffect = Damage;
 

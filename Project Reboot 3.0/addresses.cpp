@@ -130,6 +130,7 @@ void Addresses::FindAll()
 	Addresses::ReplaceBuildingActor = FindReplaceBuildingActor();
 	Addresses::GiveAbilityAndActivateOnce = FindGiveAbilityAndActivateOnce();
 	Addresses::OnDamageServer = FindOnDamageServer();
+	Addresses::StaticLoadObject = FindStaticLoadObject();
 }
 
 void Addresses::Print()
@@ -159,6 +160,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "ReplaceBuildingActor: 0x{:x}", ReplaceBuildingActor - Base);
 	LOG_INFO(LogDev, "GiveAbilityAndActivateOnce: 0x{:x}", GiveAbilityAndActivateOnce - Base);
 	LOG_INFO(LogDev, "OnDamageServer: 0x{:x}", OnDamageServer - Base);
+	LOG_INFO(LogDev, "StaticLoadObject: 0x{:x}", StaticLoadObject - Base);
 }
 
 void Offsets::FindAll()
@@ -222,6 +224,7 @@ void Addresses::Init()
 	UAbilitySystemComponent::GiveAbilityOriginal = decltype(UAbilitySystemComponent::GiveAbilityOriginal)(GiveAbility);
 	UAbilitySystemComponent::InternalTryActivateAbilityOriginal = decltype(UAbilitySystemComponent::InternalTryActivateAbilityOriginal)(InternalTryActivateAbility);
 	ABuildingActor::OnDamageServerOriginal = decltype(ABuildingActor::OnDamageServerOriginal)(OnDamageServer);
+	StaticLoadObjectOriginal = decltype(StaticLoadObjectOriginal)(StaticLoadObject);
 
 	// if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
 	// else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);

@@ -28,3 +28,12 @@ void AActor::K2_DestroyActor()
 
 	this->ProcessEvent(DestroyActorFn);
 }
+
+FVector AActor::GetActorLocation()
+{
+	static auto K2_GetActorLocationFn = FindObject<UFunction>("/Script/Engine.Actor.K2_GetActorLocation");
+	FVector ret;
+	this->ProcessEvent(K2_GetActorLocationFn, &ret);
+
+	return ret;
+}

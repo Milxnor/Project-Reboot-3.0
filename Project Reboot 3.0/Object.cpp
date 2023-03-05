@@ -72,3 +72,9 @@ bool UObject::IsA(UClass* otherClass)
 
 	return false;
 }
+
+class UClass* UObject::StaticClass()
+{
+	static auto Class = FindObject<UClass>("/Script/CoreUObject.Object");
+	return Class;
+}

@@ -3,7 +3,7 @@
 #include "reboot.h"
 
 void UDataTableFunctionLibrary::EvaluateCurveTableRow(UCurveTable* CurveTable, FName RowName, float InXY,
-	FString ContextString, EEvaluateCurveTableResult* OutResult, float* OutXY)
+	const FString& ContextString, EEvaluateCurveTableResult* OutResult, float* OutXY)
 {
 	static auto fn = FindObject<UFunction>("/Script/Engine.DataTableFunctionLibrary.EvaluateCurveTableRow");
 
@@ -17,10 +17,10 @@ void UDataTableFunctionLibrary::EvaluateCurveTableRow(UCurveTable* CurveTable, F
 	DefaultClass->ProcessEvent(fn, &UDataTableFunctionLibrary_EvaluateCurveTableRow_Params);
 
 	if (OutResult)
-		*OutResult = wtf1;
+		*OutResult = UDataTableFunctionLibrary_EvaluateCurveTableRow_Params.OutResult;
 
 	if (OutXY)
-		*OutXY = wtf;
+		*OutXY = UDataTableFunctionLibrary_EvaluateCurveTableRow_Params.OutXY;
 }
 
 UClass* UDataTableFunctionLibrary::StaticClass()

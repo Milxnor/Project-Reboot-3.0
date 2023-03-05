@@ -33,7 +33,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		static auto FortItemEntrySize = *(int*)(__int64(FortItemEntryStruct) + Offsets::PropertiesSize);
 
 		// LOG_INFO(LogDev, "FortItemEntryStruct {}", __int64(FortItemEntryStruct));
-		LOG_INFO(LogDev, "FortItemEntrySize {}", __int64(FortItemEntrySize));
+		// LOG_INFO(LogDev, "FortItemEntrySize {}", __int64(FortItemEntrySize));
 
 		GetItemList().GetItemInstances().Add(NewItemInstance);
 		GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);

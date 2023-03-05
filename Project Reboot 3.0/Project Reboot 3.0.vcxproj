@@ -184,10 +184,12 @@
     <ClCompile Include="FortKismetLibrary.cpp" />
     <ClCompile Include="FortLootPackage.cpp" />
     <ClCompile Include="FortPawn.cpp" />
+    <ClCompile Include="FortPickup.cpp" />
     <ClCompile Include="FortPlayerController.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
+    <ClCompile Include="KismetMathLibrary.cpp" />
     <ClCompile Include="KismetStringLibrary.cpp" />
     <ClCompile Include="LevelActor.cpp" />
     <ClCompile Include="NameTypes.cpp" />
@@ -207,6 +209,7 @@
     <ClInclude Include="Array.h" />
     <ClInclude Include="BitArray.h" />
     <ClInclude Include="BuildingActor.h" />
+    <ClInclude Include="BuildingContainer.h" />
     <ClInclude Include="BuildingSMActor.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />
@@ -227,6 +230,7 @@
     <ClInclude Include="FortKismetLibrary.h" />
     <ClInclude Include="FortLootPackage.h" />
     <ClInclude Include="FortPawn.h" />
+    <ClInclude Include="FortPickup.h" />
     <ClInclude Include="FortPlayerController.h" />
     <ClInclude Include="FortPlayerControllerAthena.h" />
     <ClInclude Include="FortPlayerState.h" />
@@ -246,6 +250,7 @@
     <ClInclude Include="GameState.h" />
     <ClInclude Include="hooking.h" />
     <ClInclude Include="inc.h" />
+    <ClInclude Include="KismetMathLibrary.h" />
     <ClInclude Include="KismetStringLibrary.h" />
     <ClInclude Include="KismetSystemLibrary.h" />
     <ClInclude Include="log.h" />
@@ -257,6 +262,7 @@
     <ClInclude Include="ObjectMacros.h" />
     <ClInclude Include="OutputDevice.h" />
     <ClInclude Include="Pawn.h" />
+    <ClInclude Include="PersistentObjectPtr.h" />
     <ClInclude Include="PlayerController.h" />
     <ClInclude Include="PlayerState.h" />
     <ClInclude Include="Quat.h" />
@@ -264,6 +270,8 @@
     <ClInclude Include="Rotator.h" />
     <ClInclude Include="ScriptInterface.h" />
     <ClInclude Include="Set.h" />
+    <ClInclude Include="SoftObjectPath.h" />
+    <ClInclude Include="SoftObjectPtr.h" />
     <ClInclude Include="SparseArray.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="Transform.h" />
@@ -272,6 +280,7 @@
     <ClInclude Include="UObjectArray.h" />
     <ClInclude Include="UObjectGlobals.h" />
     <ClInclude Include="Vector.h" />
+    <ClInclude Include="WeakObjectPtr.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>

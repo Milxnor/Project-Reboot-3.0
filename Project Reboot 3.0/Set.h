@@ -35,6 +35,7 @@ public:
 template<typename InElementType> //, typename KeyFuncs, typename Allocator>
 class TSet
 {
+public:
     typedef TSetElement<InElementType> ElementType;
     typedef TSparseArrayElementOrListLink<ElementType> ArrayElementType;
 

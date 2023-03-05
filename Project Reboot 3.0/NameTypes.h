@@ -15,4 +15,9 @@ struct FName
 	std::string ToString();
 
 	bool IsValid() { return ComparisonIndex.Value > 0; }
+
+	bool operator==(FName other)
+	{
+		return ComparisonIndex.Value == other.ComparisonIndex.Value;
+	}
 };

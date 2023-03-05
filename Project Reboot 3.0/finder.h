@@ -72,6 +72,11 @@ static inline uint64 FindCreateNetDriver()
 
 static inline uint64 FindKickPlayer()
 {
+	if (Engine_Version >= 423 || Engine_Version <= 425)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC ? 49 8B F0 48 8B DA 48 85 D2").Get();
+
+	// return 0;
+
 	// return Memcury::Scanner::FindPattern("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC ? 49 8B F0 48 8B DA 48 85 D2").Get(); // 12.41
 
 	uint64 Ret = 0;
@@ -133,13 +138,29 @@ static inline uint64 FindSpawnActor()
 
 static inline uint64 FindSetWorld()
 {
-	return Memcury::Scanner::FindStringRef(L"AOnlineBeaconHost::InitHost failed")
-		.ScanFor({ 0x48, 0x8B, 0xD0, 0xE8 }, false)
-		.RelativeOffset(4)
-		.Get(); // THANKS ENDER
+	if (Engine_Version < 426)
+		return Memcury::Scanner::FindStringRef(L"AOnlineBeaconHost::InitHost failed")
+			.ScanFor({ 0x48, 0x8B, 0xD0, 0xE8 }, false)
+			.RelativeOffset(4)
+			.Get(); // THANKS ENDER
 
-	// return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 8B EC 48 83 EC 30 48 8B 99").Get(); // s12 i think
-	return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B 99 ? ? ? ? 48 8B F2 48 8B F9 48 85 DB 0F 84 ? ? ? ? 48 8B 97").Get();
+	int SetWorldIndex = 0;
+
+	int Fortnite_Season = std::floor(Fortnite_Version);
+
+	if (Fortnite_Season == 13)
+		SetWorldIndex = 0x70;
+	else if (Fortnite_Season == 14 || Fortnite_Version <= 15.2)
+		SetWorldIndex = 0x71;
+	else if (Fortnite_Version >= 15.3 && Fortnite_Season < 18) // i havent tested 15.2
+		SetWorldIndex = 0x72;
+	else if (Fortnite_Season == 18)
+		SetWorldIndex = 0x73;
+	else if (Fortnite_Season >= 19 && Fortnite_Season < 21)
+		SetWorldIndex = 0x7A;
+
+	static auto DefaultNetDriver = FindObject("/Script/Engine.Default__NetDriver");
+	return __int64(DefaultNetDriver->VFTable[SetWorldIndex]);
 }
 
 static inline uint64 FindInitListen() 
@@ -152,6 +173,12 @@ static inline uint64 FindOnDamageServer()
 {
 	auto Addr = FindFunctionCall(L"OnDamageServer", { 0x40, 0x55 });
 	return Addr;
+}
+
+static inline uint64 FindStaticLoadObject()
+{
+	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_LoadObject").ScanFor({ 0x4C, 0x89, 0x4C }, false);
+	return Addr.Get();
 }
 
 static inline uint64 FindNoMCP()

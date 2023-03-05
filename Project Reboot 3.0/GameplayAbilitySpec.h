@@ -20,19 +20,21 @@ struct FGameplayAbilitySpec : FFastArraySerializerItem
 {
 	static int GetStructSize()
 	{
-		static auto StructSize = 0x00C8;
+		static auto GameplayAbilitySpecStruct = FindObject<UClass>("/Script/GameplayAbilities.GameplayAbilitySpec");
+		static auto StructSize = GameplayAbilitySpecStruct->GetPropertiesSize();
+			// *(int*)(__int64(GameplayAbilitySpecStruct) + Offsets::PropertiesSize);
 		return StructSize;
 	}
 
 	UObject*& GetAbility()
 	{
-		static auto AbilityOffset = 0x0010;
+		static auto AbilityOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "Ability");
 		return *(UObject**)(__int64(this) + AbilityOffset);
 	}
 
 	FGameplayAbilitySpecHandle& GetHandle()
 	{
-		static auto HandleOffset = 0xC;
+		static auto HandleOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "Handle");
 		return *(FGameplayAbilitySpecHandle*)(__int64(this) + HandleOffset);
 	}
 };
@@ -44,11 +46,9 @@ static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* 
 	if (!NewSpec)
 		return nullptr;
 
-	static auto HandleOffset = 0xC;
-	static auto AbilityOffset = 0x0010;
-	static auto LevelOffset = 0x0018;
-	static auto InputIDOffset = 0x001C;
-	static auto SourceObjectOffset = 0x0020;
+	static auto LevelOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "Level");
+	static auto SourceObjectOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "SourceObject");
+	static auto InputIDOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "InputID");
 
 	((FFastArraySerializerItem*)NewSpec)->MostRecentArrayReplicationKey = -1;
 	((FFastArraySerializerItem*)NewSpec)->ReplicationID = -1;

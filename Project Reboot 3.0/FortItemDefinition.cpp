@@ -9,3 +9,15 @@ UFortItem* UFortItemDefinition::CreateTemporaryItemInstanceBP(int Count, int Lev
 
 	return CreateTemporaryItemInstanceBP_Params.ReturnValue;
 }
+
+float UFortItemDefinition::GetMaxStackSize()
+{
+	static auto MaxStackSizeOffset = this->GetOffset("MaxStackSize");
+
+	bool bIsScalableFloat = false;
+
+	if (!bIsScalableFloat)
+		return Get<int>(MaxStackSizeOffset);
+
+	return 0;
+}

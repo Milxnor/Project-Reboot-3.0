@@ -80,4 +80,6 @@ public:
 
 	template <typename T = UObject*>
 	T* GetPtr(const std::string& ChildName) { return GetPtr<T>(GetOffset(ChildName)); }
+
+	static class UClass* StaticClass();
 };

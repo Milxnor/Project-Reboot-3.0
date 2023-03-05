@@ -3,6 +3,7 @@
 #include "EngineTypes.h"
 #include "Transform.h"
 #include "Object.h"
+#include "Rotator.h"
 
 struct FNetworkNotify
 {
@@ -43,6 +44,16 @@ public:
 	ActorType* SpawnActor(UClass* Class, FTransform UserTransformPtr = FTransform(), const FActorSpawnParameters& SpawnParameters = FActorSpawnParameters())
 	{
 		return (ActorType*)SpawnActorOriginal(this, Class, &UserTransformPtr, SpawnParameters);
+	}
+
+	template <typename ActorType>
+	ActorType* SpawnActor(UClass* Class, FVector Location, FQuat Rotation = FQuat(), FVector Scale3D = FVector(1, 1, 1), const FActorSpawnParameters& SpawnParameters = FActorSpawnParameters())
+	{
+		FTransform UserTransformPtr{};
+		UserTransformPtr.Translation = Location;
+		UserTransformPtr.Rotation = Rotation;
+		UserTransformPtr.Scale3D = Scale3D;
+		return SpawnActor<ActorType>(Class, UserTransformPtr, SpawnParameters);
 	}
 
 	void Listen();

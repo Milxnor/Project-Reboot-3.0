@@ -26,7 +26,6 @@ public:
 		return Get<AFortPawn*>(MyFortPawnOffset);
 	}
 
-
 	static UClass* StaticClass()
 	{
 		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerController");

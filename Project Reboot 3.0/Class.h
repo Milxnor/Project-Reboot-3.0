@@ -12,14 +12,14 @@ struct UField : UObject
 
 class UStruct : public UField
 {
-
+public:
+	int GetPropertiesSize();
 };
 
 class UClass : public UStruct
 {
 public:
 	UObject* CreateDefaultObject();
-	int GetPropertiesSize();
 };
 
 class UFunction : public UStruct

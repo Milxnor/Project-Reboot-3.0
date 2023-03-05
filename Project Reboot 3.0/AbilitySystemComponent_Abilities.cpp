@@ -6,7 +6,7 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 	static auto ActivatableAbilitiesOffset = AbilitySystemComponent->GetOffset("ActivatableAbilities");
 	auto ActivatableAbilities = AbilitySystemComponent->GetPtr<FFastArraySerializer>(ActivatableAbilitiesOffset);
 
-	static auto ItemsOffset = 0x0108;
+	static auto ItemsOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpecContainer", "Items");
 	auto Items = (TArray<__int64>*)(__int64(ActivatableAbilities) + ItemsOffset);
 
 	static auto SpecSize = FGameplayAbilitySpec::GetStructSize();
@@ -28,7 +28,7 @@ void InternalServerTryActivateAbility(UAbilitySystemComponent* AbilitySystemComp
 
 	auto Spec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
 
-	static auto CurrentOffset = 0x0000;
+	static auto CurrentOffset = FindOffsetStruct("/Script/GameplayAbilities.PredictionKey", "Current");
 
 	if (!Spec)
 	{

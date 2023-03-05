@@ -8,6 +8,6 @@ public:
 	struct FTransform GetTransform();
 
 	AActor* GetOwner();
-
+	struct FVector GetActorLocation();
 	void K2_DestroyActor();
 };

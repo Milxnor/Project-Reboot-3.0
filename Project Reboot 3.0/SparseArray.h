@@ -49,4 +49,18 @@ public:
     TBitArray AllocationFlags;
     int32 FirstFreeIndex;
     int32 NumFreeIndices;
+
+    FORCEINLINE FSparseArrayElement& operator[](uint32 Index)
+    {
+        return *(FSparseArrayElement*)&Data.at(Index).ElementData;
+    }
+    FORCEINLINE const FSparseArrayElement& operator[](uint32 Index) const
+    {
+        return *(const FSparseArrayElement*)&Data.at(Index).ElementData;
+    }
+
+    FORCEINLINE int32 Num() const
+    {
+        return Data.Num() - NumFreeIndices;
+    }
 };

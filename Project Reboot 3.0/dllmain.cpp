@@ -56,7 +56,12 @@ DWORD WINAPI Main(LPVOID)
     static auto FortAbilitySystemComponentAthenaDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortAbilitySystemComponentAthena");
 
     static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
-    FString Level = Engine_Version < 424 ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501 ? L"Asteria_Terrain" : L"Artemis_Terrain" : L"Apollo_Terrain";
+    FString Level = Engine_Version < 424
+        ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+        ? L"Asteria_Terrain"
+        : L"Artemis_Terrain"
+        : Globals::bCreative ? L"Creative_NoApollo_Terrain" 
+        : L"Apollo_Terrain";
 
     if (Hooking::MinHook::Hook((PVOID)Addresses::NoMCP, (PVOID)NoMCPHook, nullptr))
     {
@@ -109,8 +114,8 @@ DWORD WINAPI Main(LPVOID)
         UAbilitySystemComponent::ServerTryActivateAbilityHook, nullptr, false);
     Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbilityWithEventData"),
         UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook, nullptr, false);
-    Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerAbilityRPCBatch"),
-        UAbilitySystemComponent::ServerAbilityRPCBatchHook, nullptr, false);
+    // Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerAbilityRPCBatch"),
+        // UAbilitySystemComponent::ServerAbilityRPCBatchHook, nullptr, false);
 
     if (Engine_Version >= 424)
     {

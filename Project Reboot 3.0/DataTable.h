@@ -8,7 +8,7 @@ class UDataTable : public UObject
 {
 public:
 	template <typename RowDataType = uint8_t>
-	TMap<FName, RowDataType*> GetRowMap()
+	TMap<FName, RowDataType*>& GetRowMap()
 	{
 		static auto RowStructOffset = FindOffsetStruct("/Script/Engine.DataTable", "RowStruct");
 

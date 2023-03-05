@@ -36,7 +36,7 @@ UObject* UClass::CreateDefaultObject()
 	return DefaultObject;
 }
 
-int UClass::GetPropertiesSize()
+int UStruct::GetPropertiesSize()
 {
 	return *(int*)(__int64(this) + Offsets::PropertiesSize);
 }

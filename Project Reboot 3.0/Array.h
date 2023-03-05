@@ -23,8 +23,8 @@ public:
 
 public:
 
-	inline InElementType At(int i, int Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
-	inline InElementType at(int i, int Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
+	inline InElementType& At(int i, int Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
+	inline InElementType& at(int i, int Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 	inline InElementType* AtPtr(int i, int Size = sizeof(InElementType)) const { return (InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 
 	inline int Num() const { return ArrayNum; }
@@ -37,18 +37,18 @@ public:
 
 	void Reserve(int Number, int Size = sizeof(InElementType))
 	{
-		LOG_INFO(LogDev, "ArrayNum {}", ArrayNum);
+		// LOG_INFO(LogDev, "ArrayNum {}", ArrayNum);
 		// Data = (InElementType*)FMemory::Realloc(Data, (ArrayMax = ArrayNum + Number) * Size, 0);
 		Data = /* (ArrayMax - ArrayNum) >= ArrayNum ? Data : */ (InElementType*)FMemory::Realloc(Data, (ArrayMax = Number + ArrayNum) * Size, 0);
 	}
 
 	FORCENOINLINE void ResizeGrow(int32 OldNum, int Size = sizeof(InElementType))
 	{
-		LOG_INFO(LogMemory, "FMemory::Realloc: {}", __int64(FMemory::Realloc));
+		// LOG_INFO(LogMemory, "FMemory::Realloc: {}", __int64(FMemory::Realloc));
 
 		ArrayMax = ArrayNum; // CalculateSlackGrow(/* ArrayNum */ OldNum, ArrayMax, Size);
 		// AllocatorInstance.ResizeAllocation(OldNum, ArrayMax, sizeof(ElementType));
-		LOG_INFO(LogMemory, "ArrayMax: {} Size: {}", ArrayMax, Size);
+		// LOG_INFO(LogMemory, "ArrayMax: {} Size: {}", ArrayMax, Size);
 		Data = (InElementType*)FMemory::Realloc(Data, ArrayMax * Size, 0);
 	}
 
@@ -84,7 +84,7 @@ public:
 
 	int Add(const InElementType& New, int Size = sizeof(InElementType))
 	{
-		LOG_INFO(LogDev, "ArrayMax: {}", ArrayMax);
+		// LOG_INFO(LogDev, "ArrayMax: {}", ArrayMax);
 
 		if ((ArrayNum + 1) > ArrayMax)
 		{
