@@ -66,6 +66,7 @@ inline void InitLogger()
     MakeLogger("LogLoading");
     MakeLogger("LogHook");
     MakeLogger("LogAbilities");
+    MakeLogger("LogEvent");
 }
 
 #define LOG_DEBUG(loggerName, ...)                                            \

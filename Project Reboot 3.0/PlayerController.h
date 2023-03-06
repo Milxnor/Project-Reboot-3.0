@@ -3,6 +3,8 @@
 #include "Class.h"
 #include "Actor.h"
 
+#include "Rotator.h"
+
 class APlayerController : public AActor
 {
 public:
@@ -30,6 +32,7 @@ public:
 		return this->Get<class APawn*>(PawnOffset);
 	}
 
+	FRotator GetControlRotation();
 	void Possess(class APawn* Pawn);
 	void ServerRestartPlayer();
 

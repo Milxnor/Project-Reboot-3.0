@@ -16,6 +16,7 @@
 namespace Globals
 {
 	extern inline bool bCreative = false;
+	extern inline bool bGoingToPlayEvent = false;
 }
 
 extern inline UObject* (*StaticLoadObjectOriginal)(UClass*, UObject*, const wchar_t* InName, const wchar_t* Filename, uint32_t LoadFlags, UObject* Sandbox, bool bAllowObjectReconciliation) = nullptr;

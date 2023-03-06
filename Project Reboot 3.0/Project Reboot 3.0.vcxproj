@@ -174,6 +174,7 @@
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="events.cpp" />
     <ClCompile Include="FortGameModeAthena.cpp" />
     <ClCompile Include="FortGameModeZone.cpp" />
     <ClCompile Include="FortGameStateAthena.cpp" />
@@ -186,6 +187,8 @@
     <ClCompile Include="FortPawn.cpp" />
     <ClCompile Include="FortPickup.cpp" />
     <ClCompile Include="FortPlayerController.cpp" />
+    <ClCompile Include="FortPlayerControllerAthena.cpp" />
+    <ClCompile Include="FortPlayerPawn.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
@@ -211,6 +214,7 @@
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="BuildingContainer.h" />
     <ClInclude Include="BuildingSMActor.h" />
+    <ClInclude Include="calendar.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />
     <ClInclude Include="Controller.h" />
@@ -219,6 +223,7 @@
     <ClInclude Include="DataTableFunctionLibrary.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="EngineTypes.h" />
+    <ClInclude Include="events.h" />
     <ClInclude Include="finder.h" />
     <ClInclude Include="FortGameMode.h" />
     <ClInclude Include="FortGameModeAthena.h" />
@@ -233,6 +238,7 @@
     <ClInclude Include="FortPickup.h" />
     <ClInclude Include="FortPlayerController.h" />
     <ClInclude Include="FortPlayerControllerAthena.h" />
+    <ClInclude Include="FortPlayerPawn.h" />
     <ClInclude Include="FortPlayerState.h" />
     <ClInclude Include="FortPlayerStateAthena.h" />
     <ClInclude Include="FortResourceItemDefinition.h" />

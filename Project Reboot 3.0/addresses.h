@@ -32,6 +32,10 @@ namespace Addresses
 	extern inline uint64 ReplaceBuildingActor = 0;
 	extern inline uint64 GiveAbilityAndActivateOnce = 0;
 	extern inline uint64 OnDamageServer = 0;
+	extern inline uint64 GIsServer = 0;
+	extern inline uint64 GIsClient = 0;
+	extern inline uint64 ActorGetNetMode = 0;
+	extern inline uint64 ChangeGameSessionId = 0;
 
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();

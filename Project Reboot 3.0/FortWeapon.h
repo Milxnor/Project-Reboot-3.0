@@ -12,5 +12,11 @@ public:
 		return Get<T*>(WeaponDataOffset);
 	}
 
+	FGuid& GetItemEntryGuid()
+	{
+		static auto ItemEntryGuidOffset = GetOffset("ItemEntryGuid");
+		return Get<FGuid>(ItemEntryGuidOffset);
+	}
+
 	static UClass* StaticClass();
 };

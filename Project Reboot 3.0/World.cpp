@@ -13,6 +13,8 @@ void UWorld::Listen()
 
 	constexpr bool bUseBeacons = true;
 
+	int Port = 7777;
+
 	if (bUseBeacons)
 	{
 		static auto BeaconClass = FindObject<UClass>(L"/Script/FortniteGame.FortOnlineBeaconHost");
@@ -26,6 +28,8 @@ void UWorld::Listen()
 
 		static bool (*InitHost)(UObject* Beacon) = decltype(InitHost)(Addresses::InitHost);
 		static void (*PauseBeaconRequests)(UObject* Beacon, bool bPause) = decltype(PauseBeaconRequests)(Addresses::PauseBeaconRequests);
+
+		NewBeacon->Get<int>("ListenPort") = Engine_Version < 426 ? Port - 1 : Port;
 
 		InitHost(NewBeacon);
 		PauseBeaconRequests(NewBeacon, false);
@@ -45,8 +49,6 @@ void UWorld::Listen()
 
 	NewNetDriver->Get<FName>("NetDriverName") = GameNetDriverName;
 	GetWorld()->Get("NetDriver") = NewNetDriver;
-
-	int Port = 7777;
 
 	FURL URL = FURL();
 	URL.Port = Port - (Engine_Version >= 426);

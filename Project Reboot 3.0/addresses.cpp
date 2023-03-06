@@ -108,29 +108,82 @@ void Addresses::SetupVersion()
 
 void Addresses::FindAll()
 {
+	LOG_INFO(LogDev, "9241");
 	Addresses::ProcessEvent = FindProcessEvent();
+	LOG_INFO(LogDev, "151");
+
 	Addresses::StaticFindObject = FindStaticFindObject();
+	LOG_INFO(LogDev, "2151");
+
 	Addresses::GetPlayerViewpoint = FindGetPlayerViewpoint();
+	LOG_INFO(LogDev, "1246");
+
 	Addresses::CreateNetDriver = FindCreateNetDriver();
+	LOG_INFO(LogDev, "2561");
+
 	Addresses::InitHost = FindInitHost();
+	LOG_INFO(LogDev, "1341");
+
 	Addresses::PauseBeaconRequests = FindPauseBeaconRequests();
+	LOG_INFO(LogDev, "1351");
+
 	Addresses::SpawnActor = FindSpawnActor();
+	LOG_INFO(LogDev, "1`231");
+
 	Addresses::InitListen = FindInitListen();
+	LOG_INFO(LogDev, "52175");
+
 	Addresses::SetWorld = FindSetWorld();
+	LOG_INFO(LogDev, "5432");
+
 	Addresses::KickPlayer = FindKickPlayer();
+	LOG_INFO(LogDev, "123");
+
 	Addresses::TickFlush = FindTickFlush();
+	LOG_INFO(LogDev, "1123");
+
 	Addresses::GetNetMode = FindGetNetMode();
+	LOG_INFO(LogDev, "113");
+
 	Addresses::Realloc = FindRealloc();
+	LOG_INFO(LogDev, "1231");
+
 	Addresses::CollectGarbage = FindCollectGarbage();
+	LOG_INFO(LogDev, "1123");
+
 	Addresses::NoMCP = FindNoMCP();
+	LOG_INFO(LogDev, "131");
+
 	Addresses::PickTeam = FindPickTeam();
+	LOG_INFO(LogDev, "132");
+
 	Addresses::InternalTryActivateAbility = FindInternalTryActivateAbility();
+	LOG_INFO(LogDev, "17");
+
 	Addresses::GiveAbility = FindGiveAbility();
+	LOG_INFO(LogDev, "156");
+
 	Addresses::CantBuild = FindCantBuild();
+	LOG_INFO(LogDev, "16");
+
 	Addresses::ReplaceBuildingActor = FindReplaceBuildingActor();
+	LOG_INFO(LogDev, "15");
+
 	Addresses::GiveAbilityAndActivateOnce = FindGiveAbilityAndActivateOnce();
+	LOG_INFO(LogDev, "14");
+
 	Addresses::OnDamageServer = FindOnDamageServer();
+	LOG_INFO(LogDev, "13");
+
 	Addresses::StaticLoadObject = FindStaticLoadObject();
+	LOG_INFO(LogDev, "12");
+
+	Addresses::ActorGetNetMode = FindActorGetNetMode();
+	LOG_INFO(LogDev, "11");
+
+	Addresses::ChangeGameSessionId = FindChangeGameSessionId();
+	LOG_INFO(LogDev, "10");
+
 }
 
 void Addresses::Print()
@@ -161,6 +214,8 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "GiveAbilityAndActivateOnce: 0x{:x}", GiveAbilityAndActivateOnce - Base);
 	LOG_INFO(LogDev, "OnDamageServer: 0x{:x}", OnDamageServer - Base);
 	LOG_INFO(LogDev, "StaticLoadObject: 0x{:x}", StaticLoadObject - Base);
+	LOG_INFO(LogDev, "ActorGetNetMode: 0x{:x}", ActorGetNetMode - Base);
+	LOG_INFO(LogDev, "ChangeGameSessionId: 0x{:x}", ChangeGameSessionId - Base);
 }
 
 void Offsets::FindAll()
@@ -217,7 +272,6 @@ void Addresses::Init()
 	StaticFindObjectOriginal = decltype(StaticFindObjectOriginal)(StaticFindObject);
 	UWorld::SpawnActorOriginal = decltype(UWorld::SpawnActorOriginal)(SpawnActor);
 	UNetDriver::InitListenOriginal = decltype(UNetDriver::InitListenOriginal)(InitListen);
-	UNetDriver::SetWorldOriginal = decltype(UNetDriver::SetWorldOriginal)(SetWorld);
 	AGameSession::KickPlayerOriginal = decltype(AGameSession::KickPlayerOriginal)(KickPlayer);
 	UNetDriver::TickFlushOriginal = decltype(UNetDriver::TickFlushOriginal)(TickFlush);
 	FMemory::Realloc = decltype(FMemory::Realloc)(Realloc);
@@ -225,6 +279,10 @@ void Addresses::Init()
 	UAbilitySystemComponent::InternalTryActivateAbilityOriginal = decltype(UAbilitySystemComponent::InternalTryActivateAbilityOriginal)(InternalTryActivateAbility);
 	ABuildingActor::OnDamageServerOriginal = decltype(ABuildingActor::OnDamageServerOriginal)(OnDamageServer);
 	StaticLoadObjectOriginal = decltype(StaticLoadObjectOriginal)(StaticLoadObject);
+
+	static auto DefaultNetDriver = FindObject("/Script/Engine.Default__NetDriver");
+	Addresses::SetWorld = Engine_Version < 426 ? Addresses::SetWorld : __int64(DefaultNetDriver->VFTable[Addresses::SetWorld]);
+	UNetDriver::SetWorldOriginal = decltype(UNetDriver::SetWorldOriginal)(SetWorld);
 
 	// if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
 	// else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);
@@ -243,6 +301,25 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 57 48 81 EC ? ? ? ? 48 8B BA ? ? ? ? 48 8B DA 0F 29").Get()); // Pawn Overlap
 	}
+
+	if (Engine_Version == 422)
+	{
+		// toNull.push_back(Memcury::Scanner::FindPattern("40 55 56 41 54 48 8B EC 48 81 EC ? ? ? ? 48 8B 01 4C 8B E2 48 8B F1 FF 90").Get()); // chnaging cameasesion
+	}
+
+	if (Engine_Version == 425)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("40 57 41 56 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F1 74 3A 80 3D ? ? ? ? ? 0F 82").Get()); // collect garbage
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C 89 60 F0 45 0F B6 E0 4C").Get()); // Changing Gamesession
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C 89 60 F0 4C 8B E2 4C 89").Get()); // ^
+	}
+
+	if (Fortnite_Version == 12.61)
+	{
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 55 56 57 41 56 48 81 EC ? ? ? ? 4C 8B B1 ? ? ? ? 33 F6 4C 89 B4 24 ? ? ? ? 48 8B").Get()); // fritter crash
+	}
+
+	toNull.push_back(Addresses::ChangeGameSessionId);
 
 	return toNull;
 }

@@ -198,6 +198,9 @@ namespace Hooking
 
         static bool Hook(UObject* DefaultClass, UFunction* Function, void* Detour, void** Original = nullptr, bool bUseSecondMethod = true, bool bHookExec = false) // Native hook
 		{
+            if (!Function)
+                return false;
+
 			auto Exec = Function->GetFunc();
 
 			if (bHookExec)

@@ -127,7 +127,7 @@ static inline uint64 FindPauseBeaconRequests()
 static inline uint64 FindGetPlayerViewpoint()
 {
 	auto Addr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s");
-	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true);
+	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true, 1);
 }
 
 static inline uint64 FindSpawnActor()
@@ -159,8 +159,8 @@ static inline uint64 FindSetWorld()
 	else if (Fortnite_Season >= 19 && Fortnite_Season < 21)
 		SetWorldIndex = 0x7A;
 
-	static auto DefaultNetDriver = FindObject("/Script/Engine.Default__NetDriver");
-	return __int64(DefaultNetDriver->VFTable[SetWorldIndex]);
+	// static auto DefaultNetDriver = FindObject("/Script/Engine.Default__NetDriver");
+	return SetWorldIndex;
 }
 
 static inline uint64 FindInitListen() 
@@ -195,6 +195,9 @@ static inline uint64 FindNoMCP()
 	if (Engine_Version == 425)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 C1").RelativeOffset(1).Get();
 
+	if (Engine_Version == 426)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 10 84 DB").RelativeOffset(1).Get();
+
 	// return (uintptr_t)GetModuleHandleW(0) + 0x1791CF0; // 11.01
 	return 0;
 	// return (uintptr_t)GetModuleHandleW(0) + 0x161d600; // 10.40
@@ -208,14 +211,53 @@ static inline uint64 FindCollectGarbage()
 	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true, 1);
 }
 
+static inline uint64 FindActorGetNetMode()
+{
+	auto AActorGetNetmode = Memcury::Scanner::FindStringRef(L"ClientPlayerLeft %s")
+		.ScanFor({ 0x48, 0x8B, 0xCF, 0xE8 })
+		.RelativeOffset(4)
+		.Get();
+
+	return AActorGetNetmode;
+}
+
 static inline uint64 FindTickFlush()
 {
 	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_NetTickFlush");
 	return FindBytes(Addr, { 0x4C, 0x8B }, 1000, 0, true);
 }
 
+static inline uint64 FindGIsServer()
+{
+	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
+	auto Addy = FindBytes(Addr, { 0xC6, 0x05 }, 50, 0, true, 1);
+	Addy = Addy ? Addy : FindBytes(Addr, { 0x44, 0x88 }, 50, 0, true, 1);
+
+	return Memcury::Scanner(Addy).RelativeOffset(2).Get();
+}
+
+static inline uint64 FindChangeGameSessionId()
+{
+	auto Addr = Memcury::Scanner::FindStringRef(L"Changing GameSessionId from '%s' to '%s'");
+	return FindBytes(Addr, { 0x40, 0x55 }, 2000, 0, true);
+}
+
+static inline uint64 FindGIsClient()
+{
+	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
+	auto Addy = FindBytes(Addr, { 0xC6, 0x05 }, 50, 0, true, 2);
+	Addy = Addy ? Addy : FindBytes(Addr, { 0x44, 0x88 }, 50, 0, true, 2);
+
+	return Memcury::Scanner(Addy).RelativeOffset(2).Get();
+}
+
 static inline uint64 FindGetNetMode()
 {
+	/* return Memcury::Scanner::FindStringRef(L" (client %d)")
+		.ScanFor({ 0x48, 0x8B, 0xC8, 0xE8 }, false)
+		.RelativeOffset(4)
+		.Get(); // credit ender */
+
 	auto Addr = Memcury::Scanner::FindStringRef(L"PREPHYSBONES");
 	auto BeginningFunction = Memcury::Scanner(FindBytes(Addr, { 0x40, 0x55 }, 1000, 0, true));
 	auto CallToFunc = Memcury::Scanner(FindBytes(BeginningFunction, { 0xE8 }));
