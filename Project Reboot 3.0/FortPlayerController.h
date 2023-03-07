@@ -32,19 +32,7 @@ public:
 		return Class;
 	}
 
-	static void ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid)
-	{
-		auto ItemInstance = PlayerController->GetWorldInventory()->FindItemInstance(ItemGuid);
-		auto Pawn = Cast<AFortPawn>(PlayerController->GetPawn());
-
-		if (!ItemInstance || !Pawn)
-			return;
-
-		if (auto Weapon = Pawn->EquipWeaponDefinition((UFortWeaponItemDefinition*)ItemInstance->GetItemEntry()->GetItemDefinition(), ItemInstance->GetItemEntry()->GetItemGuid()))
-		{
-
-		}
-	}
+	static void ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid);
 
 	static void ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation);
 	static void ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData);

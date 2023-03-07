@@ -201,6 +201,12 @@ namespace Hooking
             if (!Function)
                 return false;
 
+            if (!DefaultClass || !DefaultClass->VFTable)
+            {
+                LOG_WARN(LogHook, "DefaultClass or the vtable is null! ({})", __int64(DefaultClass));
+                return false;
+            }
+
 			auto Exec = Function->GetFunc();
 
 			if (bHookExec)

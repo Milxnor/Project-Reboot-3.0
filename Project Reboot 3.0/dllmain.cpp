@@ -25,6 +25,9 @@ enum ENetMode
 static ENetMode GetNetModeHook() { /* std::cout << "AA!\n"; */ return ENetMode::NM_DedicatedServer; }
 static ENetMode GetNetModeHook2() { /* std::cout << "AA!\n"; */ return ENetMode::NM_DedicatedServer; }
 
+static bool ReturnTrueHook() { return true; }
+static int Return2Hook() { return 2; }
+
 static void NoMCPHook() { return; }
 static void CollectGarbageHook() { return; }
 
@@ -52,11 +55,12 @@ DWORD WINAPI Main(LPVOID)
     Offsets::Print();
 
     Addresses::FindAll();
+    // Addresses::Print();
     Addresses::Init();
     Addresses::Print();
 
     static auto GameModeDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortGameModeAthena");
-    static auto FortPlayerControllerAthenaDefault = FindObject<UClass>(L"/Game/Athena/Athena_PlayerController.Default__Athena_PlayerController_C");
+    static auto FortPlayerControllerAthenaDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortPlayerControllerAthena"); // FindObject<UClass>(L"/Game/Athena/Athena_PlayerController.Default__Athena_PlayerController_C");
     static auto FortPlayerPawnAthenaDefault = FindObject<UClass>(L"/Game/Athena/PlayerPawn_Athena.Default__PlayerPawn_Athena_C");
     static auto FortAbilitySystemComponentAthenaDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortAbilitySystemComponentAthena");
 
@@ -77,6 +81,26 @@ DWORD WINAPI Main(LPVOID)
     LOG_INFO(LogDev, "Size: 0x{:x}", sizeof(TMap<FName, void*>));
 
     GetLocalPlayerController()->ProcessEvent(SwitchLevel, &Level);
+
+    LOG_INFO(LogPlayer, "Switched level.");
+
+    Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);
+
+    LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
+    LOG_INFO(LogDev, "FindGIsClient: 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
+
+    if (FindGIsServer())
+        *(bool*)FindGIsServer() = true;
+
+    if (FindGIsClient())
+        *(bool*)FindGIsClient() = false;
+
+    if (Fortnite_Version == 17.30)
+    {
+        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)Return2Hook, nullptr);
+        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED12C), (PVOID)ReturnTrueHook, nullptr);
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr);
+    }
 
     /*
     auto GIsClient = Memcury::Scanner(FindGIsServer());
@@ -102,8 +126,6 @@ DWORD WINAPI Main(LPVOID)
 
     LOG_INFO(LogDev, "isded: {}", parms.ret); */
 
-    Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);
-
     auto& LocalPlayers = GetLocalPlayers();
 
     if (LocalPlayers.Num() && LocalPlayers.Data)
@@ -116,23 +138,30 @@ DWORD WINAPI Main(LPVOID)
         if (func == 0)
             continue;
 
-        *(uint8_t*)func = 0xC3;
-    }
+        DWORD dwProtection;
+        VirtualProtect((PVOID)func, 1, PAGE_EXECUTE_READWRITE, &dwProtection);
 
-    Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameMode.ReadyToStartMatch"), AFortGameModeAthena::Athena_ReadyToStartMatchHook, 
-        (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false);
+        *(uint8_t*)func = 0xC3;
+
+        DWORD dwTemp;
+        VirtualProtect((PVOID)func, 1, dwProtection, &dwTemp);
+    }
 
     // return false;
 
+    // UNetDriver::ReplicationDriverOffset = FindOffsetStruct("/Script/Engine.NetDriver", "ReplicationDriver"); // NetDriver->GetOffset("ReplicationDriver");
+
+    Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameMode.ReadyToStartMatch"), AFortGameModeAthena::Athena_ReadyToStartMatchHook,
+        (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false);
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnFor"),
         AGameModeBase::SpawnDefaultPawnForHook, nullptr, false);
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.HandleStartingNewPlayer"), AFortGameModeAthena::Athena_HandleStartingNewPlayerHook,
         (PVOID*)&AFortGameModeAthena::Athena_HandleStartingNewPlayerOriginal, false);
 
-    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerExecuteInventoryItem"), 
-        AFortPlayerController::ServerExecuteInventoryItemHook, nullptr, false);
+    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerExecuteInventoryItem"),
+       AFortPlayerController::ServerExecuteInventoryItemHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerPlayEmoteItem"),
-        AFortPlayerController::ServerPlayEmoteItemHook, nullptr, false);
+       AFortPlayerController::ServerPlayEmoteItemHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerCreateBuildingActor"), 
         AFortPlayerController::ServerCreateBuildingActorHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerBeginEditingBuildingActor"),
@@ -147,12 +176,12 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickup"),
-        AFortPlayerPawn::ServerHandlePickupHook, nullptr, false);
+       AFortPlayerPawn::ServerHandlePickupHook, nullptr, false);
 
-    Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbility"),
+    /* Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbility"),
         UAbilitySystemComponent::ServerTryActivateAbilityHook, nullptr, false);
     Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbilityWithEventData"),
-        UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook, nullptr, false);
+        UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook, nullptr, false); */
     // Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerAbilityRPCBatch"),
         // UAbilitySystemComponent::ServerAbilityRPCBatchHook, nullptr, false);
 
@@ -165,13 +194,15 @@ DWORD WINAPI Main(LPVOID)
     }
 
     Hooking::MinHook::Hook((PVOID)Addresses::GetPlayerViewpoint, (PVOID)AFortPlayerControllerAthena::GetPlayerViewPointHook, (PVOID*)&AFortPlayerControllerAthena::GetPlayerViewPointOriginal);
-    Hooking::MinHook::Hook((PVOID)Addresses::KickPlayer, (PVOID)AGameSession::KickPlayerHook, (PVOID*)&AGameSession::KickPlayerOriginal);
+    // Hooking::MinHook::Hook((PVOID)Addresses::KickPlayer, (PVOID)AGameSession::KickPlayerHook, (PVOID*)&AGameSession::KickPlayerOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::TickFlush, (PVOID)UNetDriver::TickFlushHook, (PVOID*)&UNetDriver::TickFlushOriginal);
-    Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
+    // Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
     // Hooking::MinHook::Hook((PVOID)Addresses::CollectGarbage, (PVOID)CollectGarbageHook, nullptr);
     Hooking::MinHook::Hook((PVOID)Addresses::PickTeam, (PVOID)AFortGameModeAthena::Athena_PickTeamHook, nullptr);
 
     srand(time(0));
+
+    LOG_INFO(LogHook, "Finished!");
 
     while (true)
     {

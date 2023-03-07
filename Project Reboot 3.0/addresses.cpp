@@ -35,7 +35,7 @@ void Addresses::SetupVersion()
 		Fortnite_Version = 12.41;
 	}
 
-	static FString(*GetEngineVersion)() = decltype(GetEngineVersion)(Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 41 B8 04 ? ? ? 48 8B D3").Get());
+	static FString(*GetEngineVersion)() = decltype(GetEngineVersion)(Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 41 B8 04 ? ? ? 48 8B D3", false).Get());
 
 	std::string FullVersion;
 	FString toFree;
@@ -314,9 +314,19 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C 89 60 F0 4C 8B E2 4C 89").Get()); // ^
 	}
 
+	if (Engine_Version == 500)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 48 8B FA 48 8B D9 48 85 D2 0F 84 ? ? ? ? 8B").Get()); // idk lmfao
+	}
+
 	if (Fortnite_Version == 12.61)
 	{
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 55 56 57 41 56 48 81 EC ? ? ? ? 4C 8B B1 ? ? ? ? 33 F6 4C 89 B4 24 ? ? ? ? 48 8B").Get()); // fritter crash
+	}
+
+	if (Fortnite_Version == 17.30)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 70 08 48 89 78 10 55 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 ED").Get());
 	}
 
 	toNull.push_back(Addresses::ChangeGameSessionId);

@@ -12,6 +12,15 @@ AFortWeapon* AFortPawn::EquipWeaponDefinition(UFortWeaponItemDefinition* WeaponD
 	return params.Wep;
 }
 
+bool AFortPawn::PickUpActor(AActor* PickupTarget, UFortDecoItemDefinition* PlacementDecoItemDefinition)
+{
+	static auto fn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.PickUpActor");
+	struct { AActor* PickupTarget; UFortDecoItemDefinition* PlacementDecoItemDefinition; bool ReturnValue; } AFortPawn_PickUpActor_Params{ PickupTarget, PlacementDecoItemDefinition };
+	this->ProcessEvent(fn, &AFortPawn_PickUpActor_Params);
+
+	return AFortPawn_PickUpActor_Params.ReturnValue;
+}
+
 UClass* AFortPawn::StaticClass()
 {
 	static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPawn");

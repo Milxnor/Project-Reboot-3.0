@@ -68,7 +68,7 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 		static auto PickupGuidOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "PickupGuid");
 
 		*(AFortPawn**)(__int64(PickupLocationData) + PickupTargetOffset) = Pawn;
-		*(float*)(__int64(PickupLocationData) + FlyTimeOffset) = 0.40;
+		*(float*)(__int64(PickupLocationData) + FlyTimeOffset) = 0.40f;
 		*(AFortPawn**)(__int64(PickupLocationData) + ItemOwnerOffset) = Pawn;
 		*(FVector*)(__int64(PickupLocationData) + StartDirectionOffset) = InStartDirection;
 		*(FGuid*)(__int64(PickupLocationData) + PickupGuidOffset) = Pawn->GetCurrentWeapon() ? Pawn->GetCurrentWeapon()->GetItemEntryGuid() : FGuid();

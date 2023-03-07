@@ -116,6 +116,9 @@
     <ClCompile Include="FortPlayerControllerAthena.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
+    <ClCompile Include="FortDecoItemDefinition.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -358,6 +361,9 @@
     </ClInclude>
     <ClInclude Include="events.h">
       <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortDecoItemDefinition.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

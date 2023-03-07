@@ -66,7 +66,7 @@ void UWorld::Listen()
 	// LEVEL COLLECTIONS
 
 	auto& LevelCollections = GetWorld()->Get<TArray<__int64>>("LevelCollections");
-	int LevelCollectionSize = 0x78;
+	int LevelCollectionSize = FindObject<UStruct>("/Script/Engine.LevelCollection")->GetPropertiesSize();
 
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;

@@ -22,6 +22,7 @@ struct FURL // idk where this actually goes
 class UNetDriver : public UObject
 {
 public:
+	// static inline int ReplicationDriverOffset = 0;
 	static inline bool (*InitListenOriginal)(UNetDriver* NetDriver, FNetworkNotify* InNotify, FURL& ListenURL, bool bReuseAddressAndPort, FString& Error);
 	static inline void (*SetWorldOriginal)(UNetDriver* NetDriver, UWorld* World);
 	static inline void (*TickFlushOriginal)(UNetDriver* NetDriver);

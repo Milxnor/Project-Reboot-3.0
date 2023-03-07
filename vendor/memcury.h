@@ -753,7 +753,7 @@
                 return Scanner(add);
             }
 
-            static auto FindPointerRef(void* Pointer) -> Scanner // credit ender
+            static auto FindPointerRef(void* Pointer) -> Scanner // credit me and ender
             {
                 PE::Address add{ nullptr };
 
@@ -771,11 +771,23 @@
                             add = PE::Address(&scanBytes[i]);
                         }
                     }
+
+                    if (scanBytes[i] == ASM::CALL)
+                    {
+                        if (PE::Address(&scanBytes[i]).RelativeOffset(1).GetAs<void*>() == Pointer)
+                        {
+                            add = PE::Address(&scanBytes[i]);
+                        }
+                    }
                 }
 
                 if (add == 0)
                 {
                     MessageBoxA(0, "FindPointerRef return nullptr", "Memcury", MB_OK);
+                }
+                else
+                {
+                    // MessageBoxA(0, std::format("FindPointerRef return 0x{:x}", add.Get() - __int64(GetModuleHandleW(0))).c_str(), "Memcury", MB_OK);
                 }
                 
                 return Scanner(add);
@@ -783,7 +795,7 @@
 
             // Supports wide and normal strings both std and pointers
             template <typename T = const wchar_t*>
-            static auto FindStringRef(T string, bool bWarnIfNotFound = true, int useRefNum = 0) -> Scanner
+            static auto FindStringRef(T string, bool bWarnIfNotFound = true, int useRefNum = 0, bool bIsInFunc = false) -> Scanner
             {
                 PE::Address add{ nullptr };
 
@@ -874,6 +886,26 @@
                         else
                         {
                             MessageBoxA(0, ("FindStringRef " + std::string(string)).c_str(), "Memcury", MB_ICONERROR);
+                        }
+                    }
+                }
+
+                if (add.Get())
+                {
+                    if (bIsInFunc)
+                    {
+                        for (int i = 0; i < 300; i++)
+                        {
+                            if (*(uint8_t*)(add.Get() - i) == 0x48 && *(uint8_t*)(add.Get() - i + 1) == 0x83)
+                            {
+                                // MessageBoxA(0, std::format("0x{:x}", (__int64(add.Get() - i) - __int64(GetModuleHandleW(0)))).c_str(), "Memcury", MB_OK);
+
+                                auto beginFunc = Scanner(add.Get() - i);
+
+                                auto ref = FindPointerRef(beginFunc.GetAs<void*>());
+
+                                return ref;
+                            }
                         }
                     }
                 }
@@ -1331,15 +1363,15 @@
         return true;
     }
 
-    inline void VirtualSwap(void** VTable, int Idx, void* NewFunc)
+    static void VirtualSwap(void** VTable, int Idx, void* NewFunc)
     {
         DWORD dwProtection;
-        VirtualProtect(VTable, (Idx + 8), PAGE_EXECUTE_READWRITE, &dwProtection);
+        VirtualProtect(&VTable[Idx], 8, PAGE_EXECUTE_READWRITE, &dwProtection);
 
         VTable[Idx] = NewFunc;
 
         DWORD dwTemp;
-        VirtualProtect(VTable, (Idx + 8), dwProtection, &dwTemp);
+        VirtualProtect(&VTable[Idx], 8, dwProtection, &dwTemp);
     }
 
     // Finds a string ref, then goes searches xref of the function that it's in and returns that address.

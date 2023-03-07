@@ -119,6 +119,32 @@ static inline std::vector<Event> Events =
 		"/Game/Athena/Environments/Festivus/Blueprints/BP_FestivusManager.BP_FestivusManager_C",
 		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High",
 		7.30
+	),
+	Event
+	(
+		"Rift Tour",
+		"",
+		"",
+		0,
+		{
+
+		},
+		{
+			{
+				{
+					false,
+					// "/Buffet/Gameplay/Blueprints/BP_Buffet_Master_Scripting.BP_Buffet_Master_Scripting_C.startevent"
+					"/Script/SpecialEventGameplayRuntime.SpecialEventScript.StartEventAtIndex"
+				},
+
+				0
+			}
+		},
+
+		"/Buffet/Gameplay/Blueprints/Buffet_SpecialEventScript.Buffet_SpecialEventScript_C",
+		// "/Buffet/Gameplay/Blueprints/BP_Buffet_Master_Scripting.BP_Buffet_Master_Scripting_C",
+		"/BuffetPlaylist/Playlist/Playlist_Buffet.Playlist_Buffet",
+		17.30
 	)
 };
 
@@ -153,7 +179,7 @@ static inline UObject* GetEventScripting()
 
 	if (!ScriptingClass)
 	{
-		// LOG_ERROR(LogEvent, "Failed to find ScriptingClass!");
+		LOG_ERROR(LogEvent, "Failed to find ScriptingClass!");
 		return nullptr;
 	}
 
@@ -161,7 +187,7 @@ static inline UObject* GetEventScripting()
 
 	if (AllScripters.size() <= 0)
 	{
-		// LOG_ERROR(LogEvent, "Failed to find any scripters!");
+		LOG_ERROR(LogEvent, "Failed to find any scripters!");
 		return nullptr;
 	}
 
@@ -338,6 +364,24 @@ static inline bool CallOnReadys(bool* bWereAllSuccessful = nullptr)
 		}
 	}
 
+	/* if (Fortnite_Version == 17.30)
+	{
+		static auto onready = FindObject<UFunction>("/Buffet/Gameplay/Blueprints/BP_Buffet_Master_Scripting.BP_Buffet_Master_Scripting_C.OnReady_C6091CF24046D602CBB778A594DB5BA8");
+		auto script = FindObject("/Buffet/Levels/Buffet_P.Buffet_P.PersistentLevel.BP_Event_Master_Scripting_2");
+
+		if (!script)
+		{
+			LOG_ERROR(LogEvent, "Failed to find MasterScripting");
+
+			if (bWereAllSuccessful)
+				*bWereAllSuccessful = false;
+
+			return false;
+		}
+
+		script->ProcessEvent(onready, &OnReadyParams);
+	} */
+
 	return true;
 }
 
@@ -359,13 +403,53 @@ static inline void StartEvent()
 
 	auto EventScripting = GetEventScripting();
 
+	LOG_INFO(LogDev, "EventScripting {}", __int64(EventScripting));
+	LOG_INFO(LogDev, "EventScripting Name {}", EventScripting->GetFullName());
+
 	// if (!EventScripting)
 		// return; // GetEventScripting handles the printing
 
+
 	CallOnReadys();
+
+	if (Fortnite_Version == 17.30)
+	{
+		static bool (*IsServerOrSomething)(UObject * SpecialEventScript) = decltype(IsServerOrSomething)(__int64(GetModuleHandleW(0)) + 0x3DECFC8);
+		LOG_INFO(LogDev, "IsServerOrSomething {}", IsServerOrSomething(EventScripting));
+
+		static auto OnRep_RootStartTimeFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.OnRep_RootStartTime");
+		static auto MeshRootStartEventFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.MeshRootStartEvent");
+		auto SpecialEventScriptMeshActorClass = FindObject<UClass>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor");
+		auto AllSpecialEventScriptMeshActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpecialEventScriptMeshActorClass);
+
+		if (AllSpecialEventScriptMeshActors.Num() > 0)
+		{
+			auto SpecialEventScriptMeshActor = AllSpecialEventScriptMeshActors.at(0);
+
+			if (SpecialEventScriptMeshActor)
+			{
+				static bool (*sub_7FF7E556D158)(UObject * MeshScriptActor) = decltype(sub_7FF7E556D158)(__int64(GetModuleHandleW(0)) + 0x3DED158);
+				LOG_INFO(LogDev, "sub_7FF7E556D158 {}", sub_7FF7E556D158(SpecialEventScriptMeshActor));
+
+				SpecialEventScriptMeshActor->ProcessEvent(MeshRootStartEventFn);
+				SpecialEventScriptMeshActor->ProcessEvent(OnRep_RootStartTimeFn);
+				return;
+			}
+			else
+			{
+				LOG_ERROR(LogEvent, "Failed to find SpecialEventScriptMeshActor");
+			}
+		}
+		else
+		{
+			LOG_ERROR(LogEvent, "AllSpecialEventScriptMeshActors.Num() == 0");
+		}
+	}
 
 	for (auto& StartEventFunc : OurEvent.StartEventFunctions)
 	{
+		LOG_INFO(LogDev, "Finding {}", StartEventFunc.first.second);
+
 		auto StartEventUFunc = FindObject<UFunction>(StartEventFunc.first.second);
 
 		if (!StartEventUFunc)

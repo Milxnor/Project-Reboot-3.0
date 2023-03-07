@@ -175,6 +175,7 @@
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="events.cpp" />
+    <ClCompile Include="FortDecoItemDefinition.cpp" />
     <ClCompile Include="FortGameModeAthena.cpp" />
     <ClCompile Include="FortGameModeZone.cpp" />
     <ClCompile Include="FortGameStateAthena.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="EngineTypes.h" />
     <ClInclude Include="events.h" />
     <ClInclude Include="finder.h" />
+    <ClInclude Include="FortDecoItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />
     <ClInclude Include="FortGameModeAthena.h" />
     <ClInclude Include="FortGameModePvPBase.h" />

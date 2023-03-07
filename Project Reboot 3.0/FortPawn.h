@@ -2,12 +2,13 @@
 
 #include "Pawn.h"
 #include "FortWeapon.h"
-#include "FortWeaponItemDefinition.h"
+#include "FortDecoItemDefinition.h"
 
 class AFortPawn : public APawn
 {
 public:
 	AFortWeapon* EquipWeaponDefinition(UFortWeaponItemDefinition* WeaponData, const FGuid& ItemEntryGuid);
+	bool PickUpActor(AActor* PickupTarget, UFortDecoItemDefinition* PlacementDecoItemDefinition);
 
 	AFortWeapon*& GetCurrentWeapon()
 	{

@@ -20,8 +20,46 @@ void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor
 	this->ProcessEvent(fn, &AFortPlayerController_ClientReportDamagedResourceBuilding_Params);
 }
 
+void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid)
+{
+	auto ItemInstance = PlayerController->GetWorldInventory()->FindItemInstance(ItemGuid);
+	auto Pawn = Cast<AFortPawn>(PlayerController->GetPawn());
+
+	if (!ItemInstance || !Pawn)
+		return;
+
+	auto ItemDefinition = ItemInstance->GetItemEntry()->GetItemDefinition();
+	
+	if (auto DecoItemDefinition = Cast<UFortDecoItemDefinition>(ItemDefinition))
+	{
+		Pawn->PickUpActor(nullptr, DecoItemDefinition); // todo check ret value?
+		Pawn->GetCurrentWeapon()->GetItemEntryGuid() = ItemGuid;
+
+		static auto FortDecoTool_ContextTrapStaticClass = FindObject<UClass>("/Script/FortniteGame.FortDecoTool_ContextTrap");
+
+		if (Pawn->GetCurrentWeapon()->IsA(FortDecoTool_ContextTrapStaticClass))
+		{
+			static auto ContextTrapItemDefinitionOffset = Pawn->GetCurrentWeapon()->GetOffset("ContextTrapItemDefinition");
+			Pawn->GetCurrentWeapon()->Get<UObject*>(ContextTrapItemDefinitionOffset) = DecoItemDefinition;
+		}
+
+		return;
+	}
+
+	if (!ItemDefinition)
+		return;
+
+	if (auto Weapon = Pawn->EquipWeaponDefinition((UFortWeaponItemDefinition*)ItemDefinition, ItemInstance->GetItemEntry()->GetItemGuid()))
+	{
+
+	}
+
+
 void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation)
 {
+	if (Fortnite_Version == 17.30 && Globals::bGoingToPlayEvent)
+		return; // We want to be teleported back to the UFO but we dont use chooseplayerstart
+
 	auto PlayerController = Cast<APlayerController>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
 
 	LOG_INFO(LogDev, "PlayerController: {}", __int64(PlayerController));
