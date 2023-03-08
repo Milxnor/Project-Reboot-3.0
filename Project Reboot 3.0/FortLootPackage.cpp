@@ -95,8 +95,11 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
     for (int p = 0; p < LTDTables.size(); p++)
     {
         auto LTD = LTDTables[p];
-        auto& LTDRowMap = LTD->GetRowMap();
 
+        if (!LTD)
+            continue;
+
+        auto& LTDRowMap = LTD->GetRowMap();
         auto LTDRowMapNum = LTDRowMap.Pairs.Elements.Num();
 
         // auto TierGroupNameStr = TierGroupName.ToString();

@@ -119,6 +119,9 @@
     <ClCompile Include="FortDecoItemDefinition.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
+    <ClCompile Include="FortPlaysetItemDefinition.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -365,6 +368,24 @@
     <ClInclude Include="FortDecoItemDefinition.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
     </ClInclude>
+    <ClInclude Include="globals.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="MegaStormManager.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="ai.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortVolume.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Creative</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaCreativePortal.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Creative</Filter>
+    </ClInclude>
+    <ClInclude Include="FortPlaysetItemDefinition.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -528,6 +549,9 @@
     </Filter>
     <Filter Include="Reboot\Public\Gameplay">
       <UniqueIdentifier>{9923af6f-0a65-43f7-ad58-8a66e83814ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Creative">
+      <UniqueIdentifier>{51b57917-fec7-41b7-bdc8-ad284a5385a4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

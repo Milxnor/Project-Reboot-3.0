@@ -190,6 +190,7 @@
     <ClCompile Include="FortPlayerController.cpp" />
     <ClCompile Include="FortPlayerControllerAthena.cpp" />
     <ClCompile Include="FortPlayerPawn.cpp" />
+    <ClCompile Include="FortPlaysetItemDefinition.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
@@ -210,6 +211,7 @@
     <ClInclude Include="Actor.h" />
     <ClInclude Include="ActorComponent.h" />
     <ClInclude Include="addresses.h" />
+    <ClInclude Include="ai.h" />
     <ClInclude Include="Array.h" />
     <ClInclude Include="BitArray.h" />
     <ClInclude Include="BuildingActor.h" />
@@ -226,6 +228,7 @@
     <ClInclude Include="EngineTypes.h" />
     <ClInclude Include="events.h" />
     <ClInclude Include="finder.h" />
+    <ClInclude Include="FortAthenaCreativePortal.h" />
     <ClInclude Include="FortDecoItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />
     <ClInclude Include="FortGameModeAthena.h" />
@@ -243,7 +246,9 @@
     <ClInclude Include="FortPlayerPawn.h" />
     <ClInclude Include="FortPlayerState.h" />
     <ClInclude Include="FortPlayerStateAthena.h" />
+    <ClInclude Include="FortPlaysetItemDefinition.h" />
     <ClInclude Include="FortResourceItemDefinition.h" />
+    <ClInclude Include="FortVolume.h" />
     <ClInclude Include="FortWeapon.h" />
     <ClInclude Include="FortWeaponItemDefinition.h" />
     <ClInclude Include="BuildingWeapons.h" />
@@ -256,6 +261,7 @@
     <ClInclude Include="GameplayTagContainer.h" />
     <ClInclude Include="GameSession.h" />
     <ClInclude Include="GameState.h" />
+    <ClInclude Include="globals.h" />
     <ClInclude Include="hooking.h" />
     <ClInclude Include="inc.h" />
     <ClInclude Include="KismetMathLibrary.h" />
@@ -263,6 +269,7 @@
     <ClInclude Include="KismetSystemLibrary.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="Map.h" />
+    <ClInclude Include="MegaStormManager.h" />
     <ClInclude Include="NameTypes.h" />
     <ClInclude Include="NetDriver.h" />
     <ClInclude Include="NetSerialization.h" />

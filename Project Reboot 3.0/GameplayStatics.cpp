@@ -27,6 +27,23 @@ float UGameplayStatics::GetTimeSeconds(const UObject* WorldContextObject)
 	return TimeSeconds;
 }
 
+UObject* UGameplayStatics::SpawnObject(UClass* ObjectClass, UObject* Outer)
+{
+	static auto fn = FindObject<UFunction>("/Script/Engine.GameplayStatics.SpawnObject");
+
+	struct
+	{
+		UClass* ObjectClass;                                              // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		UObject* Outer;                                                    // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		UObject* ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} UGameplayStatics_SpawnObject_Params{ObjectClass, Outer};
+
+	static auto defaultObj = StaticClass();
+	defaultObj->ProcessEvent(fn, &UGameplayStatics_SpawnObject_Params);
+
+	return UGameplayStatics_SpawnObject_Params.ReturnValue;
+}
+
 UClass* UGameplayStatics::StaticClass()
 {
 	static auto Class = FindObject<UClass>(L"/Script/Engine.GameplayStatics");

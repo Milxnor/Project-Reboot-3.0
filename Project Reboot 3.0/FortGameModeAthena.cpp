@@ -1,15 +1,23 @@
 #include "FortGameModeAthena.h"
 
-#include "reboot.h"
-#include "NetSerialization.h"
 #include "FortPlayerControllerAthena.h"
+#include "FortPlaysetItemDefinition.h"
+#include "FortAthenaCreativePortal.h"
+#include "BuildingContainer.h"
+#include "MegaStormManager.h"
+#include "FortLootPackage.h"
+#include "FortPlayerPawn.h"
+#include "FortPickup.h"
+
+#include "NetSerialization.h"
 #include "GameplayStatics.h"
 #include "KismetStringLibrary.h"
 #include "SoftObjectPtr.h"
-#include "FortPickup.h"
-#include "FortLootPackage.h"
-#include "BuildingContainer.h"
+
+#include "globals.h"
 #include "events.h"
+#include "reboot.h"
+#include "ai.h"
 
 static bool bFirstPlayerJoined = false;
 
@@ -189,6 +197,21 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 					FindObject(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_FloatingIsland"));
 
 				ShowFoundation(FloatingIsland);
+
+				UObject* Scripting = FindObject("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.BP_IslandScripting3"); // bruh
+
+				if (Scripting)
+				{
+					static auto UpdateMapOffset = Scripting->GetOffset("UpdateMap", false);
+
+					if (UpdateMapOffset != 0)
+					{
+						Scripting->Get<bool>(UpdateMapOffset) = true;
+
+						static auto OnRep_UpdateMap = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Island/BP_IslandScripting.BP_IslandScripting_C.OnRep_UpdateMap");
+						Scripting->ProcessEvent(OnRep_UpdateMap);
+					}
+				}
 			}
 
 			if (Fortnite_Season >= 7 && Fortnite_Season <= 10)
@@ -308,10 +331,14 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				{
 					// auto World = Cast<UWorld>(Playlist->AdditionalLevels[i].Get());
 					// StreamLevel(UKismetSystemLibrary::GetPathName(World->PersistentLevel).ToString());
-					StreamLevel(AdditionalLevels.at(i).SoftObjectPtr.ObjectID.AssetPathName.ToString());
+					auto LevelName = AdditionalLevels.at(i).SoftObjectPtr.ObjectID.AssetPathName.ToString();
+					LOG_INFO(LogPlaylist, "Loading level {}.", LevelName);
+					StreamLevel(LevelName);
 				}
 			}
 		}
+
+		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>("bWorldIsReady"), 1, true);
 	}
 
 	static int LastNum6 = 1;
@@ -373,22 +400,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
 
-	static int LastNum3 = 1;
-
-	if (AmountOfRestarts != LastNum3)
-	{
-		LastNum3 = AmountOfRestarts;
-
-		LOG_INFO(LogNet, "Attempting to listen!");
-
-		GetWorld()->Listen();
-		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>("bWorldIsReady"), 1, true);
-
-		// GameState->OnRep_CurrentPlaylistInfo();
-
-		// return false;
-	}
-
 	// if (GameState->GetPlayersLeft() < GameMode->Get<int>("WarmupRequiredPlayerCount"))
 	// if (!bFirstPlayerJoined)
 		// return false;
@@ -399,7 +410,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	{
 		LastNum = AmountOfRestarts;
 
-		float Duration = 40.f;
+		float Duration = 1000.f;
 		float EarlyDuration = Duration;
 
 		float TimeSeconds = 35.f; // UGameplayStatics::GetTimeSeconds(GetWorld());
@@ -412,9 +423,28 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		GameState->Get<float>("WarmupCountdownStartTime") = TimeSeconds;
 		GameMode->Get<float>("WarmupEarlyCountdownDuration") = EarlyDuration;
 
+		auto AllMegaStormManagers = UGameplayStatics::GetAllActorsOfClass(GetWorld(), GameMode->Get<UClass*>("MegaStormManagerClass"));
+
+		LOG_INFO(LogDev, "AllMegaStormManagers.Num() {}", AllMegaStormManagers.Num());
+
+		if (AllMegaStormManagers.Num())
+		{
+			auto MegaStormManager = (AMegaStormManager*)AllMegaStormManagers.at(0); // GameMode->Get<AMegaStormManager*>(MegaStormManagerOffset);
+
+			LOG_INFO(LogDev, "MegaStormManager {}", __int64(MegaStormManager));
+
+			if (MegaStormManager)
+			{
+				LOG_INFO(LogDev, "MegaStormManager->GetMegaStormCircles().Num() {}", MegaStormManager->GetMegaStormCircles().Num());
+			}
+		}
+
 		// GameState->Get<bool>("bGameModeWillSkipAircraft") = Globals::bGoingToPlayEvent && Fortnite_Version == 17.30;
 
-		// GameState->OnRep_CurrentPlaylistInfo();
+		if (Engine_Version < 424)
+			GameState->OnRep_CurrentPlaylistInfo(); // ?
+
+		// SetupNavConfig();
 
 		LOG_INFO(LogDev, "Initialized!");
 	}
@@ -428,6 +458,27 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
+	/* static auto TeamsOffset = GameState->GetOffset("Teams");
+	auto& Teams = GameState->Get<TArray<UObject*>>(TeamsOffset);
+
+	if (Teams.Num() <= 0)
+		return false; */
+
+	static int LastNum3 = 1;
+
+	if (AmountOfRestarts != LastNum3)
+	{
+		LastNum3 = AmountOfRestarts;
+
+		LOG_INFO(LogNet, "Attempting to listen!");
+
+		GetWorld()->Listen();
+
+		// GameState->OnRep_CurrentPlaylistInfo();
+
+		// return false;
+	}
+
 	return Athena_ReadyToStartMatchOriginal(GameMode);
 }
 
@@ -437,22 +488,12 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	return ++NextTeamIndex;
 }
 
-enum class EFortCustomPartType : uint8_t // todo move
-{
-	Head = 0,
-	Body = 1,
-	Hat = 2,
-	Backpack = 3,
-	Charm = 4,
-	Face = 5,
-	NumTypes = 6,
-	EFortCustomPartType_MAX = 7
-};
-
 void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena* GameMode, AActor* NewPlayerActor)
 {
 	if (!NewPlayerActor)
 		return;
+
+	LOG_INFO(LogPlayer, "HandleStartingNewPlayer!");
 
 	static bool bFirst = Engine_Version >= 424;
 
@@ -466,114 +507,100 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		GameState->OnRep_GamePhase();
 	}
 
-	auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
-	auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
-
-	TArray<AActor*> SpawnIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnIsland_FloorLoot);
-
-	TArray<AActor*> BRIsland_FloorLoot_Actors =	UGameplayStatics::GetAllActorsOfClass(GetWorld(), BRIsland_FloorLoot);
-
-	auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
-	auto BRIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot");
-
-	float UpZ = 50;
-
-	EFortPickupSourceTypeFlag SpawnFlag = EFortPickupSourceTypeFlag::Container;
-
-	bool bPrintWarmup = false;
-
-	for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
+	if (false)
 	{
-		ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
+		auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
+		auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
-		// CurrentActor->K2_DestroyActor();
-		// continue;
+		TArray<AActor*> SpawnIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnIsland_FloorLoot);
 
-		auto Location = CurrentActor->GetActorLocation();
-		Location.Z += UpZ;
+		TArray<AActor*> BRIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BRIsland_FloorLoot);
 
-		std::vector<std::pair<UFortItemDefinition*, int>> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
+		auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
+		auto BRIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot");
 
-		if (bPrintWarmup)
+		float UpZ = 50;
+
+		EFortPickupSourceTypeFlag SpawnFlag = EFortPickupSourceTypeFlag::Container;
+
+		bool bPrintWarmup = false;
+
+		for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 		{
-			std::cout << "\n\n";
+			ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
+
+			// CurrentActor->K2_DestroyActor();
+			// continue;
+
+			auto Location = CurrentActor->GetActorLocation();
+			Location.Z += UpZ;
+
+			std::vector<std::pair<UFortItemDefinition*, int>> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
+
+			if (bPrintWarmup)
+			{
+				std::cout << "\n\n";
+			}
+
+			if (LootDrops.size())
+			{
+				for (auto& LootDrop : LootDrops)
+					AFortPickup::SpawnPickup(LootDrop.first, Location, LootDrop.second, SpawnFlag);
+			}
 		}
 
-		if (LootDrops.size())
+		bool bPrint = false;
+
+		int spawned = 0;
+
+		for (int i = 0; i < BRIsland_FloorLoot_Actors.Num(); i++)
 		{
-			for (auto& LootDrop : LootDrops)
-				AFortPickup::SpawnPickup(LootDrop.first, Location, LootDrop.second, SpawnFlag);
-		}
-	}
+			ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
 
-	bool bPrint = false;
+			// CurrentActor->K2_DestroyActor();
+			spawned++;
+			// continue;
 
-	int spawned = 0;
+			auto Location = CurrentActor->GetActorLocation();
+			Location.Z += UpZ;
 
-	for (int i = 0; i < BRIsland_FloorLoot_Actors.Num(); i++)
-	{
-		ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
+			std::vector<std::pair<UFortItemDefinition*, int>> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
 
-		// CurrentActor->K2_DestroyActor();
-		spawned++;
-		// continue;
+			if (bPrint)
+				std::cout << "\n";
 
-		auto Location = CurrentActor->GetActorLocation();
-		Location.Z += UpZ;
-
-		std::vector<std::pair<UFortItemDefinition*, int>> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
-
-		if (bPrint)
-			std::cout << "\n";
-
-		if (LootDrops.size())
-		{
-			for (auto& LootDrop : LootDrops)
-				AFortPickup::SpawnPickup(LootDrop.first, Location, LootDrop.second, SpawnFlag);
+			if (LootDrops.size())
+			{
+				for (auto& LootDrop : LootDrops)
+					AFortPickup::SpawnPickup(LootDrop.first, Location, LootDrop.second, SpawnFlag);
+			}
 		}
 	}
 
 	auto NewPlayer = (AFortPlayerControllerAthena*)NewPlayerActor;
 
-	auto WorldInventory = NewPlayer->GetWorldInventory();
-
-	static UFortItemDefinition* EditToolItemDefinition = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
-	static UFortItemDefinition* PickaxeDefinition = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
-	static UFortItemDefinition* BuildingItemData_Wall = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall");
-	static UFortItemDefinition* BuildingItemData_Floor = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor");
-	static UFortItemDefinition* BuildingItemData_Stair_W = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
-	static UFortItemDefinition* BuildingItemData_RoofS = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS");
-	static UFortItemDefinition* WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
-
-	WorldInventory->AddItem(EditToolItemDefinition, nullptr);
-	WorldInventory->AddItem(BuildingItemData_Wall, nullptr);
-	WorldInventory->AddItem(BuildingItemData_Floor, nullptr);
-	WorldInventory->AddItem(BuildingItemData_Stair_W, nullptr);
-	WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
-	WorldInventory->AddItem(PickaxeDefinition, nullptr);
-	WorldInventory->AddItem(WoodItemData, nullptr, 100);
-
-	WorldInventory->Update(true);
-
 	auto PlayerStateAthena = NewPlayer->GetPlayerStateAthena();
 
-	static auto CharacterPartsOffset = PlayerStateAthena->GetOffset("CharacterParts", false);
-
-	if (CharacterPartsOffset != 0)
+	if (Globals::bNoMCP)
 	{
-		auto CharacterParts = PlayerStateAthena->GetPtr<__int64>("CharacterParts");
-		
-		static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts");
-		auto Parts = (UObject**)(__int64(CharacterParts) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
+		static auto CharacterPartsOffset = PlayerStateAthena->GetOffset("CharacterParts", false);
 
-		static auto headPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
-		static auto bodyPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
+		if (CharacterPartsOffset != 0)
+		{
+			auto CharacterParts = PlayerStateAthena->GetPtr<__int64>("CharacterParts");
 
-		Parts[(int)EFortCustomPartType::Head] = headPart;
-		Parts[(int)EFortCustomPartType::Body] = bodyPart;
+			static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts");
+			auto Parts = (UObject**)(__int64(CharacterParts) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
 
-		static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
-		PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);
+			static auto headPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
+			static auto bodyPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
+
+			Parts[(int)EFortCustomPartType::Head] = headPart;
+			Parts[(int)EFortCustomPartType::Body] = bodyPart;
+
+			static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
+			PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);
+		}
 	}
 
 	PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2;
@@ -629,21 +656,23 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	
 	static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
 
+	struct FUniqueNetIdReplExperimental
+	{
+		unsigned char ahh[0x0028];
+	};
+
+	auto& PlayerStateUniqueId = PlayerStateAthena->Get<FUniqueNetIdReplExperimental>("UniqueId");
+
 	// if (false)
 	// if (GameMemberInfoArrayOffset != 0)
 	if (Engine_Version >= 423)
 	{
-		struct FUniqueNetIdRepl
-		{
-			unsigned char ahh[0x0028];
-		};
-
 		struct FGameMemberInfo : public FFastArraySerializerItem
 		{
 			unsigned char                                      SquadId;                                                  // 0x000C(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 			unsigned char                                      TeamIndex;                                                // 0x000D(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 			unsigned char                                      UnknownData00[0x2];                                       // 0x000E(0x0002) MISSED OFFSET
-			FUniqueNetIdRepl                            MemberUniqueId;                                           // 0x0010(0x0028) (HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			FUniqueNetIdReplExperimental                            MemberUniqueId;                                           // 0x0010(0x0028) (HasGetValueTypeHash, NativeAccessSpecifierPublic)
 		};
 
 		static auto GameMemberInfoStructSize = 0x38;
@@ -671,7 +700,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		{
 			GameMemberInfo->SquadId = PlayerStateAthena->GetSquadId();
 			GameMemberInfo->TeamIndex = PlayerStateAthena->GetTeamIndex();
-			GameMemberInfo->MemberUniqueId = PlayerStateAthena->Get<FUniqueNetIdRepl>("UniqueId");
+			GameMemberInfo->MemberUniqueId = PlayerStateUniqueId;
 		}
 
 		static auto GameMemberInfoArray_MembersOffset = FindOffsetStruct("/Script/FortniteGame.GameMemberInfoArray", "Members");
@@ -680,6 +709,45 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 		((TArray<FGameMemberInfo>*)(__int64(GameMemberInfoArray) + GameMemberInfoArray_MembersOffset))->Add(*GameMemberInfo, GameMemberInfoStructSize);
 		GameMemberInfoArray->MarkArrayDirty();
+	}
+
+	if (Globals::bCreative)
+	{
+		static auto CreativePortalManagerOffset = GameState->GetOffset("CreativePortalManager");
+		auto CreativePortalManager = GameState->Get(CreativePortalManagerOffset);
+
+		static auto AvailablePortalsOffset = CreativePortalManager->GetOffset("AvailablePortals");
+		auto& AvailablePortals = CreativePortalManager->Get<TArray<AActor*>>(AvailablePortalsOffset);
+		auto Portal = (AFortAthenaCreativePortal*)AvailablePortals.at(0);
+		AvailablePortals.Remove(0);
+
+		static auto UsedPortalsOffset = CreativePortalManager->GetOffset("UsedPortals");
+		auto& UsedPortals = CreativePortalManager->Get<TArray<AActor*>>(UsedPortalsOffset);
+		UsedPortals.Add(Portal);
+
+		// Portal->GetCreatorName() = PlayerStateAthena->GetPlayerName();
+
+		*(FUniqueNetIdReplExperimental*)Portal->GetOwningPlayer() = PlayerStateUniqueId;
+		Portal->GetPortalOpen() = true;
+
+		static auto PlayersReadyOffset = Portal->GetOffset("PlayersReady");
+		auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdReplExperimental>>(PlayersReadyOffset);
+		PlayersReady.Add(PlayerStateUniqueId);
+
+		Portal->GetUserInitiatedLoad() = true;
+		Portal->GetInErrorState() = false;
+
+		static auto OwnedPortalOffset = NewPlayer->GetOffset("OwnedPortal");
+		NewPlayer->Get<AFortAthenaCreativePortal*>(OwnedPortalOffset) = Portal;
+
+		static auto CreativePlotLinkedVolumeOffset = NewPlayer->GetOffset("CreativePlotLinkedVolume");
+		NewPlayer->Get<AFortVolume*>(CreativePlotLinkedVolumeOffset) = Portal->GetLinkedVolume();
+
+		Portal->GetLinkedVolume()->GetVolumeState() = EVolumeState::Ready;
+
+		static auto IslandPlayset = FindObject<UFortPlaysetItemDefinition>("/Game/Playsets/PID_Playset_60x60_Composed.PID_Playset_60x60_Composed");
+
+		UFortPlaysetItemDefinition::ShowPlayset(IslandPlayset, Portal->GetLinkedVolume());
 	}
 
 	return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);

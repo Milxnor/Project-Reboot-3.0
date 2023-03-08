@@ -105,6 +105,7 @@ public:
 	{
 		if (Data && ArrayNum > 0 && sizeof(InElementType) > 0)
 		{
+			// VirtualFree(Data, _msize(Data), MEM_RELEASE);
 			VirtualFree(Data, sizeof(InElementType) * ArrayNum, MEM_RELEASE);
 		}
 

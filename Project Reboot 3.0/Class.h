@@ -25,5 +25,5 @@ public:
 class UFunction : public UStruct
 {
 public:
-	void* GetFunc() { return *(void**)(__int64(this) + Offsets::Func); }
+	void*& GetFunc() { return *(void**)(__int64(this) + Offsets::Func); }
 };

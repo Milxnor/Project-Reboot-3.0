@@ -10,4 +10,5 @@ public:
 	AActor* GetOwner();
 	struct FVector GetActorLocation();
 	void K2_DestroyActor();
+	class UActorComponent* GetComponentByClass(class UClass* ComponentClass);
 };

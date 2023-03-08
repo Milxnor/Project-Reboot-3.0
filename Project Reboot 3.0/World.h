@@ -56,5 +56,7 @@ public:
 		return SpawnActor<ActorType>(Class, UserTransformPtr, SpawnParameters);
 	}
 
+	UObject* K2_GetWorldSettings();
+
 	void Listen();
 };

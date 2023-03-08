@@ -2,6 +2,11 @@
 
 #include "reboot.h"
 
+/* void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState)
+{
+
+} */
+
 void AFortGameStateAthena::OnRep_GamePhase()
 {
 	EAthenaGamePhase OldGamePhase = GetGamePhase();

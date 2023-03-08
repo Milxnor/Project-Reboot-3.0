@@ -29,6 +29,7 @@ public:
 		return Get<EAthenaGamePhase>(GamePhaseOffset);
 	}
 
+	// void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
 
 	void OnRep_GamePhase();
 	void OnRep_CurrentPlaylistInfo();

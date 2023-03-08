@@ -36,6 +36,10 @@ namespace Addresses
 	extern inline uint64 GIsClient = 0;
 	extern inline uint64 ActorGetNetMode = 0;
 	extern inline uint64 ChangeGameSessionId = 0;
+	extern inline uint64 DispatchRequest = 0;
+	extern inline uint64 AddNavigationSystemToWorld = 0;
+	extern inline uint64 NavSystemCleanUp = 0;
+	extern inline uint64 LoadPlayset = 0;
 
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();

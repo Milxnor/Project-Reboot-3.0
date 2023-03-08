@@ -20,6 +20,9 @@ public:
 
 	T* Get()
 	{
+		if (SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value <= 0)
+			return nullptr;
+
 		return FindObject<T>(SoftObjectPtr.ObjectID.AssetPathName.ToString());
 	}
 };

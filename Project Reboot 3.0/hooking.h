@@ -196,6 +196,13 @@ namespace Hooking
 			return ret1 == MH_OK && ret2 == MH_OK;
 		}
 
+        static bool PatchCall(void* Addr, void* Detour/*, void** Original = nullptr*/)
+        {
+
+            // int64_t delta = targetAddr - (instrAddr + 5);
+            // *(int32_t*)(instrAddr + 1) = static_cast<int32_t>(delta);
+        }
+
         static bool Hook(UObject* DefaultClass, UFunction* Function, void* Detour, void** Original = nullptr, bool bUseSecondMethod = true, bool bHookExec = false) // Native hook
 		{
             if (!Function)
@@ -207,10 +214,13 @@ namespace Hooking
                 return false;
             }
 
-			auto Exec = Function->GetFunc();
+			auto& Exec = Function->GetFunc();
 
-			if (bHookExec)
-				return Hook(Exec, Detour, Original);
+            if (bHookExec)
+            {
+                Exec = Detour;
+                return true;
+            }
 
             auto AddrOrIdx = bUseSecondMethod ? GetFunctionIdxOrPtr2(Function) : GetFunctionIdxOrPtr(Function);
 

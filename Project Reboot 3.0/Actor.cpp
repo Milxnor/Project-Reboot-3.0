@@ -29,6 +29,20 @@ void AActor::K2_DestroyActor()
 	this->ProcessEvent(DestroyActorFn);
 }
 
+UActorComponent* AActor::GetComponentByClass(class UClass* ComponentClass)
+{
+	static auto fn = FindObject<UFunction>("/Script/Engine.Actor.GetComponentByClass");
+	struct
+	{
+		class UClass* ComponentClass;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		UActorComponent* ReturnValue;                                              // (ExportObject, Parm, OutParm, ZeroConstructor, ReturnParm, InstancedReference, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} AActor_GetComponentByClass_Params{ComponentClass};
+
+	this->ProcessEvent(fn, &AActor_GetComponentByClass_Params);
+
+	return AActor_GetComponentByClass_Params.ReturnValue;
+}
+
 FVector AActor::GetActorLocation()
 {
 	static auto K2_GetActorLocationFn = FindObject<UFunction>("/Script/Engine.Actor.K2_GetActorLocation");

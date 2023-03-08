@@ -30,6 +30,12 @@ public:
 		return MaxHealth;
 	}
 
+	void SetTeam(unsigned char InTeam)
+	{
+		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SetTeam");
+		this->ProcessEvent(fn, &InTeam);
+	}
+
 	static inline void (*OnDamageServerOriginal)(ABuildingActor* BuildingActor, float Damage, FGameplayTagContainer DamageTags,
 		FVector Momentum, /* FHitResult */ __int64  HitInfo, APlayerController* InstigatedBy, AActor* DamageCauser,
 		/* FGameplayEffectContextHandle */ __int64 EffectContext);

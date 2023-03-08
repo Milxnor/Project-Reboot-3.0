@@ -9,6 +9,7 @@
 
 #include "ActorComponent.h"
 #include "FortPlayerStateAthena.h"
+#include "globals.h"
 
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
@@ -29,7 +30,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 		return;
 
 	auto ItemDefinition = ItemInstance->GetItemEntry()->GetItemDefinition();
-	
+
 	if (auto DecoItemDefinition = Cast<UFortDecoItemDefinition>(ItemDefinition))
 	{
 		Pawn->PickUpActor(nullptr, DecoItemDefinition); // todo check ret value?
@@ -53,7 +54,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	{
 
 	}
-
+}
 
 void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation)
 {
@@ -87,6 +88,11 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 
 void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData)
 {
+	auto PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
+
+	if (!PlayerStateAthena)
+		return;
+
 	UClass* BuildingClass = nullptr;
 	FVector BuildLocation;
 	FRotator BuildRotator;
@@ -132,6 +138,8 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 		ExistingBuilding->K2_DestroyActor();
 	}
 
+	ExistingBuildings.Free();
+
 	FTransform Transform{};
 	Transform.Translation = BuildLocation;
 	Transform.Rotation = BuildRotator.Quaternion();
@@ -142,6 +150,8 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 	if (!BuildingActor)
 		return;
 
+	BuildingActor->SetPlayerPlaced(true);
+	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex());
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
 }
 
@@ -163,7 +173,6 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 
 	if (!AbilityToUse)
 		return;
-
 
 	int outHandle = 0;
 
@@ -220,8 +229,8 @@ void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* P
 	{
 		BuildingActor->SetPlayerPlaced(true);
 
-		// if (auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->PlayerState))
-			// BuildingActor->SetTeam(PlayerState->TeamIndex);
+		if (auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState()))
+			BuildingActor->SetTeam(PlayerState->GetTeamIndex());
 
 		// BuildingActor->OnRep_Team();
 	}
@@ -232,7 +241,7 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	auto Pawn = PlayerController->GetMyFortPawn();
 
 	if (!BuildingActorToStopEditing || !Pawn
-		// || BuildingActorToStopEditing->EditingPlayer != PlayerController->PlayerState
+		|| BuildingActorToStopEditing->GetEditingPlayer() != PlayerController->GetPlayerState()
 		|| BuildingActorToStopEditing->IsDestroyed())
 		return;
 
@@ -243,7 +252,6 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 
 	if (EditTool)
 	{
-		// EditTool->bEditConfirmed = true;
 		EditTool->GetEditActor() = nullptr;
 		// EditTool->OnRep_EditActor();
 	}

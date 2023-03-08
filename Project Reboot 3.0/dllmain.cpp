@@ -9,6 +9,7 @@
 #include "FortPlayerControllerAthena.h"
 #include "AbilitySystemComponent.h"
 #include "FortPlayerPawn.h"
+#include "globals.h"
 
 #include "Map.h"
 #include "events.h"
@@ -30,6 +31,9 @@ static int Return2Hook() { return 2; }
 
 static void NoMCPHook() { return; }
 static void CollectGarbageHook() { return; }
+
+static __int64 (*DispatchRequestOriginal)(__int64 a1, __int64* a2, int a3);
+static __int64 DispatchRequestHook(__int64 a1, __int64* a2, int a3) { return DispatchRequestOriginal(a1, a2, 3); }
 
 DWORD WINAPI Main(LPVOID)
 {
@@ -72,10 +76,20 @@ DWORD WINAPI Main(LPVOID)
         : Globals::bCreative ? L"Creative_NoApollo_Terrain" 
         : L"Apollo_Terrain";
 
-    if (Hooking::MinHook::Hook((PVOID)Addresses::NoMCP, (PVOID)NoMCPHook, nullptr))
+    if (Globals::bNoMCP)
     {
-        LOG_INFO(LogHook, "Hooking GetNetMode!");
+        if (Hooking::MinHook::Hook((PVOID)Addresses::NoMCP, (PVOID)NoMCPHook, nullptr))
+        {
+            LOG_INFO(LogHook, "Hooking GetNetMode!");
+            Hooking::MinHook::Hook((PVOID)Addresses::GetNetMode, (PVOID)GetNetModeHook, nullptr);
+        }
+    }
+    else
+    {
+        Hooking::MinHook::Hook((PVOID)Addresses::KickPlayer, (PVOID)AGameSession::KickPlayerHook, (PVOID*)&AGameSession::KickPlayerOriginal);
+        Hooking::MinHook::Hook((PVOID)Addresses::DispatchRequest, (PVOID)DispatchRequestHook, (PVOID*)&DispatchRequestOriginal);
         Hooking::MinHook::Hook((PVOID)Addresses::GetNetMode, (PVOID)GetNetModeHook, nullptr);
+        LOG_INFO(LogHook, "Hooking GetNetMode!");
     }
 
     LOG_INFO(LogDev, "Size: 0x{:x}", sizeof(TMap<FName, void*>));
@@ -89,11 +103,14 @@ DWORD WINAPI Main(LPVOID)
     LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
     LOG_INFO(LogDev, "FindGIsClient: 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
 
-    if (FindGIsServer())
-        *(bool*)FindGIsServer() = true;
+    // if (false)
+    {
+        if (FindGIsServer())
+            *(bool*)FindGIsServer() = true;
 
-    if (FindGIsClient())
-        *(bool*)FindGIsClient() = false;
+        if (FindGIsClient())
+            *(bool*)FindGIsClient() = false;
+    }
 
     if (Fortnite_Version == 17.30)
     {
@@ -101,30 +118,6 @@ DWORD WINAPI Main(LPVOID)
         // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED12C), (PVOID)ReturnTrueHook, nullptr);
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr);
     }
-
-    /*
-    auto GIsClient = Memcury::Scanner(FindGIsServer());
-
-    *GIsClient.GetAs<bool*>() = false;
-    *(bool*)((uintptr_t)GIsClient.Get() + 1) = true;
-    */
-
-    /* auto GIsServer = Memcury::Scanner(__int64(GetModuleHandleW(0)) + 0x804B65A); // Memcury::Scanner::FindStringRef(L"STAT_UpdateLevelStreaming").ScanFor({ 0x80, 0x3D }, false, 1).RelativeOffset(2);
-
-    LOG_INFO(LogDev, "GIsServer: 0x{:x}", GIsServer.Get() - __int64(GetModuleHandleW(0)));
-    LOG_INFO(LogDev, "gisserver - 1: 0x{:x}", __int64(((uintptr_t)GIsServer.Get() - 1)) - __int64(GetModuleHandleW(0)));
-    LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
-    LOG_INFO(LogDev, "FindGIsClient: 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
-
-    *GIsServer.GetAs<bool*>() = true;
-    *(bool*)((uintptr_t)GIsServer.Get() - 1) = false; */
-
-    /* struct { UObject* World; bool ret; } parms{GetWorld()};
-
-    static auto IsDedicatedServerFn = FindObject<UFunction>(L"/Script/Engine.KismetSystemLibrary.IsDedicatedServer");
-    UGameplayStatics::StaticClass()->ProcessEvent(IsDedicatedServerFn, &parms);
-
-    LOG_INFO(LogDev, "isded: {}", parms.ret); */
 
     auto& LocalPlayers = GetLocalPlayers();
 
@@ -153,6 +146,9 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameMode.ReadyToStartMatch"), AFortGameModeAthena::Athena_ReadyToStartMatchHook,
         (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false);
+
+    // return false;
+
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnFor"),
         AGameModeBase::SpawnDefaultPawnForHook, nullptr, false);
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.HandleStartingNewPlayer"), AFortGameModeAthena::Athena_HandleStartingNewPlayerHook,
@@ -178,12 +174,15 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickup"),
        AFortPlayerPawn::ServerHandlePickupHook, nullptr, false);
 
-    /* Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbility"),
-        UAbilitySystemComponent::ServerTryActivateAbilityHook, nullptr, false);
-    Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbilityWithEventData"),
-        UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook, nullptr, false); */
-    // Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerAbilityRPCBatch"),
-        // UAbilitySystemComponent::ServerAbilityRPCBatchHook, nullptr, false);
+    if (false)
+    {
+        Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbility"),
+            UAbilitySystemComponent::ServerTryActivateAbilityHook, nullptr, false);
+        Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbilityWithEventData"),
+            UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook, nullptr, false);
+        // Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerAbilityRPCBatch"),
+            // UAbilitySystemComponent::ServerAbilityRPCBatchHook, nullptr, false);
+    }
 
     if (Engine_Version >= 424)
     {
@@ -194,7 +193,6 @@ DWORD WINAPI Main(LPVOID)
     }
 
     Hooking::MinHook::Hook((PVOID)Addresses::GetPlayerViewpoint, (PVOID)AFortPlayerControllerAthena::GetPlayerViewPointHook, (PVOID*)&AFortPlayerControllerAthena::GetPlayerViewPointOriginal);
-    // Hooking::MinHook::Hook((PVOID)Addresses::KickPlayer, (PVOID)AGameSession::KickPlayerHook, (PVOID*)&AGameSession::KickPlayerOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::TickFlush, (PVOID)UNetDriver::TickFlushHook, (PVOID*)&UNetDriver::TickFlushOriginal);
     // Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
     // Hooking::MinHook::Hook((PVOID)Addresses::CollectGarbage, (PVOID)CollectGarbageHook, nullptr);
@@ -210,6 +208,25 @@ DWORD WINAPI Main(LPVOID)
         {
             LOG_INFO(LogEvent, "Starting {} event!", GetEventName());
             StartEvent();
+        }
+
+        else if (GetAsyncKeyState(VK_F8) & 1)
+        {
+            float Duration = 0;
+            float EarlyDuration = Duration;
+
+            float TimeSeconds = 0; // UGameplayStatics::GetTimeSeconds(GetWorld());
+
+            LOG_INFO(LogDev, "Starting bus!");
+
+            auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+            auto GameState = GameMode->GetGameState();
+
+            GameState->Get<float>("WarmupCountdownEndTime") = 0;
+            GameMode->Get<float>("WarmupCountdownDuration") = 0;
+
+            GameState->Get<float>("WarmupCountdownStartTime") = 0;
+            GameMode->Get<float>("WarmupEarlyCountdownDuration") = 0;
         }
 
         Sleep(1000 / 30);

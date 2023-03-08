@@ -13,11 +13,6 @@ public:
 		return (AFortPlayerStateAthena*)GetPlayerState();
 	}
 
-	static void ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn)
-	{
-		static auto AcknowledgedPawnOffset = Controller->GetOffset("AcknowledgedPawn");
-		Controller->Get<APawn*>(AcknowledgedPawnOffset) = Pawn;
-	}
-
+	static void ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn);
 	static void GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
 };

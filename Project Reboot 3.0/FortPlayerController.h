@@ -9,6 +9,21 @@
 
 struct FCreateBuildingActorData { uint32_t BuildingClassHandle; FVector BuildLoc; FRotator BuildRot; bool bMirrored; };
 
+struct FFortAthenaLoadout
+{
+	UObject*& GetCharacter()
+	{
+		static auto CharacterOffset = FindOffsetStruct("/Script/FortniteGame.FortAthenaLoadout", "Character");
+		return *(UObject**)(__int64(this) + CharacterOffset);
+	}
+
+	UObject*& GetPickaxe()
+	{
+		static auto PickaxeOffset = FindOffsetStruct("/Script/FortniteGame.FortAthenaLoadout", "Pickaxe");
+		return *(UObject**)(__int64(this) + PickaxeOffset);
+	}
+};
+
 class AFortPlayerController : public APlayerController
 {
 public:
@@ -30,6 +45,18 @@ public:
 	{
 		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerController");
 		return Class;
+	}
+
+	FFortAthenaLoadout* GetCosmeticLoadout()
+	{
+		static auto CosmeticLoadoutPCOffset = this->GetOffset("CosmeticLoadoutPC", false);
+
+		if (CosmeticLoadoutPCOffset == 0)
+			CosmeticLoadoutPCOffset = this->GetOffset("CustomizationLoadout");
+
+		auto CosmeticLoadout = this->GetPtr<FFortAthenaLoadout>(CosmeticLoadoutPCOffset);
+
+		return CosmeticLoadout;
 	}
 
 	static void ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid);

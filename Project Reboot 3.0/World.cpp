@@ -5,6 +5,14 @@
 
 #include "reboot.h"
 
+UObject* UWorld::K2_GetWorldSettings()
+{
+	static auto fn = FindObject<UFunction>("/Script/Engine.World.K2_GetWorldSettings");
+	UObject* WorldSettings;
+	this->ProcessEvent(fn, &WorldSettings);
+	return WorldSettings;
+}
+
 void UWorld::Listen()
 {
 	auto GameNetDriverName = UKismetStringLibrary::Conv_StringToName(L"GameNetDriver");

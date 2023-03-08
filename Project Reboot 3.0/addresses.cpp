@@ -13,7 +13,9 @@
 #include "finder.h"
 #include <regex>
 
+#include "ai.h"
 #include "BuildingActor.h"
+#include "FortPlaysetItemDefinition.h"
 
 void Addresses::SetupVersion()
 {
@@ -110,9 +112,11 @@ void Addresses::FindAll()
 {
 	LOG_INFO(LogDev, "9241");
 	Addresses::ProcessEvent = FindProcessEvent();
+	UObject::ProcessEventOriginal = decltype(UObject::ProcessEventOriginal)(ProcessEvent);
 	LOG_INFO(LogDev, "151");
 
 	Addresses::StaticFindObject = FindStaticFindObject();
+	StaticFindObjectOriginal = decltype(StaticFindObjectOriginal)(StaticFindObject);
 	LOG_INFO(LogDev, "2151");
 
 	Addresses::GetPlayerViewpoint = FindGetPlayerViewpoint();
@@ -149,7 +153,7 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "1231");
 
 	Addresses::CollectGarbage = FindCollectGarbage();
-	LOG_INFO(LogDev, "1123");
+	LOG_INFO(LogDev, "112113");
 
 	Addresses::NoMCP = FindNoMCP();
 	LOG_INFO(LogDev, "131");
@@ -184,6 +188,10 @@ void Addresses::FindAll()
 	Addresses::ChangeGameSessionId = FindChangeGameSessionId();
 	LOG_INFO(LogDev, "10");
 
+	Addresses::DispatchRequest = FindDispatchRequest();
+	Addresses::AddNavigationSystemToWorld = FindAddNavigationSystemToWorld();
+	Addresses::NavSystemCleanUp = FindNavSystemCleanUp();
+	Addresses::LoadPlayset = FindLoadPlayset();
 }
 
 void Addresses::Print()
@@ -216,6 +224,10 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "StaticLoadObject: 0x{:x}", StaticLoadObject - Base);
 	LOG_INFO(LogDev, "ActorGetNetMode: 0x{:x}", ActorGetNetMode - Base);
 	LOG_INFO(LogDev, "ChangeGameSessionId: 0x{:x}", ChangeGameSessionId - Base);
+	LOG_INFO(LogDev, "DispatchRequest: 0x{:x}", DispatchRequest - Base);
+	LOG_INFO(LogDev, "AddNavigationSystemToWorld: 0x{:x}", AddNavigationSystemToWorld - Base);
+	LOG_INFO(LogDev, "NavSystemCleanUp: 0x{:x}", NavSystemCleanUp - Base);
+	LOG_INFO(LogDev, "LoadPlayset: 0x{:x}", LoadPlayset - Base);
 }
 
 void Offsets::FindAll()
@@ -268,8 +280,8 @@ void Offsets::Print()
 
 void Addresses::Init()
 {
-	UObject::ProcessEventOriginal = decltype(UObject::ProcessEventOriginal)(ProcessEvent);
-	StaticFindObjectOriginal = decltype(StaticFindObjectOriginal)(StaticFindObject);
+	// UObject::ProcessEventOriginal = decltype(UObject::ProcessEventOriginal)(ProcessEvent); // we do this in Addresses::FindAll()
+	// StaticFindObjectOriginal = decltype(StaticFindObjectOriginal)(StaticFindObject); // we do this in Addresses::FindAll()
 	UWorld::SpawnActorOriginal = decltype(UWorld::SpawnActorOriginal)(SpawnActor);
 	UNetDriver::InitListenOriginal = decltype(UNetDriver::InitListenOriginal)(InitListen);
 	AGameSession::KickPlayerOriginal = decltype(AGameSession::KickPlayerOriginal)(KickPlayer);
@@ -284,6 +296,10 @@ void Addresses::Init()
 	Addresses::SetWorld = Engine_Version < 426 ? Addresses::SetWorld : __int64(DefaultNetDriver->VFTable[Addresses::SetWorld]);
 	UNetDriver::SetWorldOriginal = decltype(UNetDriver::SetWorldOriginal)(SetWorld);
 
+	AddNavigationSystemToWorldOriginal = decltype(AddNavigationSystemToWorldOriginal)(AddNavigationSystemToWorld);
+	NavSystemCleanUpOriginal = decltype(NavSystemCleanUpOriginal)(Addresses::NavSystemCleanUp);
+	LoadPlaysetOriginal = decltype(LoadPlaysetOriginal)(Addresses::LoadPlayset);
+
 	// if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
 	// else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);
 }
@@ -295,6 +311,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Engine_Version == 420)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 57 48 81 EC ? ? ? ? 4C 8B 82 ? ? ? ? 48 8B F9 0F 29 70 E8 0F 29 78 D8").Get()); // Pawn Overlap
+		// toNull.push_back(Memcury::Scanner::FindPattern("E8 ? ? ? ? EB 26 40 38 3D ? ? ? ?").RelativeOffset(1).Get()); // collectgarbage
 	}
 
 	if (Engine_Version == 421)
