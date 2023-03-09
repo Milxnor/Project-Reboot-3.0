@@ -218,6 +218,9 @@ namespace Hooking
 
             if (bHookExec)
             {
+                if (Original)
+                    *Original = Exec;
+
                 Exec = Detour;
                 return true;
             }

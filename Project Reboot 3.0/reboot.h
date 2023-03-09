@@ -134,6 +134,23 @@ struct PlaceholderBitfield
 	uint8_t Eighth : 1;
 };
 
+inline uint8_t GetFieldMask(void* Property)
+{
+	if (!Property)
+		return -1;
+
+	// 3 = sizeof(FieldSize) + sizeof(ByteOffset) + sizeof(ByteMask)
+
+	if (Engine_Version <= 420)
+		return *(uint8_t*)(__int64(Property) + (112 + 3));
+	else if (Engine_Version >= 421 && Engine_Version <= 424)
+		return *(uint8_t*)(__int64(Property) + (112 + 3));
+	else if (Engine_Version >= 425)
+		return *(uint8_t*)(__int64(Property) + (120 + 3));
+
+	return -1;
+}
+
 inline bool ReadBitfield(void* Addr, uint8_t FieldMask)
 {
 	auto Bitfield = (PlaceholderBitfield*)Addr;
@@ -254,4 +271,12 @@ template <typename T = __int64>
 static T* Alloc(size_t Size)
 {
 	return (T*)VirtualAlloc(0, Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+}
+
+namespace MemberOffsets
+{
+	namespace DeathInfo
+	{
+		static inline int bDBNO, Downer, FinisherOrDowner, DeathCause, Distance, DeathLocation, bInitialized, DeathTags;
+	}
 }

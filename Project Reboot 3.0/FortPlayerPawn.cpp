@@ -99,6 +99,11 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 	Pickup->ProcessEvent(OnRep_bPickedUpFn);
 }
 
+void AFortPlayerPawn::ServerHandlePickupInfoHook(AFortPlayerPawn* Pawn, AFortPickup* Pickup, __int64 Params)
+{
+	return ServerHandlePickupHook(Pawn, Pickup, 0.40f, FVector(), false);
+}
+
 UClass* AFortPlayerPawn::StaticClass()
 {
 	static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerPawn");

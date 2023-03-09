@@ -5,20 +5,51 @@
 #include "Class.h"
 #include "KismetSystemLibrary.h"
 
-int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound)
+FName* getFNameOfProp(void* Property)
 {
-	auto getFNameOfProp = [](void* Property) -> FName*
+	FName* NamePrivate = nullptr;
+
+	if (Engine_Version >= 425)
+		NamePrivate = (FName*)(__int64(Property) + 0x28);
+	else
+		NamePrivate = &((UField*)Property)->NamePrivate;
+
+	return NamePrivate;
+};
+
+void* UObject::GetProperty(int Offset, bool bWarnIfNotFound)
+{
+	for (auto CurrentClass = ClassPrivate; CurrentClass; CurrentClass = *(UClass**)(__int64(CurrentClass) + Offsets::SuperStruct))
 	{
-		FName* NamePrivate = nullptr;
+		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
 
-		if (Engine_Version >= 425)
-			NamePrivate = (FName*)(__int64(Property) + 0x28);
-		else
-			NamePrivate = &((UField*)Property)->NamePrivate;
+		if (Property)
+		{
+			if (*(int*)(__int64(Property) + Offsets::Offset_Internal) == Offset)
+			{
+				return Property;
+			}
 
-		return NamePrivate;
-	};
+			while (Property)
+			{
+				if (*(int*)(__int64(Property) + Offsets::Offset_Internal) == Offset)
+				{
+					return Property;
+				}
 
+				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
+			}
+		}
+	}
+
+	if (bWarnIfNotFound)
+		LOG_WARN(LogFinder, "Unable to find2{}", Offset);
+
+	return 0;
+}
+
+void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound)
+{
 	for (auto CurrentClass = ClassPrivate; CurrentClass; CurrentClass = *(UClass**)(__int64(CurrentClass) + Offsets::SuperStruct))
 	{
 		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
@@ -31,14 +62,14 @@ int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound)
 
 			if (PropName == ChildName)
 			{
-				return *(int*)(__int64(Property) + Offsets::Offset_Internal);
+				return Property;
 			}
 
 			while (Property)
 			{
 				if (PropName == ChildName)
 				{
-					return *(int*)(__int64(Property) + Offsets::Offset_Internal);
+					return Property;
 				}
 
 				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
@@ -51,6 +82,26 @@ int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound)
 		LOG_WARN(LogFinder, "Unable to find0{}", ChildName);
 
 	return 0;
+}
+
+int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound)
+{
+	auto Property = GetProperty(ChildName, bWarnIfNotFound);
+
+	if (!Property)
+		return 0;
+
+	return  *(int*)(__int64(Property) + Offsets::Offset_Internal);
+}
+
+bool UObject::ReadBitfieldValue(int Offset, uint8_t FieldMask)
+{
+	return ReadBitfield(this->GetPtr<PlaceholderBitfield>(Offset), FieldMask);
+}
+
+void UObject::SetBitfieldValue(int Offset, uint8_t FieldMask, bool NewValue)
+{
+	SetBitfield(this->GetPtr<PlaceholderBitfield>(Offset), FieldMask, NewValue);
 }
 
 std::string UObject::GetFullName()
@@ -73,8 +124,8 @@ bool UObject::IsA(UClass* otherClass)
 	return false;
 }
 
-class UClass* UObject::StaticClass()
+/* class UClass* UObject::StaticClass()
 {
 	static auto Class = FindObject<UClass>("/Script/CoreUObject.Object");
 	return Class;
-}
+} */

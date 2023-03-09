@@ -70,6 +70,7 @@ inline void InitLogger()
     MakeLogger("LogPlaylist");
     MakeLogger("LogGame");
     MakeLogger("LogAI");
+    MakeLogger("LogInteraction");
 }
 
 #define LOG_DEBUG(loggerName, ...)                                            \

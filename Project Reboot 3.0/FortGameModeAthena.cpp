@@ -18,8 +18,7 @@
 #include "events.h"
 #include "reboot.h"
 #include "ai.h"
-
-static bool bFirstPlayerJoined = false;
+#include "Map.h"
 
 enum class EDynamicFoundationEnabledState : uint8_t
 {
@@ -29,8 +28,6 @@ enum class EDynamicFoundationEnabledState : uint8_t
 	EDynamicFoundationEnabledState_MAX = 3
 };
 
-
-// Enum FortniteGame.EDynamicFoundationType
 enum class EDynamicFoundationType : uint8_t
 {
 	Static = 0,
@@ -121,6 +118,42 @@ UObject* GetPlaylistToUse()
 	}
 
 	return Playlist;
+}
+
+FName AFortGameModeAthena::RedirectLootTier(const FName& LootTier)
+{
+	static auto RedirectAthenaLootTierGroupsOffset = this->GetOffset("RedirectAthenaLootTierGroups", false);
+
+	if (RedirectAthenaLootTierGroupsOffset == 0)
+	{
+		static auto Loot_TreasureFName = UKismetStringLibrary::Conv_StringToName(L"Loot_Treasure");
+		static auto Loot_AmmoFName = UKismetStringLibrary::Conv_StringToName(L"Loot_Ammo");
+
+		if (LootTier == Loot_TreasureFName)
+			return UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaTreasure");
+
+		if (LootTier == Loot_AmmoFName)
+			return UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaAmmoLarge");
+		
+		return LootTier;
+	}
+
+	auto& RedirectAthenaLootTierGroups = Get<TMap<FName, FName>>(RedirectAthenaLootTierGroupsOffset);
+
+	for (int i = 0; i < RedirectAthenaLootTierGroups.Pairs.Elements.Num(); i++)
+	{
+		auto& Pair = RedirectAthenaLootTierGroups.Pairs.Elements.Data.at(i).ElementData.Value;
+
+		auto& Key = Pair.Key();
+		auto& Value = Pair.Value();
+
+		LOG_INFO(LogDev, "[{}] {} {}", i, Key.ComparisonIndex.Value ? Key.ToString() : "NULL", Key.ComparisonIndex.Value ? Value.ToString() : "NULL");
+
+		if (Key == LootTier)
+			return Value;
+	}
+
+	return LootTier;
 }
 
 bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode)
@@ -416,6 +449,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		float TimeSeconds = 35.f; // UGameplayStatics::GetTimeSeconds(GetWorld());
 
 		LOG_INFO(LogDev, "Initializing!");
+		LOG_INFO(LogDev, "GameMode 0x{:x}", __int64(GameMode));
 
 		GameState->Get<float>("WarmupCountdownEndTime") = TimeSeconds + Duration;
 		GameMode->Get<float>("WarmupCountdownDuration") = Duration;
@@ -622,13 +656,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 	}
 
-	if (false)
+	if (Globals::bAbilitiesEnabled)
 	{
 		static auto GameplayAbilitySet = LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
 			LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") :
 			LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer");
 
-		// LOG_INFO(LogDev, "GameplayAbilitySet {}", __int64(GameplayAbilitySet));
+		LOG_INFO(LogDev, "GameplayAbilitySet {}", __int64(GameplayAbilitySet));
 
 		if (GameplayAbilitySet)
 		{
@@ -661,11 +695,12 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		unsigned char ahh[0x0028];
 	};
 
-	auto& PlayerStateUniqueId = PlayerStateAthena->Get<FUniqueNetIdReplExperimental>("UniqueId");
+	FUniqueNetIdReplExperimental bugha{};
+	auto& PlayerStateUniqueId = bugha; // PlayerStateAthena->Get<FUniqueNetIdReplExperimental>("UniqueId");
 
 	// if (false)
 	// if (GameMemberInfoArrayOffset != 0)
-	if (Engine_Version >= 423)
+	if (Engine_Version >= 423 && false)
 	{
 		struct FGameMemberInfo : public FFastArraySerializerItem
 		{
@@ -750,5 +785,19 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		UFortPlaysetItemDefinition::ShowPlayset(IslandPlayset, Portal->GetLinkedVolume());
 	}
 
+	static auto SpawnActorDataListOffset = GameMode->GetOffset("SpawnActorDataList");
+
+	if (SpawnActorDataListOffset != 0)
+	{
+		auto& SpawnActorDataList = GameMode->Get<TArray<__int64>>(SpawnActorDataListOffset);
+		LOG_INFO(LogDev, "SpawnActorDataList.Num(): {}", SpawnActorDataList.Num());
+	}
+
 	return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);
+}
+
+void AFortGameModeAthena::SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK)
+{
+	LOG_INFO(LogDev, "OverridePhaseMaybeIDFK: {}", OverridePhaseMaybeIDFK);
+	return SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
 }

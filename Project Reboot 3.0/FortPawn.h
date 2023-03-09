@@ -16,5 +16,13 @@ public:
 		return Get<AFortWeapon*>(CurrentWeaponOffset);
 	}
 
+	bool IsDBNO()
+	{
+		static auto bIsDBNOFieldMask = GetFieldMask(GetProperty("bIsDBNO"));
+		static auto bIsDBNOOffset = GetOffset("bIsDBNO");
+
+		return ReadBitfieldValue(bIsDBNOOffset, bIsDBNOFieldMask);
+	}
+
 	static UClass* StaticClass();
 };

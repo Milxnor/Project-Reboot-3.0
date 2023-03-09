@@ -46,7 +46,7 @@ void InternalServerTryActivateAbility(UAbilitySystemComponent* AbilitySystemComp
 	UGameplayAbility* InstancedAbility = nullptr;
 	SetBitfield(Spec, 1, true); // InputPressed = true
 
-	if (!AbilitySystemComponent->InternalTryActivateAbilityOriginal(AbilitySystemComponent, Handle, __int64(PredictionKey), &InstancedAbility, nullptr, TriggerEventData))
+	if (!AbilitySystemComponent->InternalTryActivateAbilityOriginal(AbilitySystemComponent, Handle, *(FPredictionKey*)PredictionKey, &InstancedAbility, nullptr, TriggerEventData))
 	{
 		AbilitySystemComponent->ClientActivateAbilityFailed(Handle, *(int16_t*)(__int64(PredictionKey) + CurrentOffset));
 		SetBitfield(Spec, 1, false); // InputPressed = false

@@ -66,7 +66,6 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 
 	if (!UpdatePlayerCustomCharacterPartsVisualizationFn)
 	{
-		static auto CosmeticLoadoutPCOffset = Controller->GetOffset("CosmeticLoadoutPC");
 		auto CosmeticLoadout = ControllerAsFort->GetCosmeticLoadout();
 
 		ApplyCID(PawnAsFort, CosmeticLoadout->GetCharacter());
@@ -78,6 +77,14 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 		return;
 	
 	UFortKismetLibrary::StaticClass()->ProcessEvent(UpdatePlayerCustomCharacterPartsVisualizationFn, &PlayerStateAsFort);
+}
+
+void AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessage(AFortPlayerControllerAthena* PlayerController, __int64 ChatEntry, __int64 SenderID)
+{
+	using UAthenaEmojiItemDefinition = UFortItemDefinition;
+
+	static auto EmojiComm = FindObject<UAthenaEmojiItemDefinition>("/Game/Athena/Items/Cosmetics/Dances/Emoji/Emoji_Comm.Emoji_Comm");
+	PlayerController->ServerPlayEmoteItemHook(PlayerController, EmojiComm);
 }
 
 void AFortPlayerControllerAthena::GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation)

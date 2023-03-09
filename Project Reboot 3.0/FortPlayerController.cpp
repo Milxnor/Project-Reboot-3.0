@@ -10,6 +10,11 @@
 #include "ActorComponent.h"
 #include "FortPlayerStateAthena.h"
 #include "globals.h"
+#include "FortPlayerControllerAthena.h"
+#include "BuildingContainer.h"
+#include "FortLootPackage.h"
+#include "FortPickup.h"
+#include "FortPlayerPawn.h"
 
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
@@ -54,6 +59,70 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	{
 
 	}
+}
+
+void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret)
+{
+	LOG_INFO(LogInteraction, "ServerAttemptInteract!");
+
+	auto Params = Stack->Locals;
+
+	static bool bIsUsingComponent = FindObject<UClass>("/Script/FortniteGame.FortControllerComponent_Interaction");
+
+	AFortPlayerControllerAthena* PlayerController = bIsUsingComponent ? Cast<AFortPlayerControllerAthena>(((UActorComponent*)Context)->GetOwner()) :
+		Cast<AFortPlayerControllerAthena>(Context);
+
+	if (!PlayerController)
+		return;
+
+	std::string StructName = bIsUsingComponent ? "/Script/FortniteGame.FortControllerComponent_Interaction.ServerAttemptInteract" : "/Script/FortniteGame.FortPlayerController.ServerAttemptInteract";
+
+	static auto ReceivingActorOffset = FindOffsetStruct(StructName, "ReceivingActor");
+	auto ReceivingActor = *(AActor**)(__int64(Params) + ReceivingActorOffset);
+
+	// LOG_INFO(LogInteraction, "ReceivingActor: {}", __int64(ReceivingActor));
+
+	if (!ReceivingActor)
+		return;
+
+	// LOG_INFO(LogInteraction, "ReceivingActor Name: {}", ReceivingActor->GetFullName());
+
+	if (auto BuildingContainer = Cast<ABuildingContainer>(ReceivingActor))
+	{
+		static auto bAlreadySearchedOffset = BuildingContainer->GetOffset("bAlreadySearched");
+		static auto SearchBounceDataOffset = BuildingContainer->GetOffset("SearchBounceData");
+		static auto SearchAnimationCountOffset = FindOffsetStruct("/Script/FortniteGame.FortSearchBounceData", "SearchAnimationCount");
+		static auto bAlreadySearchedFieldMask = GetFieldMask(BuildingContainer->GetProperty(bAlreadySearchedOffset));
+		
+		auto SearchBounceData = BuildingContainer->GetPtr<void>(SearchBounceDataOffset);
+
+		if (BuildingContainer->ReadBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask))
+			return;
+
+		LOG_INFO(LogInteraction, "bAlreadySearchedFieldMask: {}", bAlreadySearchedFieldMask);
+
+		BuildingContainer->SetBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask, true);
+		(*(int*)(__int64(SearchBounceData) + SearchAnimationCountOffset))++;
+
+		static auto OnRep_bAlreadySearchedFn = FindObject<UFunction>("/Script/FortniteGame.BuildingContainer.OnRep_bAlreadySearched");
+		BuildingContainer->ProcessEvent(OnRep_bAlreadySearchedFn);
+
+		static auto SearchLootTierGroupOffset = BuildingContainer->GetOffset("SearchLootTierGroup");
+		auto RedirectedLootTier = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode(), false)->RedirectLootTier(BuildingContainer->Get<FName>(SearchLootTierGroupOffset));
+
+		auto LootDrops = PickLootDrops(RedirectedLootTier);
+
+		FVector LocationToSpawnLoot = BuildingContainer->GetActorLocation();
+
+		for (int i = 0; i < LootDrops.size(); i++)
+		{
+			AFortPickup::SpawnPickup(LootDrops.at(i).first, LocationToSpawnLoot, LootDrops.at(i).second, EFortPickupSourceTypeFlag::Container, EFortPickupSpawnSource::Unset, -1
+				// , (AFortPawn*)PlayerController->GetPawn() // should we put this here?
+			);
+		}
+	}
+
+	return ServerAttemptInteractOriginal(Context, Stack, Ret);
 }
 
 void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation)
@@ -185,6 +254,46 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 		= decltype(GiveAbilityAndActivateOnce)(Addresses::GiveAbilityAndActivateOnce);
 
 	GiveAbilityAndActivateOnce(PlayerState->GetAbilitySystemComponent(), &outHandle, __int64(Spec));
+}
+
+void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerController, __int64 DeathReport)
+{
+	auto DeadPawn = Cast<AFortPlayerPawn>(PlayerController->GetPawn());
+
+	if (!DeadPawn)
+		return;
+
+	static auto DeathInfoStruct = FindObject<UStruct>("/Script/FortniteGame.DeathInfo");
+	static auto DeathInfoStructSize = DeathInfoStruct->GetPropertiesSize();
+
+	auto DeathInfo = Alloc<void>(DeathInfoStructSize);
+
+	*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bDBNO) = DeadPawn->IsDBNO();
+
+	auto DeathLocation = DeadPawn->GetActorLocation();
+	auto WorldInventory = PlayerController->GetWorldInventory();
+	
+	auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
+
+	for (int i = 0; i < ItemInstances.Num(); i++)
+	{
+		auto ItemInstance = ItemInstances.at(i);
+
+		if (!ItemInstance)
+			continue;
+
+		auto ItemEntry = ItemInstance->GetItemEntry();
+		auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
+		
+		if (!WorldItemDefinition)
+			continue;
+
+		if (!WorldItemDefinition->ShouldDropOnDeath())
+			continue;
+
+		AFortPickup::SpawnPickup(WorldItemDefinition, DeathLocation, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
+			ItemEntry->GetLoadedAmmo());
+	}
 }
 
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)

@@ -44,10 +44,18 @@ public:
 
 	bool IsA(UClass* Other);
 
+	void* GetProperty(int Offset, bool bWarnIfNotFound = true);
+	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true);
 	int GetOffset(const std::string& ChildName, bool bWarnIfNotFound = true);
 
 	template <typename T = UObject*>
 	T& Get(int Offset) { return *(T*)(__int64(this) + Offset); }
+
+	bool ReadBitfieldValue(int Offset, uint8_t FieldMask);
+	bool ReadBitfieldValue(const std::string& ChildName, uint8_t FieldMask) { return ReadBitfieldValue(GetOffset(ChildName), FieldMask); }
+
+	void SetBitfieldValue(int Offset, uint8_t FieldMask, bool NewValue);
+	void SetBitfieldValue(const std::string& ChildName, uint8_t FieldMask, bool NewValue) { return SetBitfieldValue(GetOffset(ChildName), FieldMask, NewValue); }
 
 	template <typename T = UObject*>
 	T& GetCached(const std::string& ChildName)
@@ -81,5 +89,5 @@ public:
 	template <typename T = UObject*>
 	T* GetPtr(const std::string& ChildName) { return GetPtr<T>(GetOffset(ChildName)); }
 
-	static class UClass* StaticClass();
+	// static class UClass* StaticClass();
 };

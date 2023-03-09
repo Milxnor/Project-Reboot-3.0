@@ -23,6 +23,7 @@ struct FGameplayAbilitySpec : FFastArraySerializerItem
 		static auto GameplayAbilitySpecStruct = FindObject<UClass>("/Script/GameplayAbilities.GameplayAbilitySpec");
 		static auto StructSize = GameplayAbilitySpecStruct->GetPropertiesSize();
 			// *(int*)(__int64(GameplayAbilitySpecStruct) + Offsets::PropertiesSize);
+		LOG_INFO(LogAbility, "StructSize: {}", StructSize);
 		return StructSize;
 	}
 

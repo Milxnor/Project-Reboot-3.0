@@ -16,6 +16,7 @@
 #include "ai.h"
 #include "BuildingActor.h"
 #include "FortPlaysetItemDefinition.h"
+#include "FortGameModeAthena.h"
 
 void Addresses::SetupVersion()
 {
@@ -192,6 +193,7 @@ void Addresses::FindAll()
 	Addresses::AddNavigationSystemToWorld = FindAddNavigationSystemToWorld();
 	Addresses::NavSystemCleanUp = FindNavSystemCleanUp();
 	Addresses::LoadPlayset = FindLoadPlayset();
+	Addresses::SetZoneToIndex = FindSetZoneToIndex();
 }
 
 void Addresses::Print()
@@ -228,6 +230,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "AddNavigationSystemToWorld: 0x{:x}", AddNavigationSystemToWorld - Base);
 	LOG_INFO(LogDev, "NavSystemCleanUp: 0x{:x}", NavSystemCleanUp - Base);
 	LOG_INFO(LogDev, "LoadPlayset: 0x{:x}", LoadPlayset - Base);
+	LOG_INFO(LogDev, "SetZoneToIndex: 0x{:x}", SetZoneToIndex - Base);
 }
 
 void Offsets::FindAll()
@@ -299,6 +302,7 @@ void Addresses::Init()
 	AddNavigationSystemToWorldOriginal = decltype(AddNavigationSystemToWorldOriginal)(AddNavigationSystemToWorld);
 	NavSystemCleanUpOriginal = decltype(NavSystemCleanUpOriginal)(Addresses::NavSystemCleanUp);
 	LoadPlaysetOriginal = decltype(LoadPlaysetOriginal)(Addresses::LoadPlayset);
+	AFortGameModeAthena::SetZoneToIndexOriginal = decltype(AFortGameModeAthena::SetZoneToIndexOriginal)(Addresses::SetZoneToIndex);
 
 	// if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
 	// else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);

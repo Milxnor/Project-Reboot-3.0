@@ -154,6 +154,20 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.HandleStartingNewPlayer"), AFortGameModeAthena::Athena_HandleStartingNewPlayerHook,
         (PVOID*)&AFortGameModeAthena::Athena_HandleStartingNewPlayerOriginal, false);
 
+    static auto ControllerServerAttemptInteractFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ServerAttemptInteract");
+
+    if (ControllerServerAttemptInteractFn)
+    {
+        Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, ControllerServerAttemptInteractFn, AFortPlayerController::ServerAttemptInteractHook,
+            (PVOID*)&AFortPlayerController::ServerAttemptInteractOriginal, false, true);
+    }
+    else
+    {
+        Hooking::MinHook::Hook(FindObject("/Script/FortniteGame.Default__FortControllerComponent_Interaction"),
+            FindObject<UFunction>("/Script/FortniteGame.FortControllerComponent_Interaction.ServerAttemptInteract"),
+            AFortPlayerController::ServerAttemptInteractHook, (PVOID*)&AFortPlayerController::ServerAttemptInteractOriginal, false, true);
+    }
+
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerExecuteInventoryItem"),
        AFortPlayerController::ServerExecuteInventoryItemHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerPlayEmoteItem"),
@@ -168,13 +182,25 @@ DWORD WINAPI Main(LPVOID)
         AFortPlayerController::ServerEndEditingBuildingActorHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/Engine.PlayerController.ServerAcknowledgePossession"),
         AFortPlayerControllerAthena::ServerAcknowledgePossessionHook, nullptr, false);
+    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerPlaySquadQuickChatMessage"),
+        AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessage, nullptr, false);
 
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
-    Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickup"),
-       AFortPlayerPawn::ServerHandlePickupHook, nullptr, false);
 
-    if (false)
+    static auto ServerHandlePickupInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerPawn.ServerHandlePickupInfo");
+
+    if (ServerHandlePickupInfoFn)
+    {
+        Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, ServerHandlePickupInfoFn, AFortPlayerPawn::ServerHandlePickupInfoHook, nullptr, false);
+    }
+    else
+    {
+        Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickup"),
+            AFortPlayerPawn::ServerHandlePickupHook, nullptr, false);
+    }
+
+    if (Globals::bAbilitiesEnabled)
     {
         Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbility"),
             UAbilitySystemComponent::ServerTryActivateAbilityHook, nullptr, false);
@@ -197,6 +223,7 @@ DWORD WINAPI Main(LPVOID)
     // Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
     // Hooking::MinHook::Hook((PVOID)Addresses::CollectGarbage, (PVOID)CollectGarbageHook, nullptr);
     Hooking::MinHook::Hook((PVOID)Addresses::PickTeam, (PVOID)AFortGameModeAthena::Athena_PickTeamHook, nullptr);
+    Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)AFortGameModeAthena::SetZoneToIndexHook, (PVOID*)&AFortGameModeAthena::SetZoneToIndexOriginal);
 
     srand(time(0));
 

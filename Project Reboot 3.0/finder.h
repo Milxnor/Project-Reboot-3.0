@@ -265,9 +265,20 @@ static inline uint64 FindNoMCP()
 	// return (uintptr_t)GetModuleHandleW(0) + 0x161d600; // 10.40
 }
 
+static inline uint64 FindSetZoneToIndex()
+{
+	if (Fortnite_Version == 14.60)
+		return __int64(GetModuleHandleW(0)) + 0x207F9B0;
+
+	return 0;
+
+	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.");
+	return FindBytes(Addr, { 0x40, 0x55 }, 30000, 0, true);
+}
+
 static inline uint64 FindCollectGarbage()
 {
-	return 0;
+	// return 0;
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_CollectGarbageInternal");
 	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true, 1);

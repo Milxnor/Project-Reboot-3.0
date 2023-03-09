@@ -40,6 +40,7 @@ namespace Addresses
 	extern inline uint64 AddNavigationSystemToWorld = 0;
 	extern inline uint64 NavSystemCleanUp = 0;
 	extern inline uint64 LoadPlayset = 0;
+	extern inline uint64 SetZoneToIndex = 0;
 
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();
