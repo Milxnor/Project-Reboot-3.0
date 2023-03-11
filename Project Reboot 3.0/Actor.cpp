@@ -51,3 +51,12 @@ FVector AActor::GetActorLocation()
 
 	return ret;
 }
+
+FVector AActor::GetActorRightVector()
+{
+	static auto GetActorRightVectorFn = FindObject<UFunction>("/Script/Engine.Actor.GetActorRightVector");
+	FVector ret;
+	this->ProcessEvent(GetActorRightVectorFn, &ret);
+
+	return ret;
+}

@@ -8,14 +8,18 @@ struct PadHex18 { char Pad[0x18]; };
 struct PadHexA8 { char Pad[0xA8]; };
 struct PadHexB0 { char Pad[0xB0]; };
 
-using FPredictionKey = PadHex18;
-using FGameplayEventData = PadHexA8;
+// using FPredictionKey = PadHex18;
+// using FGameplayEventData = PadHexA8;
+
+using FPredictionKey = __int64;
+using FGameplayEventData = __int64;
 
 class UAbilitySystemComponent : public UObject
 {
 public:
 	static inline FGameplayAbilitySpecHandle* (*GiveAbilityOriginal)(UAbilitySystemComponent*, FGameplayAbilitySpecHandle*, __int64 inSpec);
-	static inline bool (*InternalTryActivateAbilityOriginal)(UAbilitySystemComponent*, FGameplayAbilitySpecHandle Handle, FPredictionKey InPredictionKey, UObject** OutInstancedAbility, void* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData);
+	static inline bool (*InternalTryActivateAbilityOriginal)(UAbilitySystemComponent*, FGameplayAbilitySpecHandle Handle, PadHex10 InPredictionKey, UObject** OutInstancedAbility, void* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData);
+	static inline bool (*InternalTryActivateAbilityOriginal2)(UAbilitySystemComponent*, FGameplayAbilitySpecHandle Handle, PadHex18 InPredictionKey, UObject** OutInstancedAbility, void* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData);
 
 	void ClientActivateAbilityFailed(FGameplayAbilitySpecHandle AbilityToActivate, int16_t PredictionKey)
 	{

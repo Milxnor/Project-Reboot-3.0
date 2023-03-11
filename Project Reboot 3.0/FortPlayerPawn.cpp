@@ -73,22 +73,15 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 		return;
 
 	static auto IncomingPickupsOffset = Pawn->GetOffset("IncomingPickups");
-	static auto PickupLocationDataOffset = Pickup->GetOffset("PickupLocationData");
-	auto PickupLocationData = Pickup->GetPtr<__int64>(PickupLocationDataOffset);
-
 	Pawn->Get<TArray<AFortPickup*>>(IncomingPickupsOffset).Add(Pickup);
 
-	static auto PickupTargetOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "PickupTarget");
-	static auto FlyTimeOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "FlyTime");
-	static auto ItemOwnerOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "ItemOwner");
-	static auto StartDirectionOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "StartDirection");
-	static auto PickupGuidOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "PickupGuid");
+	auto PickupLocationData = Pickup->GetPickupLocationData();
 
-	*(AFortPawn**)(__int64(PickupLocationData) + PickupTargetOffset) = Pawn;
-	*(float*)(__int64(PickupLocationData) + FlyTimeOffset) = 0.40f;
-	*(AFortPawn**)(__int64(PickupLocationData) + ItemOwnerOffset) = Pawn;
-	*(FVector*)(__int64(PickupLocationData) + StartDirectionOffset) = InStartDirection;
-	*(FGuid*)(__int64(PickupLocationData) + PickupGuidOffset) = Pawn->GetCurrentWeapon() ? Pawn->GetCurrentWeapon()->GetItemEntryGuid() : FGuid();
+	PickupLocationData->GetPickupTarget() = Pawn;
+	PickupLocationData->GetFlyTime() = 0.40f;
+	PickupLocationData->GetItemOwner() = Pawn;
+	PickupLocationData->GetStartDirection() = InStartDirection;
+	PickupLocationData->GetPickupGuid() = Pawn->GetCurrentWeapon() ? Pawn->GetCurrentWeapon()->GetItemEntryGuid() : FGuid();
 
 	static auto OnRep_PickupLocationDataFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPickup.OnRep_PickupLocationData");
 	Pickup->ProcessEvent(OnRep_PickupLocationDataFn);

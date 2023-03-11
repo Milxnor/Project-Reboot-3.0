@@ -28,36 +28,60 @@ void InternalServerTryActivateAbility(UAbilitySystemComponent* AbilitySystemComp
 
 	auto Spec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
 
+	static auto PredictionKeyStruct = FindObject<UStruct>("/Script/GameplayAbilities.PredictionKey");
+	static auto PredictionKeySize = PredictionKeyStruct->GetPropertiesSize();
 	static auto CurrentOffset = FindOffsetStruct("/Script/GameplayAbilities.PredictionKey", "Current");
 
 	if (!Spec)
 	{
+		LOG_INFO(LogAbilities, "InternalServerTryActivateAbility. Rejecting ClientActivation of ability with invalid SpecHandle!");
 		AbilitySystemComponent->ClientActivateAbilityFailed(Handle, *(int16_t*)(__int64(PredictionKey) + CurrentOffset));
 		return;
 	}
 
 	// ConsumeAllReplicatedData(Handle, PredictionKey);
 
-	const UGameplayAbility* AbilityToActivate = Spec->GetAbility();
+	/* const */ UGameplayAbility * AbilityToActivate = Spec->GetAbility();
 
 	if (!AbilityToActivate)
+	{
+		LOG_ERROR(LogAbilities, "InternalServerTryActiveAbility. Rejecting ClientActivation of unconfigured spec ability!");
+		AbilitySystemComponent->ClientActivateAbilityFailed(Handle, *(int16_t*)(__int64(PredictionKey) + CurrentOffset));
 		return;
+	}
 
 	UGameplayAbility* InstancedAbility = nullptr;
 	SetBitfield(Spec, 1, true); // InputPressed = true
+	
+	bool res = false;
 
-	if (!AbilitySystemComponent->InternalTryActivateAbilityOriginal(AbilitySystemComponent, Handle, *(FPredictionKey*)PredictionKey, &InstancedAbility, nullptr, TriggerEventData))
+	if (PredictionKeySize == 0x10)
+		res = UAbilitySystemComponent::InternalTryActivateAbilityOriginal(AbilitySystemComponent, Handle, *(PadHex10*)PredictionKey, &InstancedAbility, nullptr, TriggerEventData);
+	else if (PredictionKeySize == 0x18)
+		res = UAbilitySystemComponent::InternalTryActivateAbilityOriginal2(AbilitySystemComponent, Handle, *(PadHex18*)PredictionKey, &InstancedAbility, nullptr, TriggerEventData);
+	else
+		LOG_ERROR(LogAbilities, "Prediction key size does not match with any of them!");
+
+	if (res)
 	{
+		LOG_INFO(LogAbilities, "InternalServerTryActivateAbility. Rejecting ClientActivation of {}. InternalTryActivateAbility failed: ", AbilityToActivate->GetName());
+
 		AbilitySystemComponent->ClientActivateAbilityFailed(Handle, *(int16_t*)(__int64(PredictionKey) + CurrentOffset));
 		SetBitfield(Spec, 1, false); // InputPressed = false
 
 		static auto ActivatableAbilitiesOffset = AbilitySystemComponent->GetOffset("ActivatableAbilities");
 		AbilitySystemComponent->Get<FFastArraySerializer>(ActivatableAbilitiesOffset).MarkItemDirty(Spec);
 	}
+	else
+	{
+		LOG_INFO(LogAbilities, "InternalServerTryActivateAbility. Activated {}", AbilityToActivate->GetName());
+	}
 }
 
 FGameplayAbilitySpecHandle UAbilitySystemComponent::GiveAbilityEasy(UClass* AbilityClass)
 {
+	// LOG_INFO(LogDev, "Making spec!");
+
 	auto NewSpec = MakeNewSpec(AbilityClass);
 
 	// LOG_INFO(LogDev, "Made spec!");
@@ -91,12 +115,14 @@ FGameplayAbilitySpec* UAbilitySystemComponent::FindAbilitySpecFromHandle(FGamepl
 void UAbilitySystemComponent::ServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, 
 	FGameplayAbilitySpecHandle Handle, bool InputPressed, FPredictionKey PredictionKey)
 {
+	LOG_INFO(LogAbilities, "ServerTryActivateAbility");
 	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */ &PredictionKey, nullptr);
 }
 
 void UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook(UAbilitySystemComponent* AbilitySystemComponent,
 	FGameplayAbilitySpecHandle Handle, bool InputPressed, FPredictionKey PredictionKey, FGameplayEventData TriggerEventData)
 {
+	LOG_INFO(LogAbilities, "ServerTryActivateAbilityWithEventData");
 	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */
 		&PredictionKey, &TriggerEventData);
 }

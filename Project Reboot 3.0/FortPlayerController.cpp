@@ -91,15 +91,15 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 	{
 		static auto bAlreadySearchedOffset = BuildingContainer->GetOffset("bAlreadySearched");
 		static auto SearchBounceDataOffset = BuildingContainer->GetOffset("SearchBounceData");
+		static auto bAlreadySearchedFieldMask = GetFieldMask(BuildingContainer->GetProperty("bAlreadySearched"));
 		static auto SearchAnimationCountOffset = FindOffsetStruct("/Script/FortniteGame.FortSearchBounceData", "SearchAnimationCount");
-		static auto bAlreadySearchedFieldMask = GetFieldMask(BuildingContainer->GetProperty(bAlreadySearchedOffset));
 		
 		auto SearchBounceData = BuildingContainer->GetPtr<void>(SearchBounceDataOffset);
 
 		if (BuildingContainer->ReadBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask))
 			return;
 
-		LOG_INFO(LogInteraction, "bAlreadySearchedFieldMask: {}", bAlreadySearchedFieldMask);
+		// LOG_INFO(LogInteraction, "bAlreadySearchedFieldMask: {}", bAlreadySearchedFieldMask);
 
 		BuildingContainer->SetBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask, true);
 		(*(int*)(__int64(SearchBounceData) + SearchAnimationCountOffset))++;
@@ -112,7 +112,9 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 		auto LootDrops = PickLootDrops(RedirectedLootTier);
 
-		FVector LocationToSpawnLoot = BuildingContainer->GetActorLocation();
+		LOG_INFO(LogInteraction, "LootDrops.size(): {}", LootDrops.size());
+
+		FVector LocationToSpawnLoot = BuildingContainer->GetActorLocation() + BuildingContainer->GetActorRightVector() * 70.f + FVector{0, 0, 50};
 
 		for (int i = 0; i < LootDrops.size(); i++)
 		{
@@ -120,6 +122,9 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 				// , (AFortPawn*)PlayerController->GetPawn() // should we put this here?
 			);
 		}
+
+		// if (BuildingContainer->ShouldDestroyOnSearch())
+			// BuildingContainer->K2_DestroyActor();
 	}
 
 	return ServerAttemptInteractOriginal(Context, Stack, Ret);
@@ -222,6 +227,41 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 	BuildingActor->SetPlayerPlaced(true);
 	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex());
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
+}
+
+void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController* PlayerController, FGuid ItemGuid, int Count)
+{
+	LOG_INFO(LogDev, "ServerAttemptInventoryDropHook!");
+
+	auto Pawn = PlayerController->GetMyFortPawn();
+
+	if (Count < 0 || !Pawn)
+		return;
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+	auto ReplicatedEntry = WorldInventory->FindReplicatedEntry(ItemGuid);
+
+	if (!ReplicatedEntry)
+		return;
+
+	auto ItemDefinition = Cast<UFortWorldItemDefinition>(ReplicatedEntry->GetItemDefinition());
+
+	if (!ItemDefinition)
+		return;
+
+	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Pawn->GetActorLocation(), Count,
+		EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, ReplicatedEntry->GetLoadedAmmo(), Pawn);
+
+	if (!Pickup)
+		return;
+
+	bool bShouldUpdate = false;
+
+	if (!WorldInventory->RemoveItem(ItemGuid, &bShouldUpdate, Count))
+		return;
+
+	if (bShouldUpdate)
+		WorldInventory->Update();
 }
 
 void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* PlayerController, UObject* EmoteAsset)

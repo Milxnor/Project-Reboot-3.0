@@ -11,8 +11,15 @@ struct FGameplayAbilitySpecHandle
 
 	void GenerateNewHandle()
 	{
-		static int GHandle = 1;
-		Handle = ++GHandle;
+		if (true)
+		{
+			Handle = rand();
+		}
+		else
+		{
+			static int GHandle = 1;
+			Handle = ++GHandle;
+		}
 	}
 };
 
@@ -23,7 +30,7 @@ struct FGameplayAbilitySpec : FFastArraySerializerItem
 		static auto GameplayAbilitySpecStruct = FindObject<UClass>("/Script/GameplayAbilities.GameplayAbilitySpec");
 		static auto StructSize = GameplayAbilitySpecStruct->GetPropertiesSize();
 			// *(int*)(__int64(GameplayAbilitySpecStruct) + Offsets::PropertiesSize);
-		LOG_INFO(LogAbility, "StructSize: {}", StructSize);
+		// LOG_INFO(LogAbilities, "StructSize: {}", StructSize);
 		return StructSize;
 	}
 

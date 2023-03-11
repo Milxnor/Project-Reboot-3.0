@@ -122,8 +122,7 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
 
     if (TierGroupLTDs.size() == 0)
     {
-        // std::cout << "Failed to find LTD!\n";
-        std::cout << "Failed to find any LTD for: " << TierGroupName.ToString() << '\n';
+        LOG_WARN(LogLoot, "Failed to find any LTD for: {}", TierGroupName.ToString());
         return LootDrops;
     }
 
@@ -253,7 +252,9 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
         std::cout << "b: " << b << '\n'; */
     }
 
-    LootDrops.reserve(NumLootPackageDrops);
+    static int AmountToAdd = Engine_Version >= 424 ? 1 : 0; // fr
+
+    LootDrops.reserve(NumLootPackageDrops + AmountToAdd);
 
     for (float i = 0; i < NumLootPackageDrops; i++)
     {
@@ -261,7 +262,8 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
             break;
 
         auto TierGroupLP = TierGroupLPs.at(i);
-        auto TierGroupLPStr = TierGroupLP->GetLootPackageCall().ToString();
+        auto& LootPackageCallFStr = TierGroupLP->GetLootPackageCall();
+        auto TierGroupLPStr = LootPackageCallFStr.IsValid() ? LootPackageCallFStr.ToString() : ".Empty";
 
         if (TierGroupLPStr.contains(".Empty"))
         {

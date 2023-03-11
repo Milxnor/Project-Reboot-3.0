@@ -16,8 +16,8 @@ static inline uintptr_t FindBytes(Memcury::Scanner& Scanner, const std::vector<u
 	{
 		auto CurrentByte = *(Memcury::ASM::MNEMONIC*)(bGoUp ? Scanner.Get() - i : Scanner.Get() + i);
 
-		// if (bPrint)
-			// std::cout << "CurrentByte: " << std::hex << (int)CurrentByte << '\n';
+		if (bPrint)
+			LOG_INFO(LogFinder, "[{}] CurrentByte: 0x{:x}", i, (int)CurrentByte);
 
 		if (CurrentByte == Bytes[0])
 		{
@@ -222,6 +222,11 @@ static inline uint64 FindStaticLoadObject()
 {
 	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_LoadObject").ScanFor({ 0x4C, 0x89, 0x4C }, false);
 	return Addr.Get();
+}
+
+static inline uint64 FindCompletePickupAnimation()
+{
+	return Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED").Get(); // 14.60
 }
 
 static inline uint64 FindNoMCP()
@@ -568,20 +573,25 @@ static inline uint64 FindInternalTryActivateAbility()
 	return FindBytes(Addr, { 0x4C, 0x89, 0x4C }, 1000, 0, true);
 }
 
-static inline uint64 FindGiveAbility()
-{
-	auto Addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!");
-	auto /* callToGiveAbility */ realGiveAbility = Memcury::Scanner(FindBytes(Addr, { 0xE8 }, 1000, 0)).RelativeOffset(1).Get();
-	// auto realGiveAbility = ((callToGiveAbility + 1 + 4) + *(int*)(callToGiveAbility + 1));
-	return realGiveAbility;
-}
-
 static inline uint64 FindGiveAbilityAndActivateOnce()
 {
+	if (Engine_Version == 426)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 49 8B 40 10 49 8B D8 48 8B FA 48 8B F1").Get();
+
 	auto Addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!", true, 0, Engine_Version >= 500);
 	auto res = FindBytes(Addr, { 0x48, 0x89, 0x5C }, 1000, 0, true);
 
 	return res;
+}
+
+static inline uint64 FindGiveAbility()
+{
+	// auto Addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!"); // has 2 refs for some reason on some versions
+	// auto realGiveAbility = Memcury::Scanner(FindBytes(Addr, { 0xE8 }, 500, 0, false, 0, true)).RelativeOffset(1).Get();
+
+	Memcury::Scanner addr = Memcury::Scanner(FindGiveAbilityAndActivateOnce());
+
+	return Memcury::Scanner(FindBytes(addr, { 0xE8 }, 500, 0, false, 1)).RelativeOffset(1).Get();
 }
 
 static inline uint64 FindCantBuild()

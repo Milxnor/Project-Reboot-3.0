@@ -194,6 +194,7 @@ void Addresses::FindAll()
 	Addresses::NavSystemCleanUp = FindNavSystemCleanUp();
 	Addresses::LoadPlayset = FindLoadPlayset();
 	Addresses::SetZoneToIndex = FindSetZoneToIndex();
+	Addresses::CompletePickupAnimation = FindCompletePickupAnimation();
 }
 
 void Addresses::Print()
@@ -231,6 +232,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "NavSystemCleanUp: 0x{:x}", NavSystemCleanUp - Base);
 	LOG_INFO(LogDev, "LoadPlayset: 0x{:x}", LoadPlayset - Base);
 	LOG_INFO(LogDev, "SetZoneToIndex: 0x{:x}", SetZoneToIndex - Base);
+	LOG_INFO(LogDev, "CompletePickupAnimation: 0x{:x}", CompletePickupAnimation - Base);
 }
 
 void Offsets::FindAll()
@@ -292,6 +294,7 @@ void Addresses::Init()
 	FMemory::Realloc = decltype(FMemory::Realloc)(Realloc);
 	UAbilitySystemComponent::GiveAbilityOriginal = decltype(UAbilitySystemComponent::GiveAbilityOriginal)(GiveAbility);
 	UAbilitySystemComponent::InternalTryActivateAbilityOriginal = decltype(UAbilitySystemComponent::InternalTryActivateAbilityOriginal)(InternalTryActivateAbility);
+	UAbilitySystemComponent::InternalTryActivateAbilityOriginal2 = decltype(UAbilitySystemComponent::InternalTryActivateAbilityOriginal2)(InternalTryActivateAbility);
 	ABuildingActor::OnDamageServerOriginal = decltype(ABuildingActor::OnDamageServerOriginal)(OnDamageServer);
 	StaticLoadObjectOriginal = decltype(StaticLoadObjectOriginal)(StaticLoadObject);
 
@@ -348,6 +351,11 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Fortnite_Version == 17.30)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 70 08 48 89 78 10 55 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 ED").Get());
+	}
+
+	if (Fortnite_Version == 17.50)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 49 8B D9 45 8A").Get()); // no reservation in game
 	}
 
 	toNull.push_back(Addresses::ChangeGameSessionId);

@@ -44,7 +44,6 @@ public:
 
 	bool IsA(UClass* Other);
 
-	void* GetProperty(int Offset, bool bWarnIfNotFound = true);
 	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true);
 	int GetOffset(const std::string& ChildName, bool bWarnIfNotFound = true);
 

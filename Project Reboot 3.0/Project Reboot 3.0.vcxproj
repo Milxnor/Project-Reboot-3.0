@@ -213,6 +213,7 @@
     <ClInclude Include="addresses.h" />
     <ClInclude Include="ai.h" />
     <ClInclude Include="Array.h" />
+    <ClInclude Include="AthenaMarkerComponent.h" />
     <ClInclude Include="BitArray.h" />
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="BuildingContainer.h" />

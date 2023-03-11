@@ -23,9 +23,9 @@ public:
 
 public:
 
-	inline InElementType& At(int i, int Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
-	inline InElementType& at(int i, int Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
-	inline InElementType* AtPtr(int i, int Size = sizeof(InElementType)) const { return (InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
+	inline InElementType& At(int i, size_t Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
+	inline InElementType& at(int i, size_t Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
+	inline InElementType* AtPtr(int i, size_t Size = sizeof(InElementType)) const { return (InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 
 	inline int Num() const { return ArrayNum; }
 	inline int size() const { return ArrayNum; }
@@ -35,14 +35,14 @@ public:
 		return ArrayMax - NumElements;
 	}
 
-	void Reserve(int Number, int Size = sizeof(InElementType))
+	void Reserve(int Number, size_t Size = sizeof(InElementType))
 	{
 		// LOG_INFO(LogDev, "ArrayNum {}", ArrayNum);
 		// Data = (InElementType*)FMemory::Realloc(Data, (ArrayMax = ArrayNum + Number) * Size, 0);
 		Data = /* (ArrayMax - ArrayNum) >= ArrayNum ? Data : */ (InElementType*)FMemory::Realloc(Data, (ArrayMax = Number + ArrayNum) * Size, 0);
 	}
 
-	FORCENOINLINE void ResizeGrow(int32 OldNum, int Size = sizeof(InElementType))
+	FORCENOINLINE void ResizeGrow(int32 OldNum, size_t Size = sizeof(InElementType))
 	{
 		// LOG_INFO(LogMemory, "FMemory::Realloc: {}", __int64(FMemory::Realloc));
 
@@ -52,7 +52,7 @@ public:
 		Data = (InElementType*)FMemory::Realloc(Data, ArrayMax * Size, 0);
 	}
 
-	FORCEINLINE int32 AddUninitialized(int32 Count = 1, int Size = sizeof(InElementType))
+	FORCEINLINE int32 AddUninitialized(int32 Count = 1, size_t Size = sizeof(InElementType))
 	{
 		// CheckInvariants();
 
@@ -69,7 +69,7 @@ public:
 		return OldNum;
 	}
 
-	FORCEINLINE int32 Emplace(const InElementType& New, int Size = sizeof(InElementType))
+	FORCEINLINE int32 Emplace(const InElementType& New, size_t Size = sizeof(InElementType))
 	{
 		const int32 Index = AddUninitialized(1, Size); // resizes array
 		memcpy_s((InElementType*)(__int64(Data) + (Index * Size)), Size, (void*)&New, Size);
@@ -82,7 +82,7 @@ public:
 		return Emplace(New, Size);
 	} */
 
-	int Add(const InElementType& New, int Size = sizeof(InElementType))
+	int Add(const InElementType& New, size_t Size = sizeof(InElementType))
 	{
 		// LOG_INFO(LogDev, "ArrayMax: {}", ArrayMax);
 
@@ -113,14 +113,17 @@ public:
 		ArrayMax = 0;
 	}
 
-	bool Remove(const int Index)
+	bool Remove(const int Index, size_t Size = sizeof(InElementType))
 	{
 		// return false;
 
 		if (Index < ArrayNum)
 		{
 			if (Index != ArrayNum - 1)
-				Data[Index] = Data[ArrayNum - 1];
+			{
+				memcpy_s(&at(Index, Size), Size, &at(ArrayNum - 1, Size), Size);
+				// Data[Index] = Data[ArrayNum - 1];
+			}
 
 			--ArrayNum;
 

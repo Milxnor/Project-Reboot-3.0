@@ -11,4 +11,11 @@ class UFortItemDefinition : public UObject
 public:
 	UFortItem* CreateTemporaryItemInstanceBP(int Count, int Level = 1);
 	float GetMaxStackSize();
+
+	bool DoesAllowMultipleStacks()
+	{
+		static auto bAllowMultipleStacksOffset = GetOffset("bAllowMultipleStacks");
+		static auto bAllowMultipleStacksFieldMask = GetFieldMask(GetProperty("bAllowMultipleStacks"));
+		return ReadBitfieldValue(bAllowMultipleStacksOffset, bAllowMultipleStacksFieldMask);
+	}
 };

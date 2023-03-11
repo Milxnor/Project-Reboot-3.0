@@ -76,7 +76,7 @@ static void StreamLevel(std::string LevelName, FVector Location = {})
 	FTransform Transform{};
 	Transform.Scale3D = { 1, 1, 1 };
 	Transform.Translation = Location;
-	auto BuildingFoundation = GetWorld()->SpawnActor<ABuildingSMActor>(BuildingFoundation3x3Class, Transform);
+	auto BuildingFoundation = (GetWorld()->SpawnActor<ABuildingSMActor>(BuildingFoundation3x3Class, Transform));
 
 	if (!BuildingFoundation)
 	{
@@ -84,7 +84,7 @@ static void StreamLevel(std::string LevelName, FVector Location = {})
 		return;
 	}
 
-	BuildingFoundation->InitializeBuildingActor(BuildingFoundation, nullptr, false);
+	// BuildingFoundation->InitializeBuildingActor(BuildingFoundation, nullptr, false);
 
 	static auto FoundationNameOffset = FindOffsetStruct("/Script/FortniteGame.BuildingFoundationStreamingData", "FoundationName");
 	static auto FoundationLocationOffset = FindOffsetStruct("/Script/FortniteGame.BuildingFoundationStreamingData", "FoundationLocation");
@@ -117,6 +117,9 @@ UObject* GetPlaylistToUse()
 			Playlist = GetEventPlaylist();
 	}
 
+	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
+	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");
+
 	return Playlist;
 }
 
@@ -147,7 +150,7 @@ FName AFortGameModeAthena::RedirectLootTier(const FName& LootTier)
 		auto& Key = Pair.Key();
 		auto& Value = Pair.Value();
 
-		LOG_INFO(LogDev, "[{}] {} {}", i, Key.ComparisonIndex.Value ? Key.ToString() : "NULL", Key.ComparisonIndex.Value ? Value.ToString() : "NULL");
+		// LOG_INFO(LogDev, "[{}] {} {}", i, Key.ComparisonIndex.Value ? Key.ToString() : "NULL", Key.ComparisonIndex.Value ? Value.ToString() : "NULL");
 
 		if (Key == LootTier)
 			return Value;
@@ -658,7 +661,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	if (Globals::bAbilitiesEnabled)
 	{
-		static auto GameplayAbilitySet = LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
+		static auto GameplayAbilitySet = Fortnite_Version >= 8.30 ? // LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
 			LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") :
 			LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer");
 
@@ -666,6 +669,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 		if (GameplayAbilitySet)
 		{
+			LOG_INFO(LogDev, "GameplayAbilitySet Name {}", GameplayAbilitySet->GetName());
 			static auto GameplayAbilitiesOffset = GameplayAbilitySet->GetOffset("GameplayAbilities");
 			auto GameplayAbilities = GameplayAbilitySet->GetPtr<TArray<UClass*>>(GameplayAbilitiesOffset);
 
@@ -751,38 +755,67 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		static auto CreativePortalManagerOffset = GameState->GetOffset("CreativePortalManager");
 		auto CreativePortalManager = GameState->Get(CreativePortalManagerOffset);
 
-		static auto AvailablePortalsOffset = CreativePortalManager->GetOffset("AvailablePortals");
-		auto& AvailablePortals = CreativePortalManager->Get<TArray<AActor*>>(AvailablePortalsOffset);
-		auto Portal = (AFortAthenaCreativePortal*)AvailablePortals.at(0);
-		AvailablePortals.Remove(0);
+		static auto AvailablePortalsOffset = CreativePortalManager->GetOffset("AvailablePortals", false);
 
-		static auto UsedPortalsOffset = CreativePortalManager->GetOffset("UsedPortals");
-		auto& UsedPortals = CreativePortalManager->Get<TArray<AActor*>>(UsedPortalsOffset);
-		UsedPortals.Add(Portal);
+		AFortAthenaCreativePortal* Portal = nullptr;
 
-		// Portal->GetCreatorName() = PlayerStateAthena->GetPlayerName();
+		if (AvailablePortalsOffset != 0)
+		{
+			auto& AvailablePortals = CreativePortalManager->Get<TArray<AActor*>>(AvailablePortalsOffset);
+			Portal = (AFortAthenaCreativePortal*)AvailablePortals.at(0);
+			AvailablePortals.Remove(0);
 
-		*(FUniqueNetIdReplExperimental*)Portal->GetOwningPlayer() = PlayerStateUniqueId;
-		Portal->GetPortalOpen() = true;
+			static auto UsedPortalsOffset = CreativePortalManager->GetOffset("UsedPortals");
+			auto& UsedPortals = CreativePortalManager->Get<TArray<AActor*>>(UsedPortalsOffset);
+			UsedPortals.Add(Portal);
+		}
+		else
+		{
+			static auto AllPortalsOffset = CreativePortalManager->GetOffset("AllPortals");
+			auto& AllPortals = CreativePortalManager->Get<TArray<AFortAthenaCreativePortal*>>(AllPortalsOffset);
+		
+			for (int i = 0; i < AllPortals.size(); i++)
+			{
+				auto CurrentPortal = AllPortals.at(i);
 
-		static auto PlayersReadyOffset = Portal->GetOffset("PlayersReady");
-		auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdReplExperimental>>(PlayersReadyOffset);
-		PlayersReady.Add(PlayerStateUniqueId);
+				if (CurrentPortal->GetUserInitiatedLoad())
+					continue;
 
-		Portal->GetUserInitiatedLoad() = true;
-		Portal->GetInErrorState() = false;
+				Portal = CurrentPortal;
+				break;
+			}
+		}
 
-		static auto OwnedPortalOffset = NewPlayer->GetOffset("OwnedPortal");
-		NewPlayer->Get<AFortAthenaCreativePortal*>(OwnedPortalOffset) = Portal;
+		if (Portal)
+		{
+			// Portal->GetCreatorName() = PlayerStateAthena->GetPlayerName();
 
-		static auto CreativePlotLinkedVolumeOffset = NewPlayer->GetOffset("CreativePlotLinkedVolume");
-		NewPlayer->Get<AFortVolume*>(CreativePlotLinkedVolumeOffset) = Portal->GetLinkedVolume();
+			*(FUniqueNetIdReplExperimental*)Portal->GetOwningPlayer() = PlayerStateUniqueId;
+			Portal->GetPortalOpen() = true;
 
-		Portal->GetLinkedVolume()->GetVolumeState() = EVolumeState::Ready;
+			static auto PlayersReadyOffset = Portal->GetOffset("PlayersReady");
+			auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdReplExperimental>>(PlayersReadyOffset);
+			PlayersReady.Add(PlayerStateUniqueId);
 
-		static auto IslandPlayset = FindObject<UFortPlaysetItemDefinition>("/Game/Playsets/PID_Playset_60x60_Composed.PID_Playset_60x60_Composed");
+			Portal->GetUserInitiatedLoad() = true;
+			Portal->GetInErrorState() = false;
 
-		UFortPlaysetItemDefinition::ShowPlayset(IslandPlayset, Portal->GetLinkedVolume());
+			static auto OwnedPortalOffset = NewPlayer->GetOffset("OwnedPortal");
+			NewPlayer->Get<AFortAthenaCreativePortal*>(OwnedPortalOffset) = Portal;
+
+			static auto CreativePlotLinkedVolumeOffset = NewPlayer->GetOffset("CreativePlotLinkedVolume");
+			NewPlayer->Get<AFortVolume*>(CreativePlotLinkedVolumeOffset) = Portal->GetLinkedVolume();
+
+			Portal->GetLinkedVolume()->GetVolumeState() = EVolumeState::Ready;
+
+			static auto IslandPlayset = FindObject<UFortPlaysetItemDefinition>("/Game/Playsets/PID_Playset_60x60_Composed.PID_Playset_60x60_Composed");
+
+			UFortPlaysetItemDefinition::ShowPlayset(IslandPlayset, Portal->GetLinkedVolume());
+		}
+		else
+		{
+			LOG_INFO(LogCreative, "Failed to find an open portal!");
+		}
 	}
 
 	static auto SpawnActorDataListOffset = GameMode->GetOffset("SpawnActorDataList");

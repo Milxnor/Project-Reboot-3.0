@@ -71,6 +71,7 @@ inline void InitLogger()
     MakeLogger("LogGame");
     MakeLogger("LogAI");
     MakeLogger("LogInteraction");
+    MakeLogger("LogCreative");
 }
 
 #define LOG_DEBUG(loggerName, ...)                                            \

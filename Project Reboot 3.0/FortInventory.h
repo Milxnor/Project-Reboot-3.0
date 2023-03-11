@@ -9,6 +9,34 @@
 
 #include "reboot.h"
 
+
+static bool IsPrimaryQuickbar(UFortItemDefinition* ItemDefinition)
+{
+	/* if (ItemDefinition->IsA(UFortDecoItemDefinition::StaticClass()))
+	{
+		if (ItemDefinition->IsA(UFortTrapItemDefinition::StaticClass()))
+			return false;
+		else
+			return true;
+	}
+	else if (ItemDefinition->IsA(UFortWeaponItemDefinition::StaticClass()))
+		return true; */
+
+	static auto FortWeaponMeleeItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortWeaponMeleeItemDefinition");
+	static auto FortEditToolItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortEditToolItemDefinition");
+	static auto FortBuildingItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortBuildingItemDefinition");
+	static auto FortAmmoItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortAmmoItemDefinition");
+	static auto FortResourceItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortResourceItemDefinition");
+	static auto FortTrapItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortTrapItemDefinition");
+
+	if (!ItemDefinition->IsA(FortWeaponMeleeItemDefinitionClass) && !ItemDefinition->IsA(FortEditToolItemDefinitionClass) &&
+		!ItemDefinition->IsA(FortBuildingItemDefinitionClass) && !ItemDefinition->IsA(FortAmmoItemDefinitionClass)
+		&& !ItemDefinition->IsA(FortResourceItemDefinitionClass) && !ItemDefinition->IsA(FortTrapItemDefinitionClass))
+		return true;
+
+	return false;
+}
+
 enum class EFortInventoryType : unsigned char
 {
 	World = 0,
@@ -25,10 +53,10 @@ struct FFortItemList : public FFastArraySerializer
 		return *(TArray<UFortItem*>*)(__int64(this) + ItemInstancesOffset);
 	}
 
-	TArray<FFastArraySerializerItem>& GetReplicatedEntries()
+	TArray<FFortItemEntry>& GetReplicatedEntries()
 	{
 		static auto ReplicatedEntriesOffset = FindOffsetStruct("/Script/FortniteGame.FortItemList", "ReplicatedEntries");
-		return *(TArray<FFastArraySerializerItem>*)(__int64(this) + ReplicatedEntriesOffset);
+		return *(TArray<FFortItemEntry>*)(__int64(this) + ReplicatedEntriesOffset);
 	}
 };
 
@@ -63,7 +91,10 @@ public:
 		}
 	}
 
-	std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count = 1);
-
+	std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count = 1, int LoadedAmmo = -1, bool bShouldAddToStateValues = false);
+	bool RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count);
+	void ModifyCount(UFortItem* ItemInstance, int New, bool bRemove = false, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries = nullptr, bool bUpdate = true);
+	
 	UFortItem* FindItemInstance(const FGuid& Guid);
+	FFortItemEntry* FindReplicatedEntry(const FGuid& Guid);
 };

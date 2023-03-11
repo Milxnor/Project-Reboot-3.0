@@ -17,37 +17,6 @@ FName* getFNameOfProp(void* Property)
 	return NamePrivate;
 };
 
-void* UObject::GetProperty(int Offset, bool bWarnIfNotFound)
-{
-	for (auto CurrentClass = ClassPrivate; CurrentClass; CurrentClass = *(UClass**)(__int64(CurrentClass) + Offsets::SuperStruct))
-	{
-		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
-
-		if (Property)
-		{
-			if (*(int*)(__int64(Property) + Offsets::Offset_Internal) == Offset)
-			{
-				return Property;
-			}
-
-			while (Property)
-			{
-				if (*(int*)(__int64(Property) + Offsets::Offset_Internal) == Offset)
-				{
-					return Property;
-				}
-
-				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
-			}
-		}
-	}
-
-	if (bWarnIfNotFound)
-		LOG_WARN(LogFinder, "Unable to find2{}", Offset);
-
-	return 0;
-}
-
 void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound)
 {
 	for (auto CurrentClass = ClassPrivate; CurrentClass; CurrentClass = *(UClass**)(__int64(CurrentClass) + Offsets::SuperStruct))

@@ -9,6 +9,7 @@ public:
 
 	AActor* GetOwner();
 	struct FVector GetActorLocation();
+	struct FVector GetActorRightVector();
 	void K2_DestroyActor();
 	class UActorComponent* GetComponentByClass(class UClass* ComponentClass);
 };

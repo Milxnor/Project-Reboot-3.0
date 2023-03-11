@@ -13,10 +13,10 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return *(FGuid*)(__int64(this) + ItemGuidOffset);
 	}
 
-	UObject*& GetItemDefinition()
+	class UFortItemDefinition*& GetItemDefinition()
 	{
 		static auto ItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "ItemDefinition");
-		return *(UObject**)(__int64(this) + ItemDefinitionOffset);
+		return *(class UFortItemDefinition**)(__int64(this) + ItemDefinitionOffset);
 	}
 
 	int& GetCount()
