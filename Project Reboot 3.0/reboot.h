@@ -39,7 +39,7 @@ template <typename T = UObject>
 static inline T* FindObject(const std::string& NameStr, UClass* Class = nullptr, UObject* Outer = nullptr)
 {
 	auto NameCWSTR = std::wstring(NameStr.begin(), NameStr.end()).c_str();
-	return StaticFindObject<T>(Class, nullptr, NameCWSTR);
+	return StaticFindObject<T>(Class, Outer, NameCWSTR);
 }
 
 static inline UEngine* GetEngine()

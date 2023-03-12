@@ -9,7 +9,7 @@ struct FGameplayAbilitySpecHandle
 {
 	int Handle;
 
-	void GenerateNewHandle()
+	/* void GenerateNewHandle()
 	{
 		if (true)
 		{
@@ -20,7 +20,7 @@ struct FGameplayAbilitySpecHandle
 			static int GHandle = 1;
 			Handle = ++GHandle;
 		}
-	}
+	} */
 };
 
 struct FGameplayAbilitySpec : FFastArraySerializerItem
@@ -54,7 +54,13 @@ static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* 
 	if (!NewSpec)
 		return nullptr;
 
-	static auto LevelOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "Level");
+	auto DefaultAbility = bAlreadyIsDefault ? GameplayAbilityClass : GameplayAbilityClass->CreateDefaultObject();
+
+	static __int64 (*SpecConstructor)(__int64 spec, UObject* Ability, int Level, int InputID, UObject* SourceObject) = decltype(SpecConstructor)(Addresses::SpecConstructor);
+
+	SpecConstructor(__int64(NewSpec), DefaultAbility, 0, -1, SourceObject);
+
+	/* static auto LevelOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "Level");
 	static auto SourceObjectOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "SourceObject");
 	static auto InputIDOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "InputID");
 
@@ -63,10 +69,10 @@ static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* 
 	((FFastArraySerializerItem*)NewSpec)->ReplicationKey = -1;
 
 	NewSpec->GetHandle().GenerateNewHandle();
-	NewSpec->GetAbility() = bAlreadyIsDefault ? GameplayAbilityClass : GameplayAbilityClass->CreateDefaultObject();
+	NewSpec->GetAbility() = DefaultAbility;
 	*(int*)(__int64(NewSpec) + LevelOffset) = 0;
 	*(int*)(__int64(NewSpec) + InputIDOffset) = -1;
-	*(UObject**)(__int64(NewSpec) + SourceObjectOffset) = SourceObject;
+	*(UObject**)(__int64(NewSpec) + SourceObjectOffset) = SourceObject; */
 
 	return NewSpec;
 }

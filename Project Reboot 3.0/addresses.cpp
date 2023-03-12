@@ -17,6 +17,7 @@
 #include "BuildingActor.h"
 #include "FortPlaysetItemDefinition.h"
 #include "FortGameModeAthena.h"
+#include "UObjectArray.h"
 
 void Addresses::SetupVersion()
 {
@@ -196,6 +197,9 @@ void Addresses::FindAll()
 	Addresses::SetZoneToIndex = FindSetZoneToIndex();
 	Addresses::CompletePickupAnimation = FindCompletePickupAnimation();
 	Addresses::CanActivateAbility = FindCanActivateAbility();
+	Addresses::SpecConstructor = FindSpecConstructor();
+	Addresses::FrameStep = FindFrameStep();
+	Addresses::ObjectArray = FindObjectArray();
 }
 
 void Addresses::Print()
@@ -235,6 +239,9 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "SetZoneToIndex: 0x{:x}", SetZoneToIndex - Base);
 	LOG_INFO(LogDev, "CompletePickupAnimation: 0x{:x}", CompletePickupAnimation - Base);
 	LOG_INFO(LogDev, "CanActivateAbility: 0x{:x}", CanActivateAbility - Base);
+	LOG_INFO(LogDev, "SpecConstructor: 0x{:x}", SpecConstructor - Base);
+	LOG_INFO(LogDev, "FrameStep: 0x{:x}", FrameStep - Base);
+	LOG_INFO(LogDev, "ObjectArray: 0x{:x}", ObjectArray - Base);
 }
 
 void Offsets::FindAll()
@@ -309,8 +316,8 @@ void Addresses::Init()
 	LoadPlaysetOriginal = decltype(LoadPlaysetOriginal)(Addresses::LoadPlayset);
 	AFortGameModeAthena::SetZoneToIndexOriginal = decltype(AFortGameModeAthena::SetZoneToIndexOriginal)(Addresses::SetZoneToIndex);
 
-	// if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
-	// else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);
+	if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
+	else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);
 }
 
 std::vector<uint64> Addresses::GetFunctionsToNull()

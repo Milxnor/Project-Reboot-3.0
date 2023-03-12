@@ -32,12 +32,17 @@ public:
 
 	void SetTeam(unsigned char InTeam)
 	{
-		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SetTeam");
+		static auto fn = nullptr; // FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SetTeam");
 
 		if (!fn)
 		{
 			static auto TeamOffset = GetOffset("Team");
 			Get<uint8_t>(TeamOffset) = InTeam;
+
+			static auto TeamIndexOffset = GetOffset("TeamIndex", false);
+
+			if (TeamIndexOffset != 0)
+				Get<uint8_t>(TeamIndexOffset) = InTeam;
 		}
 		else
 		{

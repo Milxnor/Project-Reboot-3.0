@@ -1,5 +1,9 @@
 #include "AbilitySystemComponent.h"
 #include "NetSerialization.h"
+#include "Actor.h"
+#include "FortPawn.h"
+#include "FortPlayerController.h"
+#include "FortPlayerStateAthena.h"
 
 void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<void(FGameplayAbilitySpec*)> func)
 {
@@ -76,6 +80,46 @@ void InternalServerTryActivateAbility(UAbilitySystemComponent* AbilitySystemComp
 
 	static auto ActivatableAbilitiesOffset = AbilitySystemComponent->GetOffset("ActivatableAbilities");
 	AbilitySystemComponent->Get<FFastArraySerializer>(ActivatableAbilitiesOffset).MarkItemDirty(Spec); // we only need to do this if the ability fails but eh
+
+	// bro ignore this next part idk where to put it ok
+
+	/* static auto OwnerActorOffset = AbilitySystemComponent->GetOffset("OwnerActor");
+	auto PlayerState = Cast<AFortPlayerStateAthena>(AbilitySystemComponent->Get<AActor*>(OwnerActorOffset));
+
+	if (!PlayerState)
+		return;
+
+	auto Controller = Cast<AFortPlayerController>(PlayerState->GetOwner());
+	LOG_INFO(LogAbilities, "Owner {}", PlayerState->GetOwner()->GetFullName());
+
+	if (!Controller)
+		return;
+
+	auto Pawn = Controller->GetMyFortPawn();
+
+	if (!Pawn)
+		return;
+
+	auto CurrentWeapon = Pawn->GetCurrentWeapon();
+	auto WorldInventory = Controller ? Controller->GetWorldInventory() : nullptr;
+
+	if (!WorldInventory || !CurrentWeapon)
+		return;
+
+	auto CurrentWeaponInstance = WorldInventory->FindItemInstance(CurrentWeapon->GetItemEntryGuid());
+	auto CurrentWeaponReplicatedEntry = WorldInventory->FindReplicatedEntry(CurrentWeapon->GetItemEntryGuid());
+
+	static auto AmmoCountOffset = CurrentWeapon->GetOffset("AmmoCount");
+	auto AmmoCount = CurrentWeapon->Get<int>(AmmoCountOffset);
+
+	if (CurrentWeaponReplicatedEntry->GetLoadedAmmo() != AmmoCount)
+	{
+		CurrentWeaponInstance->GetItemEntry()->GetLoadedAmmo() = AmmoCount;
+		CurrentWeaponReplicatedEntry->GetLoadedAmmo() = AmmoCount;
+
+		WorldInventory->GetItemList().MarkItemDirty(CurrentWeaponInstance->GetItemEntry());
+		WorldInventory->GetItemList().MarkItemDirty(CurrentWeaponReplicatedEntry);
+	} */
 }
 
 FGameplayAbilitySpecHandle UAbilitySystemComponent::GiveAbilityEasy(UClass* AbilityClass)

@@ -94,7 +94,20 @@ static inline uint64 FindProcessEvent()
 
 static inline uint64 FindObjectArray()
 {
+	if (Engine_Version >= 421)
+		return Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1").RelativeOffset(3).Get();
 
+	auto addr = Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8D 14 C8 EB 03 49 8B D6 8B 42 08 C1 E8 1D A8 01 0F 85 ? ? ? ? F7 86 ? ? ? ? ? ? ? ?", false).RelativeOffset(3).Get(); // 4.16
+	
+	if (Engine_Version >= 416 || Engine_Version <= 420)
+	{
+		addr = Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8D 1C C8 81 4B ? ? ? ? ? 49 63 76 30", false).RelativeOffset(3).Get();
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8D 1C C8 81 4B ? ? ? ? ? 49 63 76 30", false).RelativeOffset(3).Get();
+	}
+
+	return addr;
 }
 
 static inline uint64 FindCreateNetDriver()
@@ -238,6 +251,35 @@ static inline uint64 FindStaticLoadObject()
 {
 	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_LoadObject").ScanFor({ 0x4C, 0x89, 0x4C }, false);
 	return Addr.Get();
+}
+
+static inline uint64 FindSpecConstructor()
+{
+	if (Engine_Version == 420)
+		return Memcury::Scanner::FindPattern("80 61 29 F8 48 8B 44 24 ?").Get(); // 3.5
+
+	if (Engine_Version == 421)
+		return Memcury::Scanner::FindPattern("80 61 29 F8 48 8B 44 24 ?").Get(); // 6.21
+
+	if (Engine_Version == 422)
+		return Memcury::Scanner::FindPattern("80 61 29 F8 48 8B 44 24 ?").Get(); // was a guess
+
+	if (Engine_Version == 423)
+		return Memcury::Scanner::FindPattern("80 61 29 F8 48 8B 44 24 ?").Get(); // was a guess
+
+	if (Engine_Version == 424)
+		return Memcury::Scanner::FindPattern("80 61 29 F8 48 8B 44 24 ?").Get(); // 11.31
+
+	if (Engine_Version == 425)
+		return Memcury::Scanner::FindPattern("48 8B 44 24 ? 80 61 29 F8 80 61 31 FE 48 89 41 20 33 C0 89 41").Get();
+
+	if (Engine_Version == 426)
+		return Memcury::Scanner::FindPattern("80 61 31 FE 0F 57 C0 80 61 29 F0 48 8B 44 24 ? 48").Get();
+
+	if (Engine_Version == 427)
+		return Memcury::Scanner::FindPattern("80 61 31 FE 41 83 C9 FF 80 61 29 F0 48 8B 44 24 ? 48 89 41").Get();
+
+	return 0;
 }
 
 static inline uint64 FindCompletePickupAnimation()
@@ -613,6 +655,14 @@ static inline uint64 FindInternalTryActivateAbility()
 {
 	auto Addr = Memcury::Scanner::FindStringRef(L"InternalTryActivateAbility called with invalid Handle! ASC: %s. AvatarActor: %s", true, 0, Fortnite_Version >= 18);
 	return FindBytes(Addr, { 0x4C, 0x89, 0x4C }, 1000, 0, true);
+}
+
+static inline uint64 FindFrameStep()
+{
+	if (Engine_Version == 426)
+		return Memcury::Scanner::FindPattern("48 8B 41 20 4C 8B D2 48 8B D1 44 0F B6 08 48 FF C0 48 89 41 20 41").Get();
+
+	return 0;
 }
 
 static inline uint64 FindCanActivateAbility()

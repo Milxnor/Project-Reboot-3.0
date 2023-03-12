@@ -78,8 +78,8 @@ public:
 	}
 };
 
-static inline FChunkedFixedUObjectArray* ChunkedObjects;
-static inline FFixedUObjectArray* UnchunkedObjects;
+extern inline FChunkedFixedUObjectArray* ChunkedObjects = 0;
+extern inline FFixedUObjectArray* UnchunkedObjects = 0;
 
 FORCEINLINE UObject* GetObjectByIndex(int32 Index)
 {

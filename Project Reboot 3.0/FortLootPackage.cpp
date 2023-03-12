@@ -2,6 +2,7 @@
 
 #include "DataTable.h"
 #include "KismetMathLibrary.h"
+#include "FortWeaponItemDefinition.h"
 
 static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
 {
@@ -73,9 +74,9 @@ static FFortLootPackageData* GetLootPackage(std::vector<FFortLootPackageData*>& 
     return SelectedItem;
 }
 
-std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupName, bool bPrint, int recursive)
+std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recursive)
 {
-    std::vector<std::pair<UFortItemDefinition*, int>> LootDrops;
+    std::vector<LootDrop> LootDrops;
 
     static std::vector<UDataTable*> LTDTables;
     static std::vector<UDataTable*> LPTables;
@@ -334,7 +335,14 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
             std::cout << std::format("[{}] {} {} {}\n", i, lootPackageCalls.size(), TierGroupLPStr, ItemDef->GetName());
         }
 
-        LootDrops.push_back({ ItemDef, LootPackageCall->GetCount() });
+        auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDef);
+
+        LootDrop lootDrop{};
+        lootDrop.ItemDefinition = ItemDef;
+        lootDrop.LoadedAmmo = WeaponDef ? WeaponDef->GetClipSize() : 0;
+        lootDrop.Count = LootPackageCall->GetCount();
+
+        LootDrops.push_back(lootDrop);
     }
 
     return LootDrops;

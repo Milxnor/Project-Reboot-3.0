@@ -43,6 +43,8 @@ namespace Addresses
 	extern inline uint64 SetZoneToIndex = 0;
 	extern inline uint64 CompletePickupAnimation = 0;
 	extern inline uint64 CanActivateAbility = 0;
+	extern inline uint64 SpecConstructor = 0;
+	extern inline uint64 FrameStep = 0;
 
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();

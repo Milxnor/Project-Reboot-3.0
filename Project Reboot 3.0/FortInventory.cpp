@@ -16,6 +16,14 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 	if (bShouldUpdate)
 		*bShouldUpdate = false;
 
+	if (LoadedAmmo == -1)
+	{
+		if (auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDefinition))
+			LoadedAmmo = WeaponDef->GetClipSize();
+		else
+			LoadedAmmo = 0;
+	}
+
 	std::vector<UFortItem*> NewItemInstances;
 	std::vector<UFortItem*> ModifiedItemInstances;
 
@@ -25,8 +33,8 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 	if (NewItemInstance)
 	{
-		if (LoadedAmmo != -1)
-			NewItemInstance->GetItemEntry()->GetLoadedAmmo() = LoadedAmmo;
+		// if (LoadedAmmo != -1)
+		NewItemInstance->GetItemEntry()->GetLoadedAmmo() = LoadedAmmo;
 
 		NewItemInstances.push_back(NewItemInstance);
 

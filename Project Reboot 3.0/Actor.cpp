@@ -71,3 +71,24 @@ FVector AActor::GetActorRightVector()
 
 	return ret;
 }
+
+FRotator AActor::GetActorRotation()
+{
+	static auto K2_GetActorRotationFn = FindObject<UFunction>(L"/Script/Engine.Actor.K2_GetActorRotation");
+	FRotator ret;
+	this->ProcessEvent(K2_GetActorRotationFn, &ret);
+
+	return ret;
+}
+
+void AActor::FlushNetDormancy()
+{
+	static auto fn = FindObject<UFunction>("/Script/Engine.Actor.FlushNetDormancy");
+	this->ProcessEvent(fn);
+}
+
+UClass* AActor::StaticClass()
+{
+	static auto Class = FindObject<UClass>(L"/Script/Engine.Actor");
+	return Class;
+}

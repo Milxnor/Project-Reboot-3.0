@@ -74,12 +74,23 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 	static auto ItemLevelOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemLevel");
 	static auto PickupInstigatorHandleOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "PickupInstigatorHandle");
 
-	auto InventoryOwner = *(TScriptInterface<UFortInventoryOwnerInterface>*)(__int64(Params) + InventoryOwnerOffset);
-	auto ItemDefinition = *(UFortWorldItemDefinition**)(__int64(Params) + ItemDefinitionOffset);
-	auto NumberToGive = *(int*)(__int64(Params) + NumberToGiveOffset);
-	auto bNotifyPlayer = *(bool*)(__int64(Params) + bNotifyPlayerOffset);
-	auto ItemLevel = *(int*)(__int64(Params) + ItemLevelOffset);
-	auto PickupInstigatorHandle = *(int*)(__int64(Params) + PickupInstigatorHandleOffset);
+	LOG_INFO(LogDev, "wtf: {}", __int64(Stack.Code));
+
+	return;
+
+	TScriptInterface<UFortInventoryOwnerInterface> InventoryOwner; // = *(TScriptInterface<UFortInventoryOwnerInterface>*)(__int64(Params) + InventoryOwnerOffset);
+	UFortWorldItemDefinition* ItemDefinition; // *(UFortWorldItemDefinition**)(__int64(Params) + ItemDefinitionOffset);
+	int NumberToGive; // = *(int*)(__int64(Params) + NumberToGiveOffset);
+	bool bNotifyPlayer; // = *(bool*)(__int64(Params) + bNotifyPlayerOffset);
+	int ItemLevel; // = *(int*)(__int64(Params) + ItemLevelOffset);
+	int PickupInstigatorHandle; // = *(int*)(__int64(Params) + PickupInstigatorHandleOffset);
+
+	Stack.Step(Context, &InventoryOwner);
+	Stack.Step(Context, &ItemDefinition);
+	Stack.Step(Context, &NumberToGive);
+	Stack.Step(Context, &bNotifyPlayer);
+	Stack.Step(Context, &ItemLevel);
+	Stack.Step(Context, &PickupInstigatorHandle);
 
 	auto InterfacePointer = InventoryOwner.InterfacePointer;
 

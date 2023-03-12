@@ -18,12 +18,16 @@ class ABuildingSMActor : public ABuildingActor
 public:
 	bool IsPlayerPlaced()
 	{
-		return true; // FOR NOW
+		static auto bPlayerPlacedOffset = GetOffset("bPlayerPlaced");
+		static auto bPlayerPlacedFieldMask = GetFieldMask(this->GetProperty("bPlayerPlaced"));
+		return ReadBitfieldValue(bPlayerPlacedOffset, bPlayerPlacedFieldMask);
 	}
 
 	void SetPlayerPlaced(bool NewValue)
 	{
-
+		static auto bPlayerPlacedOffset = GetOffset("bPlayerPlaced");
+		static auto bPlayerPlacedFieldMask = GetFieldMask(this->GetProperty("bPlayerPlaced"));
+		this->SetBitfieldValue(bPlayerPlacedOffset, bPlayerPlacedFieldMask, NewValue);
 	}
 
 	bool IsDestroyed()

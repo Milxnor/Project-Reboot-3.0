@@ -170,6 +170,7 @@
     <ClCompile Include="addresses.cpp" />
     <ClCompile Include="BuildingActor.cpp" />
     <ClCompile Include="BuildingSMActor.cpp" />
+    <ClCompile Include="BuildingTrap.cpp" />
     <ClCompile Include="BuildingWeapons.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
@@ -181,6 +182,7 @@
     <ClCompile Include="FortGameStateAthena.cpp" />
     <ClCompile Include="FortInventory.cpp" />
     <ClCompile Include="FortInventory.h" />
+    <ClCompile Include="FortInventoryInterface.cpp" />
     <ClCompile Include="FortItem.cpp" />
     <ClCompile Include="FortItemDefinition.cpp" />
     <ClCompile Include="FortKismetLibrary.cpp" />
@@ -192,6 +194,7 @@
     <ClCompile Include="FortPlayerPawn.cpp" />
     <ClCompile Include="FortPlaysetItemDefinition.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
+    <ClCompile Include="FortWeaponItemDefinition.cpp" />
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
     <ClCompile Include="KismetMathLibrary.cpp" />
@@ -218,8 +221,10 @@
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="BuildingContainer.h" />
     <ClInclude Include="BuildingSMActor.h" />
+    <ClInclude Include="BuildingTrap.h" />
     <ClInclude Include="calendar.h" />
     <ClInclude Include="Class.h" />
+    <ClInclude Include="commands.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />
     <ClInclude Include="Controller.h" />
     <ClInclude Include="CurveTable.h" />
@@ -236,6 +241,7 @@
     <ClInclude Include="FortGameModePvPBase.h" />
     <ClInclude Include="FortGameModeZone.h" />
     <ClInclude Include="FortGameStateAthena.h" />
+    <ClInclude Include="FortInventoryInterface.h" />
     <ClInclude Include="FortItem.h" />
     <ClInclude Include="FortItemDefinition.h" />
     <ClInclude Include="FortKismetLibrary.h" />
@@ -296,6 +302,7 @@
     <ClInclude Include="UObjectArray.h" />
     <ClInclude Include="UObjectGlobals.h" />
     <ClInclude Include="Vector.h" />
+    <ClInclude Include="vehicles.h" />
     <ClInclude Include="WeakObjectPtr.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

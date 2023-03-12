@@ -40,6 +40,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			static UFortItemDefinition* BuildingItemData_Stair_W = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
 			static UFortItemDefinition* BuildingItemData_RoofS = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS");
 			static UFortItemDefinition* WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
+			static UFortItemDefinition* DamageTrap = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Traps/TID_ContextTrap_Athena.TID_ContextTrap_Athena");
 
 			WorldInventory->AddItem(EditToolItemDefinition, nullptr);
 			WorldInventory->AddItem(BuildingItemData_Wall, nullptr);
@@ -48,6 +49,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
 			WorldInventory->AddItem(PickaxeDefinition, nullptr);
 			WorldInventory->AddItem(WoodItemData, nullptr, 100);
+			WorldInventory->AddItem(DamageTrap, nullptr);
 			// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel.WID_WestSausage_Parallel"), nullptr, 1, 1000);
 
 			WorldInventory->Update(true);

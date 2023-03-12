@@ -13,4 +13,8 @@ public:
 	void K2_DestroyActor();
 	class UActorComponent* GetComponentByClass(class UClass* ComponentClass);
 	float GetDistanceTo(AActor* OtherActor);
+	struct FRotator GetActorRotation();
+	void FlushNetDormancy();
+
+	static class UClass* StaticClass();
 };

@@ -16,4 +16,18 @@ public:
 		static auto TeamIndexOffset = GetOffset("TeamIndex");
 		return Get<uint8>(TeamIndexOffset);
 	}
+
+	FString GetPlayerName()
+	{
+		static auto GetPlayerNameFn = FindObject<UFunction>("/Script/Engine.PlayerState.GetPlayerName");
+		FString PlayerName;
+		this->ProcessEvent(GetPlayerNameFn, &PlayerName);
+		return PlayerName;
+	}
+
+	static UClass* StaticClass()
+	{
+		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerStateAthena");
+		return Class;
+	}
 };

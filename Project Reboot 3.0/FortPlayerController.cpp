@@ -119,7 +119,8 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 		for (int i = 0; i < LootDrops.size(); i++)
 		{
-			AFortPickup::SpawnPickup(LootDrops.at(i).first, LocationToSpawnLoot, LootDrops.at(i).second, EFortPickupSourceTypeFlag::Container, EFortPickupSpawnSource::Unset, -1
+			auto& lootDrop = LootDrops.at(i);
+			AFortPickup::SpawnPickup(lootDrop.ItemDefinition, LocationToSpawnLoot, lootDrop.Count, EFortPickupSourceTypeFlag::Container, EFortPickupSpawnSource::Unset, lootDrop.LoadedAmmo
 				// , (AFortPawn*)PlayerController->GetPawn() // should we put this here?
 			);
 		}
@@ -180,6 +181,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	if (Fortnite_Version >= 8.30)
 	{
+		struct FCreateBuildingActorData { uint32_t BuildingClassHandle; FVector BuildLoc; FRotator BuildRot; bool bMirrored; };
 		auto CreateBuildingData = (FCreateBuildingActorData*)Stack->Locals;
 
 		BuildLocation = CreateBuildingData->BuildLoc;
@@ -240,9 +242,12 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	if (!BuildingActor)
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
+	// static auto OwnerPersistentIDOffset = BuildingActor->GetOffset("OwnerPersistentID");
+	// BuildingActor->Get<int>(OwnerPersistentIDOffset) = PlayerStateAthena->GetWorldPlayerId();
+
 	BuildingActor->SetPlayerPlaced(true);
-	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex());
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
+	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex());
 
 	return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 }
@@ -310,9 +315,6 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 		return;
 
 	int outHandle = 0;
-
-	FGameplayAbilitySpecHandle Handle{};
-	Handle.GenerateNewHandle();
 
 	FGameplayAbilitySpec* Spec = MakeNewSpec((UClass*)AbilityToUse, EmoteAsset, true);
 
@@ -492,10 +494,8 @@ void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* P
 	{
 		BuildingActor->SetPlayerPlaced(true);
 
-		if (auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState()))
-			BuildingActor->SetTeam(PlayerState->GetTeamIndex());
-
-		// BuildingActor->OnRep_Team();
+		// if (auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState()))
+			// BuildingActor->SetTeam(PlayerState->GetTeamIndex());
 	}
 }
 

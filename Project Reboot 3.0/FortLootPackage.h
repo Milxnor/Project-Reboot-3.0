@@ -3,8 +3,15 @@
 #include <vector>
 
 #include "Array.h"
-#include "FortItemDefinition.h"
+#include "FortWorldItemDefinition.h"
 #include "SoftObjectPtr.h"
+
+struct LootDrop
+{
+	UFortItemDefinition* ItemDefinition;
+	int Count;
+	int LoadedAmmo;
+};
 
 struct FFortLootPackageData
 {
@@ -86,4 +93,4 @@ public:
 	}
 };
 
-std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupName, bool bPrint = false, int recursive = 0);
+std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint = false, int recursive = 0);

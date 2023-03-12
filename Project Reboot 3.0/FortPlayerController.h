@@ -8,8 +8,6 @@
 #include "BuildingSMActor.h"
 #include "Stack.h"
 
-struct FCreateBuildingActorData { uint32_t BuildingClassHandle; FVector BuildLoc; FRotator BuildRot; bool bMirrored; };
-
 struct FFortAthenaLoadout
 {
 	UObject*& GetCharacter()

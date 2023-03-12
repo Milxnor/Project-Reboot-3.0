@@ -14,6 +14,7 @@
 #include "KismetStringLibrary.h"
 #include "SoftObjectPtr.h"
 
+#include "vehicles.h"
 #include "globals.h"
 #include "events.h"
 #include "reboot.h"
@@ -124,7 +125,19 @@ UObject* GetPlaylistToUse()
 	if (Globals::bGoingToPlayEvent)
 	{
 		if (Fortnite_Version != 12.61)
-			Playlist = GetEventPlaylist();
+		{
+			auto EventPlaylist = GetEventPlaylist();
+
+			if (!EventPlaylist)
+			{
+				LOG_ERROR(LogPlaylist, "No event playlist! Turning off going to play event");
+				Globals::bGoingToPlayEvent = false;
+			}
+			else
+			{
+				Playlist = EventPlaylist;
+			}
+		}
 	}
 
 	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
@@ -616,7 +629,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			auto Location = CurrentActor->GetActorLocation();
 			Location.Z += UpZ;
 
-			std::vector<std::pair<UFortItemDefinition*, int>> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
+			std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
 
 			if (bPrintWarmup)
 			{
@@ -626,7 +639,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			if (LootDrops.size())
 			{
 				for (auto& LootDrop : LootDrops)
-					AFortPickup::SpawnPickup(LootDrop.first, Location, LootDrop.second, SpawnFlag);
+					AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
 			}
 		}
 
@@ -645,7 +658,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			auto Location = CurrentActor->GetActorLocation();
 			Location.Z += UpZ;
 
-			std::vector<std::pair<UFortItemDefinition*, int>> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
+			std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
 
 			if (bPrint)
 				std::cout << "\n";
@@ -653,9 +666,18 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			if (LootDrops.size())
 			{
 				for (auto& LootDrop : LootDrops)
-					AFortPickup::SpawnPickup(LootDrop.first, Location, LootDrop.second, SpawnFlag);
+					AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
 			}
 		}
+	}
+
+	static bool bSpawnedVehicles = Engine_Version < 423;
+
+	if (!bSpawnedVehicles)
+	{
+		bSpawnedVehicles = true;
+
+		SpawnVehicles();
 	}
 
 	auto NewPlayer = (AFortPlayerControllerAthena*)NewPlayerActor;
@@ -703,6 +725,10 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		static auto OnRep_bHasStartedPlayingFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerState.OnRep_bHasStartedPlaying");
 		PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 	}
+
+	// static int CurrentPlayerId = 1;
+	static auto PlayerIdOffset = PlayerStateAthena->GetOffset("PlayerId");
+	PlayerStateAthena->GetWorldPlayerId() = PlayerStateAthena->Get<int>(PlayerIdOffset); // ++CurrentPlayerId;
 
 	if (Globals::bAbilitiesEnabled)
 	{
