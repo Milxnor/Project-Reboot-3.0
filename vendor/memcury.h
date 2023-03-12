@@ -880,12 +880,12 @@
                     {
                         if constexpr (bIsWide)
                         {
-                            auto aaa = (L"FindStringRef " + std::wstring(string));
+                            auto aaa = (L"failed FindStringRef " + std::wstring(string));
                             MessageBoxA(0, std::string(aaa.begin(), aaa.end()).c_str(), "Memcury", MB_ICONERROR);
                         }
                         else
                         {
-                            MessageBoxA(0, ("FindStringRef " + std::string(string)).c_str(), "Memcury", MB_ICONERROR);
+                            MessageBoxA(0, ("failed FindStringRef " + std::string(string)).c_str(), "Memcury", MB_ICONERROR);
                         }
                     }
                 }

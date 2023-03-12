@@ -42,10 +42,20 @@ void ShowFoundation(UObject* BuildingFoundation)
 	if (!BuildingFoundation)
 		return;
 
-	SetBitfield(BuildingFoundation->GetPtr<PlaceholderBitfield>("bServerStreamedInLevel"), 2, true);
+	static auto bServerStreamedInLevelFieldMask = GetFieldMask(BuildingFoundation->GetProperty("bServerStreamedInLevel"));
+	static auto bServerStreamedInLevelOffset = BuildingFoundation->GetOffset("bServerStreamedInLevel");
+	BuildingFoundation->SetBitfieldValue(bServerStreamedInLevelOffset, bServerStreamedInLevelFieldMask, true);
 
 	static auto DynamicFoundationTypeOffset = BuildingFoundation->GetOffset("DynamicFoundationType");
 	BuildingFoundation->Get<uint8_t>(DynamicFoundationTypeOffset) = true ? 0 : 3;
+
+	static auto bShowHLODWhenDisabledOffset = BuildingFoundation->GetOffset("bShowHLODWhenDisabled", false);
+
+	if (bShowHLODWhenDisabledOffset != 0)
+	{
+		static auto bShowHLODWhenDisabledFieldMask = GetFieldMask(BuildingFoundation->GetProperty("bShowHLODWhenDisabled"));
+		BuildingFoundation->SetBitfieldValue(bShowHLODWhenDisabledOffset, bShowHLODWhenDisabledFieldMask, true);
+	}
 
 	static auto OnRep_ServerStreamedInLevelFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_ServerStreamedInLevel");
 	BuildingFoundation->ProcessEvent(OnRep_ServerStreamedInLevelFn);
@@ -54,7 +64,7 @@ void ShowFoundation(UObject* BuildingFoundation)
 
 	if (DynamicFoundationRepDataOffset != 0)
 	{
-		auto DynamicFoundationRepData = BuildingFoundation->GetPtr(DynamicFoundationRepDataOffset);
+		auto DynamicFoundationRepData = BuildingFoundation->GetPtr<void>(DynamicFoundationRepDataOffset);
 
 		static auto EnabledStateOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "EnabledState");
 
@@ -178,6 +188,21 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			(*(int*)(__int64(CurrentPlaylistInfo) + PlaylistReplicationKeyOffset))++;
 			CurrentPlaylistInfo->MarkArrayDirty();
 
+			auto aeuh = *(UObject**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset);
+
+			if (aeuh)
+			{
+				if (Fortnite_Version >= 13)
+				{
+					static auto LastSafeZoneIndexOffset = aeuh->GetOffset("LastSafeZoneIndex");
+
+					if (LastSafeZoneIndexOffset != -1)
+					{
+						*(int*)(__int64(aeuh) + LastSafeZoneIndexOffset) = 0;
+					}
+				}
+			}
+
 			GameState->OnRep_CurrentPlaylistInfo();
 		}
 		else
@@ -288,8 +313,15 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				auto TheBlock = FindObject("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.SLAB_2"); // SLAB_3 is blank
 				ShowFoundation(TheBlock);
 			}
+	
+			if (Fortnite_Version == 14.60 && Globals::bGoingToPlayEvent)
+			{
+				auto aircraftcarrier = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation3");
+				LOG_INFO(LogDev, "aircraftcarrier: {}", __int64(aircraftcarrier));
+				ShowFoundation(aircraftcarrier);
+			}
 
-			if (Fortnite_Version == 17.50f) {
+			if (Fortnite_Version == 17.50) {
 				auto FarmAfter = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.farmbase_2"));
 				ShowFoundation(FarmAfter);
 
@@ -297,7 +329,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				ShowFoundation(FarmPhase);
 			}
 
-			if (Fortnite_Version == 17.40f) {
+			if (Fortnite_Version == 17.40) {
 				auto AbductedCoral = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.CoralPhase_02")); // Coral Castle Phases (CoralPhase_01, CoralPhase_02 and CoralPhase_03)
 				ShowFoundation(AbductedCoral);
 
@@ -320,7 +352,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				ShowFoundation(CoralFoundation_17);
 			}
 
-			if (Fortnite_Version == 17.30f) {
+			if (Fortnite_Version == 17.30) {
 				auto AbductedSlurpy = FindObject(("LF_Athena_POI_50x50_C /Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.Slurpy_Phase03")); // Slurpy Swamp Phases (Slurpy_Phase01, Slurpy_Phase02 and Slurpy_Phase03)
 				ShowFoundation(AbductedSlurpy);
 			}
@@ -358,18 +390,22 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 			if (PlaylistToUse)
 			{
-				static auto AdditionalLevelsOffset = PlaylistToUse->GetOffset("AdditionalLevels");
-				auto& AdditionalLevels = PlaylistToUse->Get<TArray<TSoftObjectPtr<UClass>>>(AdditionalLevelsOffset);
+				static auto AdditionalLevelsOffset = PlaylistToUse->GetOffset("AdditionalLevels", false);
 
-				LOG_INFO(LogPlaylist, "Loading {} playlist levels.", AdditionalLevels.Num());
-
-				for (int i = 0; i < AdditionalLevels.Num(); i++)
+				if (AdditionalLevelsOffset != 0)
 				{
-					// auto World = Cast<UWorld>(Playlist->AdditionalLevels[i].Get());
-					// StreamLevel(UKismetSystemLibrary::GetPathName(World->PersistentLevel).ToString());
-					auto LevelName = AdditionalLevels.at(i).SoftObjectPtr.ObjectID.AssetPathName.ToString();
-					LOG_INFO(LogPlaylist, "Loading level {}.", LevelName);
-					StreamLevel(LevelName);
+					auto& AdditionalLevels = PlaylistToUse->Get<TArray<TSoftObjectPtr<UClass>>>(AdditionalLevelsOffset);
+
+					LOG_INFO(LogPlaylist, "Loading {} playlist levels.", AdditionalLevels.Num());
+
+					for (int i = 0; i < AdditionalLevels.Num(); i++)
+					{
+						// auto World = Cast<UWorld>(Playlist->AdditionalLevels[i].Get());
+						// StreamLevel(UKismetSystemLibrary::GetPathName(World->PersistentLevel).ToString());
+						auto LevelName = AdditionalLevels.at(i).SoftObjectPtr.ObjectID.AssetPathName.ToString();
+						LOG_INFO(LogPlaylist, "Loading level {}.", LevelName);
+						StreamLevel(LevelName);
+					}
 				}
 			}
 		}
@@ -409,7 +445,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	/*
 	static auto FortPlayerStartWarmupClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
 	TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartWarmupClass);
 
@@ -419,7 +454,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	if (ActorsNum == 0)
 		return false;
-	*/
 
 	static int LastNum9 = 1;
 
@@ -431,10 +465,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	static auto MapInfoOffset = GameState->GetOffset("MapInfo");
 	auto MapInfo = GameState->Get(MapInfoOffset);
 	
-	if (!MapInfo)
+	if (!MapInfo && Engine_Version >= 421)
 		return false;
-
-	static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
 
 	// if (GameState->GetPlayersLeft() < GameMode->Get<int>("WarmupRequiredPlayerCount"))
 	// if (!bFirstPlayerJoined)
@@ -460,6 +492,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		GameState->Get<float>("WarmupCountdownStartTime") = TimeSeconds;
 		GameMode->Get<float>("WarmupEarlyCountdownDuration") = EarlyDuration;
 
+		/*
 		auto AllMegaStormManagers = UGameplayStatics::GetAllActorsOfClass(GetWorld(), GameMode->Get<UClass*>("MegaStormManagerClass"));
 
 		LOG_INFO(LogDev, "AllMegaStormManagers.Num() {}", AllMegaStormManagers.Num());
@@ -475,10 +508,11 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				LOG_INFO(LogDev, "MegaStormManager->GetMegaStormCircles().Num() {}", MegaStormManager->GetMegaStormCircles().Num());
 			}
 		}
+		*/
 
 		// GameState->Get<bool>("bGameModeWillSkipAircraft") = Globals::bGoingToPlayEvent && Fortnite_Version == 17.30;
 
-		if (Engine_Version < 424)
+		// if (Engine_Version < 424)
 			GameState->OnRep_CurrentPlaylistInfo(); // ?
 
 		// SetupNavConfig();
@@ -490,16 +524,21 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	{
 		if (GameState->GetPlayersLeft() >= GameMode->Get<int>("WarmupRequiredPlayerCount"))
 		{
-			if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum <= 0)
-				return true;
+			if (MapInfo)
+			{
+				static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
+
+				if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum <= 0)
+					return true;
+			}
 		}
 	}
 
-	/* static auto TeamsOffset = GameState->GetOffset("Teams");
+	static auto TeamsOffset = GameState->GetOffset("Teams");
 	auto& Teams = GameState->Get<TArray<UObject*>>(TeamsOffset);
 
 	if (Teams.Num() <= 0)
-		return false; */
+		return false;
 
 	static int LastNum3 = 1;
 
@@ -521,8 +560,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller)
 {
+	LOG_INFO(LogTeam, "PickTeam called!");
 	static auto NextTeamIndex = 3;
-	return ++NextTeamIndex;
+	return NextTeamIndex;
 }
 
 void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena* GameMode, AActor* NewPlayerActor)
@@ -544,8 +584,12 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		GameState->OnRep_GamePhase();
 	}
 
-	if (false)
+	static bool bSpawnedFloorLoot = false;
+
+	if (!bSpawnedFloorLoot)
 	{
+		bSpawnedFloorLoot = true;
+
 		auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
 		auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
@@ -621,8 +665,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	if (Globals::bNoMCP)
 	{
 		static auto CharacterPartsOffset = PlayerStateAthena->GetOffset("CharacterParts", false);
+		static auto CustomCharacterPartsStruct = FindObject<UStruct>("/Script/FortniteGame.CustomCharacterParts");
 
-		if (CharacterPartsOffset != 0)
+		if (CharacterPartsOffset != 0) // && CustomCharacterPartsStruct)
 		{
 			auto CharacterParts = PlayerStateAthena->GetPtr<__int64>("CharacterParts");
 
@@ -700,11 +745,11 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	};
 
 	FUniqueNetIdReplExperimental bugha{};
-	auto& PlayerStateUniqueId = bugha; // PlayerStateAthena->Get<FUniqueNetIdReplExperimental>("UniqueId");
+	auto& PlayerStateUniqueId = PlayerStateAthena->Get<FUniqueNetIdReplExperimental>("UniqueId");
 
 	// if (false)
 	// if (GameMemberInfoArrayOffset != 0)
-	if (Engine_Version >= 423 && false)
+	if (Engine_Version >= 423)
 	{
 		struct FGameMemberInfo : public FFastArraySerializerItem
 		{
@@ -818,7 +863,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		}
 	}
 
-	static auto SpawnActorDataListOffset = GameMode->GetOffset("SpawnActorDataList");
+	static auto SpawnActorDataListOffset = GameMode->GetOffset("SpawnActorDataList", false);
 
 	if (SpawnActorDataListOffset != 0)
 	{

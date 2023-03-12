@@ -7,7 +7,7 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 	auto ActivatableAbilities = AbilitySystemComponent->GetPtr<FFastArraySerializer>(ActivatableAbilitiesOffset);
 
 	static auto ItemsOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpecContainer", "Items");
-	auto Items = (TArray<__int64>*)(__int64(ActivatableAbilities) + ItemsOffset);
+	auto Items = (TArray<FGameplayAbilitySpec>*)(__int64(ActivatableAbilities) + ItemsOffset);
 
 	static auto SpecSize = FGameplayAbilitySpec::GetStructSize();
 
@@ -15,7 +15,7 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 	{
 		for (int i = 0; i < Items->Num(); i++)
 		{
-			auto CurrentSpec = (FGameplayAbilitySpec*)(__int64(Items->Data) + (static_cast<long long>(SpecSize) * i));
+			auto CurrentSpec = Items->AtPtr(i, SpecSize); // (FGameplayAbilitySpec*)(__int64(Items->Data) + (static_cast<long long>(SpecSize) * i));
 			func(CurrentSpec);
 		}
 	}
@@ -62,20 +62,20 @@ void InternalServerTryActivateAbility(UAbilitySystemComponent* AbilitySystemComp
 	else
 		LOG_ERROR(LogAbilities, "Prediction key size does not match with any of them!");
 
-	if (res)
+	if (!res)
 	{
 		LOG_INFO(LogAbilities, "InternalServerTryActivateAbility. Rejecting ClientActivation of {}. InternalTryActivateAbility failed: ", AbilityToActivate->GetName());
 
 		AbilitySystemComponent->ClientActivateAbilityFailed(Handle, *(int16_t*)(__int64(PredictionKey) + CurrentOffset));
 		SetBitfield(Spec, 1, false); // InputPressed = false
-
-		static auto ActivatableAbilitiesOffset = AbilitySystemComponent->GetOffset("ActivatableAbilities");
-		AbilitySystemComponent->Get<FFastArraySerializer>(ActivatableAbilitiesOffset).MarkItemDirty(Spec);
 	}
 	else
 	{
 		LOG_INFO(LogAbilities, "InternalServerTryActivateAbility. Activated {}", AbilityToActivate->GetName());
 	}
+
+	static auto ActivatableAbilitiesOffset = AbilitySystemComponent->GetOffset("ActivatableAbilities");
+	AbilitySystemComponent->Get<FFastArraySerializer>(ActivatableAbilitiesOffset).MarkItemDirty(Spec); // we only need to do this if the ability fails but eh
 }
 
 FGameplayAbilitySpecHandle UAbilitySystemComponent::GiveAbilityEasy(UClass* AbilityClass)
@@ -112,19 +112,30 @@ FGameplayAbilitySpec* UAbilitySystemComponent::FindAbilitySpecFromHandle(FGamepl
 	return SpecToReturn;
 }
 
-void UAbilitySystemComponent::ServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, 
-	FGameplayAbilitySpecHandle Handle, bool InputPressed, FPredictionKey PredictionKey)
+void UAbilitySystemComponent::ServerTryActivateAbilityHook1(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex10 PredictionKey)
 {
-	LOG_INFO(LogAbilities, "ServerTryActivateAbility");
-	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */ &PredictionKey, nullptr);
+	LOG_INFO(LogAbilities, "ServerTryActivateAbility1");
+	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */ (FPredictionKey*)&PredictionKey, nullptr);
 }
 
-void UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook(UAbilitySystemComponent* AbilitySystemComponent,
-	FGameplayAbilitySpecHandle Handle, bool InputPressed, FPredictionKey PredictionKey, FGameplayEventData TriggerEventData)
+void UAbilitySystemComponent::ServerTryActivateAbilityHook2(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex18 PredictionKey)
 {
-	LOG_INFO(LogAbilities, "ServerTryActivateAbilityWithEventData");
+	LOG_INFO(LogAbilities, "ServerTryActivateAbility2");
+	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */ (FPredictionKey*)&PredictionKey, nullptr);
+}
+
+void UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook1(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex10 PredictionKey, FGameplayEventData TriggerEventData)
+{
+	LOG_INFO(LogAbilities, "ServerTryActivateAbilityWithEventData1");
 	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */
-		&PredictionKey, &TriggerEventData);
+		(FPredictionKey*)&PredictionKey, &TriggerEventData);
+}
+
+void UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook2(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex18 PredictionKey, FGameplayEventData TriggerEventData)
+{
+	LOG_INFO(LogAbilities, "ServerTryActivateAbilityWithEventData2");
+	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */
+		(FPredictionKey*)&PredictionKey, &TriggerEventData);
 }
 
 void UAbilitySystemComponent::ServerAbilityRPCBatchHook(UAbilitySystemComponent* AbilitySystemComponent, __int64 BatchInfo)

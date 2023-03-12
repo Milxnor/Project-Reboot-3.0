@@ -48,6 +48,19 @@ static inline uintptr_t FindBytes(Memcury::Scanner& Scanner, const std::vector<u
 	return -1;// Scanner.Get();
 }
 
+/* static inline uintptr_t FindBytesArray(Memcury::Scanner& Scanner, const std::vector<std::vector<uint8_t>>& Bytes, int Count = 255, int SkipBytes = 0, bool bGoUp = false, int Skip = 0, const bool bPrint = false)
+{
+	for (auto& ByteArray : Bytes)
+	{
+		auto Res = FindBytes(Scanner, ByteArray, Count, SkipBytes, false, Skip, bPrint);
+
+		if (Res)
+			return Res;
+	}
+
+	return 0;
+} */
+
 static inline uint64 FindStaticFindObject()
 {
 	if (Engine_Version == 500)
@@ -151,6 +164,9 @@ static inline uint64 FindPauseBeaconRequests()
 	if (Engine_Version == 426)
 		return Memcury::Scanner::FindPattern("40 57 48 83 EC 30 48 8B F9 84 D2 74 62 80 3D").Get();
 
+	if (Engine_Version == 420)
+		return Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 68 80 3D ? ? ? ? ? 72 2C 48 8B 05 ? ? ? ? 4C 8D 44").Get();
+
 	auto Addr = Memcury::Scanner::FindStringRef(L"All Beacon Requests Resumed.");
 	return FindBytes(Addr, { 0x40, 0x53 }, 1000, 0, true);
 }
@@ -226,11 +242,38 @@ static inline uint64 FindStaticLoadObject()
 
 static inline uint64 FindCompletePickupAnimation()
 {
-	return Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED").Get(); // 14.60
+	if (Engine_Version == 420)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 48 8B 89 ? ? ? ? 48 85 C9 74 20 48 8D 44 24").Get();
+
+	if (Engine_Version == 421)
+		return Memcury::Scanner::FindPattern("40 53 56 57 48 83 EC 30 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84").Get(); // 6.21
+
+	if (Engine_Version == 422)
+		return Memcury::Scanner::FindPattern("40 53 56 57 48 83 EC 30 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84").Get(); // 7.30
+
+	if (Engine_Version == 423)
+		return Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84 ? ? ? ? 49 63 8D").Get(); // 10.40
+
+	if (Engine_Version == 424)
+		return Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84 ? ? ? ? 49 63 8D").Get(); // 11.31
+
+	if (Engine_Version == 425)
+		return Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84 ? ? ? ? 49 63 8D").Get(); // 12.41
+
+	if (Engine_Version == 426)
+		return Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED").Get(); // 14.60
+
+	return 0;
 }
 
 static inline uint64 FindNoMCP()
 {
+	if (std::floor(Fortnite_Version) == 3)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 48 8D 4C 24 ?").Get();
+
+	if (std::floor(Fortnite_Version) == 4)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 83 E0 01").RelativeOffset(1).Get();
+
 	auto fn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.IsRunningNoMCP");
 	LOG_INFO(LogDev, "fn: {}", __int64(fn));
 
@@ -239,9 +282,6 @@ static inline uint64 FindNoMCP()
 
 	auto noMcpIthink = GetFunctionIdxOrPtr(fn);
 	return noMcpIthink;
-
-	if (Fortnite_Version == 4)
-		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 83 E0 01").RelativeOffset(1).Get();
 
 	if (Fortnite_Version >= 17)
 	{
@@ -297,12 +337,8 @@ static inline uint64 FindActorGetNetMode()
 	if (Engine_Version == 427)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B 93 ? ? ? ? 48 8B C8 48 8B F8 E8 ? ? ? ? 48 85 C0 75 29").Get();
 
-	auto AActorGetNetmode = Memcury::Scanner::FindStringRef(L"ClientPlayerLeft %s")
-		.ScanFor({ 0x48, 0x8B, 0xCF, 0xE8 })
-		.RelativeOffset(4)
-		.Get();
-
-	return AActorGetNetmode;
+	auto AActorGetNetmode = Memcury::Scanner::FindStringRef(L"STAT_ServerUpdateCamera");
+	return Memcury::Scanner(FindBytes(AActorGetNetmode, { 0xE8 }, 255, 0, true)).RelativeOffset(1).Get();
 }
 
 static inline uint64 FindTickFlush()
@@ -319,7 +355,7 @@ static inline uint64 FindTickFlush()
 
 static inline uint64 FindAddNavigationSystemToWorld()
 {
-	return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 ED 41").Get();
+	return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 ED 41", false).Get();
 }
 
 static inline uint64 FindNavSystemCleanUp()
@@ -349,6 +385,9 @@ static inline uint64 FindGIsServer()
 
 	// if (Fortnite_Version == 19.10)
 		// return __int64(GetModuleHandleW(0)) + 0xB30CF9D;
+
+	if (Fortnite_Version == 14.60)
+		return __int64(GetModuleHandleW(0)) + 0x939930E;
 
 	if (Fortnite_Version == 17.30)
 		return __int64(GetModuleHandleW(0)) + 0x973E499;
@@ -443,6 +482,9 @@ static inline uint64 FindDispatchRequest()
 
 static inline uint64 FindGIsClient()
 {
+	if (Fortnite_Version == 14.60)
+		return __int64(GetModuleHandleW(0)) + 0x939930D;
+
 	if (Fortnite_Version == 17.30)
 		return __int64(GetModuleHandleW(0)) + 0x973E49B;
 
@@ -573,6 +615,15 @@ static inline uint64 FindInternalTryActivateAbility()
 	return FindBytes(Addr, { 0x4C, 0x89, 0x4C }, 1000, 0, true);
 }
 
+static inline uint64 FindCanActivateAbility()
+{
+	if (Engine_Version == 421 || Engine_Version == 422)
+		return Memcury::Scanner::FindPattern("4C 89 4C 24 20 55 56 57 41 56 48 8D 6C 24 D1").Get();
+
+	auto Addr = Memcury::Scanner::FindStringRef(L"CanActivateAbility %s failed, blueprint refused");
+	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true);
+}
+
 static inline uint64 FindGiveAbilityAndActivateOnce()
 {
 	if (Engine_Version == 426)
@@ -586,6 +637,12 @@ static inline uint64 FindGiveAbilityAndActivateOnce()
 
 static inline uint64 FindGiveAbility()
 {
+	if (Engine_Version == 420)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 56 57 41 56 48 83 EC 20 83 B9 ? ? ? ? ? 49 8B F0 4C 8B F2 48 8B D9 7E 61").Get();
+
+	if (Engine_Version == 421)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 83 B9 ? ? ? ? ? 49 8B E8 4C 8B F2").Get();
+
 	// auto Addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!"); // has 2 refs for some reason on some versions
 	// auto realGiveAbility = Memcury::Scanner(FindBytes(Addr, { 0xE8 }, 500, 0, false, 0, true)).RelativeOffset(1).Get();
 
@@ -627,5 +684,5 @@ static inline uint64 FindReplaceBuildingActor()
 		return 0;
 	}
 
-	return FindBytes(StringRef, { 0x4C, 0x8B }, 1000, 0, true);
+	return FindBytes(StringRef, (Engine_Version == 420 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }), 1000, 0, true);
 }

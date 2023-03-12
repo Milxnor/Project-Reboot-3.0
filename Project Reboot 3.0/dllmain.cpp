@@ -13,6 +13,7 @@
 
 #include "Map.h"
 #include "events.h"
+#include "FortKismetLibrary.h"
 
 enum ENetMode
 {
@@ -67,6 +68,7 @@ DWORD WINAPI Main(LPVOID)
     static auto FortPlayerControllerAthenaDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortPlayerControllerAthena"); // FindObject<UClass>(L"/Game/Athena/Athena_PlayerController.Default__Athena_PlayerController_C");
     static auto FortPlayerPawnAthenaDefault = FindObject<UClass>(L"/Game/Athena/PlayerPawn_Athena.Default__PlayerPawn_Athena_C");
     static auto FortAbilitySystemComponentAthenaDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortAbilitySystemComponentAthena");
+    static auto FortKismetLibraryDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortKismetLibrary");
 
     static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
     FString Level = Engine_Version < 424
@@ -144,7 +146,7 @@ DWORD WINAPI Main(LPVOID)
     // UNetDriver::ReplicationDriverOffset = FindOffsetStruct("/Script/Engine.NetDriver", "ReplicationDriver"); // NetDriver->GetOffset("ReplicationDriver");
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameMode.ReadyToStartMatch"), AFortGameModeAthena::Athena_ReadyToStartMatchHook,
-        (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false);
+       (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false);
 
     // return false;
 
@@ -176,7 +178,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerPlayEmoteItem"),
        AFortPlayerController::ServerPlayEmoteItemHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerCreateBuildingActor"), 
-        AFortPlayerController::ServerCreateBuildingActorHook, nullptr, false);
+        AFortPlayerController::ServerCreateBuildingActorHook, (PVOID*)&AFortPlayerController::ServerCreateBuildingActorOriginal, false, true);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerBeginEditingBuildingActor"),
         AFortPlayerController::ServerBeginEditingBuildingActorHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerEditBuildingActor"),
@@ -188,6 +190,16 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
+
+    if (false)
+    {
+        Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"Script/FortniteGame.FortKismetLibrary.K2_GiveItemToPlayer"),
+            UFortKismetLibrary::K2_GiveItemToPlayerHook, (PVOID*)&UFortKismetLibrary::K2_GiveItemToPlayerOriginal, false, true);
+        Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner"),
+            UFortKismetLibrary::GiveItemToInventoryOwnerHook, (PVOID*)&UFortKismetLibrary::GiveItemToInventoryOwnerOriginal, false, true);
+        Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer"),
+            UFortKismetLibrary::K2_RemoveItemFromPlayerHook, (PVOID*)&UFortKismetLibrary::K2_RemoveItemFromPlayerOriginal, false, true);
+    }
 
     static auto ServerHandlePickupInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerPawn.ServerHandlePickupInfo");
 
@@ -203,10 +215,24 @@ DWORD WINAPI Main(LPVOID)
 
     if (Globals::bAbilitiesEnabled)
     {
-        Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbility"),
-            UAbilitySystemComponent::ServerTryActivateAbilityHook, nullptr, false);
-        Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbilityWithEventData"),
-            UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook, nullptr, false);
+        static auto PredictionKeyStruct = FindObject<UStruct>("/Script/GameplayAbilities.PredictionKey");
+        static auto PredictionKeySize = PredictionKeyStruct->GetPropertiesSize();
+
+        if (PredictionKeySize == 0x10)
+        {
+            Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbility"),
+                UAbilitySystemComponent::ServerTryActivateAbilityHook1, nullptr, false);
+            Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbilityWithEventData"),
+                UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook1, nullptr, false);
+        }
+        else if (PredictionKeySize == 0x18)
+        {
+            Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbility"),
+                UAbilitySystemComponent::ServerTryActivateAbilityHook2, nullptr, false);
+            Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerTryActivateAbilityWithEventData"),
+                UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook2, nullptr, false);
+        }
+
         // Hooking::MinHook::Hook(FortAbilitySystemComponentAthenaDefault, FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerAbilityRPCBatch"),
             // UAbilitySystemComponent::ServerAbilityRPCBatchHook, nullptr, false);
     }
@@ -223,9 +249,38 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::TickFlush, (PVOID)UNetDriver::TickFlushHook, (PVOID*)&UNetDriver::TickFlushOriginal);
     // Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
     // Hooking::MinHook::Hook((PVOID)Addresses::CollectGarbage, (PVOID)CollectGarbageHook, nullptr);
-    Hooking::MinHook::Hook((PVOID)Addresses::PickTeam, (PVOID)AFortGameModeAthena::Athena_PickTeamHook, nullptr);
+    Hooking::MinHook::Hook((PVOID)Addresses::PickTeam, (PVOID)AFortGameModeAthena::Athena_PickTeamHook);
     Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)AFortGameModeAthena::SetZoneToIndexHook, (PVOID*)&AFortGameModeAthena::SetZoneToIndexOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::CompletePickupAnimation, (PVOID)AFortPickup::CompletePickupAnimationHook, (PVOID*)&AFortPickup::CompletePickupAnimationOriginal);
+    // Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook);
+
+    LOG_INFO(LogDev, "Test: 0x{:x}", FindFunctionCall(L"ClientOnPawnDied") - __int64(GetModuleHandleW(0)));
+    Hooking::MinHook::Hook((PVOID)FindFunctionCall(L"ClientOnPawnDied"), AFortPlayerController::ClientOnPawnDiedHook, (PVOID*)&AFortPlayerController::ClientOnPawnDiedOriginal);
+
+    {
+        MemberOffsets::FortPlayerStateAthena::DeathInfo = FindOffsetStruct("/Script/FortniteGame.FortPlayerStateAthena", "DeathInfo");
+
+        MemberOffsets::DeathInfo::bDBNO = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "bDBNO");
+        MemberOffsets::DeathInfo::DeathCause = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "DeathCause");
+        MemberOffsets::DeathInfo::bInitialized = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "bInitialized", false);
+        MemberOffsets::DeathInfo::Distance = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "Distance");
+        MemberOffsets::DeathInfo::DeathTags = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "DeathTags", false);
+        MemberOffsets::DeathInfo::DeathLocation = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "DeathLocation");
+
+        MemberOffsets::DeathReport::Tags = FindOffsetStruct("FortniteGame.FortPlayerDeathReport", "Tags");
+        MemberOffsets::DeathReport::KillerPawn = FindOffsetStruct("FortniteGame.FortPlayerDeathReport", "KillerPawn");
+        MemberOffsets::DeathReport::KillerPlayerState = FindOffsetStruct("FortniteGame.FortPlayerDeathReport", "KillerPlayerState");
+        MemberOffsets::DeathReport::DamageCauser = FindOffsetStruct("FortniteGame.FortPlayerDeathReport", "DamageCauser");
+    }
+
+    /* auto GetMaxTickRateIndex = *Memcury::Scanner::FindStringRef(L"GETMAXTICKRATE")
+        .ScanFor({ 0x4D, 0x8B, 0xC7, 0xE8 })
+        .RelativeOffset(4)
+        .ScanFor({ 0xFF, 0x90 })
+        .AbsoluteOffset(2)
+        .GetAs<int*>() / 8;
+
+    LOG_INFO(LogHook, "GetMaxTickRateIndex {}", GetMaxTickRateIndex); */
 
     srand(time(0));
 
@@ -258,6 +313,11 @@ DWORD WINAPI Main(LPVOID)
             GameMode->Get<float>("WarmupEarlyCountdownDuration") = 0;
         }
 
+        /* else if (GetAsyncKeyState(VK_F9) & 1)
+        {
+            GetWorld()->Listen();
+        } */
+        
         Sleep(1000 / 30);
     }
 

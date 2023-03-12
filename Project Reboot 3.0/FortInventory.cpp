@@ -25,6 +25,9 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 	if (NewItemInstance)
 	{
+		if (LoadedAmmo != -1)
+			NewItemInstance->GetItemEntry()->GetLoadedAmmo() = LoadedAmmo;
+
 		NewItemInstances.push_back(NewItemInstance);
 
 		// NewItemInstance->GetItemEntry()->GetItemDefinition() = ItemDefinition;
@@ -74,8 +77,8 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 		return true;
 	}
 
-	static auto FortItemEntryStruct = FindObject(L"/Script/FortniteGame.FortItemEntry");
-	static auto FortItemEntrySize = *(int*)(__int64(FortItemEntryStruct) + Offsets::PropertiesSize);
+	static auto FortItemEntryStruct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntry");
+	static auto FortItemEntrySize = FortItemEntryStruct->GetPropertiesSize();
 
 	auto& ItemInstances = GetItemList().GetItemInstances();
 	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
@@ -91,7 +94,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	for (int i = 0; i < ReplicatedEntries.Num(); i++)
 	{
-		if (ReplicatedEntries.at(i).GetItemGuid() == ItemGuid)
+		if (ReplicatedEntries.at(i, FortItemEntrySize).GetItemGuid() == ItemGuid)
 		{
 			ReplicatedEntries.Remove(i, FortItemEntrySize);
 			break;
@@ -134,6 +137,21 @@ void AFortInventory::ModifyCount(UFortItem* ItemInstance, int New, bool bRemove,
 	}
 }
 
+UFortItem* AFortInventory::FindItemInstance(UFortItemDefinition* ItemDefinition)
+{
+	auto& ItemInstances = GetItemList().GetItemInstances();
+
+	for (int i = 0; i < ItemInstances.Num(); i++)
+	{
+		auto ItemInstance = ItemInstances.At(i);
+
+		if (ItemInstance->GetItemEntry()->GetItemDefinition() == ItemDefinition)
+			return ItemInstance;
+	}
+
+	return nullptr;
+}
+
 UFortItem* AFortInventory::FindItemInstance(const FGuid& Guid)
 {
 	auto& ItemInstances = GetItemList().GetItemInstances();
@@ -151,11 +169,14 @@ UFortItem* AFortInventory::FindItemInstance(const FGuid& Guid)
 
 FFortItemEntry* AFortInventory::FindReplicatedEntry(const FGuid& Guid)
 {
+	static auto FortItemEntryStruct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntry");
+	static auto FortItemEntrySize = FortItemEntryStruct->GetPropertiesSize();
+
 	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
 
 	for (int i = 0; i < ReplicatedEntries.Num(); i++)
 	{
-		auto& ReplicatedEntry = ReplicatedEntries.At(i);
+		auto& ReplicatedEntry = ReplicatedEntries.At(i, FortItemEntrySize);
 
 		if (ReplicatedEntry.GetItemGuid() == Guid)
 			return &ReplicatedEntry;

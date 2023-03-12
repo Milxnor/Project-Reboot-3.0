@@ -1,4 +1,5 @@
 #include "FortKismetLibrary.h"
+#include "ScriptInterface.h"
 
 UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EFortResourceType ResourceType)
 {
@@ -40,21 +41,127 @@ void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, co
 	{
 		auto CharacterPartsPS = PlayerState->GetPtr<__int64>("CharacterParts");
 
-		static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts");
-		auto Parts = (UObject**)(__int64(CharacterPartsPS) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
+		static auto CustomCharacterPartsStruct = FindObject<UStruct>("/Script/FortniteGame.CustomCharacterParts");
 
-		for (int i = 0; i < CharacterParts.Num(); i++)
+		// if (CustomCharacterPartsStruct)
 		{
-			Parts[i] = CharacterParts.at(i);
-		}
+			static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts");
+			auto Parts = (UObject**)(__int64(CharacterPartsPS) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
 
-		static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
-		PlayerState->ProcessEvent(OnRep_CharacterPartsFn);
+			for (int i = 0; i < CharacterParts.Num(); i++)
+			{
+				Parts[i] = CharacterParts.at(i);
+			}
+
+			static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
+			PlayerState->ProcessEvent(OnRep_CharacterPartsFn);
+		}
 	}
 	else
 	{
 		// TODO Add character data support
 	}
+}
+
+void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	auto Params = /*(UFortKismetLibrary_GiveItemToInventoryOwner_Params*)*/Stack.Locals;
+
+	static auto InventoryOwnerOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "InventoryOwner");
+	static auto ItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemDefinition");
+	static auto NumberToGiveOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "NumberToGive");
+	static auto bNotifyPlayerOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "bNotifyPlayer");
+	static auto ItemLevelOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemLevel");
+	static auto PickupInstigatorHandleOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "PickupInstigatorHandle");
+
+	auto InventoryOwner = *(TScriptInterface<UFortInventoryOwnerInterface>*)(__int64(Params) + InventoryOwnerOffset);
+	auto ItemDefinition = *(UFortWorldItemDefinition**)(__int64(Params) + ItemDefinitionOffset);
+	auto NumberToGive = *(int*)(__int64(Params) + NumberToGiveOffset);
+	auto bNotifyPlayer = *(bool*)(__int64(Params) + bNotifyPlayerOffset);
+	auto ItemLevel = *(int*)(__int64(Params) + ItemLevelOffset);
+	auto PickupInstigatorHandle = *(int*)(__int64(Params) + PickupInstigatorHandleOffset);
+
+	auto InterfacePointer = InventoryOwner.InterfacePointer;
+
+	LOG_INFO(LogDev, "InterfacePointer: {}", __int64(InterfacePointer));
+
+	if (!InterfacePointer)
+		return;
+
+	auto ObjectPointer = InventoryOwner.ObjectPointer;
+
+	if (!ObjectPointer)
+		return;
+
+	// LOG_INFO(LogDev, "ObjectPointer Name: {}", ObjectPointer->GetFullName());
+
+	return GiveItemToInventoryOwnerOriginal(Context, Stack, Ret);
+}
+
+void UFortKismetLibrary::K2_RemoveItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	struct UFortKismetLibrary_K2_RemoveItemFromPlayer_Params
+	{
+		AFortPlayerController* PlayerController;                                         // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		UFortWorldItemDefinition* ItemDefinition;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		int                                                AmountToRemove;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		bool                                               bForceRemoval;                                            // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		int                                                ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	};
+
+	auto Params = /*(UFortKismetLibrary_K2_RemoveItemFromPlayer_Params*)*/Stack.Locals;
+
+	static auto PlayerControllerOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer", "PlayerController");
+	static auto ItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer", "ItemDefinition");
+	static auto AmountToRemoveOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer", "AmountToRemove");
+
+	auto PlayerController = *(AFortPlayerController**)(__int64(Params) + PlayerControllerOffset);
+	auto ItemDefinition = *(UFortWorldItemDefinition**)(__int64(Params) + ItemDefinitionOffset);
+	auto AmountToRemove = *(int*)(__int64(Params) + AmountToRemoveOffset);
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	auto ItemInstance = WorldInventory->FindItemInstance(ItemDefinition);
+
+	if (!ItemInstance)
+		return;
+
+	bool bShouldUpdate = false;
+	WorldInventory->RemoveItem(ItemInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, AmountToRemove);
+
+	if (bShouldUpdate)
+		WorldInventory->Update();
+
+	return K2_RemoveItemFromPlayerOriginal(Context, Stack, Ret);
+}
+
+void UFortKismetLibrary::K2_GiveItemToPlayerHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	struct UFortKismetLibrary_K2_GiveItemToPlayer_Params
+	{
+		AFortPlayerController* PlayerController;                                         // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		UFortWorldItemDefinition* ItemDefinition;                                           // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		int                                                NumberToGive;                                             // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		bool                                               bNotifyPlayer;                                            // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	};
+
+	auto Params = (UFortKismetLibrary_K2_GiveItemToPlayer_Params*)Stack.Locals;
+
+	auto PlayerController = Params->PlayerController;
+	auto ItemDefinition = Params->ItemDefinition;
+	auto NumberToGive = Params->NumberToGive;
+	auto bNotifyPlayer = Params->bNotifyPlayer;
+
+	bool bShouldUpdate = false;
+	PlayerController->GetWorldInventory()->AddItem(ItemDefinition, &bShouldUpdate, NumberToGive, -1, bNotifyPlayer);
+	
+	if (bShouldUpdate)
+		PlayerController->GetWorldInventory()->Update();
+
+	return K2_GiveItemToPlayerOriginal(Context, Stack, Ret);
 }
 
 UClass* UFortKismetLibrary::StaticClass()

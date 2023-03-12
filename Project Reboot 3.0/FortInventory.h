@@ -95,6 +95,8 @@ public:
 	bool RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count);
 	void ModifyCount(UFortItem* ItemInstance, int New, bool bRemove = false, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries = nullptr, bool bUpdate = true);
 	
+	UFortItem* FindItemInstance(UFortItemDefinition* ItemDefinition);
+
 	UFortItem* FindItemInstance(const FGuid& Guid);
 	FFortItemEntry* FindReplicatedEntry(const FGuid& Guid);
 };

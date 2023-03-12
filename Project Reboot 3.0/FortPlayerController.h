@@ -28,6 +28,8 @@ struct FFortAthenaLoadout
 class AFortPlayerController : public APlayerController
 {
 public:
+	static inline void (*ClientOnPawnDiedOriginal)(AFortPlayerController* PlayerController, void* DeathReport);
+	static inline void (*ServerCreateBuildingActorOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 	static inline void (*ServerAttemptInteractOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 
 	void ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot);
@@ -60,11 +62,12 @@ public:
 	static void ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret);
 
 	static void ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation);
-	static void ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData);
-	
+	// static void ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData);
+	static void ServerCreateBuildingActorHook(UObject* Context, FFrame* Stack, void* Ret);
+
 	static void ServerAttemptInventoryDropHook(AFortPlayerController* PlayerController, FGuid ItemGuid, int Count);
 	static void ServerPlayEmoteItemHook(AFortPlayerController* PlayerController, UObject* EmoteAsset);
-	static void ClientOnPawnDiedHook(AFortPlayerController* PlayerController, __int64 DeathReport);
+	static void ClientOnPawnDiedHook(AFortPlayerController* PlayerController, void* DeathReport);
 
 	static void ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit);
 	static void ServerEditBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit, UClass* NewBuildingClass, int RotationIterations, char bMirrored);

@@ -11,8 +11,11 @@ struct PadHexB0 { char Pad[0xB0]; };
 // using FPredictionKey = PadHex18;
 // using FGameplayEventData = PadHexA8;
 
+// using FPredictionKey = PadHex10; 
+using FGameplayEventData = PadHexB0;
+
 using FPredictionKey = __int64;
-using FGameplayEventData = __int64;
+// using FGameplayEventData = __int64;
 
 class UAbilitySystemComponent : public UObject
 {
@@ -32,7 +35,10 @@ public:
 	FGameplayAbilitySpecHandle GiveAbilityEasy(UClass* AbilityClass);
 	FGameplayAbilitySpec* FindAbilitySpecFromHandle(FGameplayAbilitySpecHandle Handle);
 
-	static void ServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, FPredictionKey PredictionKey);
-	static void ServerTryActivateAbilityWithEventDataHook(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, FPredictionKey PredictionKey, FGameplayEventData TriggerEventData);
+	static void ServerTryActivateAbilityHook1(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex10 PredictionKey);
+	static void ServerTryActivateAbilityHook2(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex18 PredictionKey);
+	static void ServerTryActivateAbilityWithEventDataHook1(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex10 PredictionKey, FGameplayEventData TriggerEventData);
+	static void ServerTryActivateAbilityWithEventDataHook2(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex18 PredictionKey, FGameplayEventData TriggerEventData);
+	
 	static void ServerAbilityRPCBatchHook(UAbilitySystemComponent* AbilitySystemComponent, __int64 BatchInfo);
 };

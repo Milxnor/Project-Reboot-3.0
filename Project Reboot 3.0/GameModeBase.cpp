@@ -48,6 +48,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
 			WorldInventory->AddItem(PickaxeDefinition, nullptr);
 			WorldInventory->AddItem(WoodItemData, nullptr, 100);
+			// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel.WID_WestSausage_Parallel"), nullptr, 1, 1000);
 
 			WorldInventory->Update(true);
 		}

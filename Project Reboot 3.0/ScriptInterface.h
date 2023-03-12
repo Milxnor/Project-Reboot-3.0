@@ -4,9 +4,14 @@
 
 class FScriptInterface
 {
-private:
+public:
 	UObject* ObjectPointer;
 	void* InterfacePointer;
+
+	FORCEINLINE UObject*& GetObjectRef()
+	{
+		return ObjectPointer;
+	}
 };
 
 template<class InterfaceType>

@@ -15,6 +15,7 @@
 #include "FortLootPackage.h"
 #include "FortPickup.h"
 #include "FortPlayerPawn.h"
+#include <memcury.h>
 
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
@@ -160,12 +161,17 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	// PC->ServerRestartPlayer();
 }
 
-void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData)
+void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFrame* Stack, void* Ret)
 {
+	auto PlayerController = Cast<AFortPlayerController>(Context);
+
+	if (!PlayerController) // ??
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+
 	auto PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
 
 	if (!PlayerStateAthena)
-		return;
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
 	UClass* BuildingClass = nullptr;
 	FVector BuildLocation;
@@ -174,9 +180,11 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 
 	if (Fortnite_Version >= 8.30)
 	{
-		BuildLocation = CreateBuildingData.BuildLoc;
-		BuildRotator = CreateBuildingData.BuildRot;
-		bMirrored = CreateBuildingData.bMirrored;
+		auto CreateBuildingData = (FCreateBuildingActorData*)Stack->Locals;
+
+		BuildLocation = CreateBuildingData->BuildLoc;
+		BuildRotator = CreateBuildingData->BuildRot;
+		bMirrored = CreateBuildingData->bMirrored;
 
 		static auto BroadcastRemoteClientInfoOffset = PlayerController->GetOffset("BroadcastRemoteClientInfo");
 		auto BroadcastRemoteClientInfo = PlayerController->Get(BroadcastRemoteClientInfoOffset);
@@ -186,13 +194,21 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 	}
 	else
 	{
+		struct FBuildingClassData { UClass* BuildingClass; int PreviousBuildingLevel; int UpgradeLevel; };
+		struct SCBAParams { FBuildingClassData BuildingClassData; FVector BuildLoc; FRotator BuildRot; bool bMirrored; };
 
+		auto Params = (SCBAParams*)Stack->Locals;
+
+		BuildingClass = Params->BuildingClassData.BuildingClass;
+		BuildLocation = Params->BuildLoc;
+		BuildRotator = Params->BuildRot;
+		bMirrored = Params->bMirrored;
 	}
 
 	// LOG_INFO(LogDev, "BuildingClass {}", __int64(BuildingClass));
 
 	if (!BuildingClass)
-		return;
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
 	TArray<ABuildingSMActor*> ExistingBuildings;
 	char idk;
@@ -202,9 +218,9 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 	if (!bCanBuild)
 	{
 		// LOG_INFO(LogDev, "cant build");
-		return;
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 	}
-	
+
 	for (int i = 0; i < ExistingBuildings.Num(); i++)
 	{
 		auto ExistingBuilding = ExistingBuildings.At(i);
@@ -222,11 +238,13 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 	auto BuildingActor = GetWorld()->SpawnActor<ABuildingSMActor>(BuildingClass, Transform);
 
 	if (!BuildingActor)
-		return;
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
 	BuildingActor->SetPlayerPlaced(true);
 	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex());
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
+
+	return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 }
 
 void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController* PlayerController, FGuid ItemGuid, int Count)
@@ -246,7 +264,7 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	auto ItemDefinition = Cast<UFortWorldItemDefinition>(ReplicatedEntry->GetItemDefinition());
 
-	if (!ItemDefinition)
+	if (!ItemDefinition || !ItemDefinition->CanBeDropped())
 		return;
 
 	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Pawn->GetActorLocation(), Count,
@@ -274,6 +292,14 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 
 	UObject* AbilityToUse = nullptr;
 
+	static auto AthenaSprayItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.AthenaSprayItemDefinition");
+
+	if (EmoteAsset->IsA(AthenaSprayItemDefinitionClass))
+	{
+		static auto SprayGameplayAbilityDefault = FindObject("/Game/Abilities/Sprays/GAB_Spray_Generic.Default__GAB_Spray_Generic_C");
+		AbilityToUse = SprayGameplayAbilityDefault;
+	}
+
 	if (!AbilityToUse)
 	{
 		static auto EmoteGameplayAbilityDefault = FindObject("/Game/Abilities/Emotes/GAB_Emote_Generic.Default__GAB_Emote_Generic_C");
@@ -296,23 +322,109 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 	GiveAbilityAndActivateOnce(PlayerState->GetAbilitySystemComponent(), &outHandle, __int64(Spec));
 }
 
-void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerController, __int64 DeathReport)
+uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = false)
+{
+	static auto ToDeathCauseFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.ToDeathCause");
+
+	if (ToDeathCauseFn)
+	{
+		struct
+		{
+			FGameplayTagContainer                       InTags;                                                   // (ConstParm, Parm, OutParm, ReferenceParm, NativeAccessSpecifierPublic)
+			bool                                               bWasDBNO;                                                 // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			uint8_t                                        ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		} AFortPlayerStateAthena_ToDeathCause_Params{ TagContainer, bWasDBNO };
+
+		AFortPlayerStateAthena::StaticClass()->ProcessEvent(ToDeathCauseFn, &AFortPlayerStateAthena_ToDeathCause_Params);
+
+		return AFortPlayerStateAthena_ToDeathCause_Params.ReturnValue;
+	}
+
+	static bool bHaveFoundAddress = false;
+
+	static uint64 Addr = 0;
+
+	if (!bHaveFoundAddress)
+	{
+		bHaveFoundAddress = true;
+
+		if (Engine_Version == 420)
+			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 0F B6 FA 48 8B D9 E8 ? ? ? ? 33 F6 48 89 74 24").Get();
+
+		if (!Addr)
+		{
+			LOG_WARN(LogPlayer, "Failed to find ToDeathCause address!");
+			return 0;
+		}
+	}
+
+	if (!Addr)
+	{
+		return 0;
+	}
+
+	static uint8 (*sub_7FF7AB499410)(FGameplayTagContainer TagContainer, char bWasDBNOIg) = decltype(sub_7FF7AB499410)(Addr);
+	return sub_7FF7AB499410(TagContainer, bWasDBNO);
+}
+
+void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerController, void* DeathReport)
 {
 	auto DeadPawn = Cast<AFortPlayerPawn>(PlayerController->GetPawn());
+	auto DeadPlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
+	auto KillerPawn = Cast<AFortPlayerPawn>(*(AFortPawn**)(__int64(DeathReport) + MemberOffsets::DeathReport::KillerPawn));
 
 	if (!DeadPawn)
-		return;
+		return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 
 	static auto DeathInfoStruct = FindObject<UStruct>("/Script/FortniteGame.DeathInfo");
 	static auto DeathInfoStructSize = DeathInfoStruct->GetPropertiesSize();
 
-	auto DeathInfo = Alloc<void>(DeathInfoStructSize);
+	auto DeathLocation = DeadPawn->GetActorLocation();
+
+	static auto FallDamageEnumValue = 1;
+
+	auto DeathInfo = (void*)(__int64(DeadPlayerState) + MemberOffsets::FortPlayerStateAthena::DeathInfo); // Alloc<void>(DeathInfoStructSize);
+	RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize);
+
+	auto Tags = *(FGameplayTagContainer*)(__int64(DeathReport) + MemberOffsets::DeathReport::Tags);
+
+	// LOG_INFO(LogDev, "Tags: {}", Tags.ToStringSimple(true));
+
+	auto DeathCause = ToDeathCause(Tags, false);
+
+	LOG_INFO(LogDev, "DeathCause: {}", (int)DeathCause);
 
 	*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bDBNO) = DeadPawn->IsDBNO();
+	*(uint8*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathCause) = DeathCause;
+	*(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) = DeathLocation;
 
-	auto DeathLocation = DeadPawn->GetActorLocation();
+	if (MemberOffsets::DeathInfo::DeathTags != 0)
+		*(FGameplayTagContainer*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathTags) = Tags;
+
+	if (MemberOffsets::DeathInfo::bInitialized != 0)
+		*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bInitialized) = true;
+
+	if (DeathCause == FallDamageEnumValue)
+	{
+		static auto LastFallDistanceOffset = DeadPawn->GetOffset("LastFallDistance");
+		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = DeadPawn->Get<float>(LastFallDistanceOffset);
+	}
+	else
+	{
+		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = KillerPawn ? KillerPawn->GetDistanceTo(DeadPawn) : 0;
+	}
+
+	static auto PawnDeathLocationOffset = DeadPlayerState->GetOffset("PawnDeathLocation");
+	DeadPlayerState->Get<FVector>(PawnDeathLocationOffset) = DeathLocation;
+
+	static auto OnRep_DeathInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
+	DeadPlayerState->ProcessEvent(OnRep_DeathInfoFn);
+
 	auto WorldInventory = PlayerController->GetWorldInventory();
 	
+	if (!WorldInventory)
+		return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
+
 	auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
 
 	for (int i = 0; i < ItemInstances.Num(); i++)
@@ -334,6 +446,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		AFortPickup::SpawnPickup(WorldItemDefinition, DeathLocation, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
 			ItemEntry->GetLoadedAmmo());
 	}
+
+	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 }
 
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)

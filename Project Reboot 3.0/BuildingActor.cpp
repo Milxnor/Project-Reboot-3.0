@@ -61,7 +61,7 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 
 			auto DamageThatWillAffect = Damage;
 
-			auto skid = Out / (BuildingSMActor->GetMaxHealth() / DamageThatWillAffect);
+			float skid = Out / (BuildingSMActor->GetMaxHealth() / DamageThatWillAffect);
 
 			ResourceCount = round(skid); // almost right
 		}

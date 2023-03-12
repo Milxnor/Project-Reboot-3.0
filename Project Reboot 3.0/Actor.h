@@ -12,4 +12,5 @@ public:
 	struct FVector GetActorRightVector();
 	void K2_DestroyActor();
 	class UActorComponent* GetComponentByClass(class UClass* ComponentClass);
+	float GetDistanceTo(AActor* OtherActor);
 };

@@ -43,6 +43,17 @@ UActorComponent* AActor::GetComponentByClass(class UClass* ComponentClass)
 	return AActor_GetComponentByClass_Params.ReturnValue;
 }
 
+float AActor::GetDistanceTo(AActor* OtherActor)
+{
+	static auto fn = FindObject<UFunction>("/Script/Engine.Actor.GetDistanceTo");
+
+	struct { AActor* OtherActor; float ReturnValue; } AActor_GetDistanceTo_Params{OtherActor};
+
+	this->ProcessEvent(fn, &AActor_GetDistanceTo_Params);
+
+	return AActor_GetDistanceTo_Params.ReturnValue;
+}
+
 FVector AActor::GetActorLocation()
 {
 	static auto K2_GetActorLocationFn = FindObject<UFunction>("/Script/Engine.Actor.K2_GetActorLocation");

@@ -86,8 +86,8 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
     {
         bHasFoundTables = true;
 
-        LTDTables.push_back(FindObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
-        LPTables.push_back(FindObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
+        LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
+        LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
     }
 
     std::vector<FFortLootTierData*> TierGroupLTDs;
@@ -104,10 +104,15 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
 
         // auto TierGroupNameStr = TierGroupName.ToString();
 
+        // LOG_INFO(LogLoot, "LTDRowMapNum: {}", LTDRowMapNum);
+
         for (int i = 0; i < LTDRowMapNum; i++)
         {
             auto& CurrentLTD = LTDRowMap.Pairs.Elements[i].ElementData.Value;
             auto TierData = (FFortLootTierData*)CurrentLTD.Value();
+
+            if (IsBadReadPtr(TierData, 8))
+                continue;
 
             // auto TierDataGroupStr = TierData->TierGroup.ToString();
 
@@ -148,7 +153,10 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
         return PickLootDrops(TierGroupName, bPrint, ++recursive); // hm
 
     int MinimumLootDrops = 0;
-    float NumLootPackageDrops = std::floor(ChosenRowLootTierData->GetNumLootPackageDrops());
+
+    static int AmountToAdd = Engine_Version >= 424 ? 1 : 0; // fr
+
+    float NumLootPackageDrops = std::floor(ChosenRowLootTierData->GetNumLootPackageDrops() + AmountToAdd);
 
     if (LootPackageCategoryMinArray.ArrayNum)
     {
@@ -252,9 +260,7 @@ std::vector<std::pair<UFortItemDefinition*, int>> PickLootDrops(FName TierGroupN
         std::cout << "b: " << b << '\n'; */
     }
 
-    static int AmountToAdd = Engine_Version >= 424 ? 1 : 0; // fr
-
-    LootDrops.reserve(NumLootPackageDrops + AmountToAdd);
+    LootDrops.reserve(NumLootPackageDrops);
 
     for (float i = 0; i < NumLootPackageDrops; i++)
     {

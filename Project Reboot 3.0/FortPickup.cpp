@@ -87,6 +87,10 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 	auto& CurrentItemGuid = Pickup->GetPickupLocationData()->GetPickupGuid(); // Pawn->CurrentWeapon->ItemEntryGuid;
 
 	auto ItemInstanceToSwap = WorldInventory->FindItemInstance(CurrentItemGuid);
+
+	if (!ItemInstanceToSwap)
+		return CompletePickupAnimationOriginal(Pickup);
+
 	auto ItemEntryToSwap = ItemInstanceToSwap->GetItemEntry();
 	auto ItemDefinitionToSwap = ItemEntryToSwap ? Cast<UFortWorldItemDefinition>(ItemEntryToSwap->GetItemDefinition()) : nullptr;
 	bool bHasSwapped = false;
@@ -137,7 +141,6 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 			if (CurrentItemEntry->GetItemDefinition() == PickupItemDefinition)
 			{
-
 				if (CurrentItemEntry->GetCount() < PickupItemDefinition->GetMaxStackSize())
 				{
 					int OverStack = CurrentItemEntry->GetCount() + cpyCount - PickupItemDefinition->GetMaxStackSize();

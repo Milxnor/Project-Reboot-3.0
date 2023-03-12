@@ -195,6 +195,7 @@ void Addresses::FindAll()
 	Addresses::LoadPlayset = FindLoadPlayset();
 	Addresses::SetZoneToIndex = FindSetZoneToIndex();
 	Addresses::CompletePickupAnimation = FindCompletePickupAnimation();
+	Addresses::CanActivateAbility = FindCanActivateAbility();
 }
 
 void Addresses::Print()
@@ -233,6 +234,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "LoadPlayset: 0x{:x}", LoadPlayset - Base);
 	LOG_INFO(LogDev, "SetZoneToIndex: 0x{:x}", SetZoneToIndex - Base);
 	LOG_INFO(LogDev, "CompletePickupAnimation: 0x{:x}", CompletePickupAnimation - Base);
+	LOG_INFO(LogDev, "CanActivateAbility: 0x{:x}", CanActivateAbility - Base);
 }
 
 void Offsets::FindAll()
@@ -346,6 +348,11 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Fortnite_Version == 12.61)
 	{
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 55 56 57 41 56 48 81 EC ? ? ? ? 4C 8B B1 ? ? ? ? 33 F6 4C 89 B4 24 ? ? ? ? 48 8B").Get()); // fritter crash
+	}
+
+	if (Fortnite_Version == 14.60)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("40 55 57 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F9 74 3B 80 3D ? ? ? ? ? 0F").Get());
 	}
 
 	if (Fortnite_Version == 17.30)

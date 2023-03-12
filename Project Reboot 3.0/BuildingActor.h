@@ -33,7 +33,16 @@ public:
 	void SetTeam(unsigned char InTeam)
 	{
 		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SetTeam");
-		this->ProcessEvent(fn, &InTeam);
+
+		if (!fn)
+		{
+			static auto TeamOffset = GetOffset("Team");
+			Get<uint8_t>(TeamOffset) = InTeam;
+		}
+		else
+		{
+			this->ProcessEvent(fn, &InTeam);
+		}
 	}
 
 	static inline void (*OnDamageServerOriginal)(ABuildingActor* BuildingActor, float Damage, FGameplayTagContainer DamageTags,

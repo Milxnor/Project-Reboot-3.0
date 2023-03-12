@@ -57,6 +57,62 @@ static inline std::vector<Event> Events =
 		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High", 
 		12.41
 	),
+	Event(
+		"Devourer of Worlds",
+		"/Junior/Blueprints/BP_Junior_Loader.BP_Junior_Loader_C",
+		"/Junior/Blueprints/BP_Junior_Loader.BP_Junior_Loader_C.LoadJuniorLevel", 
+		1,
+		{
+			{
+				false,
+				"/Junior/Blueprints/BP_Event_Master_Scripting.BP_Event_Master_Scripting_C.OnReady_872E6C4042121944B78EC9AC2797B053"
+			}
+		},
+		{
+			{
+				{
+					false,
+					"/Junior/Blueprints/BP_Junior_Scripting.BP_Junior_Scripting_C.startevent"
+				},
+
+				0
+			}
+		},
+
+		"/Junior/Blueprints/BP_Junior_Scripting.BP_Junior_Scripting_C",
+		"/Game/Athena/Playlists/Music/Playlist_Junior_32.Playlist_Junior_32",
+		14.60
+	),
+		Event(
+		"The End",
+		"",
+		"",
+		1,
+		{
+			{
+				false,
+				"/Game/Athena/Prototype/Blueprints/NightNight/BP_NightNight_Scripting.BP_NightNight_Scripting_C.LoadNightNightLevel" // skunked
+			},
+			{
+				false,
+				"/Game/Athena/Prototype/Blueprints/NightNight/BP_NightNight_Scripting.BP_NightNight_Scripting_C.OnReady_D0847F7B4E80F01E77156AA4E7131AF6"
+			}
+		},
+		{
+			{
+				{
+					false,
+					"/Game/Athena/Prototype/Blueprints/NightNight/BP_NightNight_Scripting.BP_NightNight_Scripting_C.startevent"
+				},
+
+				0
+			}
+		},
+
+		"/Game/Athena/Prototype/Blueprints/NightNight/BP_NightNight_Scripting.BP_NightNight_Scripting_C",
+		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High",
+		10.40
+	),
 	Event
 	(
 		"Device",
@@ -145,7 +201,34 @@ static inline std::vector<Event> Events =
 		// "/Buffet/Gameplay/Blueprints/BP_Buffet_Master_Scripting.BP_Buffet_Master_Scripting_C",
 		"/BuffetPlaylist/Playlist/Playlist_Buffet.Playlist_Buffet",
 		17.30
-	)
+	),
+	Event
+	(
+		"Ice King Event",
+		"/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyLoader.BP_MooneyLoader_C",
+		"/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyLoader.BP_MooneyLoader_C.LoadMap",
+		0,
+		{
+			{
+				false,
+				"/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyScripting.BP_MooneyScripting_C.OnReady_9968C1F648044523426FE198948B0CC9"
+			}
+		},
+		{
+			{
+				{
+					false,
+					"/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyScripting.BP_MooneyScripting_C.BeginIceKingEvent"
+				},
+
+				0
+			}
+		},
+
+		"/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyScripting.BP_MooneyScripting_C",
+		"/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo",
+		7.20
+	)	
 };
 
 static inline UObject* GetEventPlaylist()
@@ -314,9 +397,11 @@ static inline bool CallOnReadys(bool* bWereAllSuccessful = nullptr)
 	if (bWereAllSuccessful)
 		*bWereAllSuccessful = true;
 
+	auto EventPlaylist = GetEventPlaylist();
+
 	struct { UObject* GameState; UObject* Playlist; FGameplayTagContainer PlaylistContextTags; } OnReadyParams{ 
-		((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena(), GetEventPlaylist(),
-		GetEventPlaylist()->Get<FGameplayTagContainer>("GameplayTagContainer")};
+		((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena(), EventPlaylist,
+		EventPlaylist ? EventPlaylist->Get<FGameplayTagContainer>("GameplayTagContainer") : FGameplayTagContainer()};
 
 	for (auto& OnReadyFunc : OurEvent.OnReadyFunctions)
 	{
@@ -404,11 +489,12 @@ static inline void StartEvent()
 	auto EventScripting = GetEventScripting();
 
 	LOG_INFO(LogDev, "EventScripting {}", __int64(EventScripting));
-	LOG_INFO(LogDev, "EventScripting Name {}", EventScripting->GetFullName());
+
+	if (EventScripting)
+		LOG_INFO(LogDev, "EventScripting Name {}", EventScripting->GetFullName());
 
 	// if (!EventScripting)
 		// return; // GetEventScripting handles the printing
-
 
 	CallOnReadys();
 

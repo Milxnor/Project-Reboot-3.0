@@ -205,13 +205,15 @@ inline void SetBitfield(void* Addr, uint8_t FieldMask, bool NewVal)
 		*(bool*)Bitfield = NewVal;
 }
 
-inline int FindOffsetStruct(const std::string& StructName, const std::string& MemberName)
+inline int FindOffsetStruct(const std::string& StructName, const std::string& MemberName, bool bWarnIfNotFound = true)
 {
 	UObject* Struct = FindObject(StructName);
 
 	if (!Struct)
 	{
-		LOG_WARN(LogFinder, "Unable to find struct {}", StructName);
+		if (bWarnIfNotFound)
+			LOG_WARN(LogFinder, "Unable to find struct {}", StructName);
+
 		return 0;
 	}
 
@@ -257,7 +259,8 @@ inline int FindOffsetStruct(const std::string& StructName, const std::string& Me
 		}
 	}
 
-	LOG_WARN(LogFinder, "Unable to find1{}", MemberName);
+	if (bWarnIfNotFound)
+		LOG_WARN(LogFinder, "Unable to find1 {}", MemberName);
 
 	return 0;
 }
@@ -275,8 +278,16 @@ static T* Alloc(size_t Size)
 
 namespace MemberOffsets
 {
+	namespace FortPlayerStateAthena
+	{
+		extern inline int DeathInfo = 0;
+	}
+	namespace DeathReport
+	{
+		extern inline int Tags = 0, KillerPlayerState = 0, KillerPawn = 0, DamageCauser = 0;
+	}
 	namespace DeathInfo
 	{
-		static inline int bDBNO, Downer, FinisherOrDowner, DeathCause, Distance, DeathLocation, bInitialized, DeathTags;
+		extern inline int bDBNO = 0, Downer = 0, FinisherOrDowner = 0, DeathCause = 0, Distance = 0, DeathLocation = 0, bInitialized = 0, DeathTags = 0;
 	}
 }
