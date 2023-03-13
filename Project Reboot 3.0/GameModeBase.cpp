@@ -51,6 +51,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			WorldInventory->AddItem(WoodItemData, nullptr, 100);
 			WorldInventory->AddItem(DamageTrap, nullptr);
 			// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel.WID_WestSausage_Parallel"), nullptr, 1, 1000);
+			WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/HappyGhost/WID_Athena_HappyGhost.WID_Athena_HappyGhost"), nullptr);
 
 			WorldInventory->Update(true);
 		}

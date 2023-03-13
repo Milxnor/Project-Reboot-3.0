@@ -1,4 +1,6 @@
 #include "FortItemDefinition.h"
+#include "CurveTable.h"
+#include "DataTable.h"
 
 UFortItem* UFortItemDefinition::CreateTemporaryItemInstanceBP(int Count, int Level)
 {
@@ -14,10 +16,42 @@ float UFortItemDefinition::GetMaxStackSize()
 {
 	static auto MaxStackSizeOffset = this->GetOffset("MaxStackSize");
 
-	bool bIsScalableFloat = false;
+	bool bIsScalableFloat = Engine_Version >= 424; // idk
 
 	if (!bIsScalableFloat)
 		return Get<int>(MaxStackSizeOffset);
 
-	return 0;
+    struct FScalableFloat
+    {
+    public:
+        float                                        Value;                                             // 0x0(0x4)(Edit, BlueprintVisible, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+        uint8                                        Pad_3BF0[0x4];                                     // Fixing Size After Last Property  [ Dumper-7 ]
+        FCurveTableRowHandle                  Curve;                                             // 0x8(0x10)(Edit, BlueprintVisible, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+    };
+
+    static auto AthenaGameData = FindObject<UDataTable>("/Game/Athena/Balance/DataTables/AthenaGameData.AthenaGameData");
+
+    auto& ScalableFloat = Get<FScalableFloat>(MaxStackSizeOffset);
+    auto& RowMap = AthenaGameData->GetRowMap();
+
+    if (ScalableFloat.Curve.RowName.ComparisonIndex.Value == 0)
+        return ScalableFloat.Value;
+
+	FSimpleCurve* Curve = nullptr;
+
+	for (int i = 0; i < RowMap.Pairs.Elements.Data.Num(); i++)
+	{
+		auto& Pair = RowMap.Pairs.Elements.Data.at(i).ElementData.Value;
+
+		if (Pair.Key() == ScalableFloat.Curve.RowName)
+		{
+			Curve = (FSimpleCurve*)Pair.Value();
+			break;
+		}
+	}
+
+	if (!Curve)
+		return 1;
+
+    return Curve->GetKeys().at(0).Value;
 }

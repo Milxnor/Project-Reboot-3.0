@@ -698,9 +698,11 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			static auto headPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
 			static auto bodyPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
+			static auto backpackPart = LoadObject("/Game/Characters/CharacterParts/Backpacks/NoBackpack.NoBackpack");
 
 			Parts[(int)EFortCustomPartType::Head] = headPart;
 			Parts[(int)EFortCustomPartType::Body] = bodyPart;
+			Parts[(int)EFortCustomPartType::Backpack] = backpackPart;
 
 			static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
 			PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);
@@ -726,9 +728,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 	}
 
-	// static int CurrentPlayerId = 1;
-	static auto PlayerIdOffset = PlayerStateAthena->GetOffset("PlayerId");
-	PlayerStateAthena->GetWorldPlayerId() = PlayerStateAthena->Get<int>(PlayerIdOffset); // ++CurrentPlayerId;
+	static int CurrentPlayerId = 1;
+	// static auto PlayerIdOffset = PlayerStateAthena->GetOffset("PlayerId"); // Unable to find tf
+	PlayerStateAthena->GetWorldPlayerId() = ++CurrentPlayerId; // PlayerStateAthena->Get<int>(PlayerIdOffset); // 
 
 	if (Globals::bAbilitiesEnabled)
 	{

@@ -1,5 +1,6 @@
 #include "FortInventory.h"
 #include "FortPlayerController.h"
+#include "FortPickup.h"
 
 UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItemDefinition* ItemDefinition, int Count)
 {
@@ -24,10 +25,89 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 			LoadedAmmo = 0;
 	}
 
+	auto& ItemInstances = GetItemList().GetItemInstances();
+
+	auto MaxStackSize = ItemDefinition->GetMaxStackSize();
+
+	bool bAllowMultipleStacks = true;
+	int OverStack = 0;
+
 	std::vector<UFortItem*> NewItemInstances;
 	std::vector<UFortItem*> ModifiedItemInstances;
 
+	if (MaxStackSize > 1)
+	{
+		for (int i = 0; i < ItemInstances.Num(); i++)
+		{
+			auto CurrentItemInstance = ItemInstances.at(i);
+			auto CurrentEntry = CurrentItemInstance->GetItemEntry();
+
+			if (CurrentEntry->GetItemDefinition() == ItemDefinition)
+			{
+				if (CurrentEntry->GetCount() < MaxStackSize || !bAllowMultipleStacks)
+				{
+					OverStack = CurrentEntry->GetCount() + Count - MaxStackSize;
+
+					if (!bAllowMultipleStacks && !(CurrentEntry->GetCount() < MaxStackSize))
+					{
+						break;
+					}
+
+					int AmountToStack = OverStack > 0 ? Count - OverStack : Count;
+
+					auto ReplicatedEntry = FindReplicatedEntry(CurrentEntry->GetItemGuid());
+
+					CurrentEntry->GetCount() += AmountToStack;
+					ReplicatedEntry->GetCount() += AmountToStack;
+
+					// std::cout << std::format("{} : {} : {}\n", CurrentEntry.Count, ReplicatedEntry->Count, OverStack);
+
+					/* if (bAddToStateValues)
+					{
+						FFortItemEntryStateValue StateValue;
+						StateValue.IntValue = 1;
+						StateValue.StateType = EFortItemEntryState::ShouldShowItemToast;
+
+						CurrentEntry.StateValues.Add(StateValue);
+						ReplicatedEntry->StateValues.Add(StateValue);
+					}
+					else
+					{
+						// CurrentEntry.StateValues.FreeBAD();
+						// ReplicatedEntry->StateValues.FreeBAD();
+					} */
+
+					ModifiedItemInstances.push_back(CurrentItemInstance);
+
+					GetItemList().MarkItemDirty(CurrentEntry);
+					GetItemList().MarkItemDirty(ReplicatedEntry);
+
+					if (OverStack <= 0)
+						return std::make_pair(NewItemInstances, ModifiedItemInstances);
+
+					// break;
+				}
+			}
+		}
+	}
+
+	Count = OverStack > 0 ? OverStack : Count;
+
 	auto PlayerController = Cast<AFortPlayerController>(GetOwner());
+
+	if (!PlayerController)
+		return std::make_pair(NewItemInstances, ModifiedItemInstances);
+
+	if (OverStack > 0 && !bAllowMultipleStacks)
+	{
+		auto Pawn = PlayerController->GetMyFortPawn();
+
+		if (!Pawn)
+			return std::make_pair(NewItemInstances, ModifiedItemInstances);
+
+		AFortPickup::SpawnPickup(ItemDefinition, Pawn->GetActorLocation(), Count, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, Pawn);
+		return std::make_pair(NewItemInstances, ModifiedItemInstances);
+	}
 
 	UFortItem* NewItemInstance = CreateItemInstance(PlayerController, ItemDefinition, Count);
 
@@ -46,7 +126,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		// LOG_INFO(LogDev, "FortItemEntryStruct {}", __int64(FortItemEntryStruct));
 		// LOG_INFO(LogDev, "FortItemEntrySize {}", __int64(FortItemEntrySize));
 
-		GetItemList().GetItemInstances().Add(NewItemInstance);
+		ItemInstances.Add(NewItemInstance);
 		GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
 
 		if (bShouldUpdate)

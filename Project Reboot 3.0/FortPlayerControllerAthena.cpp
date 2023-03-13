@@ -3,6 +3,7 @@
 #include "FortKismetLibrary.h"
 
 #include "SoftObjectPtr.h"
+#include "globals.h"
 
 void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 {
@@ -54,6 +55,9 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 {
 	static auto AcknowledgedPawnOffset = Controller->GetOffset("AcknowledgedPawn");
 	Controller->Get<APawn*>(AcknowledgedPawnOffset) = Pawn;
+
+	if (Globals::bNoMCP)
+		return;
 
 	auto ControllerAsFort = Cast<AFortPlayerController>(Controller);
 	auto PawnAsFort = Cast<AFortPlayerPawn>(Pawn);

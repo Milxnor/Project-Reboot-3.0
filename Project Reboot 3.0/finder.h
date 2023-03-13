@@ -734,5 +734,5 @@ static inline uint64 FindReplaceBuildingActor()
 		return 0;
 	}
 
-	return FindBytes(StringRef, (Engine_Version == 420 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }), 1000, 0, true);
+	return FindBytes(StringRef, (Engine_Version == 420 || Engine_Version == 421 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }), 1000, 0, true);
 }

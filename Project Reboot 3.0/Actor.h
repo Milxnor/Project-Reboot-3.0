@@ -15,6 +15,7 @@ public:
 	float GetDistanceTo(AActor* OtherActor);
 	struct FRotator GetActorRotation();
 	void FlushNetDormancy();
+	bool TeleportTo(const FVector& DestLocation, const FRotator& DestRotation);
 
 	static class UClass* StaticClass();
 };

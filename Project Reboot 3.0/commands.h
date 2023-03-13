@@ -164,7 +164,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			{
 			}
 
-			LOG_INFO(LogDev, "weaponName: {}", weaponName);
+			// LOG_INFO(LogDev, "weaponName: {}", weaponName);
 
 			auto WID = Cast<UFortWorldItemDefinition>(FindObject(weaponName, nullptr, ANY_PACKAGE));
 
@@ -181,6 +181,33 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				WorldInventory->Update();
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
+		}
+		else if (Command == "bugitgo")
+		{
+			if (Arguments.size() <= 3)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide X, Y, and Z!\n");
+				return;
+			}
+
+			float X{}, Y{}, Z{};
+
+			try { X = std::stof(Arguments[1]); }
+			catch (...) {}
+			try { Y = std::stof(Arguments[2]); }
+			catch (...) {}
+			try { Z = std::stof(Arguments[3]); }
+			catch (...) {}
+
+			auto Pawn = Cast<APawn>(ReceivingController->GetPawn());
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to teleport!");
+				return;
+			}
+
+			Pawn->TeleportTo(FVector(X, Y, Z), Pawn->GetActorRotation());
 		}
 	}
 }

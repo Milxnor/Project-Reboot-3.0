@@ -32,9 +32,9 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 		PrimaryPickupItemEntry->GetItemDefinition() = ItemDef;
 		PrimaryPickupItemEntry->GetLoadedAmmo() = LoadedAmmo;
 
-		static auto OptionalOwnerIDOffset = Pickup->GetOffset("OptionalOwnerID");
-		Pickup->Get<int>(OptionalOwnerIDOffset) = PlayerState ? PlayerState->GetWorldPlayerId() : -1;
-		// Pickup->OptionalOwnerID = Pawn ? PlayerState->WorldPlayerId : -1;
+		// static auto OptionalOwnerIDOffset = Pickup->GetOffset("OptionalOwnerID");
+		// Pickup->Get<int>(OptionalOwnerIDOffset) = PlayerState ? PlayerState->GetWorldPlayerId() : -1;
+
 		Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = Pawn;
 
 		bool bToss = true;

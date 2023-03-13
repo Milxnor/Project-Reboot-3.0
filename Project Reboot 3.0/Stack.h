@@ -20,8 +20,8 @@ public:
 
 	void Step(UObject* Context, RESULT_DECL)
 	{
-		static void (*StepOriginal)(UObject* Context, RESULT_DECL) = decltype(StepOriginal)(Addresses::FrameStep);
-		StepOriginal(Context, RESULT_PARAM);
+		static void (*StepOriginal)(__int64 frame, UObject* Context, RESULT_DECL) = decltype(StepOriginal)(Addresses::FrameStep);
+		StepOriginal(__int64(this), Context, RESULT_PARAM);
 
 		// int32 B = *Code++;
 		// (GNatives[B])(Context, *this, RESULT_PARAM);

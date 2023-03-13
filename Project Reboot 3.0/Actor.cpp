@@ -87,6 +87,19 @@ void AActor::FlushNetDormancy()
 	this->ProcessEvent(fn);
 }
 
+bool AActor::TeleportTo(const FVector& DestLocation, const FRotator& DestRotation)
+{
+	static auto fn = FindObject<UFunction>("/Script/Engine.Actor.K2_TeleportTo");
+	struct
+	{
+		struct FVector                                     DestLocation;                                             // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		struct FRotator                                    DestRotation;                                             // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
+		bool                                               ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} AActor_K2_TeleportTo_Params{DestLocation, DestRotation};
+	this->ProcessEvent(fn, &AActor_K2_TeleportTo_Params);
+	return AActor_K2_TeleportTo_Params.ReturnValue;
+}
+
 UClass* AActor::StaticClass()
 {
 	static auto Class = FindObject<UClass>(L"/Script/Engine.Actor");
