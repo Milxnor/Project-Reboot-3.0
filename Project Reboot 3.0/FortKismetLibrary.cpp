@@ -283,6 +283,11 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 	return *Ret;
 }
 
+bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool* Ret)
+{
+	return PickLootDropsOriginal(Context, Stack, Ret);
+}
+
 UClass* UFortKismetLibrary::StaticClass()
 {
 	static auto ptr = FindObject<UClass>(L"/Script/FortniteGame.FortKismetLibrary");

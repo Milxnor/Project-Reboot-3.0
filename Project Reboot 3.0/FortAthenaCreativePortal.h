@@ -1,6 +1,8 @@
 #pragma once
 
 #include "BuildingActor.h"
+#include "FortVolume.h"
+#include "Stack.h"
 
 struct FCreativeLoadedLinkData
 {
@@ -10,6 +12,9 @@ struct FCreativeLoadedLinkData
 class AFortAthenaCreativePortal : public ABuildingActor // ABuildingGameplayActor
 {
 public:
+	static inline void (*TeleportPlayerToLinkedVolumeOriginal)(UObject* Context, FFrame& Stack, void* Ret);
+	static inline void (*TeleportPlayerOriginal)(UObject* Context, FFrame& Stack, void* Ret);
+
 	FCreativeLoadedLinkData* GetIslandInfo()
 	{
 		static auto CreativeLoadedLinkDataStruct = FindObject<UStruct>("/Script/FortniteGame.CreativeLoadedLinkData");
@@ -23,7 +28,11 @@ public:
 
 	void* GetOwningPlayer()
 	{
-		static auto OwningPlayerOffset = GetOffset("OwningPlayer");
+		static auto OwningPlayerOffset = GetOffset("OwningPlayer", false);
+
+		if (OwningPlayerOffset == 0)
+			return nullptr;
+
 		return GetPtr<void>(OwningPlayerOffset);
 	}
 
@@ -63,4 +72,8 @@ public:
 		static auto CreatorNameOffset = FindOffsetStruct("/Script/FortniteGame.CreativeLoadedLinkData", "CreatorName");
 		return *(FString*)(__int64(IslandInfo) + CreatorNameOffset);
 	}
+
+	static void TeleportPlayerToLinkedVolumeHook(UObject* Context, FFrame& Stack, void* Ret);
+	static void TeleportPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
+	// hook TeleportPlayer ?? but do what with it
 };

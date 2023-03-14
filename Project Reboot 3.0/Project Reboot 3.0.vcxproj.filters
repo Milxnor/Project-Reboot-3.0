@@ -131,6 +131,15 @@
     <ClCompile Include="BuildingTrap.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
     </ClCompile>
+    <ClCompile Include="FortAthenaCreativePortal.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Creative</Filter>
+    </ClCompile>
+    <ClCompile Include="FortAthenaSupplyDrop.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Building\GameplayActors</Filter>
+    </ClCompile>
+    <ClCompile Include="FortMinigame.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Creative\Minigame</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -410,6 +419,15 @@
     <ClInclude Include="commands.h">
       <Filter>Reboot</Filter>
     </ClInclude>
+    <ClInclude Include="FortAthenaSupplyDrop.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingGameplayActor.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Building</Filter>
+    </ClInclude>
+    <ClInclude Include="FortMinigame.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Creative\Minigame</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -576,6 +594,21 @@
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Creative">
       <UniqueIdentifier>{51b57917-fec7-41b7-bdc8-ad284a5385a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Creative">
+      <UniqueIdentifier>{d48c31c9-7283-4102-b951-dc0165e91836}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Building\GameplayActors">
+      <UniqueIdentifier>{ec38a50b-6bc9-440b-adf1-2291094b700f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Building\GameplayActors">
+      <UniqueIdentifier>{18a41ed2-b864-4a36-9396-cb0672b8464d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Creative\Minigame">
+      <UniqueIdentifier>{a28fab04-cc3c-4032-ac3e-22c6b9379312}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Creative\Minigame">
+      <UniqueIdentifier>{7905895d-5ebf-4313-a9de-06f507c35113}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

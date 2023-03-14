@@ -176,6 +176,8 @@
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="events.cpp" />
+    <ClCompile Include="FortAthenaCreativePortal.cpp" />
+    <ClCompile Include="FortAthenaSupplyDrop.cpp" />
     <ClCompile Include="FortDecoItemDefinition.cpp" />
     <ClCompile Include="FortGameModeAthena.cpp" />
     <ClCompile Include="FortGameModeZone.cpp" />
@@ -187,6 +189,7 @@
     <ClCompile Include="FortItemDefinition.cpp" />
     <ClCompile Include="FortKismetLibrary.cpp" />
     <ClCompile Include="FortLootPackage.cpp" />
+    <ClCompile Include="FortMinigame.cpp" />
     <ClCompile Include="FortPawn.cpp" />
     <ClCompile Include="FortPickup.cpp" />
     <ClCompile Include="FortPlayerController.cpp" />
@@ -220,6 +223,7 @@
     <ClInclude Include="BitArray.h" />
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="BuildingContainer.h" />
+    <ClInclude Include="BuildingGameplayActor.h" />
     <ClInclude Include="BuildingSMActor.h" />
     <ClInclude Include="BuildingTrap.h" />
     <ClInclude Include="calendar.h" />
@@ -235,6 +239,7 @@
     <ClInclude Include="events.h" />
     <ClInclude Include="finder.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
+    <ClInclude Include="FortAthenaSupplyDrop.h" />
     <ClInclude Include="FortDecoItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />
     <ClInclude Include="FortGameModeAthena.h" />
@@ -246,6 +251,7 @@
     <ClInclude Include="FortItemDefinition.h" />
     <ClInclude Include="FortKismetLibrary.h" />
     <ClInclude Include="FortLootPackage.h" />
+    <ClInclude Include="FortMinigame.h" />
     <ClInclude Include="FortPawn.h" />
     <ClInclude Include="FortPickup.h" />
     <ClInclude Include="FortPlayerController.h" />

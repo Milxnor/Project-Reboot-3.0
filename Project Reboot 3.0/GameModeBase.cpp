@@ -27,33 +27,36 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		{
 			auto WorldInventory = NewPlayerAsAthena->GetWorldInventory();
 
-			auto CosmeticLoadoutPickaxe = NewPlayerAsAthena->GetCosmeticLoadout()->GetPickaxe();
-			static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition");
+			if (!WorldInventory->GetPickaxeInstance())
+			{
+				auto CosmeticLoadoutPickaxe = NewPlayerAsAthena->GetCosmeticLoadout()->GetPickaxe();
+				static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition");
 
-			auto Pickaxe = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
-				: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
+				auto Pickaxe = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
+					: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
 
-			static UFortItemDefinition* EditToolItemDefinition = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
-			static UFortItemDefinition* PickaxeDefinition = Pickaxe;
-			static UFortItemDefinition* BuildingItemData_Wall = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall");
-			static UFortItemDefinition* BuildingItemData_Floor = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor");
-			static UFortItemDefinition* BuildingItemData_Stair_W = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
-			static UFortItemDefinition* BuildingItemData_RoofS = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS");
-			static UFortItemDefinition* WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
-			static UFortItemDefinition* DamageTrap = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Traps/TID_ContextTrap_Athena.TID_ContextTrap_Athena");
+				static UFortItemDefinition* EditToolItemDefinition = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
+				static UFortItemDefinition* PickaxeDefinition = Pickaxe;
+				static UFortItemDefinition* BuildingItemData_Wall = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall");
+				static UFortItemDefinition* BuildingItemData_Floor = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor");
+				static UFortItemDefinition* BuildingItemData_Stair_W = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
+				static UFortItemDefinition* BuildingItemData_RoofS = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS");
+				static UFortItemDefinition* WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
+				static UFortItemDefinition* DamageTrap = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Traps/TID_ContextTrap_Athena.TID_ContextTrap_Athena");
 
-			WorldInventory->AddItem(EditToolItemDefinition, nullptr);
-			WorldInventory->AddItem(BuildingItemData_Wall, nullptr);
-			WorldInventory->AddItem(BuildingItemData_Floor, nullptr);
-			WorldInventory->AddItem(BuildingItemData_Stair_W, nullptr);
-			WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
-			WorldInventory->AddItem(PickaxeDefinition, nullptr);
-			WorldInventory->AddItem(WoodItemData, nullptr, 100);
-			WorldInventory->AddItem(DamageTrap, nullptr);
-			// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel.WID_WestSausage_Parallel"), nullptr, 1, 1000);
-			WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/HappyGhost/WID_Athena_HappyGhost.WID_Athena_HappyGhost"), nullptr);
+				WorldInventory->AddItem(EditToolItemDefinition, nullptr);
+				WorldInventory->AddItem(BuildingItemData_Wall, nullptr);
+				WorldInventory->AddItem(BuildingItemData_Floor, nullptr);
+				WorldInventory->AddItem(BuildingItemData_Stair_W, nullptr);
+				WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
+				WorldInventory->AddItem(PickaxeDefinition, nullptr);
+				WorldInventory->AddItem(WoodItemData, nullptr, 100);
+				WorldInventory->AddItem(DamageTrap, nullptr);
+				// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel.WID_WestSausage_Parallel"), nullptr, 1, 1000);
+				// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/HappyGhost/WID_Athena_HappyGhost.WID_Athena_HappyGhost"), nullptr);
 
-			WorldInventory->Update(true);
+				WorldInventory->Update(true);
+			}
 		}
 	}
 

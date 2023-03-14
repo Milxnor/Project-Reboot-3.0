@@ -659,6 +659,10 @@ static inline uint64 FindInternalTryActivateAbility()
 
 static inline uint64 FindFrameStep()
 {
+	return Memcury::Scanner::FindPattern("48 8B 41 20 4C 8B D2 48 8B D1 44 0F B6 08 48 FF").Get();
+
+	if (Engine_Version == 423)
+		return Memcury::Scanner::FindPattern("48 8B 41 20 4C 8B D2 48 8B D1 44 0F B6 08 48 FF").Get();
 	if (Engine_Version == 426)
 		return Memcury::Scanner::FindPattern("48 8B 41 20 4C 8B D2 48 8B D1 44 0F B6 08 48 FF C0 48 89 41 20 41").Get();
 

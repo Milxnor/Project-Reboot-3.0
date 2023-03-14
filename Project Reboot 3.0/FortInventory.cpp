@@ -14,6 +14,9 @@ UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItem
 
 std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count, int LoadedAmmo, bool bShouldAddToStateValues)
 {
+	if (!ItemDefinition)
+		return std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>>();
+
 	if (bShouldUpdate)
 		*bShouldUpdate = false;
 
@@ -223,6 +226,23 @@ void AFortInventory::ModifyCount(UFortItem* ItemInstance, int New, bool bRemove,
 		GetItemList().MarkItemDirty(ItemInstance->GetItemEntry());
 		GetItemList().MarkItemDirty(ReplicatedEntry);
 	}
+}
+
+UFortItem* AFortInventory::GetPickaxeInstance()
+{
+	static auto FortWeaponMeleeItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortWeaponMeleeItemDefinition");
+
+	auto& ItemInstances = GetItemList().GetItemInstances();
+
+	for (int i = 0; i < ItemInstances.Num(); i++)
+	{
+		auto ItemInstance = ItemInstances.At(i);
+
+		if (ItemInstance->GetItemEntry()->GetItemDefinition()->IsA(FortWeaponMeleeItemDefinitionClass))
+			return ItemInstance;
+	}
+	
+	return nullptr;
 }
 
 UFortItem* AFortInventory::FindItemInstance(UFortItemDefinition* ItemDefinition)

@@ -458,15 +458,18 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	static auto FortPlayerStartWarmupClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
-	TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartWarmupClass);
+	if (!Globals::bCreative)
+	{
+		static auto FortPlayerStartWarmupClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
+		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartWarmupClass);
 
-	int ActorsNum = Actors.Num();
+		int ActorsNum = Actors.Num();
 
-	Actors.Free();
+		Actors.Free();
 
-	if (ActorsNum == 0)
-		return false;
+		if (ActorsNum == 0)
+			return false;
+	}
 
 	static int LastNum9 = 1;
 
@@ -671,7 +674,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		}
 	}
 
-	static bool bSpawnedVehicles = Engine_Version < 423;
+	static bool bSpawnedVehicles = Engine_Version < 424; // todo fix
 
 	if (!bSpawnedVehicles)
 	{
@@ -835,12 +838,20 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		if (AvailablePortalsOffset != 0)
 		{
 			auto& AvailablePortals = CreativePortalManager->Get<TArray<AActor*>>(AvailablePortalsOffset);
-			Portal = (AFortAthenaCreativePortal*)AvailablePortals.at(0);
-			AvailablePortals.Remove(0);
 
-			static auto UsedPortalsOffset = CreativePortalManager->GetOffset("UsedPortals");
-			auto& UsedPortals = CreativePortalManager->Get<TArray<AActor*>>(UsedPortalsOffset);
-			UsedPortals.Add(Portal);
+			if (AvailablePortals.Num() > 0)
+			{
+				Portal = (AFortAthenaCreativePortal*)AvailablePortals.at(0);
+				AvailablePortals.Remove(0);
+
+				static auto UsedPortalsOffset = CreativePortalManager->GetOffset("UsedPortals");
+				auto& UsedPortals = CreativePortalManager->Get<TArray<AActor*>>(UsedPortalsOffset);
+				UsedPortals.Add(Portal);
+			}
+			else
+			{
+				LOG_WARN(LogCreative, "AvaliablePortals size is 0!");
+			}
 		}
 		else
 		{
@@ -863,12 +874,20 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		{
 			// Portal->GetCreatorName() = PlayerStateAthena->GetPlayerName();
 
-			*(FUniqueNetIdReplExperimental*)Portal->GetOwningPlayer() = PlayerStateUniqueId;
+			auto OwningPlayer = Portal->GetOwningPlayer();
+
+			if (OwningPlayer != nullptr)
+				*(FUniqueNetIdReplExperimental*)OwningPlayer = PlayerStateUniqueId;
+
 			Portal->GetPortalOpen() = true;
 
 			static auto PlayersReadyOffset = Portal->GetOffset("PlayersReady");
-			auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdReplExperimental>>(PlayersReadyOffset);
-			PlayersReady.Add(PlayerStateUniqueId);
+
+			if (PlayersReadyOffset != 0)
+			{
+				auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdReplExperimental>>(PlayersReadyOffset);
+				PlayersReady.Add(PlayerStateUniqueId);
+			}
 
 			Portal->GetUserInitiatedLoad() = true;
 			Portal->GetInErrorState() = false;

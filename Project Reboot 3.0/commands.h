@@ -24,6 +24,8 @@ inline void SendMessageToConsole(AFortPlayerController* PlayerController, const 
 	FName TypeName = FName(); // auto set to "Event"
 
 	// PlayerController->ClientMessage(Msg, TypeName, MsgLifetime);
+	auto brah = Msg.ToString();
+	LOG_INFO(LogDev, "{}", brah);
 }
 
 void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
@@ -181,6 +183,29 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				WorldInventory->Update();
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
+		}
+		else if (Command == "testspawn")
+		{
+			auto Pawn = Cast<APawn>(ReceivingController->GetPawn());
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to teleport!");
+				return;
+			}
+
+			auto Class = FindObject<UClass>("/Game/Athena/Items/Gameplay/MinigameSettingsControl/MinigameSettingsMachine.MinigameSettingsMachine_C");
+
+			if (!Class)
+			{
+				SendMessageToConsole(PlayerController, L"Failed to find Class!");
+				return;
+			}
+
+			auto PawnLocation = Pawn->GetActorLocation();
+			PawnLocation.Z += 250;
+			GetWorld()->SpawnActor<AActor>(Class, PawnLocation);
+			SendMessageToConsole(PlayerController, L"Spawned!");
 		}
 		else if (Command == "bugitgo")
 		{

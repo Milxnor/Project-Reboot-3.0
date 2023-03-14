@@ -4,6 +4,7 @@
 
 #include "SoftObjectPtr.h"
 #include "globals.h"
+#include "GameplayStatics.h"
 
 void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 {
@@ -49,6 +50,32 @@ void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 			CharacterPartsaa.Free();
 		}
 	}
+}
+
+void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFortPlayerControllerAthena* Controller)
+{
+	auto Pawn = Controller->GetMyFortPawn();
+
+	if (!Pawn)
+		return;
+
+	static auto FortPlayerStartCreativeClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartCreative");
+	auto AllCreativePlayerStarts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartCreativeClass);
+
+	for (int i = 0; i < AllCreativePlayerStarts.Num(); i++)
+	{
+		auto CurrentPlayerStart = AllCreativePlayerStarts.at(i);
+
+		static auto PlayerStartTagsOffset = CurrentPlayerStart->GetOffset("PlayerStartTags");
+		auto bHasSpawnTag = CurrentPlayerStart->Get<FGameplayTagContainer>(PlayerStartTagsOffset).Contains("Playground.LobbyIsland.Spawn");
+
+		if (!bHasSpawnTag)
+			continue;
+
+		Pawn->TeleportTo(CurrentPlayerStart->GetActorLocation(), Pawn->GetActorRotation());
+	}
+
+	AllCreativePlayerStarts.Free();
 }
 
 void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn)

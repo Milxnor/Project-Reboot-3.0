@@ -110,8 +110,8 @@ struct FFastArraySerializer
 
 	void MarkArrayDirty()
 	{
-		((FFastArraySerializer2*)this)->MarkArrayDirty();
-		return;
+		// ((FFastArraySerializer2*)this)->MarkArrayDirty();
+		// return;
 
 		// ItemMap.Reset();		// This allows to clients to add predictive elements to arrays without affecting replication.
 		GetArrayReplicationKey()++;

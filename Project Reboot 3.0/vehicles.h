@@ -109,7 +109,7 @@ static inline void SpawnVehicles()
 	{
 		auto VehicleSpawner = (AllVehicleSpawners.at(i));
 
-		static auto FortVehicleItemDefVariantsOffset = VehicleSpawner->GetOffset("FortVehicleItemDefVariants");
+		static auto FortVehicleItemDefVariantsOffset = VehicleSpawner->GetOffset("FortVehicleItemDefVariants", false);
 
 		bool aa = true;
 
