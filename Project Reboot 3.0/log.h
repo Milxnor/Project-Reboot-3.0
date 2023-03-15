@@ -43,8 +43,6 @@ inline void InitLogger()
 
     FILE* stream = nullptr;
 
-    // bad but idk how to stop printing
-
     freopen_s(&stream, "in.txt", "r", stdin);
     freopen_s(&stream, "out.txt", "w+", stdout);
     freopen_s(&stream, "err.txt", "w", stderr);

@@ -292,7 +292,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::CompletePickupAnimation, (PVOID)AFortPickup::CompletePickupAnimationHook, (PVOID*)&AFortPickup::CompletePickupAnimationOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook); // ahhh wtf
     // Hooking::MinHook::Hook((PVOID)FindFunctionCall(L"ServerRemoveInventoryItem"), UFortInventoryInterface::RemoveInventoryItemHook);
-
+    
     AddVehicleHook();
 
     LOG_INFO(LogDev, "Test: 0x{:x}", FindFunctionCall(L"ClientOnPawnDied") - __int64(GetModuleHandleW(0)));
@@ -322,8 +322,6 @@ DWORD WINAPI Main(LPVOID)
         .GetAs<int*>() / 8;
 
     LOG_INFO(LogHook, "GetMaxTickRateIndex {}", GetMaxTickRateIndex); */
-
-
 
     srand(time(0));
 

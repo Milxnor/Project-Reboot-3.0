@@ -54,8 +54,10 @@ void InternalServerTryActivateAbility(UAbilitySystemComponent* AbilitySystemComp
 		return;
 	}
 
+	static auto InputPressedOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "InputPressed");
+
 	UGameplayAbility* InstancedAbility = nullptr;
-	SetBitfield(Spec, 1, true); // InputPressed = true
+	SetBitfield((PlaceholderBitfield*)(__int64(Spec) + InputPressedOffset), 1, true); // InputPressed = true
 	
 	bool res = false;
 
@@ -71,15 +73,15 @@ void InternalServerTryActivateAbility(UAbilitySystemComponent* AbilitySystemComp
 		LOG_INFO(LogAbilities, "InternalServerTryActivateAbility. Rejecting ClientActivation of {}. InternalTryActivateAbility failed: ", AbilityToActivate->GetName());
 
 		AbilitySystemComponent->ClientActivateAbilityFailed(Handle, *(int16_t*)(__int64(PredictionKey) + CurrentOffset));
-		SetBitfield(Spec, 1, false); // InputPressed = false
+		SetBitfield((PlaceholderBitfield*)(__int64(Spec) + InputPressedOffset), 1, false); // InputPressed = false
+
+		static auto ActivatableAbilitiesOffset = AbilitySystemComponent->GetOffset("ActivatableAbilities");
+		AbilitySystemComponent->Get<FFastArraySerializer>(ActivatableAbilitiesOffset).MarkItemDirty(Spec); 
 	}
 	else
 	{
-		LOG_INFO(LogAbilities, "InternalServerTryActivateAbility. Activated {}", AbilityToActivate->GetName());
+		// LOG_INFO(LogAbilities, "InternalServerTryActivateAbility. Activated {}", AbilityToActivate->GetName());
 	}
-
-	static auto ActivatableAbilitiesOffset = AbilitySystemComponent->GetOffset("ActivatableAbilities");
-	AbilitySystemComponent->Get<FFastArraySerializer>(ActivatableAbilitiesOffset).MarkItemDirty(Spec); // we only need to do this if the ability fails but eh
 
 	// bro ignore this next part idk where to put it ok
 

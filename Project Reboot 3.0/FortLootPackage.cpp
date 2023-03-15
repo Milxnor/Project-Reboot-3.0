@@ -78,6 +78,9 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 {
     std::vector<LootDrop> LootDrops;
 
+    if (recursive > 10)
+        return LootDrops;
+
     static std::vector<UDataTable*> LTDTables;
     static std::vector<UDataTable*> LPTables;
 
@@ -209,8 +212,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
     }
 
-    if (SumLootPackageCategoryWeightArray > SumLootPackageCategoryMinArray)
-        return PickLootDrops(TierGroupName, bPrint, ++recursive); // hm
+    // if (SumLootPackageCategoryWeightArray > SumLootPackageCategoryMinArray)
+        // return PickLootDrops(TierGroupName, bPrint, ++recursive); // hm
 
     std::vector<FFortLootPackageData*> TierGroupLPs;
 

@@ -37,6 +37,23 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 
 	auto ItemDefinition = ItemInstance->GetItemEntry()->GetItemDefinition();
 
+	static auto FortGadgetItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortGadgetItemDefinition");
+
+	if (ItemDefinition->IsA(FortGadgetItemDefinitionClass))
+	{
+		static auto GetWeaponItemDefinition = FindObject<UFunction>("/Script/FortniteGame.FortGadgetItemDefinition.GetWeaponItemDefinition");
+
+		if (GetWeaponItemDefinition)
+		{
+			ItemDefinition->ProcessEvent(GetWeaponItemDefinition, &ItemDefinition);
+		}
+		else
+		{
+			static auto GetDecoItemDefinition = FindObject<UFunction>("/Script/FortniteGame.FortGadgetItemDefinition.GetDecoItemDefinition");
+			ItemDefinition->ProcessEvent(GetDecoItemDefinition, &ItemDefinition);
+		}
+	}
+
 	if (auto DecoItemDefinition = Cast<UFortDecoItemDefinition>(ItemDefinition))
 	{
 		Pawn->PickUpActor(nullptr, DecoItemDefinition); // todo check ret value?
