@@ -72,8 +72,8 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 	static auto ItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemDefinition");
 	static auto NumberToGiveOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "NumberToGive");
 	static auto bNotifyPlayerOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "bNotifyPlayer");
-	static auto ItemLevelOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemLevel");
-	static auto PickupInstigatorHandleOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "PickupInstigatorHandle");
+	static auto ItemLevelOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemLevel", false);
+	static auto PickupInstigatorHandleOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "PickupInstigatorHandle", false);
 
 	// return GiveItemToInventoryOwnerOriginal(Context, Stack, Ret);
 
@@ -88,8 +88,12 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 	Stack.Step(Stack.Object, &ItemDefinition);
 	Stack.Step(Stack.Object, &NumberToGive);
 	Stack.Step(Stack.Object, &bNotifyPlayer);
-	Stack.Step(Stack.Object, &ItemLevel);
-	Stack.Step(Stack.Object, &PickupInstigatorHandle);
+
+	if (ItemLevelOffset != 0)
+		Stack.Step(Stack.Object, &ItemLevel);
+
+	if (PickupInstigatorHandleOffset != 0)
+		Stack.Step(Stack.Object, &PickupInstigatorHandle);
 
 	if (!ItemDefinition)
 		return GiveItemToInventoryOwnerOriginal(Context, Stack, Ret);
@@ -155,6 +159,8 @@ void UFortKismetLibrary::K2_RemoveItemFromPlayerHook(UObject* Context, FFrame& S
 
 	if (bShouldUpdate)
 		WorldInventory->Update();
+
+	LOG_INFO(LogDev, "Removed!");
 
 	return K2_RemoveItemFromPlayerOriginal(Context, Stack, Ret);
 }

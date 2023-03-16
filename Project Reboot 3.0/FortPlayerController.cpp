@@ -439,31 +439,40 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	static auto OnRep_DeathInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
 	DeadPlayerState->ProcessEvent(OnRep_DeathInfoFn);
 
-	auto WorldInventory = PlayerController->GetWorldInventory();
-	
-	if (!WorldInventory)
-		return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
+	bool bIsRespawningAllowed = true;
 
-	auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
-
-	for (int i = 0; i < ItemInstances.Num(); i++)
+	if (!bIsRespawningAllowed)
 	{
-		auto ItemInstance = ItemInstances.at(i);
+		auto WorldInventory = PlayerController->GetWorldInventory();
 
-		if (!ItemInstance)
-			continue;
+		if (!WorldInventory)
+			return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 
-		auto ItemEntry = ItemInstance->GetItemEntry();
-		auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
-		
-		if (!WorldItemDefinition)
-			continue;
+		auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
 
-		if (!WorldItemDefinition->ShouldDropOnDeath())
-			continue;
+		for (int i = 0; i < ItemInstances.Num(); i++)
+		{
+			auto ItemInstance = ItemInstances.at(i);
 
-		AFortPickup::SpawnPickup(WorldItemDefinition, DeathLocation, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
-			ItemEntry->GetLoadedAmmo());
+			if (!ItemInstance)
+				continue;
+
+			auto ItemEntry = ItemInstance->GetItemEntry();
+			auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
+
+			if (!WorldItemDefinition)
+				continue;
+
+			// if (!WorldItemDefinition->ShouldDropOnDeath())
+				// continue;
+
+			AFortPickup::SpawnPickup(WorldItemDefinition, DeathLocation, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
+				ItemEntry->GetLoadedAmmo());
+
+			WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
+		}
+
+		WorldInventory->Update();
 	}
 
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);

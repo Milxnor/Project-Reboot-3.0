@@ -4,10 +4,22 @@
 
 void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 {
-	static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver");
+	static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver", false);
 
-	if (auto ReplicationDriver = NetDriver->Get(ReplicationDriverOffset))
-		reinterpret_cast<void(*)(UObject*)>(ReplicationDriver->VFTable[Offsets::ServerReplicateActors])(ReplicationDriver);
+	if (ReplicationDriverOffset == 0)
+	{
+		NetDriver->ServerReplicateActors();
+	}
+	else
+	{
+		if (auto ReplicationDriver = NetDriver->Get(ReplicationDriverOffset))
+			reinterpret_cast<void(*)(UObject*)>(ReplicationDriver->VFTable[Offsets::ServerReplicateActors])(ReplicationDriver);
+	}
 
 	return TickFlushOriginal(NetDriver);
+}
+
+void UNetDriver::ServerReplicateActors()
+{
+
 }

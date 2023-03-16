@@ -25,6 +25,8 @@ void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound)
 
 		if (Property)
 		{
+			// LOG_INFO(LogDev, "Reading prop name..");
+
 			std::string PropName = getFNameOfProp(Property)->ToString();
 
 			// LOG_INFO(LogDev, "PropName: {}", PropName);

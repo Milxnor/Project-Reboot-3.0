@@ -22,6 +22,7 @@
 #include "commands.h"
 #include "FortAthenaSupplyDrop.h"
 #include "FortMinigame.h"
+#include "KismetSystemLibrary.h"
 
 enum ENetMode
 {
@@ -77,6 +78,8 @@ DWORD WINAPI Main(LPVOID)
     static auto FortPlayerPawnAthenaDefault = FindObject<UClass>(L"/Game/Athena/PlayerPawn_Athena.Default__PlayerPawn_Athena_C");
     static auto FortAbilitySystemComponentAthenaDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortAbilitySystemComponentAthena");
     static auto FortKismetLibraryDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortKismetLibrary");
+
+    // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
 
     static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
     FString Level = Engine_Version < 424
@@ -195,6 +198,8 @@ DWORD WINAPI Main(LPVOID)
         AFortPlayerController::ServerEditBuildingActorHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerEndEditingBuildingActor"),
         AFortPlayerController::ServerEndEditingBuildingActorHook, nullptr, false);
+    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerGiveCreativeItem"),
+        AFortPlayerControllerAthena::ServerGiveCreativeItemHook, nullptr, true);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerPlaySquadQuickChatMessage"),
         AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessage, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerTeleportToPlaygroundLobbyIsland"),
@@ -203,7 +208,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
 
-    if (Addresses::FrameStep) // put all exec hooks in this scope
+    if (Addresses::FrameStep) // put all non rpc exec hooks in this scope
     {
         Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"Script/FortniteGame.FortKismetLibrary.K2_GiveItemToPlayer"),
            UFortKismetLibrary::K2_GiveItemToPlayerHook, (PVOID*)&UFortKismetLibrary::K2_GiveItemToPlayerOriginal, false, true);

@@ -458,9 +458,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	if (!Globals::bCreative)
+	// if (!Globals::bCreative)
 	{
-		static auto FortPlayerStartWarmupClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
+		static auto FortPlayerStartWarmupClass = Globals::bCreative ? FindObject<UClass>("/Script/FortniteGame.FortPlayerStartCreative") : FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
 		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartWarmupClass);
 
 		int ActorsNum = Actors.Num();
@@ -595,9 +595,16 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	if (bFirst)
 	{
 		bFirst = false;
+		
+		auto PlaylistToUse = GetPlaylistToUse();
 
-		GameState->GetGamePhase() = EAthenaGamePhase::Warmup;
-		GameState->OnRep_GamePhase();
+		// if (!PlaylistToUse || !PlaylistToUse->Get<bool>("bSkipWarmup"))
+		{
+			GameState->GetGamePhase() = EAthenaGamePhase::Warmup;
+			GameState->OnRep_GamePhase();
+		}
+
+		// GameState->OnRep_CurrentPlaylistInfo();
 	}
 
 	static bool bSpawnedFloorLoot = false;
@@ -886,7 +893,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			if (PlayersReadyOffset != 0)
 			{
 				auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdReplExperimental>>(PlayersReadyOffset);
-				PlayersReady.Add(PlayerStateUniqueId);
+				PlayersReady.Add(PlayerStateUniqueId); // im not even sure what this is
 			}
 
 			Portal->GetUserInitiatedLoad() = true;
@@ -900,9 +907,26 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			Portal->GetLinkedVolume()->GetVolumeState() = EVolumeState::Ready;
 
+			if (auto Volume = NewPlayer->Get<AFortVolume*>(CreativePlotLinkedVolumeOffset))
+			{
+				static auto FortLevelSaveComponentClass = FindObject<UClass>("/Script/FortniteGame.FortLevelSaveComponent");
+				auto LevelSaveComponent = (UObject*)Volume->GetComponentByClass(FortLevelSaveComponentClass);
+
+				if (LevelSaveComponent)
+				{
+					static auto AccountIdOfOwnerOffset = LevelSaveComponent->GetOffset("AccountIdOfOwner");
+					LevelSaveComponent->Get<FUniqueNetIdReplExperimental>(AccountIdOfOwnerOffset) = PlayerStateUniqueId;
+
+					static auto bIsLoadedOffset = LevelSaveComponent->GetOffset("bIsLoaded");
+					LevelSaveComponent->Get<bool>(bIsLoadedOffset) = true;
+				}
+			}
+
 			static auto IslandPlayset = FindObject<UFortPlaysetItemDefinition>("/Game/Playsets/PID_Playset_60x60_Composed.PID_Playset_60x60_Composed");
 
 			UFortPlaysetItemDefinition::ShowPlayset(IslandPlayset, Portal->GetLinkedVolume());
+
+			LOG_INFO(LogCreative, "Initialized player portal!");
 		}
 		else
 		{

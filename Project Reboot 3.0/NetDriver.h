@@ -31,4 +31,5 @@ public:
 
 	bool InitListen(FNetworkNotify* InNotify, FURL& ListenURL, bool bReuseAddressAndPort, FString& Error) { return InitListenOriginal(this, InNotify, ListenURL, bReuseAddressAndPort, Error); }
 	void SetWorld(UWorld* World) { return SetWorldOriginal(this, World); }
+	void ServerReplicateActors();
 };

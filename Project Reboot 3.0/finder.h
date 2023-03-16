@@ -12,12 +12,14 @@ static inline uintptr_t FindBytes(Memcury::Scanner& Scanner, const std::vector<u
 		return 0;
 	}
 
+	auto Base = __int64(GetModuleHandleW(0));
+
 	for (int i = 0 + SkipBytes; i < Count + SkipBytes; i++) // we should subtract from skip if goup
 	{
 		auto CurrentByte = *(Memcury::ASM::MNEMONIC*)(bGoUp ? Scanner.Get() - i : Scanner.Get() + i);
 
 		if (bPrint)
-			LOG_INFO(LogFinder, "[{}] CurrentByte: 0x{:x}", i, (int)CurrentByte);
+			LOG_INFO(LogFinder, "[{}] CurrentByte: 0x{:x} (0x{:x})", i, (int)CurrentByte, (bGoUp ? Scanner.Get() - i : Scanner.Get() + i) - Base);
 
 		if (CurrentByte == Bytes[0])
 		{
@@ -61,7 +63,7 @@ static inline uintptr_t FindBytes(Memcury::Scanner& Scanner, const std::vector<u
 	return 0;
 } */
 
-static inline uint64 FindStaticFindObject()
+static inline uint64 FindStaticFindObject(int StringSkip = 1)
 {
 	if (Engine_Version == 500)
 	{
@@ -76,8 +78,10 @@ static inline uint64 FindStaticFindObject()
 			return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 60 45 33 ED 45 8A F9 44 38 2D ? ? ? ? 49 8B F8 48 8B").Get();
 	}
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"Illegal call to StaticFindObject() while serializing object data!", true, 0, Engine_Version >= 427);
-	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 255, 0, true); // Addr.ScanFor(bytes, false).Get();
+	auto Addr = Memcury::Scanner::FindStringRef(L"Illegal call to StaticFindObject() while serializing object data!", true, StringSkip, Engine_Version >= 427);
+	auto Final = FindBytes(Addr, { 0x48, 0x89, 0x5C }, 255, 0, true, 0, false); // Addr.ScanFor(bytes, false).Get();
+
+	return Final;
 }
 
 static inline uint64 FindProcessEvent()
@@ -271,7 +275,14 @@ static inline uint64 FindSpecConstructor()
 		return Memcury::Scanner::FindPattern("80 61 29 F8 48 8B 44 24 ?").Get(); // 11.31
 
 	if (Engine_Version == 425)
-		return Memcury::Scanner::FindPattern("48 8B 44 24 ? 80 61 29 F8 80 61 31 FE 48 89 41 20 33 C0 89 41").Get();
+	{
+		auto ba = Memcury::Scanner::FindPattern("48 8B 44 24 ? 80 61 29 F8 80 61 31 FE 48 89 41 20 33 C0 89 41", false).Get();
+	
+		if (!ba)
+			ba = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 45 33 F6 48 C7 01 ? ? ? ? 48 C7 41").Get(); // i think this right for 12.00 ??
+
+		return ba;
+	}
 
 	if (Engine_Version == 426)
 		return Memcury::Scanner::FindPattern("80 61 31 FE 0F 57 C0 80 61 29 F0 48 8B 44 24 ? 48").Get();
@@ -410,14 +421,44 @@ static inline uint64 FindNavSystemCleanUp()
 	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 500, 0, true);
 }
 
-static inline uint64 FindLoadPlayset()
+static inline uint64 FindLoadPlayset(const std::vector<uint8_t>& Bytes = std::vector<uint8_t>({ 0x48, 0x89, 0x5C }), int recursive = 0)
 {
+	if (recursive >= 2)
+		return 0;
+
 	auto StringRef = Memcury::Scanner::FindStringRef(L"UPlaysetLevelStreamComponent::LoadPlayset Error: no owner for %s", Fortnite_Version >= 7);
 
 	if (!StringRef.Get())
 		return 0;
 
-	return FindBytes(StringRef, { 0x48, 0x89, 0x5C }, 1000, 0, true);
+	for (int i = 0 + 0; i < 400 + 0; i++) // we should subtract from skip if goup
+	{
+		auto CurrentByte = *(Memcury::ASM::MNEMONIC*)(true ? StringRef.Get() - i : StringRef.Get() + i);
+
+		if (CurrentByte == Bytes[0])
+		{
+			bool Found = true;
+			for (int j = 1; j < Bytes.size(); j++)
+			{
+				if (*(Memcury::ASM::MNEMONIC*)(true ? StringRef.Get() - i + j : StringRef.Get() + i + j) != Bytes[j])
+				{
+					Found = false;
+					break;
+				}
+			}
+			if (Found)
+			{
+				return true ? StringRef.Get() - i : StringRef.Get() + i;
+			}
+		}
+
+		if (CurrentByte == 0xC3)
+			return FindLoadPlayset({ 0x40, 0x55 }, ++recursive);
+
+		// std::cout << std::format("CurrentByte: 0x{:x}\n", (uint8_t)CurrentByte);
+	}
+
+	return 0;
 }
 
 static inline uint64 FindGIsServer()

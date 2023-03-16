@@ -21,4 +21,18 @@ public:
 
 		return Ret;
 	}
+
+	static void ExecuteConsoleCommand(UObject* WorldContextObject, const FString& Command, class APlayerController* SpecificPlayer)
+	{
+		static auto KismetSystemLibrary = FindObject("/Script/Engine.Default__KismetSystemLibrary");
+		static auto fn = FindObject<UFunction>("/Script/Engine.KismetSystemLibrary.ExecuteConsoleCommand");
+
+		struct {
+			UObject* WorldContextObject;                                       // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			FString                                     Command;                                                  // (Parm, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			class APlayerController* SpecificPlayer;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		} UKismetSystemLibrary_ExecuteConsoleCommand_Params{WorldContextObject, Command, SpecificPlayer};
+
+		KismetSystemLibrary->ProcessEvent(fn, &UKismetSystemLibrary_ExecuteConsoleCommand_Params);
+	}
 };

@@ -52,6 +52,24 @@ void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 	}
 }
 
+void AFortPlayerControllerAthena::ServerGiveCreativeItemHook(AFortPlayerControllerAthena* Controller, FFortItemEntry CreativeItem)
+{
+	// Don't worry, the validate has a check if it is a creative enabled mode or not, but we need to add a volume check.
+
+	auto CreativeItemPtr = &CreativeItem;
+	auto ItemDefinition = CreativeItemPtr->GetItemDefinition();
+
+	if (!ItemDefinition)
+		return;
+
+	bool bShouldUpdate = false;
+	auto LoadedAmmo = -1; // CreativeItemPtr->GetLoadedAmmo()
+	Controller->GetWorldInventory()->AddItem(ItemDefinition, &bShouldUpdate, CreativeItemPtr->GetCount(), LoadedAmmo, false);
+
+	if (bShouldUpdate)
+		Controller->GetWorldInventory()->Update(Controller);
+}
+
 void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFortPlayerControllerAthena* Controller)
 {
 	auto Pawn = Controller->GetMyFortPawn();
@@ -73,6 +91,7 @@ void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFor
 			continue;
 
 		Pawn->TeleportTo(CurrentPlayerStart->GetActorLocation(), Pawn->GetActorRotation());
+		break;
 	}
 
 	AllCreativePlayerStarts.Free();

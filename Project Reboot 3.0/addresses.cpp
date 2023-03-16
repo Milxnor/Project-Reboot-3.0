@@ -112,6 +112,8 @@ void Addresses::SetupVersion()
 
 void Addresses::FindAll()
 {
+	auto Base = __int64(GetModuleHandleW(0));
+
 	LOG_INFO(LogDev, "9241");
 	Addresses::ProcessEvent = FindProcessEvent();
 	UObject::ProcessEventOriginal = decltype(UObject::ProcessEventOriginal)(ProcessEvent);
@@ -119,6 +121,7 @@ void Addresses::FindAll()
 
 	Addresses::StaticFindObject = FindStaticFindObject();
 	StaticFindObjectOriginal = decltype(StaticFindObjectOriginal)(StaticFindObject);
+	LOG_INFO(LogDev, "StaticFindObject: 0x{:x}", StaticFindObject - Base);
 	LOG_INFO(LogDev, "2151");
 
 	Addresses::GetPlayerViewpoint = FindGetPlayerViewpoint();

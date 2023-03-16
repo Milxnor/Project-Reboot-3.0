@@ -13,6 +13,7 @@ public:
 		return (AFortPlayerStateAthena*)GetPlayerState();
 	}
 
+	static void ServerGiveCreativeItemHook(AFortPlayerControllerAthena* Controller, FFortItemEntry CreativeItem);
 	static void ServerTeleportToPlaygroundLobbyIslandHook(AFortPlayerControllerAthena* Controller);
 	static void ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn);
 	static void ServerPlaySquadQuickChatMessage(AFortPlayerControllerAthena* PlayerController, __int64 ChatEntry, __int64 SenderID);
