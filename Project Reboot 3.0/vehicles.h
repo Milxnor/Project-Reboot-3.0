@@ -95,7 +95,8 @@ static inline void AddVehicleHook()
 
 	if (FortPhysicsPawnDefault)
 	{
-		Hooking::MinHook::Hook(FortPhysicsPawnDefault, FindObject<UFunction>("/Script/FortniteGame.FortPhysicsPawn.ServerMove"),
+		Hooking::MinHook::Hook(FortPhysicsPawnDefault, FindObject<UFunction>("/Script/FortniteGame.FortPhysicsPawn.ServerMove") ?
+			FindObject<UFunction>("/Script/FortniteGame.FortPhysicsPawn.ServerMove") : FindObject<UFunction>("/Script/FortniteGame.FortPhysicsPawn.ServerUpdatePhysicsParams"),
 			ServerVehicleUpdate, nullptr, false, true);
 	}
 }

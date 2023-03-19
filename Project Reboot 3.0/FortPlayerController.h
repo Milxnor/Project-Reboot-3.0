@@ -63,6 +63,8 @@ public:
 	// static void ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData);
 	static void ServerCreateBuildingActorHook(UObject* Context, FFrame* Stack, void* Ret);
 
+	static void ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef);
+
 	static void ServerAttemptInventoryDropHook(AFortPlayerController* PlayerController, FGuid ItemGuid, int Count);
 	static void ServerPlayEmoteItemHook(AFortPlayerController* PlayerController, UObject* EmoteAsset);
 	static void ClientOnPawnDiedHook(AFortPlayerController* PlayerController, void* DeathReport);

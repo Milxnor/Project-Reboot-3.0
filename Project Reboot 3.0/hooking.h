@@ -12,8 +12,6 @@ inline __int64 GetFunctionIdxOrPtr2(UFunction* Function)
 
     auto FuncName = Function->GetName();
 
-    std::cout << std::format("{} Exec: 0x{:x}\n", Function->GetName(), NativeAddr - __int64(GetModuleHandleW(0)));
-
     std::wstring ValidateWStr = (std::wstring(FuncName.begin(), FuncName.end()) + L"_Validate");
     const wchar_t* ValidateWCStr = ValidateWStr.c_str();
     bool bHasValidateFunc = Memcury::Scanner::FindStringRef(ValidateWCStr, false).Get();
@@ -33,8 +31,6 @@ inline __int64 GetFunctionIdxOrPtr2(UFunction* Function)
         }
     }
 
-    std::cout << std::format("RETT {}: 0x{:x}\n", Function->GetName(), RetAddr - __int64(GetModuleHandleW(0)));
-
     int i = 0;
 
     __int64 functionAddyOrOffset = 0;
@@ -53,8 +49,6 @@ inline __int64 GetFunctionIdxOrPtr2(UFunction* Function)
         else */ if ((*(uint8_t*)(CurrentAddy) == 0xFF && *(uint8_t*)(CurrentAddy + 1) == 0x90) ||
             *(uint8_t*)(CurrentAddy) == 0xFF && *(uint8_t*)(CurrentAddy + 1) == 0x93)
         {
-            std::cout << "found vcall!\n";
-
             auto SecondByte = *(uint8_t*)(CurrentAddy + 2);
             auto ThirdByte = *(uint8_t*)(CurrentAddy + 3);
 
@@ -80,8 +74,6 @@ inline __int64 GetFunctionIdxOrPtr2(UFunction* Function)
         i++;
     }
 
-    std::cout << "FOUND: " << functionAddyOrOffset << '\n';
-
     return functionAddyOrOffset;
 }
 
@@ -90,16 +82,14 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
 {
     auto NativeAddr = __int64(Function->GetFunc());
 
-    std::cout << std::format("{} Exec: 0x{:x}\n", Function->GetName(), NativeAddr - __int64(GetModuleHandleW(0)));
-
     auto FuncName = Function->GetName();
 
     std::wstring ValidateWStr = (std::wstring(FuncName.begin(), FuncName.end()) + L"_Validate");
     const wchar_t* ValidateWCStr = ValidateWStr.c_str();
     bool bHasValidateFunc = Memcury::Scanner::FindStringRef(ValidateWCStr, false).Get();
 
-    LOG_INFO(LogDev, "[{}] bHasValidateFunc: {}", Function->GetName(), bHasValidateFunc);
-    LOG_INFO(LogDev, "NativeAddr: 0x{:x}", __int64(NativeAddr) - __int64(GetModuleHandleW(0)));
+    // LOG_INFO(LogDev, "[{}] bHasValidateFunc: {}", Function->GetName(), bHasValidateFunc);
+    // LOG_INFO(LogDev, "NativeAddr: 0x{:x}", __int64(NativeAddr) - __int64(GetModuleHandleW(0)));
 
     bool bFoundValidate = !bHasValidateFunc;
 
@@ -109,8 +99,8 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
     {
         // LOG_INFO(LogDev, "0x{:x}", *(uint8_t*)(NativeAddr + i));
 
-        if ((*(uint8_t*)(NativeAddr + i) == 0xFF && *(uint8_t*)(NativeAddr + i + 1) == 0x90) ||
-            *(uint8_t*)(NativeAddr + i) == 0xFF && *(uint8_t*)(NativeAddr + i + 1) == 0x93)
+        if ((*(uint8_t*)(NativeAddr + i) == 0xFF && *(uint8_t*)(NativeAddr + i + 1) == 0x90) || // call qword ptr
+            *(uint8_t*)(NativeAddr + i) == 0xFF && *(uint8_t*)(NativeAddr + i + 1) == 0x93) // call qword ptr
         {
             if (bFoundValidate)
             {
@@ -139,7 +129,7 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
 
                 std::transform(wtf.begin(), wtf.end(), wtf.begin(), ::toupper);
 
-                LOG_INFO(LogDev, "wtf: {}", wtf);
+                // LOG_INFO(LogDev, "wtf: {}", wtf);
 
                 return HexToDec(wtf);
             }
@@ -147,6 +137,41 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
             {
                 bFoundValidate = true;
                 continue;
+            }
+        }
+
+        if ((*(uint8_t*)(NativeAddr + i) == 0x48 && *(uint8_t*)(NativeAddr + i + 1) == 0xFF) && *(uint8_t*)(NativeAddr + i + 2) == 0xA0) // jmp qword ptr
+        {
+            if (bFoundValidate)
+            {
+                std::string wtf = "";
+
+                int shots = 0;
+
+                bool bFoundFirstNumber = false;
+
+                for (__int64 z = (NativeAddr + i + 6); z != (NativeAddr + i + 2); z -= 1)
+                {
+                    auto anafa = (int)(*(uint8_t*)z);
+
+                    auto asfk = anafa < 10 ? "0" + std::format("{:x}", anafa) : std::format("{:x}", anafa);
+
+                    // std::cout << std::format("[{}] 0x{}\n", shots, asfk);
+
+                    if (*(uint8_t*)z == 0 ? bFoundFirstNumber : true)
+                    {
+                        wtf += asfk;
+                        bFoundFirstNumber = true;
+                    }
+
+                    shots++;
+                }
+
+                std::transform(wtf.begin(), wtf.end(), wtf.begin(), ::toupper);
+
+                // LOG_INFO(LogDev, "wtf: {}", wtf);
+
+                return HexToDec(wtf);
             }
         }
 
@@ -163,17 +188,17 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
 
     if (RetAddr)
     {
-        LOG_INFO(LogDev, "RetAddr 0x{:x}", RetAddr - __int64(GetModuleHandleW(0)));
+        // LOG_INFO(LogDev, "RetAddr 0x{:x}", RetAddr - __int64(GetModuleHandleW(0)));
 
         int i = 0;
 
         for (__int64 CurrentAddy = RetAddr; CurrentAddy != NativeAddr && i < 2000; CurrentAddy -= 1) // Find last call
         {
-            LOG_INFO(LogDev, "[{}] 0x{:x}", i, *(uint8_t*)CurrentAddy);
+            // LOG_INFO(LogDev, "[{}] 0x{:x}", i, *(uint8_t*)CurrentAddy);
 
             if (*(uint8_t*)CurrentAddy == 0xE8)
             {
-                LOG_INFO(LogDev, "CurrentAddy 0x{:x}", CurrentAddy - __int64(GetModuleHandleW(0)));
+                // LOG_INFO(LogDev, "CurrentAddy 0x{:x}", CurrentAddy - __int64(GetModuleHandleW(0)));
                 functionAddy = (CurrentAddy + 1 + 4) + *(int*)(CurrentAddy + 1);
                 break;
             }
@@ -191,6 +216,7 @@ namespace Hooking
 	{
 		static bool Hook(void* Addr, void* Detour, void** Original = nullptr)
 		{
+            LOG_INFO(LogDev, "Hooking 0x{:x}", __int64(Addr) - __int64(GetModuleHandleW(0)));
 			auto ret1 = MH_CreateHook(Addr, Detour, Original);
 			auto ret2 = MH_EnableHook(Addr);
 			return ret1 == MH_OK && ret2 == MH_OK;
@@ -240,6 +266,8 @@ namespace Hooking
                 if (Original)
                     *Original = DefaultClass->VFTable[Idx];
 
+                LOG_INFO(LogDev, "Hooking {} with Idx 0x{:x}", Function->GetName(), AddrOrIdx);
+
                 VirtualSwap(DefaultClass->VFTable, Idx, Detour);
 
                 return true;
@@ -252,10 +280,5 @@ namespace Hooking
 		{
 			return MH_DisableHook((PVOID)Addr) == MH_OK;
 		}
-	}
-
-    static bool Hook(UFunction* Function, std::function<void(UObject*, void*)> Detour) // ProcessEvent hook
-	{
-		return true;
 	}
 }

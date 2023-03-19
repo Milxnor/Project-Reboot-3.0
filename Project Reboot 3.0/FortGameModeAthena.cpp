@@ -140,6 +140,8 @@ UObject* GetPlaylistToUse()
 		}
 	}
 
+	Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
+
 	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
 	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");
 
@@ -205,7 +207,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 			if (aeuh)
 			{
-				if (Fortnite_Version >= 13)
+				/* if (Fortnite_Version >= 13)
 				{
 					static auto LastSafeZoneIndexOffset = aeuh->GetOffset("LastSafeZoneIndex");
 
@@ -213,7 +215,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 					{
 						*(int*)(__int64(aeuh) + LastSafeZoneIndexOffset) = 0;
 					}
-				}
+				} */
 			}
 
 			GameState->OnRep_CurrentPlaylistInfo();
@@ -497,7 +499,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		float Duration = 1000.f;
 		float EarlyDuration = Duration;
 
-		float TimeSeconds = 35.f; // UGameplayStatics::GetTimeSeconds(GetWorld());
+		float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
 
 		LOG_INFO(LogDev, "Initializing!");
 		LOG_INFO(LogDev, "GameMode 0x{:x}", __int64(GameMode));
@@ -578,7 +580,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 {
 	LOG_INFO(LogTeam, "PickTeam called!");
 	static auto NextTeamIndex = 3;
-	return NextTeamIndex;
+	return NextTeamIndex++;
 }
 
 void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena* GameMode, AActor* NewPlayerActor)
@@ -738,9 +740,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 	}
 
-	static int CurrentPlayerId = 1;
-	// static auto PlayerIdOffset = PlayerStateAthena->GetOffset("PlayerId"); // Unable to find tf
-	PlayerStateAthena->GetWorldPlayerId() = ++CurrentPlayerId; // PlayerStateAthena->Get<int>(PlayerIdOffset); // 
+	if (PlayerStateAthena->GetWorldPlayerId() == -1)
+	{
+		static int CurrentPlayerId = 1;
+		// static auto PlayerIdOffset = PlayerStateAthena->GetOffset("PlayerId"); // Unable to find tf
+		LOG_INFO(LogDev, "Old ID: {}", PlayerStateAthena->GetWorldPlayerId());
+		PlayerStateAthena->GetWorldPlayerId() = ++CurrentPlayerId; // PlayerStateAthena->Get<int>(PlayerIdOffset); // 
+	}
 
 	if (Globals::bAbilitiesEnabled)
 	{
@@ -869,7 +875,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			{
 				auto CurrentPortal = AllPortals.at(i);
 
-				if (CurrentPortal->GetUserInitiatedLoad())
+				if (!CurrentPortal->GetLinkedVolume() || CurrentPortal->GetLinkedVolume()->GetVolumeState() == EVolumeState::Ready)
 					continue;
 
 				Portal = CurrentPortal;
@@ -888,7 +894,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			Portal->GetPortalOpen() = true;
 
-			static auto PlayersReadyOffset = Portal->GetOffset("PlayersReady");
+			static auto PlayersReadyOffset = Portal->GetOffset("PlayersReady", false);
 
 			if (PlayersReadyOffset != 0)
 			{
@@ -896,7 +902,11 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				PlayersReady.Add(PlayerStateUniqueId); // im not even sure what this is
 			}
 
-			Portal->GetUserInitiatedLoad() = true;
+			static auto bUserInitiatedLoadOffset = Portal->GetOffset("bUserInitiatedLoad", false);
+
+			if (bUserInitiatedLoadOffset != 0)
+				Portal->GetUserInitiatedLoad() = true;
+
 			Portal->GetInErrorState() = false;
 
 			static auto OwnedPortalOffset = NewPlayer->GetOffset("OwnedPortal");
@@ -907,8 +917,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			Portal->GetLinkedVolume()->GetVolumeState() = EVolumeState::Ready;
 
+			static auto IslandPlayset = FindObject<UFortPlaysetItemDefinition>("/Game/Playsets/PID_Playset_60x60_Composed.PID_Playset_60x60_Composed");
+
 			if (auto Volume = NewPlayer->Get<AFortVolume*>(CreativePlotLinkedVolumeOffset))
 			{
+				// if (IslandPlayset)
+					// Volume->UpdateSize({ (float)IslandPlayset->Get<int>("SizeX"), (float)IslandPlayset->Get<int>("SizeY"), (float)IslandPlayset->Get<int>("SizeZ") });
+
 				static auto FortLevelSaveComponentClass = FindObject<UClass>("/Script/FortniteGame.FortLevelSaveComponent");
 				auto LevelSaveComponent = (UObject*)Volume->GetComponentByClass(FortLevelSaveComponentClass);
 
@@ -921,8 +936,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 					LevelSaveComponent->Get<bool>(bIsLoadedOffset) = true;
 				}
 			}
-
-			static auto IslandPlayset = FindObject<UFortPlaysetItemDefinition>("/Game/Playsets/PID_Playset_60x60_Composed.PID_Playset_60x60_Composed");
 
 			UFortPlaysetItemDefinition::ShowPlayset(IslandPlayset, Portal->GetLinkedVolume());
 

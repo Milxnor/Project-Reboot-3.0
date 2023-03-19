@@ -15,16 +15,16 @@ TArray<AActor*> UGameplayStatics::GetAllActorsOfClass(const UObject* WorldContex
 	return UGameplayStatics_GetAllActorsOfClass_Params.OutActors;
 }
 
-float UGameplayStatics::GetTimeSeconds(const UObject* WorldContextObject)
+float UGameplayStatics::GetTimeSeconds(UObject* WorldContextObject)
 {
 	static auto fn = FindObject<UFunction>(L"/Script/Engine.GameplayStatics.GetTimeSeconds");
 
-	float TimeSeconds = 0;
+	struct { UObject* WorldContextObject; float TimeSeconds; } GetTimeSecondsParams{WorldContextObject};
 
 	static auto defaultObj = StaticClass();
-	defaultObj->ProcessEvent(fn, &TimeSeconds);
+	defaultObj->ProcessEvent(fn, &GetTimeSecondsParams);
 
-	return TimeSeconds;
+	return GetTimeSecondsParams.TimeSeconds;
 }
 
 UObject* UGameplayStatics::SpawnObject(UClass* ObjectClass, UObject* Outer)

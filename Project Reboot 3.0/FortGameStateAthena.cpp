@@ -7,6 +7,15 @@
 
 } */
 
+bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState) // actually in zone
+{
+	static auto IsRespawningAllowedFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateZone.IsRespawningAllowed");
+	struct { AFortPlayerState* PlayerState; bool ReturnValue; } AFortGameStateZone_IsRespawningAllowed_Params{PlayerState};
+	this->ProcessEvent(IsRespawningAllowedFn, &AFortGameStateZone_IsRespawningAllowed_Params);
+
+	return AFortGameStateZone_IsRespawningAllowed_Params.ReturnValue;
+}
+
 void AFortGameStateAthena::OnRep_GamePhase()
 {
 	EAthenaGamePhase OldGamePhase = GetGamePhase();

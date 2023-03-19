@@ -416,9 +416,6 @@
     <ClInclude Include="BuildingTrap.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building</Filter>
     </ClInclude>
-    <ClInclude Include="commands.h">
-      <Filter>Reboot</Filter>
-    </ClInclude>
     <ClInclude Include="FortAthenaSupplyDrop.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors</Filter>
     </ClInclude>
@@ -427,6 +424,12 @@
     </ClInclude>
     <ClInclude Include="FortMinigame.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Creative\Minigame</Filter>
+    </ClInclude>
+    <ClInclude Include="die.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="commands.h">
+      <Filter>Reboot\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

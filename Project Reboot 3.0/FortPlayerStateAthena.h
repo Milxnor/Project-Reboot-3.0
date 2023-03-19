@@ -25,6 +25,12 @@ public:
 		return PlayerName;
 	}
 
+	void ClientReportKill(AFortPlayerStateAthena* Player)
+	{
+		static auto ClientReportKillFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.ClientReportKill");
+		this->ProcessEvent(ClientReportKillFn, &Player);
+	}
+
 	static UClass* StaticClass()
 	{
 		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerStateAthena");

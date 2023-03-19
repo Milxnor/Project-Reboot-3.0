@@ -190,8 +190,9 @@ static inline uint64 FindPauseBeaconRequests()
 
 static inline uint64 FindGetPlayerViewpoint()
 {
-	auto Addr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s");
-	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true, 1);
+	auto Addr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s", true);
+	// return FindBytes(Addr, { 0x48, 0x89 /*, 0x5C */}, 2000, 0, true, 1);
+	return FindBytes(Addr, { 0x48, 0x89, 0x74 }, 2000, 0, true);
 }
 
 static inline uint64 FindSpawnActor()
@@ -365,10 +366,12 @@ static inline uint64 FindNoMCP()
 
 static inline uint64 FindSetZoneToIndex()
 {
-	if (Fortnite_Version == 14.60)
-		return __int64(GetModuleHandleW(0)) + 0x207F9B0;
-
 	return 0;
+
+	// if (Fortnite_Version == 14.60)
+		// return __int64(GetModuleHandleW(0)) + 0x207F9B0;
+
+	return Memcury::Scanner::FindPattern("40 55 53 56 41 55 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 18 48 8B").Get();
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.");
 	return FindBytes(Addr, { 0x40, 0x55 }, 30000, 0, true);

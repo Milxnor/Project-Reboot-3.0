@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameState.h"
+#include "FortPlayerState.h"
 
 enum class EAthenaGamePhase : uint8_t
 {
@@ -31,6 +32,7 @@ public:
 
 	// void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
 
+	bool IsRespawningAllowed(AFortPlayerState* PlayerState); // actually in zone
 	void OnRep_GamePhase();
 	void OnRep_CurrentPlaylistInfo();
 };

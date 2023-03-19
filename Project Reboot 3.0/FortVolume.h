@@ -19,4 +19,10 @@ public:
 		static auto VolumeStateOffset = GetOffset("VolumeState");
 		return Get<EVolumeState>(VolumeStateOffset);
 	}
+
+	void UpdateSize(const FVector& Scale)
+	{
+		static auto UpdateSizeFn = FindObject<UFunction>("/Script/FortniteGame.FortVolume.UpdateSize");
+		this->ProcessEvent(UpdateSizeFn, (FVector*)&Scale);
+	}
 };

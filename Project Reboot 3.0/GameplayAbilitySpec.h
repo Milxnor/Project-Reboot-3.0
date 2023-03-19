@@ -56,23 +56,33 @@ static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* 
 
 	auto DefaultAbility = bAlreadyIsDefault ? GameplayAbilityClass : GameplayAbilityClass->CreateDefaultObject();
 
-	static __int64 (*SpecConstructor)(__int64 spec, UObject* Ability, int Level, int InputID, UObject* SourceObject) = decltype(SpecConstructor)(Addresses::SpecConstructor);
+	static auto ActiveCountOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "ActiveCount", false);
 
-	SpecConstructor(__int64(NewSpec), DefaultAbility, 0, -1, SourceObject);
+	constexpr bool bUseNativeSpecConstructor = true;
 
-	/* static auto LevelOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "Level");
-	static auto SourceObjectOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "SourceObject");
-	static auto InputIDOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "InputID");
+	if constexpr (bUseNativeSpecConstructor)
+	{
+		static __int64 (*SpecConstructor)(__int64 spec, UObject* Ability, int Level, int InputID, UObject* SourceObject) = decltype(SpecConstructor)(Addresses::SpecConstructor);
 
-	((FFastArraySerializerItem*)NewSpec)->MostRecentArrayReplicationKey = -1;
-	((FFastArraySerializerItem*)NewSpec)->ReplicationID = -1;
-	((FFastArraySerializerItem*)NewSpec)->ReplicationKey = -1;
+		SpecConstructor(__int64(NewSpec), DefaultAbility, 1, -1, SourceObject);
+	}
+	else
+	{
+		static auto LevelOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "Level");
+		static auto SourceObjectOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "SourceObject");
+		static auto InputIDOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "InputID");
+		static auto GameplayEffectHandleOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "GameplayEffectHandle", false);
 
-	NewSpec->GetHandle().GenerateNewHandle();
-	NewSpec->GetAbility() = DefaultAbility;
-	*(int*)(__int64(NewSpec) + LevelOffset) = 0;
-	*(int*)(__int64(NewSpec) + InputIDOffset) = -1;
-	*(UObject**)(__int64(NewSpec) + SourceObjectOffset) = SourceObject; */
+		((FFastArraySerializerItem*)NewSpec)->MostRecentArrayReplicationKey = -1;
+		((FFastArraySerializerItem*)NewSpec)->ReplicationID = -1;
+		((FFastArraySerializerItem*)NewSpec)->ReplicationKey = -1;
+
+		NewSpec->GetHandle().Handle = rand(); // proper!
+		NewSpec->GetAbility() = DefaultAbility;
+		*(int*)(__int64(NewSpec) + LevelOffset) = 1;
+		*(int*)(__int64(NewSpec) + InputIDOffset) = -1;
+		*(UObject**)(__int64(NewSpec) + SourceObjectOffset) = SourceObject;
+	}
 
 	return NewSpec;
 }

@@ -105,6 +105,8 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 	// LOG_INFO(LogInteraction, "ReceivingActor Name: {}", ReceivingActor->GetFullName());
 
+	static auto FortAthenaVehicleClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaVehicle");
+
 	if (auto BuildingContainer = Cast<ABuildingContainer>(ReceivingActor))
 	{
 		static auto bAlreadySearchedOffset = BuildingContainer->GetOffset("bAlreadySearched");
@@ -145,6 +147,78 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		// if (BuildingContainer->ShouldDestroyOnSearch())
 			// BuildingContainer->K2_DestroyActor();
 	}
+	else if (ReceivingActor->IsA(FortAthenaVehicleClass))
+	{
+		auto Vehicle = ReceivingActor;
+		ServerAttemptInteractOriginal(Context, Stack, Ret);
+
+		return;
+
+		auto Pawn = (AFortPlayerPawn*)PlayerController->GetMyFortPawn();
+
+		if (!Pawn)
+			return;
+
+		static auto FindSeatIndexFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.FindSeatIndex");
+		static auto GetSeatWeaponComponentFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.GetSeatWeaponComponent");
+
+		if (!GetSeatWeaponComponentFn)
+			return;
+
+		struct { AFortPlayerPawn* PlayerPawn; int ReturnValue; } AFortAthenaVehicle_FindSeatIndex_Params{Pawn};
+		Vehicle->ProcessEvent(FindSeatIndexFn, &AFortAthenaVehicle_FindSeatIndex_Params);
+
+		auto SeatIndex = AFortAthenaVehicle_FindSeatIndex_Params.ReturnValue;
+
+		struct { int SeatIndex; UObject* ReturnValue; } AFortAthenaVehicle_GetSeatWeaponComponent_Params{};
+
+		Vehicle->ProcessEvent(GetSeatWeaponComponentFn, &AFortAthenaVehicle_GetSeatWeaponComponent_Params);
+
+		auto WeaponComponent = AFortAthenaVehicle_GetSeatWeaponComponent_Params.ReturnValue;
+
+		if (!WeaponComponent)
+			return;
+
+		static auto WeaponSeatDefinitionStructSize = FindObject<UClass>("/Script/FortniteGame.WeaponSeatDefinition")->GetPropertiesSize();
+		static auto VehicleWeaponOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "VehicleWeapon");
+		static auto SeatIndexOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "SeatIndex");
+		static auto WeaponSeatDefinitionsOffset = WeaponComponent->GetOffset("WeaponSeatDefinitions");
+		auto& WeaponSeatDefinitions = WeaponComponent->Get<TArray<__int64>>(WeaponSeatDefinitionsOffset);
+
+		for (int i = 0; i < WeaponSeatDefinitions.Num(); i++)
+		{
+			auto WeaponSeat = WeaponSeatDefinitions.AtPtr(i, WeaponSeatDefinitionStructSize);
+
+			if (*(int*)(__int64(WeaponSeat) + SeatIndexOffset) != SeatIndex)
+				continue;
+
+			auto VehicleWeaponDef = *(UFortWeaponItemDefinition**)(__int64(WeaponSeat) + VehicleWeaponOffset);
+
+			LOG_INFO(LogDev, "Vehicle eaponb: {}", __int64(VehicleWeaponDef));
+
+			if (!VehicleWeaponDef)
+				continue;
+
+			LOG_INFO(LogDev, "Vehicle eaponb name: {}", VehicleWeaponDef->GetFullName());
+
+			auto WorldInventory = PlayerController->GetWorldInventory();
+			auto ahh = WorldInventory->AddItem(VehicleWeaponDef, nullptr);
+
+			auto newitem = ahh.first[0];
+
+			LOG_INFO(LogDev, "newitem: {}", __int64(newitem));
+
+			if (!newitem)
+				return;
+
+			PlayerController->ServerExecuteInventoryItemHook(PlayerController, newitem->GetItemEntry()->GetItemGuid());
+
+			WorldInventory->Update();
+			break;
+		}
+
+		return;
+	}
 
 	return ServerAttemptInteractOriginal(Context, Stack, Ret);
 }
@@ -177,6 +251,46 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	PlayerController->Possess(NewPawn);
 
 	// PC->ServerRestartPlayer();
+}
+
+void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)
+{
+	auto Pawn = PlayerController->GetMyFortPawn();
+
+	if (!Pawn)
+		return;
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
+	auto Location = Pawn->GetActorLocation();
+
+	for (int i = 0; i < ItemInstances.Num(); i++)
+	{
+		auto ItemInstance = ItemInstances.at(i);
+
+		if (!ItemInstance)
+			continue;
+
+		auto ItemEntry = ItemInstance->GetItemEntry();
+		auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
+
+		if (!WorldItemDefinition)
+			continue;
+
+		// if (!WorldItemDefinition->ShouldDropOnDeath())
+			// continue;
+
+		AFortPickup::SpawnPickup(WorldItemDefinition, Location, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
+			ItemEntry->GetLoadedAmmo()); // I do playerelimation flag here ik we shouldnt but it makes it go in circle iirc
+
+		WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
+	}
+
+	WorldInventory->Update();
 }
 
 void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFrame* Stack, void* Ret)
@@ -388,11 +502,13 @@ uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = fa
 
 void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerController, void* DeathReport)
 {
+	auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)GetWorld()->GetGameMode())->GetGameState());
 	auto DeadPawn = Cast<AFortPlayerPawn>(PlayerController->GetPawn());
 	auto DeadPlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
 	auto KillerPawn = Cast<AFortPlayerPawn>(*(AFortPawn**)(__int64(DeathReport) + MemberOffsets::DeathReport::KillerPawn));
+	auto KillerPlayerState = Cast<AFortPlayerStateAthena>(*(AFortPlayerState**)(__int64(DeathReport) + MemberOffsets::DeathReport::KillerPlayerState));
 
-	if (!DeadPawn)
+	if (!DeadPawn || !GameState || !DeadPlayerState)
 		return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 
 	static auto DeathInfoStruct = FindObject<UStruct>("/Script/FortniteGame.DeathInfo");
@@ -405,7 +521,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	auto DeathInfo = (void*)(__int64(DeadPlayerState) + MemberOffsets::FortPlayerStateAthena::DeathInfo); // Alloc<void>(DeathInfoStructSize);
 	RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize);
 
-	auto Tags = *(FGameplayTagContainer*)(__int64(DeathReport) + MemberOffsets::DeathReport::Tags);
+	auto& Tags = DeadPawn->Get<FGameplayTagContainer>(MemberOffsets::FortPlayerPawn::CorrectTags); // *(FGameplayTagContainer*)(__int64(DeathReport) + /MemberOffsets::DeathReport::Tags);
 
 	// LOG_INFO(LogDev, "Tags: {}", Tags.ToStringSimple(true));
 
@@ -415,6 +531,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bDBNO) = DeadPawn->IsDBNO();
 	*(uint8*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathCause) = DeathCause;
+	*(AActor**)(__int64(DeathInfo) + MemberOffsets::DeathInfo::FinisherOrDowner) = KillerPlayerState ? KillerPlayerState : DeadPlayerState;
 	*(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) = DeathLocation;
 
 	if (MemberOffsets::DeathInfo::DeathTags != 0)
@@ -425,21 +542,30 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	if (DeathCause == FallDamageEnumValue)
 	{
-		static auto LastFallDistanceOffset = DeadPawn->GetOffset("LastFallDistance");
-		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = DeadPawn->Get<float>(LastFallDistanceOffset);
+		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = DeadPawn->Get<float>(MemberOffsets::FortPlayerPawnAthena::LastFallDistance);
 	}
 	else
 	{
 		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = KillerPawn ? KillerPawn->GetDistanceTo(DeadPawn) : 0;
 	}
 
-	static auto PawnDeathLocationOffset = DeadPlayerState->GetOffset("PawnDeathLocation");
-	DeadPlayerState->Get<FVector>(PawnDeathLocationOffset) = DeathLocation;
+	DeadPlayerState->Get<FVector>(MemberOffsets::FortPlayerState::PawnDeathLocation) = DeathLocation;
 
 	static auto OnRep_DeathInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
 	DeadPlayerState->ProcessEvent(OnRep_DeathInfoFn);
 
-	bool bIsRespawningAllowed = true;
+	if (KillerPlayerState && KillerPlayerState != DeadPlayerState)
+	{
+		KillerPlayerState->Get<int>(MemberOffsets::FortPlayerStateAthena::KillScore)++;
+
+		if (MemberOffsets::FortPlayerStateAthena::TeamKillScore != 0)
+			KillerPlayerState->Get<int>(MemberOffsets::FortPlayerStateAthena::TeamKillScore)++;
+
+		KillerPlayerState->ClientReportKill(DeadPlayerState);
+		// KillerPlayerState->OnRep_Kills();
+	}
+
+	bool bIsRespawningAllowed = GameState->IsRespawningAllowed(DeadPlayerState);
 
 	if (!bIsRespawningAllowed)
 	{

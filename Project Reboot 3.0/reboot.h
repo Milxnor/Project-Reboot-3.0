@@ -278,9 +278,23 @@ static T* Alloc(size_t Size)
 
 namespace MemberOffsets
 {
+	namespace FortPlayerPawnAthena
+	{
+		extern inline int LastFallDistance = 0;
+	}
+	namespace FortPlayerPawn
+	{
+		extern inline int CorrectTags = 0;
+	}
+	namespace FortPlayerState
+	{
+		extern inline int PawnDeathLocation = 0;
+	}
 	namespace FortPlayerStateAthena
 	{
 		extern inline int DeathInfo = 0;
+		extern inline int KillScore = 0;
+		extern inline int TeamKillScore = 0;
 	}
 	namespace DeathReport
 	{

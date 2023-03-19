@@ -8,7 +8,7 @@ class UGameplayStatics : public UObject
 {
 public:
     static TArray<AActor*> GetAllActorsOfClass(const UObject* WorldContextObject, UClass* ActorClass);
-	static float GetTimeSeconds(const UObject* WorldContextObject);
+	static float GetTimeSeconds(UObject* WorldContextObject);
 	static UObject* SpawnObject(UClass* ObjectClass, UObject* Outer);
 
 	static UClass* StaticClass();
