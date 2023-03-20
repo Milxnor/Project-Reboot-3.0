@@ -300,7 +300,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::CompletePickupAnimation, (PVOID)AFortPickup::CompletePickupAnimationHook, (PVOID*)&AFortPickup::CompletePickupAnimationOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook); // ahhh wtf
     // Hooking::MinHook::Hook((PVOID)FindFunctionCall(L"ServerRemoveInventoryItem"), UFortInventoryInterface::RemoveInventoryItemHook);
-    // LOG_INFO(LogDev, "Hook Res: {}", Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)SetZoneToIndexHook, (PVOID*)&SetZoneToIndexOriginal));
+    Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)SetZoneToIndexHook, (PVOID*)&SetZoneToIndexOriginal);
 
     AddVehicleHook();
 
@@ -308,7 +308,8 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)FindFunctionCall(L"ClientOnPawnDied"), AFortPlayerController::ClientOnPawnDiedHook, (PVOID*)&AFortPlayerController::ClientOnPawnDiedOriginal);
 
     {
-        MemberOffsets::FortPlayerPawn::CorrectTags = FindOffsetStruct("/Script/FortniteGame.FortPlayerPawn", "MoveSoundStimulusBroadcastInterval") + 0x10;
+        int increaseOffset = 0x18; // 0x10;
+        MemberOffsets::FortPlayerPawn::CorrectTags = FindOffsetStruct("/Script/FortniteGame.FortPlayerPawn", "MoveSoundStimulusBroadcastInterval") + increaseOffset;
         MemberOffsets::FortPlayerState::PawnDeathLocation = FindOffsetStruct("/Script/FortniteGame.FortPlayerState", "PawnDeathLocation");
 
         MemberOffsets::FortPlayerPawnAthena::LastFallDistance = FindOffsetStruct("/Script/FortniteGame.FortPlayerPawnAthena", "LastFallDistance");

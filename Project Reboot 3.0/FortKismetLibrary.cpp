@@ -291,7 +291,22 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 
 bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool* Ret)
 {
-	return PickLootDropsOriginal(Context, Stack, Ret);
+	UObject* WorldContextObject;                                       // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	TArray<__int64>                      OutLootToDrop;                                            // (Parm, OutParm, ZeroConstructor, NativeAccessSpecifierPublic)
+	FName                                       TierGroupName;                                            // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int                                                WorldLevel;                                               // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int                                                ForcedLootTier;                                           // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+	Stack.Step(Stack.Object, &WorldContextObject);
+	Stack.Step(Stack.Object, &OutLootToDrop);
+	Stack.Step(Stack.Object, &TierGroupName);
+	Stack.Step(Stack.Object, &WorldLevel);
+	Stack.Step(Stack.Object, &ForcedLootTier);
+
+	PickLootDropsOriginal(Context, Stack, Ret);
+
+	*Ret = true;
+	return *Ret;
 }
 
 UClass* UFortKismetLibrary::StaticClass()

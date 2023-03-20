@@ -249,10 +249,10 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
     if (bPrint)
     {
-        std::cout << "NumLootPackageDrops Floored: " << NumLootPackageDrops << '\n';
-        std::cout << "NumLootPackageDrops Original: " << ChosenRowLootTierData->GetNumLootPackageDrops() << '\n';
-        std::cout << "TierGroupLPs.size(): " << TierGroupLPs.size() << '\n';
-        std::cout << "ChosenLootPackageName: " << ChosenLootPackageName << '\n';
+        LOG_INFO(LogLoot, "NumLootPackageDrops Floored: {}", NumLootPackageDrops);
+        LOG_INFO(LogLoot, "NumLootPackageDrops Original: {}", ChosenRowLootTierData->GetNumLootPackageDrops());
+        LOG_INFO(LogLoot, "TierGroupLPs.size(): {}", TierGroupLPs.size());
+        LOG_INFO(LogLoot, "ChosenLootPackageName: {}", ChosenLootPackageName);
 
         /* float t = ChosenRowLootTierData->NumLootPackageDrops;
 
@@ -268,14 +268,34 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
     for (float i = 0; i < NumLootPackageDrops; i++)
     {
+        FFortLootPackageData* TierGroupLP = nullptr;
+
         if (i >= TierGroupLPs.size())
+        {
             break;
+            /* auto randomNumberFloat = UKismetMathLibrary::RandomFloatInRange(0, TierGroupLPs.size());
+            auto randomNumberFloored = std::floor((int)randomNumberFloat); // idk
 
-        auto TierGroupLP = TierGroupLPs.at(i);
+            if (bPrint)
+                LOG_INFO(LogLoot, "randomNumberFloat: {} randomNumberFloored: {}", randomNumberFloat, randomNumberFloored);
+
+            TierGroupLP = TierGroupLPs.at(randomNumberFloored); */
+        }
+        else
+        {
+            TierGroupLP = TierGroupLPs.at(i);
+        }
+
+        if (!TierGroupLP)
+            continue;
+
         auto& LootPackageCallFStr = TierGroupLP->GetLootPackageCall();
-        auto TierGroupLPStr = LootPackageCallFStr.IsValid() ? LootPackageCallFStr.ToString() : ".Empty";
+        auto TierGroupLPStr = LootPackageCallFStr.IsValid() ? LootPackageCallFStr.ToString() : "InvalidLootPackageCall.Empty";
 
-        if (TierGroupLPStr.contains(".Empty"))
+        if (bPrint)
+            LOG_INFO(LogLoot, "TierGroupLPStr: {}", TierGroupLPStr);
+
+        if (!bIsWorldList && TierGroupLPStr.contains(".Empty"))
         {
             NumLootPackageDrops++;
             continue;
@@ -297,7 +317,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         {
             for (int p = 0; p < LPTables.size(); p++)
             {
-                auto LPRowMap = LPTables[p]->GetRowMap();
+                auto& LPRowMap = LPTables[p]->GetRowMap();
 
                 for (int j = 0; j < LPRowMap.Pairs.Elements.Num(); j++)
                 {
@@ -313,29 +333,36 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
             }
         }
 
+        if (bPrint)
+            LOG_INFO(LogLoot, "lootPackageCalls.size(): {}", lootPackageCalls.size());
+
         if (lootPackageCalls.size() == 0)
         {
             // std::cout << "lootPackageCalls.size() == 0!\n";
-            NumLootPackageDrops++; // ??
+            NumLootPackageDrops++;
             continue;
         }
 
         FFortLootPackageData* LootPackageCall = GetLootPackage(lootPackageCalls);
 
         if (!LootPackageCall) // Should NEVER happen
+        {
+            LOG_ERROR(LogLoot, "Failed to get any loot package call??");
+            NumLootPackageDrops++;
             continue;
+        }
 
         auto ItemDef = LootPackageCall->GetItemDefinition().Get();
 
         if (!ItemDef)
         {
-            NumLootPackageDrops++; // ??
+            NumLootPackageDrops++;
             continue;
         }
 
         if (bPrint)
         {
-            std::cout << std::format("[{}] {} {} {}\n", i, lootPackageCalls.size(), TierGroupLPStr, ItemDef->GetName());
+           LOG_INFO(LogLoot, "[{}] {} {} {}", i, lootPackageCalls.size(), TierGroupLPStr, ItemDef->GetName());
         }
 
         auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDef);

@@ -200,6 +200,7 @@
     <ClCompile Include="FortWeaponItemDefinition.cpp" />
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
+    <ClCompile Include="GameState.cpp" />
     <ClCompile Include="KismetMathLibrary.cpp" />
     <ClCompile Include="KismetStringLibrary.cpp" />
     <ClCompile Include="LevelActor.cpp" />

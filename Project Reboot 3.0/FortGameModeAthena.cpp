@@ -115,39 +115,6 @@ static void StreamLevel(std::string LevelName, FVector Location = {})
 	ShowFoundation(BuildingFoundation);
 }
 
-UObject* GetPlaylistToUse()
-{
-	auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
-
-	if (Globals::bCreative)
-		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
-
-	if (Globals::bGoingToPlayEvent)
-	{
-		if (Fortnite_Version != 12.61)
-		{
-			auto EventPlaylist = GetEventPlaylist();
-
-			if (!EventPlaylist)
-			{
-				LOG_ERROR(LogPlaylist, "No event playlist! Turning off going to play event");
-				Globals::bGoingToPlayEvent = false;
-			}
-			else
-			{
-				Playlist = EventPlaylist;
-			}
-		}
-	}
-
-	Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
-
-	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
-	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");
-
-	return Playlist;
-}
-
 FName AFortGameModeAthena::RedirectLootTier(const FName& LootTier)
 {
 	static auto RedirectAthenaLootTierGroupsOffset = this->GetOffset("RedirectAthenaLootTierGroups", false);
@@ -609,7 +576,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		// GameState->OnRep_CurrentPlaylistInfo();
 	}
 
-	static bool bSpawnedFloorLoot = false;
+	static bool bSpawnedFloorLoot = true;
 
 	if (!bSpawnedFloorLoot)
 	{
@@ -683,6 +650,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		}
 	}
 
+	LOG_INFO(LogDev, "Spawned loot!");
+
 	static bool bSpawnedVehicles = Engine_Version < 424; // todo fix
 
 	if (!bSpawnedVehicles)
@@ -695,6 +664,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	auto NewPlayer = (AFortPlayerControllerAthena*)NewPlayerActor;
 
 	auto PlayerStateAthena = NewPlayer->GetPlayerStateAthena();
+
+	if (!PlayerStateAthena)
+		return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);
 
 	if (Globals::bNoMCP)
 	{
@@ -740,11 +712,12 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 	}
 
-	if (PlayerStateAthena->GetWorldPlayerId() == -1)
+	// LOG_INFO(LogDev, "Old ID: {}", PlayerStateAthena->GetWorldPlayerId());
+
+	// if (PlayerStateAthena->GetWorldPlayerId() == -1)
 	{
 		static int CurrentPlayerId = 1;
 		// static auto PlayerIdOffset = PlayerStateAthena->GetOffset("PlayerId"); // Unable to find tf
-		LOG_INFO(LogDev, "Old ID: {}", PlayerStateAthena->GetWorldPlayerId());
 		PlayerStateAthena->GetWorldPlayerId() = ++CurrentPlayerId; // PlayerStateAthena->Get<int>(PlayerIdOffset); // 
 	}
 

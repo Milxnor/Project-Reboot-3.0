@@ -190,6 +190,8 @@ static inline uint64 FindPauseBeaconRequests()
 
 static inline uint64 FindGetPlayerViewpoint()
 {
+	return Memcury::Scanner::FindPattern("40 55 53 57 41 56 41 57 48 8B EC 48 83 EC 40 48 8B 81 ? ? ? ? 4D").Get();
+
 	auto Addr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s", true);
 	// return FindBytes(Addr, { 0x48, 0x89 /*, 0x5C */}, 2000, 0, true, 1);
 	return FindBytes(Addr, { 0x48, 0x89, 0x74 }, 2000, 0, true);
@@ -322,6 +324,13 @@ static inline uint64 FindCompletePickupAnimation()
 
 static inline uint64 FindNoMCP()
 {
+	if (Fortnite_Version >= 17) // idk if needed
+	{
+		// todo make this relative
+		// 19.10
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 20 65 48 8B 04 25 ? ? ? ? BA ? ? ? ? 48 8B 08 8B 04 0A 39 05 ? ? ? ? 7F 23 8A 05 ? ? ? ? 48 8B 5C 24 ? 48 8B 6C 24 ? 48 8B 74 24 ? 48 83 C4 20 41 5F 41 5E 41 5D 41 5C 5F C3 48 8D 0D ? ? ? ? E8 ? ? ? ? 83 3D ? ? ? ? ? 75 C8 E8 ? ? ? ? 45 33").Get();
+	}
+
 	if (std::floor(Fortnite_Version) == 3)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 48 8D 4C 24 ?").Get();
 
@@ -336,13 +345,6 @@ static inline uint64 FindNoMCP()
 
 	auto noMcpIthink = GetFunctionIdxOrPtr(fn);
 	return noMcpIthink;
-
-	if (Fortnite_Version >= 17)
-	{
-		// todo make this relative
-		// 19.10
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 20 65 48 8B 04 25 ? ? ? ? BA ? ? ? ? 48 8B 08 8B 04 0A 39 05 ? ? ? ? 7F 23 8A 05 ? ? ? ? 48 8B 5C 24 ? 48 8B 6C 24 ? 48 8B 74 24 ? 48 83 C4 20 41 5F 41 5E 41 5D 41 5C 5F C3 48 8D 0D ? ? ? ? E8 ? ? ? ? 83 3D ? ? ? ? ? 75 C8 E8 ? ? ? ? 45 33").Get();
-	}
 
 	if (Engine_Version == 421 || Engine_Version == 422)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 CE").RelativeOffset(1).Get();
@@ -364,13 +366,16 @@ static inline uint64 FindNoMCP()
 	// return (uintptr_t)GetModuleHandleW(0) + 0x161d600; // 10.40
 }
 
-static inline uint64 FindSetZoneToIndex()
+static inline uint64 FindSetZoneToIndex() // actually StartNewSafeZonePhase
 {
-	return 0;
+	// return 0;
 
 	// if (Fortnite_Version == 14.60)
 		// return __int64(GetModuleHandleW(0)) + 0x207F9B0;
 
+	return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 54 41 55 41 56 41 57 48 8D 68 98 48 81 EC ? ? ? ? 0F 29 70 C8 0F 29 78 B8 44 0F 29 40 ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 08 44 8B F2 89 54 24 48 48 8B F1 48 89 4C 24 ? E8 ? ? ? ? 45 33 E4 48 89 44 24 ? 4C 8B F8 48 85 C0 74 09").Get();
+	return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 54 41 55 41 56 41 57 48 8D 68 88 48 81 EC ? ? ? ? 0F 29 70 C8 0F 29 78 B8 44 0F 29 40 ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 10 44 8B F2 89 54 24 48 48 8B F1 48 89 4C 24 ? E8 ? ? ? ? 45 33 E4 48 89 45 80 4C 8B F8 48 85 C0 74 09 48 8B B8").Get();
+	return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 54 41 55 41 56 41 57 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 0F 29 70 C8 0F 29 78 B8 44 0F 29 40 ? 44 0F 29 48 ? 44 0F 29 50 ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 4C 8B B1 ? ? ? ? 45 33 ED 89 54 24 70 44 8B FA 48 89 4C 24").Get();
 	return Memcury::Scanner::FindPattern("40 55 53 56 41 55 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 18 48 8B").Get();
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.");

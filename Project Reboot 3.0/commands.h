@@ -184,6 +184,69 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
+		else if (Command == "summon")
+		{
+			if (Arguments.size() <= 1)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a class!\n");
+				return;
+			}
+
+			auto& ClassName = Arguments[1];
+
+			if (ClassName.contains("/Script/"))
+			{
+				SendMessageToConsole(PlayerController, L"For now, we don't allow non-blueprint classes.\n");
+				return;
+			}
+
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to spawn class at!");
+				return;
+			}
+
+			int Count = 1;
+
+			if (Arguments.size() >= 3)
+			{
+				try { Count = std::stod(Arguments[2]); }
+				catch (...) {}
+			}
+
+			constexpr int Max = 100;
+
+			if (Count > Max)
+			{
+				SendMessageToConsole(PlayerController, (std::wstring(L"You went over the limit! Only spawning ") + std::to_wstring(Max) + L".").c_str());
+				Count = Max;
+			}
+
+			static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
+			auto ClassObj = LoadObject<UClass>(ClassName, BGAClass);
+
+			if (ClassObj)
+			{
+				for (int i = 0; i < Count; i++)
+				{
+					auto Loc = Pawn->GetActorLocation();
+					// Loc.Z += 1000;
+					GetWorld()->SpawnActor<AActor>(ClassObj, Loc, FQuat());
+				}
+
+				SendMessageToConsole(PlayerController, L"Summoned!");
+			}
+			else
+			{
+				SendMessageToConsole(PlayerController, L"Not a valid class!");
+			}
+		}
+		else if (Command == "spawnaidata")
+		{
+
+		}
 		else if (Command == "testspawn")
 		{
 			auto Pawn = Cast<APawn>(ReceivingController->GetPawn());

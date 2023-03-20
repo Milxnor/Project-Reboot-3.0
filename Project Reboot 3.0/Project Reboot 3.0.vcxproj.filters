@@ -140,6 +140,9 @@
     <ClCompile Include="FortMinigame.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Creative\Minigame</Filter>
     </ClCompile>
+    <ClCompile Include="GameState.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />

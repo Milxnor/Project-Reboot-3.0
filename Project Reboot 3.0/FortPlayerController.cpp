@@ -130,7 +130,9 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		static auto SearchLootTierGroupOffset = BuildingContainer->GetOffset("SearchLootTierGroup");
 		auto RedirectedLootTier = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode(), false)->RedirectLootTier(BuildingContainer->Get<FName>(SearchLootTierGroupOffset));
 
-		auto LootDrops = PickLootDrops(RedirectedLootTier);
+		LOG_INFO(LogInteraction, "RedirectedLootTier: {}", RedirectedLootTier.ToString());
+
+		auto LootDrops = PickLootDrops(RedirectedLootTier, true);
 
 		LOG_INFO(LogInteraction, "LootDrops.size(): {}", LootDrops.size());
 
@@ -521,7 +523,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	auto DeathInfo = (void*)(__int64(DeadPlayerState) + MemberOffsets::FortPlayerStateAthena::DeathInfo); // Alloc<void>(DeathInfoStructSize);
 	RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize);
 
-	auto& Tags = DeadPawn->Get<FGameplayTagContainer>(MemberOffsets::FortPlayerPawn::CorrectTags); // *(FGameplayTagContainer*)(__int64(DeathReport) + /MemberOffsets::DeathReport::Tags);
+	auto& Tags = DeadPawn->Get<FGameplayTagContainer>(MemberOffsets::FortPlayerPawn::CorrectTags);
+		// *(FGameplayTagContainer*)(__int64(DeathReport) + MemberOffsets::DeathReport::Tags);
 
 	// LOG_INFO(LogDev, "Tags: {}", Tags.ToStringSimple(true));
 
