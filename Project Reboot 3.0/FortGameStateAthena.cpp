@@ -35,6 +35,8 @@ void AFortGameStateAthena::OnRep_CurrentPlaylistInfo()
 	else
 	{
 		static auto OnRep_CurrentPlaylistInfo = FindObject<UFunction>("/Script/FortniteGame.FortGameStateAthena.OnRep_CurrentPlaylistInfo");
-		this->ProcessEvent(OnRep_CurrentPlaylistInfo);
+
+		if (OnRep_CurrentPlaylistInfo)
+			this->ProcessEvent(OnRep_CurrentPlaylistInfo);
 	}
 }

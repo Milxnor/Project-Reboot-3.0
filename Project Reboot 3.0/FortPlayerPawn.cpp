@@ -43,6 +43,8 @@ void AFortPlayerPawn::ServerSendZiplineStateHook(AFortPlayerPawn* Pawn, FZipline
 		if (!Addrr)
 			Addrr = Memcury::Scanner::FindStringRef(L"ZIPLINES!! GetLocalRole()(%s)  AFortPlayerPawn::OnRep_ZiplineState ZiplineState.bIsZiplining=%d").Get();
 
+		// L"%s LocalRole[%s] ZiplineState.bIsZiplining[%d]" for 18.40???
+
 		// std::cout << "Addrr: " << Addrr << '\n';
 
 		if (Addrr)

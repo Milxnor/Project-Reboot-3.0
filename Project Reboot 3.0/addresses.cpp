@@ -114,95 +114,129 @@ void Addresses::FindAll()
 {
 	auto Base = __int64(GetModuleHandleW(0));
 
-	LOG_INFO(LogDev, "9241");
+	LOG_INFO(LogDev, "Finding ProcessEvent");
 	Addresses::ProcessEvent = FindProcessEvent();
 	UObject::ProcessEventOriginal = decltype(UObject::ProcessEventOriginal)(ProcessEvent);
-	LOG_INFO(LogDev, "151");
+	LOG_INFO(LogDev, "Finding StaticFindObject");
 
 	Addresses::StaticFindObject = FindStaticFindObject();
 	StaticFindObjectOriginal = decltype(StaticFindObjectOriginal)(StaticFindObject);
 	LOG_INFO(LogDev, "StaticFindObject: 0x{:x}", StaticFindObject - Base);
-	LOG_INFO(LogDev, "2151");
+	LOG_INFO(LogDev, "Finding GetPlayerViewpoint");
 
 	Addresses::GetPlayerViewpoint = FindGetPlayerViewpoint();
-	LOG_INFO(LogDev, "1246");
+	LOG_INFO(LogDev, "Finding CreateNetDriver");
 
 	Addresses::CreateNetDriver = FindCreateNetDriver();
-	LOG_INFO(LogDev, "2561");
+	LOG_INFO(LogDev, "Finding InitHost");
 
 	Addresses::InitHost = FindInitHost();
-	LOG_INFO(LogDev, "1341");
+	LOG_INFO(LogDev, "Finding PauseBeaconRequests");
 
 	Addresses::PauseBeaconRequests = FindPauseBeaconRequests();
-	LOG_INFO(LogDev, "1351");
+	LOG_INFO(LogDev, "Finding SpawnActor");
 
 	Addresses::SpawnActor = FindSpawnActor();
-	LOG_INFO(LogDev, "1`231");
+	LOG_INFO(LogDev, "Finding InitListen");
 
 	Addresses::InitListen = FindInitListen();
-	LOG_INFO(LogDev, "52175");
+	LOG_INFO(LogDev, "Finding SetWorld");
 
 	Addresses::SetWorld = FindSetWorld();
-	LOG_INFO(LogDev, "5432");
+	LOG_INFO(LogDev, "Finding Kickplayer");
 
 	Addresses::KickPlayer = FindKickPlayer();
-	LOG_INFO(LogDev, "123");
+	LOG_INFO(LogDev, "Finding TickFlush");
 
 	Addresses::TickFlush = FindTickFlush();
-	LOG_INFO(LogDev, "1123");
+	LOG_INFO(LogDev, "Finding GetNetMode");
 
 	Addresses::GetNetMode = FindGetNetMode();
-	LOG_INFO(LogDev, "113");
+	LOG_INFO(LogDev, "Finding Realloc");
 
 	Addresses::Realloc = FindRealloc();
-	LOG_INFO(LogDev, "1231");
+	LOG_INFO(LogDev, "Finding CollectGarbage");
 
 	Addresses::CollectGarbage = FindCollectGarbage();
-	LOG_INFO(LogDev, "112113");
+	LOG_INFO(LogDev, "Finding NoMCP");
 
 	Addresses::NoMCP = FindNoMCP();
-	LOG_INFO(LogDev, "131");
+	LOG_INFO(LogDev, "Finding PickTeam");
 
 	Addresses::PickTeam = FindPickTeam();
-	LOG_INFO(LogDev, "132");
+	LOG_INFO(LogDev, "Finding InternalTryActivateAbility");
 
 	Addresses::InternalTryActivateAbility = FindInternalTryActivateAbility();
-	LOG_INFO(LogDev, "17");
+	LOG_INFO(LogDev, "Finding GiveAbility");
 
 	Addresses::GiveAbility = FindGiveAbility();
-	LOG_INFO(LogDev, "156");
+	LOG_INFO(LogDev, "Finding CantBuild");
 
 	Addresses::CantBuild = FindCantBuild();
-	LOG_INFO(LogDev, "16");
+	LOG_INFO(LogDev, "Finding ReplaceBuildingActor");
 
 	Addresses::ReplaceBuildingActor = FindReplaceBuildingActor();
-	LOG_INFO(LogDev, "15");
+	LOG_INFO(LogDev, "Finding GiveAbilityAndActivateOnce");
 
 	Addresses::GiveAbilityAndActivateOnce = FindGiveAbilityAndActivateOnce();
-	LOG_INFO(LogDev, "14");
+	LOG_INFO(LogDev, "Finding OnDamageServer");
 
 	Addresses::OnDamageServer = FindOnDamageServer();
-	LOG_INFO(LogDev, "13");
+	LOG_INFO(LogDev, "Finding StaticLoadObject");
 
 	Addresses::StaticLoadObject = FindStaticLoadObject();
-	LOG_INFO(LogDev, "12");
+	LOG_INFO(LogDev, "Finding ActorGetNetMode");
 
 	Addresses::ActorGetNetMode = FindActorGetNetMode();
-	LOG_INFO(LogDev, "11");
+	LOG_INFO(LogDev, "Finding ChangeGameSessionId");
 
 	Addresses::ChangeGameSessionId = FindChangeGameSessionId();
-	LOG_INFO(LogDev, "10");
+	LOG_INFO(LogDev, "Finding DispatchRequest");
 
 	Addresses::DispatchRequest = FindDispatchRequest();
+	LOG_INFO(LogDev, "Finding AddNavigationSystemToWorld");
+
 	Addresses::AddNavigationSystemToWorld = FindAddNavigationSystemToWorld();
+	LOG_INFO(LogDev, "Finding NavSystemCleanUp");
+
 	Addresses::NavSystemCleanUp = FindNavSystemCleanUp();
+	LOG_INFO(LogDev, "Finding LoadPlayset");
+
 	Addresses::LoadPlayset = FindLoadPlayset();
+	LOG_INFO(LogDev, "Finding SetZoneToIndex");
+
 	Addresses::SetZoneToIndex = FindSetZoneToIndex();
+	LOG_INFO(LogDev, "Finding CompletePickupAnimation");
+
 	Addresses::CompletePickupAnimation = FindCompletePickupAnimation();
+	LOG_INFO(LogDev, "Finding CanActivateAbility");
+
 	Addresses::CanActivateAbility = FindCanActivateAbility();
+	LOG_INFO(LogDev, "Finding SpecConstructor");
+
 	Addresses::SpecConstructor = FindSpecConstructor();
+	LOG_INFO(LogDev, "Finding FrameStep");
+
 	Addresses::FrameStep = FindFrameStep();
+	LOG_INFO(LogDev, "Finding ObjectArray");
+
 	Addresses::ObjectArray = FindObjectArray();
+	LOG_INFO(LogDev, "Finding ReplicateActor");
+
+	Addresses::ReplicateActor = FindReplicateActor();
+	LOG_INFO(LogDev, "Finding SetChannelActor");
+
+	Addresses::SetChannelActor = FindSetChannelActor();
+	LOG_INFO(LogDev, "Finding SendClientAdjustment");
+
+	Addresses::SendClientAdjustment = FindSendClientAdjustment();
+	LOG_INFO(LogDev, "Finding CreateChannel");
+
+	Addresses::CreateChannel = FindCreateChannel();
+	LOG_INFO(LogDev, "Finding CallPreReplication");
+
+	Addresses::CallPreReplication = FindCallPreReplication();
+	LOG_INFO(LogDev, "Finished finding!");
 }
 
 void Addresses::Print()
@@ -245,6 +279,11 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "SpecConstructor: 0x{:x}", SpecConstructor - Base);
 	LOG_INFO(LogDev, "FrameStep: 0x{:x}", FrameStep - Base);
 	LOG_INFO(LogDev, "ObjectArray: 0x{:x}", ObjectArray - Base);
+	LOG_INFO(LogDev, "ReplicateActor: 0x{:x}", ReplicateActor - Base);
+	LOG_INFO(LogDev, "SetChannelActor: 0x{:x}", SetChannelActor - Base);
+	LOG_INFO(LogDev, "SendClientAdjustment: 0x{:x}", SendClientAdjustment - Base);
+	LOG_INFO(LogDev, "CreateChannel: 0x{:x}", CreateChannel - Base);
+	LOG_INFO(LogDev, "CallPreReplication: 0x{:x}", CallPreReplication - Base);
 }
 
 void Offsets::FindAll()
@@ -254,7 +293,7 @@ void Offsets::FindAll()
 	Offsets::Children = Engine_Version >= 425 ? 0x50 : Offsets::SuperStruct + 8;
 	Offsets::PropertiesSize = Offsets::Children + 8;
 
-	if (Engine_Version == 420 || Engine_Version == 421)
+	if (Engine_Version >= 419 && Engine_Version <= 421)
 		Offsets::Func = 0xB0;
 	else if (Engine_Version >= 422 && Engine_Version <= 424)
 		Offsets::Func = 0xC0;
@@ -284,6 +323,9 @@ void Offsets::FindAll()
 		Offsets::ServerReplicateActors = 0x66;
 	else if (std::floor(Fortnite_Version) >= 21)
 		Offsets::ServerReplicateActors = 0x67; // checked onb 22.30
+
+	if (Engine_Version == 419)
+		Offsets::ReplicationFrame = 0xB2;
 }
 
 void Offsets::Print()
@@ -293,6 +335,8 @@ void Offsets::Print()
 	LOG_INFO(LogDev, "Children: 0x{:x}", Children);
 	LOG_INFO(LogDev, "PropertiesSize: 0x{:x}", PropertiesSize);
 	LOG_INFO(LogDev, "Func: 0x{:x}", Func);
+	LOG_INFO(LogDev, "ServerReplicateActors: 0x{:x}", ServerReplicateActors);
+	LOG_INFO(LogDev, "ReplicationFrame: 0x{:x}", ReplicationFrame);
 }
 
 void Addresses::Init()

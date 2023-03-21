@@ -21,6 +21,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 
 	static auto SafeZoneFinishShrinkTimeOffset = SafeZoneIndicator->GetOffset("SafeZoneFinishShrinkTime");
 	static auto SafeZoneStartShrinkTimeOffset = SafeZoneIndicator->GetOffset("SafeZoneStartShrinkTime");
+	static auto RadiusOffset = SafeZoneIndicator->GetOffset("Radius");
 
 	static auto SafeZonePhaseOffset = GameModeAthena->GetOffset("SafeZonePhase");
 
@@ -30,7 +31,9 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 	static auto SafeZoneDefinitionOffset = MapInfo->GetOffset("SafeZoneDefinition");
 	auto SafeZoneDefinition = MapInfo->GetPtr<__int64>(SafeZoneDefinitionOffset);
 
-	static auto ZoneDurationsOffset = 0x1F8;
+	LOG_INFO(LogDev, "SafeZoneDefinitionOffset: 0x{:x}", SafeZoneDefinitionOffset);
+
+	static auto ZoneDurationsOffset = std::floor(Fortnite_Version) >= 18 ? 0x248 : 0x1F8;
 	static auto ZoneHoldDurationsOffset = ZoneDurationsOffset - 0x10;
 
 	auto& ZoneDurations = *(TArray<float>*)(__int64(SafeZoneDefinition) + ZoneDurationsOffset);
@@ -51,8 +54,16 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		if (!FortGameData)
 			FortGameData = FindObject<UCurveTable>("/Game/Balance/AthenaGameData.AthenaGameData");
 
+		LOG_INFO(LogDev, "FortGameData: {}", FortGameData ? FortGameData->GetFullName() : "InvalidObject");
+
 		auto ShrinkTimeFName = UKismetStringLibrary::Conv_StringToName(L"Default.SafeZone.ShrinkTime");
+		auto HoldTimeFName = UKismetStringLibrary::Conv_StringToName(L"Default.SafeZone.WaitTime");
 		FString ContextString;
+
+		/* for (int i = 0; i < 10; i++)
+		{
+			LOG_INFO(LogDev, "[{}] Value {}", i, FortGameData->GetValueOfKey(FortGameData->GetKey(ShrinkTimeFName, i)));
+		} */
 
 		/* for (float i = 0; i < 1.1; i += 0.1)
 		{
@@ -61,6 +72,26 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 			LOG_INFO(LogZone, "[{}] {}", i, res);
 		} */
 
+		for (int i = 0; i < ZoneDurations.Num(); i++)
+		{
+			ZoneDurations.at(i) = FortGameData->GetValueOfKey(FortGameData->GetKey(ShrinkTimeFName, i));
+		}
+		for (int i = 0; i < ZoneHoldDurations.Num(); i++)
+		{
+			ZoneHoldDurations.at(i) = FortGameData->GetValueOfKey(FortGameData->GetKey(HoldTimeFName, i));
+		}
+
+		for (int i = 0; i < ZoneDurations.Num(); i++)
+		{
+			LOG_INFO(LogZone, "Move [{}] {}", i, ZoneDurations.at(i));
+		}
+
+		for (int i = 0; i < ZoneHoldDurations.Num(); i++)
+		{
+			LOG_INFO(LogZone, "Hold [{}] {}", i, ZoneHoldDurations.at(i));
+		}
+
+		/*
 		if (ZoneDurations.ArrayNum >= 1) ZoneDurations.at(0) = 0;
 		if (ZoneDurations.ArrayNum >= 2) ZoneDurations.at(1) = 180;
 		if (ZoneDurations.ArrayNum >= 3) ZoneDurations.at(2) = 120;
@@ -84,22 +115,13 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		if (ZoneHoldDurations.ArrayNum >= 9) ZoneHoldDurations.at(8) = 0;
 		if (ZoneHoldDurations.ArrayNum >= 10) ZoneHoldDurations.at(9) = 0;
 		if (ZoneHoldDurations.ArrayNum >= 11) ZoneHoldDurations.at(10) = 0;
+		*/
 	}
 
 	LOG_INFO(LogZone, "SafeZonePhase: {}", GameModeAthena->Get<int>(SafeZonePhaseOffset));
 	LOG_INFO(LogZone, "OverridePhaseMaybeIDFK: {}", OverridePhaseMaybeIDFK);
 	LOG_INFO(LogZone, "TimeSeconds: {}", UGameplayStatics::GetTimeSeconds(GetWorld()));
 	
-	for (int i = 0; i < ZoneDurations.Num(); i++)
-	{
-		LOG_INFO(LogZone, "Move [{}] {}", i, ZoneDurations.at(i));
-	}
-
-	for (int i = 0; i < ZoneHoldDurations.Num(); i++)
-	{
-		LOG_INFO(LogZone, "Hold [{}] {}", i, ZoneHoldDurations.at(i));
-	}
-
 	SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
 
 	LOG_INFO(LogZone, "SafeZonePhase After: {}", GameModeAthena->Get<int>(SafeZonePhaseOffset));
@@ -117,6 +139,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		ZoneDuration = ZoneDurations.at(GameModeAthena->Get<int>(SafeZonePhaseOffset));
 
 	LOG_INFO(LogZone, "ZoneDuration: {}", ZoneDuration);
+	LOG_INFO(LogZone, "Duration: {}", SafeZoneIndicator->Get<float>(RadiusOffset));
 
 	SafeZoneIndicator->Get<float>(SafeZoneFinishShrinkTimeOffset) = SafeZoneIndicator->Get<float>(SafeZoneStartShrinkTimeOffset) + ZoneDuration;
 }

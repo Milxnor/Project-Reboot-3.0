@@ -110,9 +110,6 @@
     <ClCompile Include="events.cpp">
       <Filter>Reboot\Private\Gameplay</Filter>
     </ClCompile>
-    <ClCompile Include="addresses.cpp">
-      <Filter>Reboot\Private\Gameplay</Filter>
-    </ClCompile>
     <ClCompile Include="FortPlayerControllerAthena.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
@@ -141,6 +138,15 @@
       <Filter>FortniteGame\Source\FortniteGame\Private\Creative\Minigame</Filter>
     </ClCompile>
     <ClCompile Include="GameState.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="addresses.cpp">
+      <Filter>Reboot\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="NetConnection.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller.cpp">
       <Filter>Engine\Source\Runtime\Engine\Private</Filter>
     </ClCompile>
   </ItemGroup>
@@ -395,9 +401,6 @@
     <ClInclude Include="MegaStormManager.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
-    <ClInclude Include="ai.h">
-      <Filter>Reboot\Public</Filter>
-    </ClInclude>
     <ClInclude Include="FortVolume.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Creative</Filter>
     </ClInclude>
@@ -433,6 +436,12 @@
     </ClInclude>
     <ClInclude Include="commands.h">
       <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="ai.h">
+      <Filter>Reboot\Public\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

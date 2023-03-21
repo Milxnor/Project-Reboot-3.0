@@ -16,6 +16,10 @@ public:
 	struct FRotator GetActorRotation();
 	void FlushNetDormancy();
 	bool TeleportTo(const FVector& DestLocation, const FRotator& DestRotation);
-
+	bool IsActorBeingDestroyed();
+	bool IsNetStartup();
+	bool IsAlwaysRelevant();
+	void SetOwner(AActor* Owner);
+	
 	static class UClass* StaticClass();
 };

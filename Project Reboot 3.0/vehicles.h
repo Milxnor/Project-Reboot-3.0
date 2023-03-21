@@ -101,6 +101,40 @@ static inline void AddVehicleHook()
 	}
 }
 
+static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
+{
+	FTransform SpawnTransform{};
+	SpawnTransform.Translation = VehicleSpawner->GetActorLocation();
+	SpawnTransform.Rotation = VehicleSpawner->GetActorRotation().Quaternion();
+	SpawnTransform.Scale3D = { 1, 1, 1 };
+
+	static auto VehicleClassOffset = VehicleSpawner->GetOffset("VehicleClass", false);
+
+	if (VehicleClassOffset != 0) // 10.40 and below?
+	{
+		auto VehicleClass = VehicleSpawner->Get<UClass*>(VehicleClassOffset);
+
+		if (!VehicleClass)
+			return nullptr;
+
+		return GetWorld()->SpawnActor<AActor>(VehicleClass, SpawnTransform);
+	}
+}
+
+static inline void SpawnVehicles2()
+{
+	static auto FortAthenaVehicleSpawnerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaVehicleSpawner");
+	TArray<AActor*> AllVehicleSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaVehicleSpawnerClass);
+
+	for (int i = 0; i < AllVehicleSpawners.Num(); i++)
+	{
+		auto VehicleSpawner = AllVehicleSpawners.at(i);
+		auto Vehicle = SpawnVehicleFromSpawner(VehicleSpawner);
+	}
+
+	AllVehicleSpawners.Free();
+}
+
 static inline void SpawnVehicles()
 {
 	static auto FortAthenaVehicleSpawnerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaVehicleSpawner");
@@ -163,6 +197,11 @@ static inline void SpawnVehicles()
 		if (aa)
 		{
 			static auto FortVehicleItemDefOffset = VehicleSpawner->GetOffset("FortVehicleItemDef");
+			
+			if (FortVehicleItemDefOffset == 0)
+			{
+
+			}
 
 			auto FortVehicleItemDefSoft = VehicleSpawner->GetPtr<TSoftObjectPtr<UFortItemDefinition>>(FortVehicleItemDefOffset);
 

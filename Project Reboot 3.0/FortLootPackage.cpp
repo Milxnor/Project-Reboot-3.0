@@ -4,6 +4,77 @@
 #include "KismetMathLibrary.h"
 #include "FortWeaponItemDefinition.h"
 
+
+static FFortLootTierData* GetLootTierData2(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
+{
+    float TotalWeight = 0;
+
+    for (auto Item : LootTierData)
+    {
+        TotalWeight += Item->GetWeight();
+    }
+
+    float RandomNumber = TotalWeight * (rand() * 0.000030518509); // UKismetMathLibrary::RandomFloatInRange(0, TotalWeight); // is -1 needed?
+
+    FFortLootTierData* SelectedItem = nullptr;
+
+    if (bPrint)
+    {
+        std::cout << std::format("TotalWeight: {}\n", TotalWeight);
+    }
+
+    for (auto Item : LootTierData)
+    {
+        if (bPrint)
+        {
+            std::cout << std::format("Rand: {} Weight: {}\n", RandomNumber, Item->GetWeight());
+        }
+
+        if (RandomNumber <= Item->GetWeight())
+        {
+            SelectedItem = Item;
+            break;
+        }
+
+        RandomNumber -= Item->GetWeight();
+    }
+
+    if (!SelectedItem)
+        return GetLootTierData2(LootTierData, bPrint);
+
+    return SelectedItem;
+}
+
+static FFortLootPackageData* GetLootPackage2(std::vector<FFortLootPackageData*>& LootPackages)
+{
+    float TotalWeight = 0;
+
+    for (auto Item : LootPackages)
+    {
+        TotalWeight += Item->GetWeight();
+    }
+
+    float RandomNumber = TotalWeight * (rand() * 0.000030518509); // UKismetMathLibrary::RandomFloatInRange(0, TotalWeight); // is -1 needed?
+
+    FFortLootPackageData* SelectedItem = nullptr;
+
+    for (auto Item : LootPackages)
+    {
+        if (RandomNumber <= Item->GetWeight())
+        {
+            SelectedItem = Item;
+            break;
+        }
+
+        RandomNumber -= Item->GetWeight();
+    }
+
+    if (!SelectedItem)
+        return GetLootPackage2(LootPackages);
+
+    return SelectedItem;
+}
+
 static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
 {
     float TotalWeight = 0;
@@ -280,6 +351,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                 LOG_INFO(LogLoot, "randomNumberFloat: {} randomNumberFloored: {}", randomNumberFloat, randomNumberFloored);
 
             TierGroupLP = TierGroupLPs.at(randomNumberFloored); */
+
+            TierGroupLP = TierGroupLPs.at(i - NumLootPackageDrops); // Once we fix chapter 2 loot package drops, we can use this
         }
         else
         {

@@ -5,4 +5,5 @@
 class AController : public AActor
 {
 public:
+	AActor* GetViewTarget();
 };

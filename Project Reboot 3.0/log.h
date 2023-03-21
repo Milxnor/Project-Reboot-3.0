@@ -72,6 +72,7 @@ inline void InitLogger()
     MakeLogger("LogInteraction");
     MakeLogger("LogCreative");
     MakeLogger("LogZone");
+    MakeLogger("LogReplication");
 }
 
 #define LOG_DEBUG(loggerName, ...)                                            \

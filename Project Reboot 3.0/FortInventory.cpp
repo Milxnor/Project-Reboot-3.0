@@ -6,7 +6,7 @@ UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItem
 {
 	UFortItem* NewItemInstance = ItemDefinition->CreateTemporaryItemInstanceBP(Count);
 
-	if (NewItemInstance)
+	if (NewItemInstance && PlayerController)
 		NewItemInstance->SetOwningControllerForTemporaryItem(PlayerController);
 
 	return NewItemInstance;
@@ -96,23 +96,24 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 	Count = OverStack > 0 ? OverStack : Count;
 
-	auto PlayerController = Cast<AFortPlayerController>(GetOwner());
+	auto PlayerController = Cast<APlayerController>(GetOwner());
 
 	if (!PlayerController)
 		return std::make_pair(NewItemInstances, ModifiedItemInstances);
 
 	if (OverStack > 0 && !bAllowMultipleStacks)
 	{
-		auto Pawn = PlayerController->GetMyFortPawn();
+		auto Pawn = PlayerController->GetPawn();
 
 		if (!Pawn)
 			return std::make_pair(NewItemInstances, ModifiedItemInstances);
 
-		AFortPickup::SpawnPickup(ItemDefinition, Pawn->GetActorLocation(), Count, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, Pawn);
+		AFortPickup::SpawnPickup(ItemDefinition, Pawn->GetActorLocation(), Count, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, Cast<AFortPawn>(Pawn));
 		return std::make_pair(NewItemInstances, ModifiedItemInstances);
 	}
 
-	UFortItem* NewItemInstance = CreateItemInstance(PlayerController, ItemDefinition, Count);
+	auto FortPlayerController = Cast<AFortPlayerController>(PlayerController);
+	UFortItem* NewItemInstance = CreateItemInstance(FortPlayerController, ItemDefinition, Count);
 
 	if (NewItemInstance)
 	{
@@ -131,6 +132,36 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 		ItemInstances.Add(NewItemInstance);
 		GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
+
+		if (FortPlayerController && Engine_Version < 420)
+		{
+			static auto QuickBarsOffset = FortPlayerController->GetOffset("QuickBars", false);
+			auto QuickBars = FortPlayerController->Get<AActor*>(QuickBarsOffset);
+
+			enum class EFortQuickBars : uint8_t
+			{
+				Primary = 0,
+				Secondary = 1,
+				Max_None = 2,
+				EFortQuickBars_MAX = 3
+			};
+
+			struct
+			{
+				FGuid                                       Item;                                                     // (Parm, IsPlainOldData)
+				EFortQuickBars                                     InQuickBar;                                               // (Parm, ZeroConstructor, IsPlainOldData)
+				int                                                Slot;                                                     // (Parm, ZeroConstructor, IsPlainOldData)
+			}
+			AFortQuickBars_ServerAddItemInternal_Params
+			{
+				NewItemInstance->GetItemEntry()->GetItemGuid(),
+				IsPrimaryQuickbar(ItemDefinition) ? EFortQuickBars ::Primary : EFortQuickBars::Secondary,
+				-1
+			};
+
+			static auto ServerAddItemInternalFn = FindObject<UFunction>("/Script/FortniteGame.FortQuickBars.ServerAddItemInternal");
+			QuickBars->ProcessEvent(ServerAddItemInternalFn, &AFortQuickBars_ServerAddItemInternal_Params);
+		}
 
 		if (bShouldUpdate)
 			*bShouldUpdate = true;

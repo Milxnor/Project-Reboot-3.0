@@ -173,6 +173,7 @@
     <ClCompile Include="BuildingTrap.cpp" />
     <ClCompile Include="BuildingWeapons.cpp" />
     <ClCompile Include="Class.cpp" />
+    <ClCompile Include="Controller.cpp" />
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="events.cpp" />
@@ -205,6 +206,7 @@
     <ClCompile Include="KismetStringLibrary.cpp" />
     <ClCompile Include="LevelActor.cpp" />
     <ClCompile Include="NameTypes.cpp" />
+    <ClCompile Include="NetConnection.h" />
     <ClCompile Include="NetDriver.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PlayerController.cpp" />
@@ -293,6 +295,7 @@
     <ClInclude Include="OutputDevice.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="PersistentObjectPtr.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerController.h" />
     <ClInclude Include="PlayerState.h" />
     <ClInclude Include="Quat.h" />

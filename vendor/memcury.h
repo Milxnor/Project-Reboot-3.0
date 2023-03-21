@@ -49,6 +49,8 @@
     #include <source_location>
     #include <DbgHelp.h>
     #pragma comment(lib, "Dbghelp.lib")
+#include "../Project Reboot 3.0/log.h"
+
 
     #define MemcuryAssert(cond)                                              \
         if (!(cond))                                                         \
@@ -747,7 +749,10 @@
                 if (bWarnIfNotFound)
                 {
                     if (add == 0)
-                        MessageBoxA(0, ("FindPattern " + std::string(signature) + " null").c_str(), "Memcury", MB_ICONERROR);
+                    {
+                        LOG_WARN(LogMemory, "Failed to find {}", signature);
+                        // MessageBoxA(0, ("FindPattern " + std::string(signature) + " null").c_str(), "Memcury", MB_ICONERROR);
+                    }
                 }
 
                 return Scanner(add);
@@ -880,12 +885,16 @@
                     {
                         if constexpr (bIsWide)
                         {
-                            auto aaa = (L"failed FindStringRef " + std::wstring(string));
-                            MessageBoxA(0, std::string(aaa.begin(), aaa.end()).c_str(), "Memcury", MB_ICONERROR);
+                            std::wstring wstr = std::wstring(string);
+                            LOG_WARN(LogMemory, "Failed to find String {}", std::string(wstr.begin(), wstr.end()));
+
+                            // auto aaa = (L"failed FindStringRef " + std::wstring(string));
+                            // MessageBoxA(0, std::string(aaa.begin(), aaa.end()).c_str(), "Memcury", MB_ICONERROR);
                         }
                         else
                         {
-                            MessageBoxA(0, ("failed FindStringRef " + std::string(string)).c_str(), "Memcury", MB_ICONERROR);
+                            LOG_WARN(LogMemory, "Failed to find String {}", string);
+                            // MessageBoxA(0, ("failed FindStringRef " + std::string(string)).c_str(), "Memcury", MB_ICONERROR);
                         }
                     }
                 }

@@ -100,6 +100,33 @@ bool AActor::TeleportTo(const FVector& DestLocation, const FRotator& DestRotatio
 	return AActor_K2_TeleportTo_Params.ReturnValue;
 }
 
+bool AActor::IsActorBeingDestroyed()
+{
+	static auto bActorIsBeingDestroyedOffset = GetOffset("bActorIsBeingDestroyed");
+	static auto bActorIsBeingDestroyedFieldMask = GetFieldMask(GetProperty("bActorIsBeingDestroyed"));
+	return ReadBitfieldValue(bActorIsBeingDestroyedOffset, bActorIsBeingDestroyedFieldMask);
+}
+
+bool AActor::IsNetStartup()
+{
+	static auto bNetStartupOffset = GetOffset("bNetStartup");
+	static auto bNetStartupFieldMask = GetFieldMask(GetProperty("bNetStartup"));
+	return ReadBitfieldValue(bNetStartupOffset, bNetStartupFieldMask);
+}
+
+void AActor::SetOwner(AActor* Owner)
+{
+	static auto SetOwnerFn = FindObject<UFunction>("/Script/Engine.Actor.SetOwner");
+	this->ProcessEvent(SetOwnerFn, &Owner);
+}
+
+bool AActor::IsAlwaysRelevant()
+{
+	static auto bAlwaysRelevantOffset = GetOffset("bAlwaysRelevant");
+	static auto bAlwaysRelevantFieldMask = GetFieldMask(GetProperty("bAlwaysRelevant"));
+	return ReadBitfieldValue(bAlwaysRelevantOffset, bAlwaysRelevantFieldMask);
+}
+
 UClass* AActor::StaticClass()
 {
 	static auto Class = FindObject<UClass>(L"/Script/Engine.Actor");

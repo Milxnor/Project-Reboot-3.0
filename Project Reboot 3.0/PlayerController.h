@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Class.h"
-#include "Actor.h"
+#include "Controller.h"
 
 #include "Rotator.h"
 
-class APlayerController : public AActor
+class APlayerController : public AController
 {
 public:
 	/* void Possess(APawn* Pawn)

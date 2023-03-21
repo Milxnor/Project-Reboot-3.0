@@ -39,6 +39,17 @@ public:
 	typedef TSet<ElementType/*, KeyFuncs, SetAllocator */> ElementSetType;
 
 	ElementSetType Pairs;
+
+    FORCEINLINE ValueType& Find(const KeyType& Key)
+    {
+        for (int j = 0; j < this->Pairs.Elements.Num(); j++)
+        {
+            ElementType& Pair = this->Pairs.Elements.operator[](j).ElementData.Value;
+            
+            if (Key == Pair.Key())
+                return Pair.Value();
+        }
+    } 
 };
 
 template <typename KeyType, typename ValueType> //, typename SetAllocator, typename KeyFuncs>

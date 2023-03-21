@@ -309,7 +309,7 @@ namespace MemberOffsets
 static UObject* GetPlaylistToUse()
 {
 	auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
-	Playlist = FindObject("/BlueCheese/Playlists/Playlist_ShowdownAlt_BlueCheese_Trios.Playlist_ShowdownAlt_BlueCheese_Trios");
+	// Playlist = FindObject("/BlueCheese/Playlists/Playlist_ShowdownAlt_BlueCheese_Trios.Playlist_ShowdownAlt_BlueCheese_Trios");
 
 	/*
 	if (Globals::bCreative)

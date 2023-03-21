@@ -44,6 +44,11 @@ namespace Addresses
 	extern inline uint64 CompletePickupAnimation = 0;
 	extern inline uint64 CanActivateAbility = 0;
 	extern inline uint64 SpecConstructor = 0;
+	extern inline uint64 ReplicateActor = 0;
+	extern inline uint64 CallPreReplication = 0;
+	extern inline uint64 CreateChannel = 0;
+	extern inline uint64 SetChannelActor = 0;
+	extern inline uint64 SendClientAdjustment = 0;
 	extern inline uint64 FrameStep = 0;
 
 	void SetupVersion(); // Finds Engine Version
@@ -62,7 +67,8 @@ namespace Offsets
 	extern inline uint64 SuperStruct = 0;
 	extern inline uint64 Offset_Internal = 0;
 	extern inline uint64 ServerReplicateActors = 0;
-
+	extern inline uint64 ReplicationFrame = 0;
+	
 	void FindAll();
 	void Print();
 }

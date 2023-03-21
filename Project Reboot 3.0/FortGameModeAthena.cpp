@@ -41,7 +41,10 @@ enum class EDynamicFoundationType : uint8_t
 void ShowFoundation(UObject* BuildingFoundation)
 {
 	if (!BuildingFoundation)
+	{
+		LOG_WARN(LogGame, "Attempting to show invalid building foundation.");
 		return;
+	}
 
 	static auto bServerStreamedInLevelFieldMask = GetFieldMask(BuildingFoundation->GetProperty("bServerStreamedInLevel"));
 	static auto bServerStreamedInLevelOffset = BuildingFoundation->GetOffset("bServerStreamedInLevel");
@@ -212,8 +215,17 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		GameMode->Get<int>("WarmupRequiredPlayerCount") = 1;	
 		
 		{
-			SetPlaylist(GetPlaylistToUse());
-			LOG_INFO(LogDev, "Set playlist!");
+			auto PlaylistToUse = GetPlaylistToUse();
+
+			if (!PlaylistToUse)
+			{
+				LOG_ERROR(LogPlaylist, "Failed to find playlist! Proceeding, but will probably not work as expected!");
+			}
+			else
+			{
+				SetPlaylist(PlaylistToUse);
+				LOG_INFO(LogDev, "Set playlist!");
+			}
 		}
 		
 		// if (false)
@@ -270,11 +282,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 						ShowFoundation(PleasantParkGround);
 					}
 
-					auto PolarPeak = FindObject(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_25x36"));
-					ShowFoundation(PolarPeak);
-
-					auto tiltedtower = FindObject("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.ShopsNew");
-					ShowFoundation(tiltedtower); // 7.40 specific?
+					ShowFoundation(FindObject("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_25x36")); // Polar Peak
+					ShowFoundation(FindObject("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.ShopsNew")); // Tilted Tower Shops, is this 7.40 specific?
 				}
 
 				else if (Fortnite_Season == 8)
@@ -298,9 +307,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	
 			if (Fortnite_Version == 14.60 && Globals::bGoingToPlayEvent)
 			{
-				auto aircraftcarrier = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation3");
-				LOG_INFO(LogDev, "aircraftcarrier: {}", __int64(aircraftcarrier));
-				ShowFoundation(aircraftcarrier);
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation3")); // Aircraft Carrier
 			}
 
 			if (Fortnite_Version == 17.50) {
@@ -312,60 +319,48 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			}
 
 			if (Fortnite_Version == 17.40) {
-				auto AbductedCoral = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.CoralPhase_02")); // Coral Castle Phases (CoralPhase_01, CoralPhase_02 and CoralPhase_03)
-				ShowFoundation(AbductedCoral);
-
-				auto CoralFoundation_01 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation_0"));
-				ShowFoundation(CoralFoundation_01);
-
-				auto CoralFoundation_05 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation6"));
-				ShowFoundation(CoralFoundation_05);
-
-				auto CoralFoundation_07 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation3"));
-				ShowFoundation(CoralFoundation_07);
-
-				auto CoralFoundation_10 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation2_1"));
-				ShowFoundation(CoralFoundation_10);
-
-				auto CoralFoundation_13 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation4"));
-				ShowFoundation(CoralFoundation_13);
-
-				auto CoralFoundation_17 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation5"));
-				ShowFoundation(CoralFoundation_17);
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.CoralPhase_02")); // Coral Castle Phases (CoralPhase_01, CoralPhase_02 and CoralPhase_03)
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation_0")); // CoralFoundation_01
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation6")); // CoralFoundation_05
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation3")); // CoralFoundation_07
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation2_1")); // CoralFoundation_10
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation4"));
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.LF_Athena_16x16_Foundation5"));
 			}
 
 			if (Fortnite_Version == 17.30) {
-				auto AbductedSlurpy = FindObject(("LF_Athena_POI_50x50_C /Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.Slurpy_Phase03")); // Slurpy Swamp Phases (Slurpy_Phase01, Slurpy_Phase02 and Slurpy_Phase03)
-				ShowFoundation(AbductedSlurpy);
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_Mother.Apollo_Mother.PersistentLevel.Slurpy_Phase03")); // There are 1, 2 and 3
 			}
 
 			if (Fortnite_Season == 13)
 			{
-				auto SpawnIsland = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation");
-				ShowFoundation(SpawnIsland);
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation"));
 
 				// SpawnIsland->RepData->Soemthing = FoundationSetup->LobbyLocation;
 			}
 
 			if (Fortnite_Version == 12.41)
 			{
-				auto JS03 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.LF_Athena_POI_19x19_2"));
-				ShowFoundation(JS03);
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.LF_Athena_POI_19x19_2"));
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head6_18"));
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head5_14"));
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head3_8"));
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head_2"));
+				ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head4_11"));
+			}
 
-				auto JH00 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head6_18"));
-				ShowFoundation(JH00);
+			if (Fortnite_Version == 11.31)
+			{
+				// There are also christmas trees & stuff but we need to find a better way to stream that because there's a lot.
 
-				auto JH01 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head5_14"));
-				ShowFoundation(JH01);
-
-				auto JH02 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head3_8"));
-				ShowFoundation(JH02);
-
-				auto JH03 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head_2"));
-				ShowFoundation(JH03);
-
-				auto JH04 = FindObject(("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.BP_Jerky_Head4_11"));
-				ShowFoundation(JH04);
+				if (false) // If the client loads this, it says the package doesnt exist...
+				{
+					ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.LF_5x5_Galileo_Ferry_1"));
+					ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.LF_5x5_Galileo_Ferry_2"));
+					ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.LF_5x5_Galileo_Ferry_3"));
+					ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.LF_5x5_Galileo_Ferry_4"));
+					ShowFoundation(FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.LF_5x5_Galileo_Ferry_5"));
+				}
 			}
 
 			auto PlaylistToUse = GetPlaylistToUse();
@@ -505,20 +500,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		LOG_INFO(LogDev, "Initialized!");
 	}
 
-	if (Engine_Version >= 424) // returning true is stripped on c2+
-	{
-		if (GameState->GetPlayersLeft() >= GameMode->Get<int>("WarmupRequiredPlayerCount"))
-		{
-			if (MapInfo)
-			{
-				static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
-
-				if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum <= 0)
-					return true;
-			}
-		}
-	}
-
 	static auto TeamsOffset = GameState->GetOffset("Teams");
 	auto& Teams = GameState->Get<TArray<UObject*>>(TeamsOffset);
 
@@ -538,6 +519,20 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		// GameState->OnRep_CurrentPlaylistInfo();
 
 		// return false;
+	}
+
+	if (Engine_Version >= 424) // returning true is stripped on c2+
+	{
+		if (GameState->GetPlayersLeft() >= GameMode->Get<int>("WarmupRequiredPlayerCount"))
+		{
+			if (MapInfo)
+			{
+				static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
+
+				if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum <= 0)
+					return true;
+			}
+		}
 	}
 
 	return Athena_ReadyToStartMatchOriginal(GameMode);
@@ -658,12 +653,26 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	{
 		bSpawnedVehicles = true;
 
-		SpawnVehicles();
+		/* static auto GalileoSpawnerClass = FindObject<UClass>("/Game/Athena/AI/Galileo/BP_Galileo_Spawner.BP_Galileo_Spawner_C");
+		auto GalileoSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), GalileoSpawnerClass);
+
+		LOG_INFO(LogDev, "GalileoSpawners.Num(): {}", GalileoSpawners.Num());
+
+		for (int i = 0; i < GalileoSpawners.Num(); i++)
+		{
+			auto GalileoSpawner = GalileoSpawners.at(i);
+
+			auto NewPawn = SpawnAIFromCustomizationData(GalileoSpawner->GetActorLocation(), GalileoSpawner->Get("BotData"));
+		} */
+
+		// SpawnVehicles();
 	}
 
 	auto NewPlayer = (AFortPlayerControllerAthena*)NewPlayerActor;
 
 	auto PlayerStateAthena = NewPlayer->GetPlayerStateAthena();
+
+	LOG_INFO(LogDev, "PlayerStateAthena: {}", __int64(PlayerStateAthena));
 
 	if (!PlayerStateAthena)
 		return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);
@@ -677,7 +686,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		{
 			auto CharacterParts = PlayerStateAthena->GetPtr<__int64>("CharacterParts");
 
-			static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts");
+			static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts", false);
 			auto Parts = (UObject**)(__int64(CharacterParts) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
 
 			static auto headPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
@@ -695,24 +704,22 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2;
 
-	// if (false)
-	{
-		// idk if this is needed
+	// idk if this is needed
 
-		static auto bHasServerFinishedLoadingOffset = NewPlayer->GetOffset("bHasServerFinishedLoading");
-		NewPlayer->Get<bool>(bHasServerFinishedLoadingOffset) = true;
+	static auto bHasServerFinishedLoadingOffset = NewPlayer->GetOffset("bHasServerFinishedLoading");
+	NewPlayer->Get<bool>(bHasServerFinishedLoadingOffset) = true;
 
-		static auto OnRep_bHasServerFinishedLoadingFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.OnRep_bHasServerFinishedLoading");
-		NewPlayer->ProcessEvent(OnRep_bHasServerFinishedLoadingFn);
+	static auto OnRep_bHasServerFinishedLoadingFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.OnRep_bHasServerFinishedLoading");
+	NewPlayer->ProcessEvent(OnRep_bHasServerFinishedLoadingFn);
 
-		static auto bHasStartedPlayingOffset = PlayerStateAthena->GetOffset("bHasStartedPlaying");
-		PlayerStateAthena->Get<bool>(bHasStartedPlayingOffset) = true; // this is a bitfield!!!
+	static auto bHasStartedPlayingOffset = PlayerStateAthena->GetOffset("bHasStartedPlaying");
+	static auto bHasStartedPlayingFieldMask = GetFieldMask(PlayerStateAthena->GetProperty("bHasStartedPlaying"));
+	PlayerStateAthena->SetBitfieldValue(bHasStartedPlayingOffset, bHasStartedPlayingFieldMask, true);
 
-		static auto OnRep_bHasStartedPlayingFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerState.OnRep_bHasStartedPlaying");
-		PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
-	}
+	static auto OnRep_bHasStartedPlayingFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerState.OnRep_bHasStartedPlaying");
+	PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 
-	// LOG_INFO(LogDev, "Old ID: {}", PlayerStateAthena->GetWorldPlayerId());
+	LOG_INFO(LogDev, "Old ID: {}", PlayerStateAthena->GetWorldPlayerId());
 
 	// if (PlayerStateAthena->GetWorldPlayerId() == -1)
 	{
@@ -753,63 +760,65 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			}
 		}
 	}
-	
-	static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
 
 	struct FUniqueNetIdReplExperimental
 	{
 		unsigned char ahh[0x0028];
 	};
 
-	FUniqueNetIdReplExperimental bugha{};
+	FUniqueNetIdReplExperimental Bugha{};
 	auto& PlayerStateUniqueId = PlayerStateAthena->Get<FUniqueNetIdReplExperimental>("UniqueId");
 
-	// if (false)
-	// if (GameMemberInfoArrayOffset != 0)
-	if (Engine_Version >= 423)
 	{
-		struct FGameMemberInfo : public FFastArraySerializerItem
+		static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
+
+		// if (false)
+		// if (GameMemberInfoArrayOffset != 0)
+		if (Engine_Version >= 423)
 		{
-			unsigned char                                      SquadId;                                                  // 0x000C(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-			unsigned char                                      TeamIndex;                                                // 0x000D(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-			unsigned char                                      UnknownData00[0x2];                                       // 0x000E(0x0002) MISSED OFFSET
-			FUniqueNetIdReplExperimental                            MemberUniqueId;                                           // 0x0010(0x0028) (HasGetValueTypeHash, NativeAccessSpecifierPublic)
-		};
+			struct FGameMemberInfo : public FFastArraySerializerItem
+			{
+				unsigned char                                      SquadId;                                                  // 0x000C(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+				unsigned char                                      TeamIndex;                                                // 0x000D(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+				unsigned char                                      UnknownData00[0x2];                                       // 0x000E(0x0002) MISSED OFFSET
+				FUniqueNetIdReplExperimental                            MemberUniqueId;                                           // 0x0010(0x0028) (HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			};
 
-		static auto GameMemberInfoStructSize = 0x38;
-		// LOG_INFO(LogDev, "Compare: 0x{:x} 0x{:x}", GameMemberInfoStructSize, sizeof(FGameMemberInfo));
+			static auto GameMemberInfoStructSize = 0x38;
+			// LOG_INFO(LogDev, "Compare: 0x{:x} 0x{:x}", GameMemberInfoStructSize, sizeof(FGameMemberInfo));
 
-		auto GameMemberInfo = Alloc<FGameMemberInfo>(GameMemberInfoStructSize);
+			auto GameMemberInfo = Alloc<FGameMemberInfo>(GameMemberInfoStructSize);
 
-		((FFastArraySerializerItem*)GameMemberInfo)->MostRecentArrayReplicationKey = -1;
-		((FFastArraySerializerItem*)GameMemberInfo)->ReplicationID = -1;
-		((FFastArraySerializerItem*)GameMemberInfo)->ReplicationKey = -1;
+			((FFastArraySerializerItem*)GameMemberInfo)->MostRecentArrayReplicationKey = -1;
+			((FFastArraySerializerItem*)GameMemberInfo)->ReplicationID = -1;
+			((FFastArraySerializerItem*)GameMemberInfo)->ReplicationKey = -1;
 
-		if (false)
-		{
-			static auto GameMemberInfo_SquadIdOffset = 0x000C;
-			static auto GameMemberInfo_TeamIndexOffset = 0x000D;
-			static auto GameMemberInfo_MemberUniqueIdOffset = 0x0010;
-			static auto UniqueIdSize = 0x0028;
+			if (false)
+			{
+				static auto GameMemberInfo_SquadIdOffset = 0x000C;
+				static auto GameMemberInfo_TeamIndexOffset = 0x000D;
+				static auto GameMemberInfo_MemberUniqueIdOffset = 0x0010;
+				static auto UniqueIdSize = 0x0028;
 
-			*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_SquadIdOffset) = PlayerStateAthena->GetSquadId();
-			*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_TeamIndexOffset) = PlayerStateAthena->GetTeamIndex();
-			CopyStruct((void*)(__int64(GameMemberInfo) + GameMemberInfo_MemberUniqueIdOffset), PlayerStateAthena->Get<void*>("UniqueId"), UniqueIdSize);
+				*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_SquadIdOffset) = PlayerStateAthena->GetSquadId();
+				*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_TeamIndexOffset) = PlayerStateAthena->GetTeamIndex();
+				CopyStruct((void*)(__int64(GameMemberInfo) + GameMemberInfo_MemberUniqueIdOffset), PlayerStateAthena->Get<void*>("UniqueId"), UniqueIdSize);
 
+			}
+			else
+			{
+				GameMemberInfo->SquadId = PlayerStateAthena->GetSquadId();
+				GameMemberInfo->TeamIndex = PlayerStateAthena->GetTeamIndex();
+				GameMemberInfo->MemberUniqueId = PlayerStateUniqueId;
+			}
+
+			static auto GameMemberInfoArray_MembersOffset = FindOffsetStruct("/Script/FortniteGame.GameMemberInfoArray", "Members");
+
+			auto GameMemberInfoArray = GameState->GetPtr<FFastArraySerializer>(GameMemberInfoArrayOffset);
+
+			((TArray<FGameMemberInfo>*)(__int64(GameMemberInfoArray) + GameMemberInfoArray_MembersOffset))->Add(*GameMemberInfo, GameMemberInfoStructSize);
+			GameMemberInfoArray->MarkArrayDirty();
 		}
-		else
-		{
-			GameMemberInfo->SquadId = PlayerStateAthena->GetSquadId();
-			GameMemberInfo->TeamIndex = PlayerStateAthena->GetTeamIndex();
-			GameMemberInfo->MemberUniqueId = PlayerStateUniqueId;
-		}
-
-		static auto GameMemberInfoArray_MembersOffset = FindOffsetStruct("/Script/FortniteGame.GameMemberInfoArray", "Members");
-
-		auto GameMemberInfoArray = GameState->GetPtr<FFastArraySerializer>(GameMemberInfoArrayOffset);
-
-		((TArray<FGameMemberInfo>*)(__int64(GameMemberInfoArray) + GameMemberInfoArray_MembersOffset))->Add(*GameMemberInfo, GameMemberInfoStructSize);
-		GameMemberInfoArray->MarkArrayDirty();
 	}
 
 	if (Globals::bCreative)
@@ -920,12 +929,18 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		}
 	}
 
-	static auto SpawnActorDataListOffset = GameMode->GetOffset("SpawnActorDataList", false);
+	LOG_INFO(LogDev, "HandleStartingNewPlayer end");
 
-	if (SpawnActorDataListOffset != 0)
+	if (Engine_Version < 420)
 	{
-		auto& SpawnActorDataList = GameMode->Get<TArray<__int64>>(SpawnActorDataListOffset);
-		LOG_INFO(LogDev, "SpawnActorDataList.Num(): {}", SpawnActorDataList.Num());
+		static auto QuickBarsOffset = NewPlayer->GetOffset("QuickBars", false);
+
+		if (QuickBarsOffset != 0)
+		{
+			static auto FortQuickBarsClass = FindObject<UClass>("/Script/FortniteGame.FortQuickBars");
+			NewPlayer->Get<AActor*>(QuickBarsOffset) = GetWorld()->SpawnActor<AActor>(FortQuickBarsClass);
+			NewPlayer->Get<AActor*>(QuickBarsOffset)->SetOwner(NewPlayer);
+		}
 	}
 
 	return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);

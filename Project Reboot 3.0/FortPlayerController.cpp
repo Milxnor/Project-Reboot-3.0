@@ -73,9 +73,61 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	if (!ItemDefinition)
 		return;
 
+	if (Engine_Version < 420) // wtf
+	{
+		static auto CurrentWeaponListOffset = Pawn->GetOffset("CurrentWeaponList");
+		auto& CurrentWeaponList = Pawn->Get<TArray<AFortWeapon*>>(CurrentWeaponListOffset);
+
+		CurrentWeaponList.Data = nullptr;
+		CurrentWeaponList.ArrayNum = 0;
+		CurrentWeaponList.ArrayMax = 0;
+	}
+
 	if (auto Weapon = Pawn->EquipWeaponDefinition((UFortWeaponItemDefinition*)ItemDefinition, ItemInstance->GetItemEntry()->GetItemGuid()))
 	{
+		if (Engine_Version < 420)
+		{
+			static auto FortWeap_BuildingToolClass = FindObject<UClass>("/Script/FortniteGame.FortWeap_BuildingTool");
 
+			if (!Weapon->IsA(FortWeap_BuildingToolClass))
+				return;
+
+			auto BuildingTool = Weapon;
+
+			using UBuildingEditModeMetadata = UObject;
+			using UFortBuildingItemDefinition = UObject;
+
+			static auto OnRep_DefaultMetadataFn = FindObject<UFunction>("/Script/FortniteGame.FortWeap_BuildingTool.OnRep_DefaultMetadata");
+			static auto DefaultMetadataOffset = BuildingTool->GetOffset("DefaultMetadata");
+
+			static auto RoofPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS");
+			static auto FloorPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor");
+			static auto WallPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall");
+			static auto StairPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
+
+			if (ItemDefinition == RoofPiece)
+			{
+				static auto RoofMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Roof/EMP_Roof_RoofC.EMP_Roof_RoofC");
+				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = RoofMetadata;
+			}
+			else if (ItemDefinition == StairPiece)
+			{
+				static auto StairMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Stair/EMP_Stair_StairW.EMP_Stair_StairW");
+				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = StairMetadata;
+			}
+			else if (ItemDefinition == WallPiece)
+			{
+				static auto WallMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Wall/EMP_Wall_Solid.EMP_Wall_Solid");
+				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = WallMetadata;
+			}
+			else if (ItemDefinition == FloorPiece)
+			{
+				static auto FloorMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Floor/EMP_Floor_Floor.EMP_Floor_Floor");
+				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = FloorMetadata;
+			}
+
+			BuildingTool->ProcessEvent(OnRep_DefaultMetadataFn);
+		}
 	}
 }
 
@@ -523,7 +575,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	auto DeathInfo = (void*)(__int64(DeadPlayerState) + MemberOffsets::FortPlayerStateAthena::DeathInfo); // Alloc<void>(DeathInfoStructSize);
 	RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize);
 
-	auto& Tags = DeadPawn->Get<FGameplayTagContainer>(MemberOffsets::FortPlayerPawn::CorrectTags);
+	auto/*&*/ Tags = MemberOffsets::FortPlayerPawn::CorrectTags == 0 ? FGameplayTagContainer()
+		: DeadPawn->Get<FGameplayTagContainer>(MemberOffsets::FortPlayerPawn::CorrectTags);
 		// *(FGameplayTagContainer*)(__int64(DeathReport) + MemberOffsets::DeathReport::Tags);
 
 	// LOG_INFO(LogDev, "Tags: {}", Tags.ToStringSimple(true));
@@ -535,7 +588,9 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bDBNO) = DeadPawn->IsDBNO();
 	*(uint8*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathCause) = DeathCause;
 	*(AActor**)(__int64(DeathInfo) + MemberOffsets::DeathInfo::FinisherOrDowner) = KillerPlayerState ? KillerPlayerState : DeadPlayerState;
-	*(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) = DeathLocation;
+
+	if (MemberOffsets::DeathInfo::DeathLocation != 0)
+		*(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) = DeathLocation;
 
 	if (MemberOffsets::DeathInfo::DeathTags != 0)
 		*(FGameplayTagContainer*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathTags) = Tags;
@@ -545,14 +600,16 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	if (DeathCause == FallDamageEnumValue)
 	{
-		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = DeadPawn->Get<float>(MemberOffsets::FortPlayerPawnAthena::LastFallDistance);
+		if (MemberOffsets::FortPlayerPawnAthena::LastFallDistance != 0)
+			*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = DeadPawn->Get<float>(MemberOffsets::FortPlayerPawnAthena::LastFallDistance);
 	}
 	else
 	{
 		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = KillerPawn ? KillerPawn->GetDistanceTo(DeadPawn) : 0;
 	}
 
-	DeadPlayerState->Get<FVector>(MemberOffsets::FortPlayerState::PawnDeathLocation) = DeathLocation;
+	if (MemberOffsets::FortPlayerState::PawnDeathLocation != 0)
+		DeadPlayerState->Get<FVector>(MemberOffsets::FortPlayerState::PawnDeathLocation) = DeathLocation;
 
 	static auto OnRep_DeathInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
 	DeadPlayerState->ProcessEvent(OnRep_DeathInfoFn);

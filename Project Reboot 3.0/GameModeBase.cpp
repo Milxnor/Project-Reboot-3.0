@@ -3,13 +3,28 @@
 #include "reboot.h"
 #include "FortPlayerControllerAthena.h"
 
+UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InController)
+{
+	static auto GetDefaultPawnClassForControllerFn = FindObject<UFunction>("/Script/Engine.GameModeBase.GetDefaultPawnClassForController");
+	struct
+	{
+		AController* InController;                                             // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		UClass* ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} AGameModeBase_GetDefaultPawnClassForController_Params{InController};
+
+	this->ProcessEvent(GetDefaultPawnClassForControllerFn, &AGameModeBase_GetDefaultPawnClassForController_Params);
+
+	return AGameModeBase_GetDefaultPawnClassForController_Params.ReturnValue;
+}
+
 APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AController* NewPlayer, AActor* StartSpot)
 {
 	LOG_INFO(LogDev, "SpawnDefaultPawnFor: 0x{:x}!", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
 
-	static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
-	GameMode->Get<UClass*>("DefaultPawnClass") = PawnClass;
-
+	// static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+	// GameMode->Get<UClass*>("DefaultPawnClass") = PawnClass;
+	auto PawnClass = GameMode->GetDefaultPawnClassForController(NewPlayer);
+	
 	static auto fn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
 
 	struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; } 

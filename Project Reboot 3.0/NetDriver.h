@@ -4,6 +4,8 @@
 #include "UnrealString.h"
 
 #include "World.h"
+#include "NetConnection.h"
+#include "Array.h"
 
 class UWorld;
 
@@ -29,7 +31,13 @@ public:
 
 	static void TickFlushHook(UNetDriver* NetDriver);
 
+	TArray<UNetConnection*>& GetClientConnections()
+	{
+		static auto ClientConnectionsOffset = GetOffset("ClientConnections");
+		return Get<TArray<UNetConnection*>>(ClientConnectionsOffset);
+	}
+
 	bool InitListen(FNetworkNotify* InNotify, FURL& ListenURL, bool bReuseAddressAndPort, FString& Error) { return InitListenOriginal(this, InNotify, ListenURL, bReuseAddressAndPort, Error); }
 	void SetWorld(UWorld* World) { return SetWorldOriginal(this, World); }
-	void ServerReplicateActors();
+	int32 ServerReplicateActors();
 };
