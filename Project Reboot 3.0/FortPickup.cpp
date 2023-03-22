@@ -17,12 +17,12 @@ void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int Ov
 	this->ProcessEvent(fn, &AFortPickup_TossPickup_Params);
 }
 
-AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Location, int Count, EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource, int LoadedAmmo, AFortPawn* Pawn)
+AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Location, int Count, EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource, int LoadedAmmo, AFortPawn* Pawn, UClass* OverrideClass)
 {
 	static auto FortPickupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickup");
 	auto PlayerState = Pawn ? Cast<AFortPlayerState>(Pawn->GetPlayerState()) : nullptr;
 
-	if (auto Pickup = GetWorld()->SpawnActor<AFortPickup>(FortPickupClass, Location))
+	if (auto Pickup = GetWorld()->SpawnActor<AFortPickup>(OverrideClass ? OverrideClass : FortPickupClass, Location))
 	{
 		static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
 

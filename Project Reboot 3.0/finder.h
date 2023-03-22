@@ -215,6 +215,55 @@ static inline uint64 FindPauseBeaconRequests()
 	return FindBytes(Addr, { 0x40, 0x53 }, 1000, 0, true);
 }
 
+static inline uint64 FindOnRep_ZiplineState()
+{
+	static auto Addrr = Memcury::Scanner::FindStringRef(L"ZIPLINES!! Role(%s)  AFortPlayerPawn::OnRep_ZiplineState ZiplineState.bIsZiplining=%d", false).Get();
+
+	if (!Addrr)
+		Addrr = Memcury::Scanner::FindStringRef(L"ZIPLINES!! GetLocalRole()(%s)  AFortPlayerPawn::OnRep_ZiplineState ZiplineState.bIsZiplining=%d").Get();
+
+	// L"%s LocalRole[%s] ZiplineState.bIsZiplining[%d]" for 18.40???
+
+	if (!Addrr)
+		return 0;
+
+	for (int i = 0; i < 400; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x53)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
+	}
+	
+	return 0;
+}
+
+static inline uint64 FindGetMaxTickRate() // Uengine::getmaxtickrate
+{
+	// TODO switch to index maybe?
+
+	/* auto GetMaxTickRateIndex = *Memcury::Scanner::FindStringRef(L"GETMAXTICKRATE")
+        .ScanFor({ 0x4D, 0x8B, 0xC7, 0xE8 })
+        .RelativeOffset(4)
+        .ScanFor({ 0xFF, 0x90 })
+        .AbsoluteOffset(2)
+        .GetAs<int*>() / 8;
+
+    LOG_INFO(LogHook, "GetMaxTickRateIndex {}", GetMaxTickRateIndex); */
+
+	auto stringRef = Memcury::Scanner::FindStringRef(L"Hitching by request!");
+
+	if (!stringRef.Get())
+		return 0;
+
+	return FindBytes(stringRef, { 0x48, 0x89, 0x5C }, 1000, 0, true);
+}
+
 static inline uint64 FindGetPlayerViewpoint()
 {
 	// return Memcury::Scanner::FindPattern("40 55 56 57 41 57 48 8B EC 48 83 EC 48 48 8B 81 ? ? ? ? 4D 8B F8 48 8B").Get(); // 12.41

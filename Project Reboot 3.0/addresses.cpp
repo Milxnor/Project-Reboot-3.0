@@ -236,6 +236,12 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding CallPreReplication");
 
 	Addresses::CallPreReplication = FindCallPreReplication();
+	LOG_INFO(LogDev, "Finding OnRep_ZiplineState");
+
+	Addresses::OnRep_ZiplineState = FindOnRep_ZiplineState();
+	LOG_INFO(LogDev, "Finding GetMaxTickRate");
+
+	Addresses::GetMaxTickRate = FindGetMaxTickRate();
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -284,6 +290,8 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "SendClientAdjustment: 0x{:x}", SendClientAdjustment - Base);
 	LOG_INFO(LogDev, "CreateChannel: 0x{:x}", CreateChannel - Base);
 	LOG_INFO(LogDev, "CallPreReplication: 0x{:x}", CallPreReplication - Base);
+	LOG_INFO(LogDev, "OnRep_ZiplineState: 0x{:x}", OnRep_ZiplineState - Base);
+	LOG_INFO(LogDev, "GetMaxTickRate: 0x{:x}", GetMaxTickRate - Base);
 }
 
 void Offsets::FindAll()

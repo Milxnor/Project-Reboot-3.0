@@ -158,7 +158,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 {
 	auto GameState = GameMode->GetGameStateAthena();
 
-	auto SetPlaylist = [&GameState](UObject* Playlist) -> void {
+	auto SetPlaylist = [&GameState, &GameMode](UObject* Playlist, bool bOnRep) -> void {
 		if (Fortnite_Version >= 6.10)
 		{
 			auto CurrentPlaylistInfo = GameState->GetPtr<FFastArraySerializer>("CurrentPlaylistInfo");
@@ -177,6 +177,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 			if (aeuh)
 			{
+				GameMode->SetCurrentPlaylistName(aeuh);
+
 				/* if (Fortnite_Version >= 13)
 				{
 					static auto LastSafeZoneIndexOffset = aeuh->GetOffset("LastSafeZoneIndex");
@@ -187,14 +189,14 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 					}
 				} */
 			}
-
-			GameState->OnRep_CurrentPlaylistInfo();
 		}
 		else
 		{
 			GameState->Get("CurrentPlaylistData") = Playlist;
-			GameState->OnRep_CurrentPlaylistInfo(); // calls OnRep_CurrentPlaylistData
 		}
+
+		if (bOnRep)
+			GameState->OnRep_CurrentPlaylistInfo();
 	};
 
 	auto& LocalPlayers = GetLocalPlayers();
@@ -212,22 +214,20 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "Presetup!");
 
-		GameMode->Get<int>("WarmupRequiredPlayerCount") = 1;	
+		GameMode->Get<int>("WarmupRequiredPlayerCount") = 1;
 		
-		{
-			auto PlaylistToUse = GetPlaylistToUse();
+		auto PlaylistToUse = GetPlaylistToUse();
 
-			if (!PlaylistToUse)
-			{
-				LOG_ERROR(LogPlaylist, "Failed to find playlist! Proceeding, but will probably not work as expected!");
-			}
-			else
-			{
-				SetPlaylist(PlaylistToUse);
-				LOG_INFO(LogDev, "Set playlist!");
-			}
+		if (!PlaylistToUse)
+		{
+			LOG_ERROR(LogPlaylist, "Failed to find playlist! Proceeding, but will probably not work as expected!");
 		}
-		
+		else
+		{
+			SetPlaylist(PlaylistToUse, true);
+			LOG_INFO(LogDev, "Set playlist!");
+		}
+
 		// if (false)
 		{
 			auto Fortnite_Season = std::floor(Fortnite_Version);
@@ -472,6 +472,12 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		GameState->Get<float>("WarmupCountdownStartTime") = TimeSeconds;
 		GameMode->Get<float>("WarmupEarlyCountdownDuration") = EarlyDuration;
 
+		static auto GameSessionOffset = GameMode->GetOffset("GameSession");
+		auto GameSession = GameMode->Get<AActor*>(GameSessionOffset);
+		static auto MaxPlayersOffset = GameSession->GetOffset("MaxPlayers");
+
+		GameSession->Get<int>(MaxPlayersOffset) = 100;
+
 		/*
 		auto AllMegaStormManagers = UGameplayStatics::GetAllActorsOfClass(GetWorld(), GameMode->Get<UClass*>("MegaStormManagerClass"));
 
@@ -523,14 +529,19 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	if (Engine_Version >= 424) // returning true is stripped on c2+
 	{
-		if (GameState->GetPlayersLeft() >= GameMode->Get<int>("WarmupRequiredPlayerCount"))
+		static auto WarmupRequiredPlayerCountOffset = GameMode->GetOffset("WarmupRequiredPlayerCount");
+
+		if (GameState->GetPlayersLeft() >= GameMode->Get<int>(WarmupRequiredPlayerCountOffset))
 		{
 			if (MapInfo)
 			{
 				static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
 
-				if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum <= 0)
+				// if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum > 0)
+				{
+					LOG_INFO(LogDev, "ReadyToStartMatch Return Address: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
 					return true;
+				}
 			}
 		}
 	}
@@ -571,7 +582,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		// GameState->OnRep_CurrentPlaylistInfo();
 	}
 
-	static bool bSpawnedFloorLoot = true;
+	static bool bSpawnedFloorLoot = false;
 
 	if (!bSpawnedFloorLoot)
 	{

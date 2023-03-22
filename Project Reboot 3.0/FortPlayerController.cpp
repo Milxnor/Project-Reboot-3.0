@@ -16,6 +16,7 @@
 #include "FortPickup.h"
 #include "FortPlayerPawn.h"
 #include <memcury.h>
+#include "KismetStringLibrary.h"
 
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
@@ -133,6 +134,9 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 
 void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret)
 {
+	static auto LlamaClass = FindObject<UClass>("/Game/Athena/SupplyDrops/Llama/AthenaSupplyDrop_Llama.AthenaSupplyDrop_Llama_C");
+	static auto FortAthenaSupplyDropClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaSupplyDrop");
+
 	LOG_INFO(LogInteraction, "ServerAttemptInteract!");
 
 	auto Params = Stack->Locals;
@@ -156,6 +160,8 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		return;
 
 	// LOG_INFO(LogInteraction, "ReceivingActor Name: {}", ReceivingActor->GetFullName());
+
+	FVector LocationToSpawnLoot = ReceivingActor->GetActorLocation() + ReceivingActor->GetActorRightVector() * 70.f + FVector{ 0, 0, 50 };
 
 	static auto FortAthenaVehicleClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaVehicle");
 
@@ -187,8 +193,6 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		auto LootDrops = PickLootDrops(RedirectedLootTier, true);
 
 		LOG_INFO(LogInteraction, "LootDrops.size(): {}", LootDrops.size());
-
-		FVector LocationToSpawnLoot = BuildingContainer->GetActorLocation() + BuildingContainer->GetActorRightVector() * 70.f + FVector{0, 0, 50};
 
 		for (int i = 0; i < LootDrops.size(); i++)
 		{
@@ -273,6 +277,17 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 		return;
 	}
+	else if (ReceivingActor->IsA(FortAthenaSupplyDropClass))
+	{
+		auto LootTierGroup = ReceivingActor->IsA(LlamaClass) ? UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaLlama") : UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaSupplyDrop"); // SupplyDrop->GetLootTierGroupOverride();
+
+		auto LootDrops = PickLootDrops(LootTierGroup);
+
+		for (auto& LootDrop : LootDrops)
+		{
+			AFortPickup::SpawnPickup(LootDrop.ItemDefinition, LocationToSpawnLoot, LootDrop.Count, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::SupplyDrop);
+		}
+	}
 
 	return ServerAttemptInteractOriginal(Context, Stack, Ret);
 }
@@ -303,6 +318,11 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 
 	auto NewPawn = GameMode->SpawnDefaultPawnForHook(GameMode, (AController*)PlayerController, Aircrafts->at(0));
 	PlayerController->Possess(NewPawn);
+
+	auto NewPawnAsFort = Cast<AFortPawn>(NewPawn);
+
+	if (NewPawnAsFort)
+		NewPawnAsFort->SetHealth(100);
 
 	// PlayerController->ServerRestartPlayer();
 }
@@ -435,6 +455,35 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex());
 
 	return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+}
+
+void AFortPlayerController::DropSpecificItemHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	UFortItemDefinition* DropItemDef = nullptr;
+
+	Stack.Step(Stack.Object, &DropItemDef);
+
+	if (!DropItemDef)
+		return;
+
+	auto PlayerController = Cast<AFortPlayerController>(Context);
+
+	if (!PlayerController)
+		return DropSpecificItemOriginal(Context, Stack, Ret);
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return DropSpecificItemOriginal(Context, Stack, Ret);
+
+	auto ItemInstance = WorldInventory->FindItemInstance(DropItemDef);
+
+	if (!ItemInstance)
+		return DropSpecificItemOriginal(Context, Stack, Ret);
+
+	PlayerController->ServerAttemptInventoryDropHook(PlayerController, ItemInstance->GetItemEntry()->GetItemGuid(), ItemInstance->GetItemEntry()->GetCount());
+
+	return DropSpecificItemOriginal(Context, Stack, Ret);
 }
 
 void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController* PlayerController, FGuid ItemGuid, int Count)
@@ -623,6 +672,12 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		KillerPlayerState->ClientReportKill(DeadPlayerState);
 		// KillerPlayerState->OnRep_Kills();
+	}
+
+	if (KillerPawn && KillerPawn != DeadPawn)
+	{
+		KillerPawn->SetHealth(100);
+		KillerPawn->SetShield(100);
 	}
 
 	bool bIsRespawningAllowed = GameState->IsRespawningAllowed(DeadPlayerState);

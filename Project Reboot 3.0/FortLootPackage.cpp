@@ -77,6 +77,8 @@ static FFortLootPackageData* GetLootPackage2(std::vector<FFortLootPackageData*>&
 
 static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
 {
+    return GetLootTierData2(LootTierData, bPrint);
+
     float TotalWeight = 0;
 
     for (auto Item : LootTierData)
@@ -117,6 +119,8 @@ static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootT
 
 static FFortLootPackageData* GetLootPackage(std::vector<FFortLootPackageData*>& LootPackages)
 {
+    return GetLootPackage2(LootPackages);
+
     float TotalWeight = 0;
 
     for (auto Item : LootPackages)

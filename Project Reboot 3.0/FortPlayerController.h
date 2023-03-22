@@ -29,6 +29,7 @@ public:
 	static inline void (*ClientOnPawnDiedOriginal)(AFortPlayerController* PlayerController, void* DeathReport);
 	static inline void (*ServerCreateBuildingActorOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 	static inline void (*ServerAttemptInteractOriginal)(UObject* Context, FFrame* Stack, void* Ret);
+	static inline void (*DropSpecificItemOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 
 	void ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot);
 
@@ -65,6 +66,7 @@ public:
 	static void ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation);
 	// static void ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData);
 	static void ServerCreateBuildingActorHook(UObject* Context, FFrame* Stack, void* Ret);
+	static void DropSpecificItemHook(UObject* Context, FFrame& Stack, void* Ret);
 
 	static void ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef);
 

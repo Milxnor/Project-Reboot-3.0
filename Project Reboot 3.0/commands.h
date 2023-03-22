@@ -262,8 +262,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			try { Health = std::stof(Arguments[1]); }
 			catch (...) {}
 
-			static auto SetHealthFn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.SetHealth");
-			Pawn->ProcessEvent(SetHealthFn, &Health);
+			Pawn->SetHealth(Health);
 			SendMessageToConsole(PlayerController, L"Set health!\n");
 		}
 		else if (Command == "testspawn")

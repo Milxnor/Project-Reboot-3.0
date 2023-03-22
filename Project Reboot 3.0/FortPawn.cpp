@@ -21,6 +21,22 @@ bool AFortPawn::PickUpActor(AActor* PickupTarget, UFortDecoItemDefinition* Place
 	return AFortPawn_PickUpActor_Params.ReturnValue;
 }
 
+void AFortPawn::SetHealth(float NewHealth)
+{
+	static auto SetHealthFn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.SetHealth");
+
+	if (SetHealthFn)
+		this->ProcessEvent(SetHealthFn, &NewHealth);
+}
+
+void AFortPawn::SetShield(float NewShield)
+{
+	static auto SetShieldFn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.SetShield");
+
+	if (SetShieldFn)
+		this->ProcessEvent(SetShieldFn, &NewShield);
+}
+
 UClass* AFortPawn::StaticClass()
 {
 	static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPawn");

@@ -180,6 +180,7 @@
     <ClCompile Include="FortAthenaCreativePortal.cpp" />
     <ClCompile Include="FortAthenaSupplyDrop.cpp" />
     <ClCompile Include="FortDecoItemDefinition.cpp" />
+    <ClCompile Include="FortGameMode.cpp" />
     <ClCompile Include="FortGameModeAthena.cpp" />
     <ClCompile Include="FortGameModeZone.cpp" />
     <ClCompile Include="FortGameStateAthena.cpp" />

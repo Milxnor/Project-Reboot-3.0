@@ -24,5 +24,8 @@ public:
 		return ReadBitfieldValue(bIsDBNOOffset, bIsDBNOFieldMask);
 	}
 
+	void SetHealth(float NewHealth);
+	void SetShield(float NewShield);
+
 	static UClass* StaticClass();
 };

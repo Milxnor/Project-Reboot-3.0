@@ -32,7 +32,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 	auto MaxStackSize = ItemDefinition->GetMaxStackSize();
 
-	bool bAllowMultipleStacks = true;
+	bool bAllowMultipleStacks = ItemDefinition->DoesAllowMultipleStacks();
 	int OverStack = 0;
 
 	std::vector<UFortItem*> NewItemInstances;

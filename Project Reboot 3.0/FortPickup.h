@@ -83,7 +83,7 @@ public:
 
 	static AFortPickup* SpawnPickup(class UFortItemDefinition* ItemDef, FVector Location, int Count, 
 		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset, 
-		int LoadedAmmo = -1, class AFortPawn* Pawn = nullptr);
+		int LoadedAmmo = -1, class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr);
 
 	static char CompletePickupAnimationHook(AFortPickup* Pickup);
 };

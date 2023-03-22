@@ -38,6 +38,7 @@ static ENetMode GetNetModeHook() { /* std::cout << "AA!\n"; */ return ENetMode::
 static ENetMode GetNetModeHook2() { /* std::cout << "AA!\n"; */ return ENetMode::NM_DedicatedServer; }
 
 static bool ReturnTrueHook() { return true; }
+static float GetMaxTickRateHook()  { return 30.f; }
 static int Return2Hook() { return 2; }
 
 static void NoMCPHook() { return; }
@@ -82,6 +83,8 @@ DWORD WINAPI Main(LPVOID)
     static auto FortKismetLibraryDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortKismetLibrary");
 
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFort VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogGameMode VeryVerbose", nullptr);
 
     static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
     FString Level = Engine_Version < 424
@@ -222,7 +225,7 @@ DWORD WINAPI Main(LPVOID)
 
     if (Addresses::FrameStep) // put all non rpc exec hooks in this scope
     {
-        Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"Script/FortniteGame.FortKismetLibrary.K2_GiveItemToPlayer"),
+        Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_GiveItemToPlayer"),
            UFortKismetLibrary::K2_GiveItemToPlayerHook, (PVOID*)&UFortKismetLibrary::K2_GiveItemToPlayerOriginal, false, true);
         Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner"),
             UFortKismetLibrary::GiveItemToInventoryOwnerHook, (PVOID*)&UFortKismetLibrary::GiveItemToInventoryOwnerOriginal, false, true);
@@ -234,6 +237,11 @@ DWORD WINAPI Main(LPVOID)
             UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook, (PVOID*)&UFortKismetLibrary::K2_RemoveFortItemFromPlayerOriginal, false, true);
         Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_SpawnPickupInWorld"),
             UFortKismetLibrary::K2_SpawnPickupInWorldHook, (PVOID*)&UFortKismetLibrary::K2_SpawnPickupInWorldOriginal, false, true);
+        Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary:K2_SpawnPickupInWorldWithClass"),
+            UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook, (PVOID*)&UFortKismetLibrary::K2_SpawnPickupInWorldWithClassOriginal, false, true);
+
+        Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.DropSpecificItem"),
+            AFortPlayerController::DropSpecificItemHook, (PVOID*)&AFortPlayerController::DropSpecificItemOriginal, false, true);
 
         static auto FortAthenaSupplyDropDefault = FindObject("/Script/FortniteGame.Default__FortAthenaSupplyDrop");
 
@@ -303,6 +311,7 @@ DWORD WINAPI Main(LPVOID)
     if (Engine_Version < 427)
         Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
     
+    Hooking::MinHook::Hook((PVOID)Addresses::GetMaxTickRate, GetMaxTickRateHook);
     // Hooking::MinHook::Hook((PVOID)Addresses::CollectGarbage, (PVOID)CollectGarbageHook, nullptr);
     Hooking::MinHook::Hook((PVOID)Addresses::PickTeam, (PVOID)AFortGameModeAthena::Athena_PickTeamHook);
     // Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)AFortGameModeAthena::SetZoneToIndexHook, (PVOID*)&AFortGameModeAthena::SetZoneToIndexOriginal);
@@ -352,15 +361,6 @@ DWORD WINAPI Main(LPVOID)
         MemberOffsets::DeathReport::KillerPlayerState = FindOffsetStruct("/Script/FortniteGame.FortPlayerDeathReport", "KillerPlayerState");
         MemberOffsets::DeathReport::DamageCauser = FindOffsetStruct("/Script/FortniteGame.FortPlayerDeathReport", "DamageCauser");
     }
-
-    /* auto GetMaxTickRateIndex = *Memcury::Scanner::FindStringRef(L"GETMAXTICKRATE")
-        .ScanFor({ 0x4D, 0x8B, 0xC7, 0xE8 })
-        .RelativeOffset(4)
-        .ScanFor({ 0xFF, 0x90 })
-        .AbsoluteOffset(2)
-        .GetAs<int*>() / 8;
-
-    LOG_INFO(LogHook, "GetMaxTickRateIndex {}", GetMaxTickRateIndex); */
 
     srand(time(0));
 

@@ -160,7 +160,7 @@ void UFortKismetLibrary::K2_RemoveItemFromPlayerHook(UObject* Context, FFrame& S
 	if (bShouldUpdate)
 		WorldInventory->Update();
 
-	LOG_INFO(LogDev, "Removed!");
+	LOG_INFO(LogDev, "Removed {}!", AmountToRemove);
 
 	return K2_RemoveItemFromPlayerOriginal(Context, Stack, Ret);
 }
@@ -247,6 +247,54 @@ void UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook(UObject* Context, FFram
 		WorldInventory->Update();
 
 	return K2_RemoveFortItemFromPlayerOriginal(Context, Stack, Ret);
+}
+
+AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Context, FFrame& Stack, AFortPickup** Ret)
+{
+	UObject* WorldContextObject;                                       // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	UFortWorldItemDefinition* ItemDefinition;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	UClass* PickupClass;                                              // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int                                                NumberToSpawn;                                            // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	FVector                                     Position;                                                 // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	FVector                                     Direction;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int                                                OverrideMaxStackCount;                                    // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	bool                                               bToss;                                                    // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	bool                                               bRandomRotation;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	bool                                               bBlockedFromAutoPickup;                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int                                                PickupInstigatorHandle;                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	EFortPickupSourceTypeFlag                          SourceType;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	EFortPickupSpawnSource                             Source;                                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	AFortPlayerController* OptionalOwnerPC;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	bool                                               bPickupOnlyRelevantToOwner;                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+
+	Stack.Step(Stack.Object, &WorldContextObject);
+	Stack.Step(Stack.Object, &ItemDefinition);
+	Stack.Step(Stack.Object, &PickupClass);
+	Stack.Step(Stack.Object, &NumberToSpawn);
+	Stack.Step(Stack.Object, &Position);
+	Stack.Step(Stack.Object, &Direction);
+	Stack.Step(Stack.Object, &OverrideMaxStackCount);
+	Stack.Step(Stack.Object, &bToss);
+	Stack.Step(Stack.Object, &bRandomRotation);
+	Stack.Step(Stack.Object, &bBlockedFromAutoPickup);
+	Stack.Step(Stack.Object, &PickupInstigatorHandle);
+	Stack.Step(Stack.Object, &SourceType);
+	Stack.Step(Stack.Object, &Source);
+	Stack.Step(Stack.Object, &OptionalOwnerPC);
+	Stack.Step(Stack.Object, &bPickupOnlyRelevantToOwner);
+
+	if (!ItemDefinition)
+		return K2_SpawnPickupInWorldWithClassOriginal(Context, Stack, Ret);
+
+	LOG_INFO(LogDev, "PickupClass: {}", PickupClass ? PickupClass->GetFullName() : "InvalidObject")
+
+	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, nullptr, PickupClass);
+
+	K2_SpawnPickupInWorldWithClassOriginal(Context, Stack, Ret);
+
+	*Ret = aa;
+	return *Ret;
 }
 
 AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFrame& Stack, AFortPickup** Ret)
