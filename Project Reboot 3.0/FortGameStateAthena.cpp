@@ -1,11 +1,56 @@
 #include "FortGameStateAthena.h"
 
 #include "reboot.h"
+#include "FortPlayerStateAthena.h"
 
 /* void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState)
 {
 
 } */
+
+UObject*& AFortGameStateAthena::GetCurrentPlaylist()
+{
+	static auto CurrentPlaylistInfoOffset = GetOffset("CurrentPlaylistInfo", false);
+
+	if (CurrentPlaylistInfoOffset == 0)
+	{
+		static auto CurrentPlaylistDataOffset = GetOffset("CurrentPlaylistData");
+		return Get(CurrentPlaylistDataOffset);
+	}
+
+	auto CurrentPlaylistInfo = this->GetPtr<FFastArraySerializer>(CurrentPlaylistInfoOffset);
+
+	static auto BasePlaylistOffset = FindOffsetStruct("/Script/FortniteGame.PlaylistPropertyArray", "BasePlaylist");
+	return *(UObject**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset);
+}
+
+int AFortGameStateAthena::GetAircraftIndex(AFortPlayerState* PlayerState)
+{
+	// The function has a string in it but we can just remake lol
+
+	auto PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerState);
+
+	if (!PlayerStateAthena)
+		return 0;
+
+	auto CurrentPlaylist = GetCurrentPlaylist();
+	
+	if (!CurrentPlaylist)
+		return 0;
+
+	static auto AirCraftBehaviorOffset = GetOffset("AirCraftBehavior");
+
+	if (Get<uint8_t>(AirCraftBehaviorOffset) != 1) // AirCraftBehavior != EAirCraftBehavior::OpposingAirCraftForEachTeam
+		return 0;
+
+	auto TeamIndex = PlayerStateAthena->GetTeamIndex();
+	int idfkwhatthisisimguessing = TeamIndex;
+
+	static auto DefaultFirstTeamOffset = CurrentPlaylist->GetOffset("DefaultFirstTeam");
+	auto DefaultFirstTeam = CurrentPlaylist->Get<int>(DefaultFirstTeamOffset);
+
+	return TeamIndex - idfkwhatthisisimguessing;
+}
 
 bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState) // actually in zone
 {

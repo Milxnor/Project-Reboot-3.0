@@ -51,6 +51,9 @@ public:
 		if (CosmeticLoadoutPCOffset == 0)
 			CosmeticLoadoutPCOffset = this->GetOffset("CustomizationLoadout");
 
+		if (CosmeticLoadoutPCOffset == 0)
+			return nullptr;
+
 		auto CosmeticLoadout = this->GetPtr<FFortAthenaLoadout>(CosmeticLoadoutPCOffset);
 
 		return CosmeticLoadout;

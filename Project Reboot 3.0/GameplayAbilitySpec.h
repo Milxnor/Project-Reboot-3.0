@@ -58,9 +58,9 @@ static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* 
 
 	static auto ActiveCountOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "ActiveCount", false);
 
-	constexpr bool bUseNativeSpecConstructor = true;
+	bool bUseNativeSpecConstructor = Addresses::SpecConstructor;
 
-	if constexpr (bUseNativeSpecConstructor)
+	if (bUseNativeSpecConstructor)
 	{
 		static __int64 (*SpecConstructor)(__int64 spec, UObject* Ability, int Level, int InputID, UObject* SourceObject) = decltype(SpecConstructor)(Addresses::SpecConstructor);
 

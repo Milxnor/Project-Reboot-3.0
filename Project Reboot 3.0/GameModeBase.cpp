@@ -21,10 +21,12 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 {
 	LOG_INFO(LogDev, "SpawnDefaultPawnFor: 0x{:x}!", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
 
-	// static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
-	// GameMode->Get<UClass*>("DefaultPawnClass") = PawnClass;
-	auto PawnClass = GameMode->GetDefaultPawnClassForController(NewPlayer);
-	
+	// auto PawnClass = GameMode->GetDefaultPawnClassForController(NewPlayer);
+	// LOG_INFO(LogDev, "PawnClass: {}", PawnClass->GetFullName());
+
+	static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+	GameMode->Get<UClass*>("DefaultPawnClass") = PawnClass;
+
 	static auto fn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
 
 	struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; } 
@@ -44,7 +46,8 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 			if (!WorldInventory->GetPickaxeInstance())
 			{
-				auto CosmeticLoadoutPickaxe = NewPlayerAsAthena->GetCosmeticLoadout()->GetPickaxe();
+				auto CosmeticLoadout = NewPlayerAsAthena->GetCosmeticLoadout();
+				auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
 				static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition");
 
 				auto Pickaxe = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)

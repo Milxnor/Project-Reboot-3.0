@@ -5,6 +5,18 @@
 #include "SoftObjectPtr.h"
 #include "globals.h"
 #include "GameplayStatics.h"
+#include "hooking.h"
+
+void AFortPlayerControllerAthena::ServerRestartPlayerHook(AFortPlayerControllerAthena* Controller)
+{
+	static auto FortPlayerControllerZoneDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortPlayerControllerZone");
+	static auto ServerRestartPlayerFn = FindObject<UFunction>(L"/Script/Engine.PlayerController.ServerRestartPlayer");
+	static auto ZoneServerRestartPlayer = __int64(FortPlayerControllerZoneDefault->VFTable[GetFunctionIdxOrPtr(ServerRestartPlayerFn) / 8]);
+	static void (*ZoneServerRestartPlayerOriginal)(AFortPlayerController*) = decltype(ZoneServerRestartPlayerOriginal)(__int64(ZoneServerRestartPlayer));
+	
+	LOG_INFO(LogDev, "Call 0x{:x}!", ZoneServerRestartPlayer - __int64(_ReturnAddress()));
+	return ZoneServerRestartPlayerOriginal(Controller);
+}
 
 void AFortPlayerControllerAthena::ServerGiveCreativeItemHook(AFortPlayerControllerAthena* Controller, FFortItemEntry CreativeItem)
 {
@@ -72,7 +84,8 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 	{
 		auto CosmeticLoadout = ControllerAsFort->GetCosmeticLoadout();
 
-		ApplyCID(PawnAsFort, CosmeticLoadout->GetCharacter());
+		if (CosmeticLoadout)
+			ApplyCID(PawnAsFort, CosmeticLoadout->GetCharacter());
 
 		return;
 	}

@@ -293,7 +293,7 @@ void Offsets::FindAll()
 	Offsets::Children = Engine_Version >= 425 ? 0x50 : Offsets::SuperStruct + 8;
 	Offsets::PropertiesSize = Offsets::Children + 8;
 
-	if (Engine_Version >= 419 && Engine_Version <= 421)
+	if (Engine_Version >= 416 && Engine_Version <= 421)
 		Offsets::Func = 0xB0;
 	else if (Engine_Version >= 422 && Engine_Version <= 424)
 		Offsets::Func = 0xC0;
@@ -324,7 +324,9 @@ void Offsets::FindAll()
 	else if (std::floor(Fortnite_Version) >= 21)
 		Offsets::ServerReplicateActors = 0x67; // checked onb 22.30
 
-	if (Engine_Version == 419)
+	if (Engine_Version == 416)
+		Offsets::ReplicationFrame = 0x288;
+	else if (Engine_Version == 419)
 		Offsets::ReplicationFrame = 0xB2;
 }
 

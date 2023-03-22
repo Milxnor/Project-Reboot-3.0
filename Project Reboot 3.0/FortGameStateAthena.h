@@ -30,8 +30,11 @@ public:
 		return Get<EAthenaGamePhase>(GamePhaseOffset);
 	}
 
+	UObject*& GetCurrentPlaylist();
+
 	// void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
 
+	int GetAircraftIndex(AFortPlayerState* PlayerState);
 	bool IsRespawningAllowed(AFortPlayerState* PlayerState); // actually in zone
 	void OnRep_GamePhase();
 	void OnRep_CurrentPlaylistInfo();

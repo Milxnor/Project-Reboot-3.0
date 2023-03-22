@@ -6,5 +6,6 @@ namespace Globals
 	extern inline bool bGoingToPlayEvent = false;
 	extern inline bool bNoMCP = true;
 	extern inline bool bLateGame = false;	
-	extern inline bool bAbilitiesEnabled = false;
+	extern inline bool bAbilitiesEnabled = true;
+	extern inline bool bLogProcessEvent = false;
 }

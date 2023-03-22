@@ -304,7 +304,7 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	auto NewPawn = GameMode->SpawnDefaultPawnForHook(GameMode, (AController*)PlayerController, Aircrafts->at(0));
 	PlayerController->Possess(NewPawn);
 
-	// PC->ServerRestartPlayer();
+	// PlayerController->ServerRestartPlayer();
 }
 
 void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)

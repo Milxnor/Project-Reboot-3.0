@@ -702,7 +702,10 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		}
 	}
 
-	PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2;
+	static auto SquadIdOffset = PlayerStateAthena->GetOffset("SquadId", false);
+
+	if (SquadIdOffset != 0)
+		PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2;
 
 	// idk if this is needed
 

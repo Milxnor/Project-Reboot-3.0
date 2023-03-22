@@ -236,7 +236,7 @@ namespace Hooking
 
             if (!DefaultClass || !DefaultClass->VFTable)
             {
-                LOG_WARN(LogHook, "DefaultClass or the vtable is null! ({})", __int64(DefaultClass));
+                LOG_WARN(LogHook, "DefaultClass or the vtable for function {} is null! ({})", Function->GetName(), __int64(DefaultClass));
                 return false;
             }
 

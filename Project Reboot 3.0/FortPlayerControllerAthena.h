@@ -62,6 +62,7 @@ public:
 		return (AFortPlayerStateAthena*)GetPlayerState();
 	}
 
+	static void ServerRestartPlayerHook(AFortPlayerControllerAthena* Controller);
 	static void ServerGiveCreativeItemHook(AFortPlayerControllerAthena* Controller, FFortItemEntry CreativeItem);
 	static void ServerTeleportToPlaygroundLobbyIslandHook(AFortPlayerControllerAthena* Controller);
 	static void ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn);
