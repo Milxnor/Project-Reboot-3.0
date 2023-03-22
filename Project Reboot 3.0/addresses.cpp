@@ -143,7 +143,7 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding SetWorld");
 
 	Addresses::SetWorld = FindSetWorld();
-	LOG_INFO(LogDev, "Finding Kickplayer");
+	LOG_INFO(LogDev, "Finding KickPlayer");
 
 	Addresses::KickPlayer = FindKickPlayer();
 	LOG_INFO(LogDev, "Finding TickFlush");

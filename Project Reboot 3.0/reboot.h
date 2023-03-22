@@ -5,6 +5,7 @@
 // #include "World.h"
 
 #include "Class.h"
+#include "globals.h"
 
 /* enum class REBOOT_ERROR : uint8
 {
@@ -16,8 +17,22 @@
 extern inline UObject* (*StaticLoadObjectOriginal)(UClass*, UObject*, const wchar_t* InName, const wchar_t* Filename, uint32_t LoadFlags, UObject* Sandbox, bool bAllowObjectReconciliation) = nullptr;
 
 template <typename T = UObject>
+static inline T* FindObject(const TCHAR* Name, UClass* Class = nullptr, UObject* Outer = nullptr)
+{
+	auto res = (T*)StaticFindObject/*<T>*/(Class, Outer, Name);
+	return res;
+}
+
+template <typename T = UObject>
 static inline T* LoadObject(const TCHAR* Name, UClass* Class = nullptr, UObject* Outer = nullptr)
 {
+	if (!StaticLoadObjectOriginal)
+	{
+		std::wstring NameWStr = std::wstring(Name);
+		LOG_WARN(LogDev, "We should load {} but static load object is null!", std::string(NameWStr.begin(), NameWStr.end()));
+		return FindObject<T>(Name, Class, Outer);
+	}
+
 	return (T*)StaticLoadObjectOriginal(Class, Outer, Name, nullptr, 0, nullptr, false);
 }
 
@@ -26,13 +41,6 @@ static inline T* LoadObject(const std::string& NameStr, UClass* Class = nullptr,
 {
 	auto NameCWSTR = std::wstring(NameStr.begin(), NameStr.end()).c_str();
 	return (T*)StaticLoadObjectOriginal(Class, Outer, NameCWSTR, nullptr, 0, nullptr, false);
-}
-
-template <typename T = UObject>
-static inline T* FindObject(const TCHAR* Name, UClass* Class = nullptr, UObject* Outer = nullptr)
-{
-	auto res = (T*)StaticFindObject/*<T>*/(Class, Outer, Name);
-	return res;
 }
 
 template <typename T = UObject>
@@ -312,8 +320,6 @@ static UObject* GetPlaylistToUse()
 	// Playlist = FindObject("/BlueCheese/Playlists/Playlist_ShowdownAlt_BlueCheese_Trios.Playlist_ShowdownAlt_BlueCheese_Trios");
 
 	/*
-	if (Globals::bCreative)
-		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
 	if (Globals::bGoingToPlayEvent)
 	{
@@ -338,6 +344,9 @@ static UObject* GetPlaylistToUse()
 
 	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
 	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");
+
+	if (Globals::bCreative)
+		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
 	return Playlist;
 }

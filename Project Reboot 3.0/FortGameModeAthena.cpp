@@ -571,18 +571,18 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	{
 		bFirst = false;
 		
-		auto PlaylistToUse = GetPlaylistToUse();
+		auto CurrentPlaylist = GameState->GetCurrentPlaylist();
 
-		// if (!PlaylistToUse || !PlaylistToUse->Get<bool>("bSkipWarmup"))
+		// if (!CurrentPlaylist || !CurrentPlaylist->Get<bool>("bSkipWarmup"))
 		{
-			GameState->GetGamePhase() = EAthenaGamePhase::Warmup;
-			GameState->OnRep_GamePhase();
+			/* GameState->GetGamePhase() = EAthenaGamePhase::Warmup;
+			GameState->OnRep_GamePhase(); */
 		}
 
 		// GameState->OnRep_CurrentPlaylistInfo();
 	}
 
-	static bool bSpawnedFloorLoot = false;
+	static bool bSpawnedFloorLoot = Engine_Version >= 427;
 
 	if (!bSpawnedFloorLoot)
 	{

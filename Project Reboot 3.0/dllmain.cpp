@@ -90,6 +90,7 @@ DWORD WINAPI Main(LPVOID)
     FString Level = Engine_Version < 424
         ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
         ? L"Asteria_Terrain"
+        : Globals::bCreative ? L"Creative_NoApollo_Terrain" 
         : L"Artemis_Terrain"
         : Globals::bCreative ? L"Creative_NoApollo_Terrain" 
         : L"Apollo_Terrain";
@@ -160,6 +161,8 @@ DWORD WINAPI Main(LPVOID)
     // return false;
 
     // UNetDriver::ReplicationDriverOffset = FindOffsetStruct("/Script/Engine.NetDriver", "ReplicationDriver"); // NetDriver->GetOffset("ReplicationDriver");
+
+    // Globals::bAbilitiesEnabled = Engine_Version < 500;
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameMode.ReadyToStartMatch"), AFortGameModeAthena::Athena_ReadyToStartMatchHook,
        (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false);

@@ -45,7 +45,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 	{
 		bFilledDurations = true;
 
-		auto CurrentPlaylist = GetPlaylistToUse();
+		auto CurrentPlaylist = GameState->GetCurrentPlaylist();
 		UCurveTable* FortGameData = nullptr;
 
 		static auto GameDataOffset = CurrentPlaylist->GetOffset("GameData");
