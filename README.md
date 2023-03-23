@@ -1,3 +1,4 @@
 # Project Reboot 3.0
  
-SKIDBOOT
+F7 - Start event
+F8 - Start Aircraft
