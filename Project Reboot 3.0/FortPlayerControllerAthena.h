@@ -5,6 +5,7 @@
 #include "FortPlayerPawn.h"
 #include "SoftObjectPtr.h"
 #include "FortKismetLibrary.h"
+#include "AthenaMarkerComponent.h"
 
 static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 {
@@ -60,6 +61,12 @@ public:
 	AFortPlayerStateAthena* GetPlayerStateAthena()
 	{
 		return (AFortPlayerStateAthena*)GetPlayerState();
+	}
+
+	UAthenaMarkerComponent* GetMarkerComponent()
+	{
+		static auto MarkerComponentOffset = GetOffset("MarkerComponent");
+		return Get<UAthenaMarkerComponent*>(MarkerComponentOffset);
 	}
 
 	static void ServerRestartPlayerHook(AFortPlayerControllerAthena* Controller);

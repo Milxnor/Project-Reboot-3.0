@@ -167,6 +167,16 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
         LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
         LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
+
+        for (int i = 0; i < LTDTables.size(); i++)
+        {
+            LOG_INFO(LogDev, "[{}] LTD {}", LTDTables.at(i)->GetFullName());
+        }
+
+        for (int i = 0; i < LPTables.size(); i++)
+        {
+            LOG_INFO(LogDev, "[{}] LP {}", LPTables.at(i)->GetFullName());
+        }
     }
 
     std::vector<FFortLootTierData*> TierGroupLTDs;
@@ -193,11 +203,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
             if (IsBadReadPtr(TierData, 8))
                 continue;
 
-            // auto TierDataGroupStr = TierData->TierGroup.ToString();
-
-            // std::cout << "TierData->TierGroup.ToString(): " << TierDataGroupStr << '\n';
-
-            if (TierGroupName == TierData->GetTierGroup() /* TierDataGroupStr == TierGroupNameStr */ && TierData->GetWeight() != 0)
+            if (TierGroupName == TierData->GetTierGroup() && TierData->GetWeight() != 0)
             {
                 TierGroupLTDs.push_back(TierData);
             }

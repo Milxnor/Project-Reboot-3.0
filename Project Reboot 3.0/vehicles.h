@@ -18,9 +18,14 @@ static inline void ServerVehicleUpdate(UObject* Context, FFrame& Stack, void* Re
 
 	FTransform Transform{};
 
-	static std::string StateStructName = FindObject("/Script/FortniteGame.ReplicatedPhysicsPawnState") ? "/Script/FortniteGame.ReplicatedPhysicsPawnState" : "";
+	static std::string StateStructName = FindObject("/Script/FortniteGame.ReplicatedPhysicsPawnState") ? "/Script/FortniteGame.ReplicatedPhysicsPawnState" : "Script/FortniteGame.ReplicatedAthenaVehiclePhysicsState";
 
 	if (StateStructName.empty())
+		return;
+
+	auto StateStruct = FindObject(StateStructName);
+
+	if (!StateStruct)
 		return;
 
 	auto State = (void*)(__int64(Params) + 0);
@@ -39,6 +44,12 @@ static inline void ServerVehicleUpdate(UObject* Context, FFrame& Stack, void* Re
 		Rotation->Y /= 0.3;
 		Rotation->Z -= v50;
 		Rotation->W /= -1.2;
+
+		Transform.Rotation = *Rotation;
+	}
+	else
+	{
+		auto Rotation = (FQuat*)(__int64(State) + RotationOffset);
 
 		Transform.Rotation = *Rotation;
 	}
@@ -91,6 +102,7 @@ static inline void ServerVehicleUpdate(UObject* Context, FFrame& Stack, void* Re
 
 static inline void AddVehicleHook()
 {
+	static auto FortAthenaVehicleDefault = FindObject("/Script/FortniteGame.Default__FortAthenaVehicle");
 	static auto FortPhysicsPawnDefault = FindObject("/Script/FortniteGame.Default__FortPhysicsPawn");
 
 	if (FortPhysicsPawnDefault)
@@ -99,10 +111,17 @@ static inline void AddVehicleHook()
 			FindObject<UFunction>("/Script/FortniteGame.FortPhysicsPawn.ServerMove") : FindObject<UFunction>("/Script/FortniteGame.FortPhysicsPawn.ServerUpdatePhysicsParams"),
 			ServerVehicleUpdate, nullptr, false, true);
 	}
+	else
+	{
+		Hooking::MinHook::Hook(FortAthenaVehicleDefault, FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.ServerUpdatePhysicsParams"),
+			ServerVehicleUpdate, nullptr, false, true);
+	}
 }
 
 static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 {
+	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
 	FTransform SpawnTransform{};
 	SpawnTransform.Translation = VehicleSpawner->GetActorLocation();
 	SpawnTransform.Rotation = VehicleSpawner->GetActorRotation().Quaternion();
@@ -112,13 +131,46 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 
 	if (VehicleClassOffset != 0) // 10.40 and below?
 	{
-		auto VehicleClass = VehicleSpawner->Get<UClass*>(VehicleClassOffset);
+		auto& SoftVehicleClass = VehicleSpawner->Get<TSoftObjectPtr<UClass>>(VehicleClassOffset);
+		auto StrongVehicleClass = SoftVehicleClass.Get();
 
-		if (!VehicleClass)
+		if (!StrongVehicleClass)
+		{
+			std::string VehicleClassObjectName = SoftVehicleClass.SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value == 0 ? "InvalidName" : SoftVehicleClass.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+			LOG_WARN(LogVehicles, "Failed to load vehicle class: {}", VehicleClassObjectName);
 			return nullptr;
+		}
 
-		return GetWorld()->SpawnActor<AActor>(VehicleClass, SpawnTransform);
+		return GetWorld()->SpawnActor<AActor>(StrongVehicleClass, SpawnTransform);
 	}
+
+	static auto FortVehicleItemDefOffset = VehicleSpawner->GetOffset("FortVehicleItemDef");
+
+	if (FortVehicleItemDefOffset == 0)
+		return nullptr;
+
+	auto& SoftFortVehicleItemDef = VehicleSpawner->Get<TSoftObjectPtr<UFortItemDefinition>>(FortVehicleItemDefOffset);
+	auto StrongFortVehicleItemDef = SoftFortVehicleItemDef.Get();
+
+	if (!StrongFortVehicleItemDef)
+	{
+		std::string FortVehicleItemDefObjectName = SoftFortVehicleItemDef.SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value == 0 ? "InvalidName" : SoftFortVehicleItemDef.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+		LOG_WARN(LogVehicles, "Failed to load vehicle item definition: {}", FortVehicleItemDefObjectName);
+		return nullptr;
+	}
+
+	static auto VehicleActorClassOffset = StrongFortVehicleItemDef->GetOffset("VehicleActorClass");
+	auto& SoftVehicleActorClass = StrongFortVehicleItemDef->Get<TSoftObjectPtr<UClass>>(VehicleActorClassOffset);
+	auto StrongVehicleActorClass = SoftVehicleActorClass.Get();
+
+	if (!StrongVehicleActorClass)
+	{
+		std::string VehicleActorClassObjectName = SoftVehicleActorClass.SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value == 0 ? "InvalidName" : SoftVehicleActorClass.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+		LOG_WARN(LogVehicles, "Failed to load vehicle actor class: {}", VehicleActorClassObjectName);
+		return nullptr;
+	}
+
+	return GetWorld()->SpawnActor<AActor>(StrongVehicleActorClass, SpawnTransform);
 }
 
 static inline void SpawnVehicles2()

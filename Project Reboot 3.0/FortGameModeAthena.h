@@ -17,6 +17,7 @@ public:
 	}
 
 	FName RedirectLootTier(const FName& LootTier);
+	UClass* GetVehicleClassOverride(UClass* DefaultClass);
 
 	static bool Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode);
 	static int Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller);

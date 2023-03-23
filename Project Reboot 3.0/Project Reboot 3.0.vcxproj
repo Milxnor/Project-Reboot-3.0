@@ -168,6 +168,7 @@
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ActorComponent.cpp" />
     <ClCompile Include="addresses.cpp" />
+    <ClCompile Include="AthenaMarkerComponent.cpp" />
     <ClCompile Include="BuildingActor.cpp" />
     <ClCompile Include="BuildingSMActor.cpp" />
     <ClCompile Include="BuildingTrap.cpp" />
@@ -211,6 +212,7 @@
     <ClCompile Include="NetDriver.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PlayerController.cpp" />
+    <ClCompile Include="PlayerState.cpp" />
     <ClCompile Include="UnrealMath.cpp" />
     <ClCompile Include="UnrealNames.cpp" />
     <ClCompile Include="UObjectGlobals.cpp" />

@@ -154,6 +154,20 @@ FName AFortGameModeAthena::RedirectLootTier(const FName& LootTier)
 	return LootTier;
 }
 
+UClass* AFortGameModeAthena::GetVehicleClassOverride(UClass* DefaultClass)
+{
+	static auto GetVehicleClassOverrideFn = FindObject<UFunction>("/Script/FortniteGame.FortGameModeAthena.GetVehicleClassOverride");
+
+	if (!GetVehicleClassOverrideFn)
+		return DefaultClass;
+
+	struct { UClass* DefaultClass; UClass* ReturnValue; } GetVehicleClassOverride_Params{DefaultClass};
+	
+	this->ProcessEvent(GetVehicleClassOverrideFn, &GetVehicleClassOverride_Params);
+
+	return GetVehicleClassOverride_Params.ReturnValue;
+}
+
 bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode)
 {
 	auto GameState = GameMode->GetGameStateAthena();
@@ -224,7 +238,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 		else
 		{
-			SetPlaylist(PlaylistToUse, true);
+			// SetPlaylist(PlaylistToUse, true);
 			LOG_INFO(LogDev, "Set playlist!");
 		}
 
@@ -734,6 +748,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 
 	LOG_INFO(LogDev, "Old ID: {}", PlayerStateAthena->GetWorldPlayerId());
+	LOG_INFO(LogDev, "PlayerID: {}", PlayerStateAthena->GetPlayerID());
 
 	// if (PlayerStateAthena->GetWorldPlayerId() == -1)
 	{

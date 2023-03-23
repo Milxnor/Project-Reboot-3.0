@@ -266,10 +266,10 @@ static inline uint64 FindGetMaxTickRate() // Uengine::getmaxtickrate
 
 static inline uint64 FindGetPlayerViewpoint()
 {
-	// return Memcury::Scanner::FindPattern("40 55 56 57 41 57 48 8B EC 48 83 EC 48 48 8B 81 ? ? ? ? 4D 8B F8 48 8B").Get(); // 12.41
-	// return Memcury::Scanner::FindPattern("40 55 53 57 41 56 41 57 48 8B EC 48 83 EC 40 48 8B 81 ? ? ? ? 4D").Get(); // 14.60
+	if (Engine_Version == 420)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 41 56 41 57 48 8B EC 48 83 EC 50").Get(); // idk why finder doesnt work and cba to debug
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s", true);
+	auto Addr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s");
 	// return FindBytes(Addr, { 0x48, 0x89 /*, 0x5C */}, 2000, 0, true, 1);
 	auto add = FindBytes(Addr, { 0x40, 0x55 }, 1000, 0, true);
 	return add ? add : FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true);
@@ -431,7 +431,7 @@ static inline uint64 FindNoMCP()
 	} */
 
 	if (std::floor(Fortnite_Version) == 3)
-		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 48 8D 4C 24 ?").Get();
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 48 8D 4C 24 ?").RelativeOffset(1).Get();
 
 	if (std::floor(Fortnite_Version) == 4)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 83 E0 01").RelativeOffset(1).Get();

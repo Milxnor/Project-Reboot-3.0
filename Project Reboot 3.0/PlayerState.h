@@ -5,4 +5,5 @@
 class APlayerState : public AActor
 {
 public:
+	int& GetPlayerID();
 };

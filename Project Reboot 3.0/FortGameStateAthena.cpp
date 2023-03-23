@@ -55,6 +55,10 @@ int AFortGameStateAthena::GetAircraftIndex(AFortPlayerState* PlayerState)
 bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState) // actually in zone
 {
 	static auto IsRespawningAllowedFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateZone.IsRespawningAllowed");
+
+	if (!IsRespawningAllowedFn)
+		return false;
+
 	struct { AFortPlayerState* PlayerState; bool ReturnValue; } AFortGameStateZone_IsRespawningAllowed_Params{PlayerState};
 	this->ProcessEvent(IsRespawningAllowedFn, &AFortGameStateZone_IsRespawningAllowed_Params);
 

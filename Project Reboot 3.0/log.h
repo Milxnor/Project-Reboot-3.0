@@ -73,6 +73,7 @@ inline void InitLogger()
     MakeLogger("LogCreative");
     MakeLogger("LogZone");
     MakeLogger("LogReplication");
+    MakeLogger("LogVehicles");
 }
 
 #define LOG_DEBUG(loggerName, ...)                                            \
