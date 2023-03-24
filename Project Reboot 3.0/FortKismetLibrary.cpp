@@ -1,6 +1,7 @@
 #include "FortKismetLibrary.h"
 #include "ScriptInterface.h"
 #include "FortPickup.h"
+#include "FortLootPackage.h"
 
 UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EFortResourceType ResourceType)
 {
@@ -64,18 +65,49 @@ void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, co
 	}
 }
 
+void UFortKismetLibrary::K2_SpawnPickupInWorldWithLootTierHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	LOG_INFO(LogDev, __FUNCTION__);
+
+	return K2_SpawnPickupInWorldWithLootTierOriginal(Context, Stack, Ret);
+}
+
+void UFortKismetLibrary::CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	UObject* WorldContextObject; 
+	UFortWeaponItemDefinition* WeaponItemDefinition; 
+	FGameplayTagContainer                 SourceTags; 
+	FVector                               Location; 
+	EFortPickupSourceTypeFlag         SourceTypeFlag; 
+	EFortPickupSpawnSource            SpawnSource;
+
+	Stack.StepCompiledIn(&WorldContextObject);
+	Stack.StepCompiledIn(&WeaponItemDefinition);
+	Stack.StepCompiledIn(&SourceTags);
+	Stack.StepCompiledIn(&Location);
+	Stack.StepCompiledIn(&SourceTypeFlag);
+	Stack.StepCompiledIn(&SpawnSource);
+
+	LOG_INFO(LogDev, __FUNCTION__);
+
+	return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
+
+	int Count = 1;
+
+	auto AmmoDefinition = WeaponItemDefinition->GetAmmoData();
+
+	if (!AmmoDefinition)
+		return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
+
+	auto AmmoPickup = AFortPickup::SpawnPickup(AmmoDefinition, Location, Count, SourceTypeFlag, SpawnSource);
+
+	return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
+}
+
 void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& Stack, void* Ret)
 {
-	auto Params = /*(UFortKismetLibrary_GiveItemToInventoryOwner_Params*)*/Stack.Locals;
-
-	static auto InventoryOwnerOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "InventoryOwner");
-	static auto ItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemDefinition");
-	static auto NumberToGiveOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "NumberToGive");
-	static auto bNotifyPlayerOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "bNotifyPlayer");
 	static auto ItemLevelOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemLevel", false);
 	static auto PickupInstigatorHandleOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "PickupInstigatorHandle", false);
-
-	// return GiveItemToInventoryOwnerOriginal(Context, Stack, Ret);
 
 	TScriptInterface<UFortInventoryOwnerInterface> InventoryOwner; // = *(TScriptInterface<UFortInventoryOwnerInterface>*)(__int64(Params) + InventoryOwnerOffset);
 	UFortWorldItemDefinition* ItemDefinition = nullptr; // *(UFortWorldItemDefinition**)(__int64(Params) + ItemDefinitionOffset);
@@ -84,16 +116,18 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 	int ItemLevel; // = *(int*)(__int64(Params) + ItemLevelOffset);
 	int PickupInstigatorHandle; // = *(int*)(__int64(Params) + PickupInstigatorHandleOffset);
 
-	Stack.Step(Stack.Object, &InventoryOwner);
-	Stack.Step(Stack.Object, &ItemDefinition);
-	Stack.Step(Stack.Object, &NumberToGive);
-	Stack.Step(Stack.Object, &bNotifyPlayer);
+	Stack.StepCompiledIn(&InventoryOwner);
+	Stack.StepCompiledIn(&ItemDefinition);
+	Stack.StepCompiledIn(&NumberToGive);
+	Stack.StepCompiledIn(&bNotifyPlayer);
+
+	LOG_INFO(LogDev, __FUNCTION__);
 
 	if (ItemLevelOffset != 0)
-		Stack.Step(Stack.Object, &ItemLevel);
+		Stack.StepCompiledIn(&ItemLevel);
 
 	if (PickupInstigatorHandleOffset != 0)
-		Stack.Step(Stack.Object, &PickupInstigatorHandle);
+		Stack.StepCompiledIn(&PickupInstigatorHandle);
 
 	if (!ItemDefinition)
 		return GiveItemToInventoryOwnerOriginal(Context, Stack, Ret);
@@ -140,9 +174,11 @@ void UFortKismetLibrary::K2_RemoveItemFromPlayerHook(UObject* Context, FFrame& S
 	UFortWorldItemDefinition* ItemDefinition = nullptr;
 	int AmountToRemove;
 
-	Stack.Step(Stack.Object, &PlayerController);
-	Stack.Step(Stack.Object, &ItemDefinition);
-	Stack.Step(Stack.Object, &AmountToRemove);
+	Stack.StepCompiledIn(&PlayerController);
+	Stack.StepCompiledIn(&ItemDefinition);
+	Stack.StepCompiledIn(&AmountToRemove);
+
+	LOG_INFO(LogDev, __FUNCTION__);
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 
@@ -172,10 +208,12 @@ void UFortKismetLibrary::K2_RemoveItemFromPlayerByGuidHook(UObject* Context, FFr
 	int                                                AmountToRemove;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	bool                                               bForceRemoval;
 
-	Stack.Step(Stack.Object, &PlayerController);
-	Stack.Step(Stack.Object, &ItemGuid);
-	Stack.Step(Stack.Object, &AmountToRemove);
-	Stack.Step(Stack.Object, &bForceRemoval);
+	Stack.StepCompiledIn(&PlayerController);
+	Stack.StepCompiledIn(&ItemGuid);
+	Stack.StepCompiledIn(&AmountToRemove);
+	Stack.StepCompiledIn(&bForceRemoval);
+
+	LOG_INFO(LogDev, __FUNCTION__);
 
 	if (!PlayerController)
 		return;
@@ -203,10 +241,12 @@ void UFortKismetLibrary::K2_GiveItemToPlayerHook(UObject* Context, FFrame& Stack
 	int NumberToGive;
 	bool bNotifyPlayer;
 
-	Stack.Step(Stack.Object, &PlayerController);
-	Stack.Step(Stack.Object, &ItemDefinition);
-	Stack.Step(Stack.Object, &NumberToGive);
-	Stack.Step(Stack.Object, &bNotifyPlayer);
+	Stack.StepCompiledIn(&PlayerController);
+	Stack.StepCompiledIn(&ItemDefinition);
+	Stack.StepCompiledIn(&NumberToGive);
+	Stack.StepCompiledIn(&bNotifyPlayer);
+
+	LOG_INFO(LogDev, __FUNCTION__);
 
 	if (!PlayerController || !ItemDefinition)
 		return K2_GiveItemToPlayerOriginal(Context, Stack, Ret);
@@ -227,10 +267,12 @@ void UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook(UObject* Context, FFram
 	int                                                AmountToRemove;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	bool                                               bForceRemoval;                                            // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
-	Stack.Step(Stack.Object, &PlayerController);
-	Stack.Step(Stack.Object, &Item);
-	Stack.Step(Stack.Object, &AmountToRemove);
-	Stack.Step(Stack.Object, &bForceRemoval);
+	Stack.StepCompiledIn(&PlayerController);
+	Stack.StepCompiledIn(&Item);
+	Stack.StepCompiledIn(&AmountToRemove);
+	Stack.StepCompiledIn(&bForceRemoval);
+
+	LOG_INFO(LogDev, __FUNCTION__);
 
 	if (!PlayerController)
 		return;
@@ -267,27 +309,28 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 	AFortPlayerController* OptionalOwnerPC;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	bool                                               bPickupOnlyRelevantToOwner;                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
-
-	Stack.Step(Stack.Object, &WorldContextObject);
-	Stack.Step(Stack.Object, &ItemDefinition);
-	Stack.Step(Stack.Object, &PickupClass);
-	Stack.Step(Stack.Object, &NumberToSpawn);
-	Stack.Step(Stack.Object, &Position);
-	Stack.Step(Stack.Object, &Direction);
-	Stack.Step(Stack.Object, &OverrideMaxStackCount);
-	Stack.Step(Stack.Object, &bToss);
-	Stack.Step(Stack.Object, &bRandomRotation);
-	Stack.Step(Stack.Object, &bBlockedFromAutoPickup);
-	Stack.Step(Stack.Object, &PickupInstigatorHandle);
-	Stack.Step(Stack.Object, &SourceType);
-	Stack.Step(Stack.Object, &Source);
-	Stack.Step(Stack.Object, &OptionalOwnerPC);
-	Stack.Step(Stack.Object, &bPickupOnlyRelevantToOwner);
+	Stack.StepCompiledIn(&WorldContextObject);
+	Stack.StepCompiledIn(&ItemDefinition);
+	Stack.StepCompiledIn(&PickupClass);
+	Stack.StepCompiledIn(&NumberToSpawn);
+	Stack.StepCompiledIn(&Position);
+	Stack.StepCompiledIn(&Direction);
+	Stack.StepCompiledIn(&OverrideMaxStackCount);
+	Stack.StepCompiledIn(&bToss);
+	Stack.StepCompiledIn(&bRandomRotation);
+	Stack.StepCompiledIn(&bBlockedFromAutoPickup);
+	Stack.StepCompiledIn(&PickupInstigatorHandle);
+	Stack.StepCompiledIn(&SourceType);
+	Stack.StepCompiledIn(&Source);
+	Stack.StepCompiledIn(&OptionalOwnerPC);
+	Stack.StepCompiledIn(&bPickupOnlyRelevantToOwner);
 
 	if (!ItemDefinition)
 		return K2_SpawnPickupInWorldWithClassOriginal(Context, Stack, Ret);
 
-	LOG_INFO(LogDev, "PickupClass: {}", PickupClass ? PickupClass->GetFullName() : "InvalidObject")
+	LOG_INFO(LogDev, "PickupClass: {}", PickupClass ? PickupClass->GetFullName() : "InvalidObject");
+
+	LOG_INFO(LogDev, __FUNCTION__);
 
 	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, nullptr, PickupClass);
 
@@ -314,20 +357,25 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 	AFortPlayerController* OptionalOwnerPC;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	bool                                               bPickupOnlyRelevantToOwner;                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
-	Stack.Step(Stack.Object, &WorldContextObject);
-	Stack.Step(Stack.Object, &ItemDefinition);
-	Stack.Step(Stack.Object, &NumberToSpawn);
-	Stack.Step(Stack.Object, &Position);
-	Stack.Step(Stack.Object, &Direction);
-	Stack.Step(Stack.Object, &OverrideMaxStackCount);
-	Stack.Step(Stack.Object, &bToss);
-	Stack.Step(Stack.Object, &bRandomRotation);
-	Stack.Step(Stack.Object, &bBlockedFromAutoPickup);
-	Stack.Step(Stack.Object, &PickupInstigatorHandle);
-	Stack.Step(Stack.Object, &SourceType);
-	Stack.Step(Stack.Object, &Source);
-	Stack.Step(Stack.Object, &OptionalOwnerPC);
-	Stack.Step(Stack.Object, &bPickupOnlyRelevantToOwner);
+	Stack.StepCompiledIn(&WorldContextObject);
+	Stack.StepCompiledIn(&ItemDefinition);
+	Stack.StepCompiledIn(&NumberToSpawn);
+	Stack.StepCompiledIn(&Position);
+	Stack.StepCompiledIn(&Direction);
+	Stack.StepCompiledIn(&OverrideMaxStackCount);
+	Stack.StepCompiledIn(&bToss);
+	Stack.StepCompiledIn(&bRandomRotation);
+	Stack.StepCompiledIn(&bBlockedFromAutoPickup);
+	Stack.StepCompiledIn(&PickupInstigatorHandle);
+	Stack.StepCompiledIn(&SourceType);
+	Stack.StepCompiledIn(&Source);
+	Stack.StepCompiledIn(&OptionalOwnerPC);
+	Stack.StepCompiledIn(&bPickupOnlyRelevantToOwner);
+
+	LOG_INFO(LogDev, "[{}] ItemDefinition: {}", __FUNCTION__, ItemDefinition ? ItemDefinition->GetFullName() : "");
+
+	if (!ItemDefinition)
+		return	K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
 
 	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source);
 
@@ -340,16 +388,32 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool* Ret)
 {
 	UObject* WorldContextObject;                                       // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	TArray<__int64>                      OutLootToDrop;                                            // (Parm, OutParm, ZeroConstructor, NativeAccessSpecifierPublic)
+	TArray<FFortItemEntry>                      OutLootToDropTempBuf;                                            // (Parm, OutParm, ZeroConstructor, NativeAccessSpecifierPublic)
 	FName                                       TierGroupName;                                            // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int                                                WorldLevel;                                               // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int                                                ForcedLootTier;                                           // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
-	Stack.Step(Stack.Object, &WorldContextObject);
-	Stack.Step(Stack.Object, &OutLootToDrop);
-	Stack.Step(Stack.Object, &TierGroupName);
-	Stack.Step(Stack.Object, &WorldLevel);
-	Stack.Step(Stack.Object, &ForcedLootTier);
+	Stack.StepCompiledIn(&WorldContextObject);
+	auto& OutLootToDrop = Stack.StepCompiledInRef<TArray<FFortItemEntry>>(&OutLootToDropTempBuf);
+	Stack.StepCompiledIn(&TierGroupName);
+	Stack.StepCompiledIn(&WorldLevel);
+	Stack.StepCompiledIn(&ForcedLootTier);
+
+	LOG_INFO(LogDev, "Picking loot for {}.", TierGroupName.ComparisonIndex.Value ? TierGroupName.ToString() : "InvalidName");
+
+	auto LootDrops = PickLootDrops(TierGroupName, true);
+
+	for (int i = 0; i < LootDrops.size(); i++)
+	{
+		auto NewEntry = Alloc<FFortItemEntry>(FFortItemEntry::GetStructSize());
+		auto& LootDrop = LootDrops.at(i);
+
+		NewEntry->GetItemDefinition() = LootDrop.ItemDefinition;
+		NewEntry->GetCount() = LootDrop.Count;
+		NewEntry->GetLoadedAmmo() = LootDrop.LoadedAmmo;
+
+		OutLootToDrop.AddPtr(NewEntry, FFortItemEntry::GetStructSize());
+	}
 
 	PickLootDropsOriginal(Context, Stack, Ret);
 

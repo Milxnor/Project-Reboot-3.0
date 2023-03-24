@@ -30,6 +30,18 @@ struct FFortItemEntry : FFastArraySerializerItem
 		static auto LoadedAmmoOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "LoadedAmmo");
 		return *(int*)(__int64(this) + LoadedAmmoOffset);
 	}
+
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortItemEntry");
+		return Struct;
+	}
+
+	static int GetStructSize()
+	{
+		static auto StructSize = GetStruct()->GetPropertiesSize();
+		return StructSize;
+	}
 };
 
 class UFortItem : public UObject

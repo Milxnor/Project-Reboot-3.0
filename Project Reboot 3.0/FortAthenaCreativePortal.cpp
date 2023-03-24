@@ -13,8 +13,8 @@ void AFortAthenaCreativePortal::TeleportPlayerToLinkedVolumeHook(UObject* Contex
 	AFortPlayerPawn* PlayerPawn = nullptr;
 	bool bUseSpawnTags;
 
-	Stack.Step(Stack.Object, &PlayerPawn);
-	Stack.Step(Stack.Object, &bUseSpawnTags);
+	Stack.StepCompiledIn(&PlayerPawn);
+	Stack.StepCompiledIn(&bUseSpawnTags);
 
 	LOG_INFO(LogDev, "PlayerPawn: {}", __int64(PlayerPawn));
 
@@ -45,8 +45,8 @@ void AFortAthenaCreativePortal::TeleportPlayerHook(UObject* Context, FFrame& Sta
 	AFortPlayerPawn* PlayerPawn = nullptr;
 	FRotator TeleportRotation;
 
-	Stack.Step(Stack.Object, &PlayerPawn);
-	Stack.Step(Stack.Object, &TeleportRotation);
+	Stack.StepCompiledIn(&PlayerPawn);
+	Stack.StepCompiledIn(&TeleportRotation);
 
 	LOG_INFO(LogDev, "PlayerPawn: {}", __int64(PlayerPawn));
 

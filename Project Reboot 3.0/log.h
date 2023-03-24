@@ -62,6 +62,7 @@ inline void InitLogger()
     MakeLogger("LogDev");
     MakeLogger("LogPlayer");
     MakeLogger("LogLoot");
+    MakeLogger("LogMinigame");
     MakeLogger("LogLoading");
     MakeLogger("LogHook");
     MakeLogger("LogAbilities");

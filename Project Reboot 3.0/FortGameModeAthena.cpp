@@ -20,6 +20,7 @@
 #include "reboot.h"
 #include "ai.h"
 #include "Map.h"
+#include "OnlineReplStructs.h"
 
 enum class EDynamicFoundationEnabledState : uint8_t
 {
@@ -238,7 +239,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 		else
 		{
-			// SetPlaylist(PlaylistToUse, true);
+			if (Fortnite_Version >= 4)
+				SetPlaylist(PlaylistToUse, true);
+
 			LOG_INFO(LogDev, "Set playlist!");
 		}
 
@@ -734,6 +737,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	// idk if this is needed
 
+	double (*sub_7FF753D401D0)(UObject* a1) = decltype(sub_7FF753D401D0)(__int64(GetModuleHandleW(0)) + 0x1A001D0);
+	LOG_INFO(LogDev, "TIme: {}", sub_7FF753D401D0(GetWorld()));
+
 	static auto bHasServerFinishedLoadingOffset = NewPlayer->GetOffset("bHasServerFinishedLoading");
 	NewPlayer->Get<bool>(bHasServerFinishedLoadingOffset) = true;
 
@@ -754,7 +760,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	{
 		static int CurrentPlayerId = 1;
 		// static auto PlayerIdOffset = PlayerStateAthena->GetOffset("PlayerId"); // Unable to find tf
-		PlayerStateAthena->GetWorldPlayerId() = ++CurrentPlayerId; // PlayerStateAthena->Get<int>(PlayerIdOffset); // 
+		PlayerStateAthena->GetWorldPlayerId() = PlayerStateAthena->GetPlayerID(); // ++CurrentPlayerId; // PlayerStateAthena->Get<int>(PlayerIdOffset); // 
 	}
 
 	if (Globals::bAbilitiesEnabled)
@@ -795,10 +801,12 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		unsigned char ahh[0x0028];
 	};
 
-	FUniqueNetIdReplExperimental Bugha{};
-	auto& PlayerStateUniqueId = PlayerStateAthena->Get<FUniqueNetIdReplExperimental>("UniqueId");
+	/* FUniqueNetIdReplExperimental Bugha{}; */
+	static auto UniqueIdOffset = PlayerStateAthena->GetOffset("UniqueId");
+	auto PlayerStateUniqueId = PlayerStateAthena->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset);
 
 	{
+		LOG_INFO(LogDev, "bruh");
 		static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
 
 		// if (false)
@@ -816,7 +824,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			static auto GameMemberInfoStructSize = 0x38;
 			// LOG_INFO(LogDev, "Compare: 0x{:x} 0x{:x}", GameMemberInfoStructSize, sizeof(FGameMemberInfo));
 
-			auto GameMemberInfo = Alloc<FGameMemberInfo>(GameMemberInfoStructSize);
+			auto GameMemberInfo = Alloc<__int64>(GameMemberInfoStructSize);
 
 			((FFastArraySerializerItem*)GameMemberInfo)->MostRecentArrayReplicationKey = -1;
 			((FFastArraySerializerItem*)GameMemberInfo)->ReplicationID = -1;
@@ -827,25 +835,28 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				static auto GameMemberInfo_SquadIdOffset = 0x000C;
 				static auto GameMemberInfo_TeamIndexOffset = 0x000D;
 				static auto GameMemberInfo_MemberUniqueIdOffset = 0x0010;
-				static auto UniqueIdSize = 0x0028;
+				static auto UniqueIdSize = FUniqueNetIdRepl::GetSizeOfStruct();
 
 				*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_SquadIdOffset) = PlayerStateAthena->GetSquadId();
 				*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_TeamIndexOffset) = PlayerStateAthena->GetTeamIndex();
-				CopyStruct((void*)(__int64(GameMemberInfo) + GameMemberInfo_MemberUniqueIdOffset), PlayerStateAthena->Get<void*>("UniqueId"), UniqueIdSize);
-
+				CopyStruct((void*)(__int64(GameMemberInfo) + GameMemberInfo_MemberUniqueIdOffset), PlayerStateUniqueId, UniqueIdSize);
 			}
 			else
 			{
-				GameMemberInfo->SquadId = PlayerStateAthena->GetSquadId();
-				GameMemberInfo->TeamIndex = PlayerStateAthena->GetTeamIndex();
-				GameMemberInfo->MemberUniqueId = PlayerStateUniqueId;
+				((FGameMemberInfo*)GameMemberInfo)->SquadId = PlayerStateAthena->GetSquadId();
+				((FGameMemberInfo*)GameMemberInfo)->TeamIndex = PlayerStateAthena->GetTeamIndex();
+				// GameMemberInfo->MemberUniqueId = PlayerStateUniqueId;
+				CopyStruct(&((FGameMemberInfo*)GameMemberInfo)->MemberUniqueId, PlayerStateUniqueId, FUniqueNetIdRepl::GetSizeOfStruct());
 			}
 
 			static auto GameMemberInfoArray_MembersOffset = FindOffsetStruct("/Script/FortniteGame.GameMemberInfoArray", "Members");
 
 			auto GameMemberInfoArray = GameState->GetPtr<FFastArraySerializer>(GameMemberInfoArrayOffset);
 
-			((TArray<FGameMemberInfo>*)(__int64(GameMemberInfoArray) + GameMemberInfoArray_MembersOffset))->Add(*GameMemberInfo, GameMemberInfoStructSize);
+			((TArray<FGameMemberInfo>*)(__int64(GameMemberInfoArray) + GameMemberInfoArray_MembersOffset))->AddPtr(
+				(FGameMemberInfo*)GameMemberInfo, GameMemberInfoStructSize
+			);
+
 			GameMemberInfoArray->MarkArrayDirty();
 		}
 	}
@@ -901,7 +912,10 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			auto OwningPlayer = Portal->GetOwningPlayer();
 
 			if (OwningPlayer != nullptr)
-				*(FUniqueNetIdReplExperimental*)OwningPlayer = PlayerStateUniqueId;
+			{
+				CopyStruct(OwningPlayer, PlayerStateUniqueId, FUniqueNetIdRepl::GetSizeOfStruct());
+				// *(FUniqueNetIdReplExperimental*)OwningPlayer = PlayerStateUniqueId;
+			}
 
 			Portal->GetPortalOpen() = true;
 
@@ -909,8 +923,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			if (PlayersReadyOffset != 0)
 			{
-				auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdReplExperimental>>(PlayersReadyOffset);
-				PlayersReady.Add(PlayerStateUniqueId); // im not even sure what this is
+				auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdRepl>>(PlayersReadyOffset);
+				PlayersReady.AddPtr(PlayerStateUniqueId, FUniqueNetIdRepl::GetSizeOfStruct()); // im not even sure what this is for
 			}
 
 			static auto bUserInitiatedLoadOffset = Portal->GetOffset("bUserInitiatedLoad", false);
@@ -941,7 +955,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				if (LevelSaveComponent)
 				{
 					static auto AccountIdOfOwnerOffset = LevelSaveComponent->GetOffset("AccountIdOfOwner");
-					LevelSaveComponent->Get<FUniqueNetIdReplExperimental>(AccountIdOfOwnerOffset) = PlayerStateUniqueId;
+					CopyStruct(LevelSaveComponent->GetPtr<FUniqueNetIdReplExperimental>(AccountIdOfOwnerOffset), PlayerStateUniqueId, FUniqueNetIdRepl::GetSizeOfStruct());
+					// LevelSaveComponent->Get<FUniqueNetIdReplExperimental>(AccountIdOfOwnerOffset) = PlayerStateUniqueId;
 
 					static auto bIsLoadedOffset = LevelSaveComponent->GetOffset("bIsLoaded");
 					LevelSaveComponent->Get<bool>(bIsLoadedOffset) = true;

@@ -134,7 +134,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 
 void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret)
 {
-	static auto LlamaClass = FindObject<UClass>("/Game/Athena/SupplyDrops/Llama/AthenaSupplyDrop_Llama.AthenaSupplyDrop_Llama_C");
+	// static auto LlamaClass = FindObject<UClass>("/Game/Athena/SupplyDrops/Llama/AthenaSupplyDrop_Llama.AthenaSupplyDrop_Llama_C");
 	static auto FortAthenaSupplyDropClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaSupplyDrop");
 
 	LOG_INFO(LogInteraction, "ServerAttemptInteract!");
@@ -277,6 +277,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 		return;
 	}
+	/*
 	else if (ReceivingActor->IsA(FortAthenaSupplyDropClass))
 	{
 		auto LootTierGroup = ReceivingActor->IsA(LlamaClass) ? UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaLlama") : UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaSupplyDrop"); // SupplyDrop->GetLootTierGroupOverride();
@@ -288,6 +289,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 			AFortPickup::SpawnPickup(LootDrop.ItemDefinition, LocationToSpawnLoot, LootDrop.Count, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::SupplyDrop);
 		}
 	}
+	*/
 
 	return ServerAttemptInteractOriginal(Context, Stack, Ret);
 }
@@ -461,7 +463,7 @@ void AFortPlayerController::DropSpecificItemHook(UObject* Context, FFrame& Stack
 {
 	UFortItemDefinition* DropItemDef = nullptr;
 
-	Stack.Step(Stack.Object, &DropItemDef);
+	Stack.StepCompiledIn(&DropItemDef);
 
 	if (!DropItemDef)
 		return;

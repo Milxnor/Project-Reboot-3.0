@@ -82,6 +82,25 @@ public:
 		return Emplace(New, Size);
 	} */
 
+	int AddPtr(InElementType* New, size_t Size = sizeof(InElementType))
+	{
+		// LOG_INFO(LogDev, "ArrayMax: {}", ArrayMax);
+
+		if ((ArrayNum + 1) > ArrayMax)
+		{
+			Reserve(1, Size);
+		}
+
+		if (Data)
+		{
+			memcpy_s((InElementType*)(__int64(Data) + (ArrayNum * Size)), Size, (void*)New, Size);
+			++ArrayNum;
+			return ArrayNum; // - 1;
+		}
+
+		return -1;
+	};
+
 	int Add(const InElementType& New, size_t Size = sizeof(InElementType))
 	{
 		// LOG_INFO(LogDev, "ArrayMax: {}", ArrayMax);

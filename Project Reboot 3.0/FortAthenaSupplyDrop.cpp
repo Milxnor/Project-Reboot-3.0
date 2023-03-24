@@ -8,11 +8,11 @@ AFortPickup* AFortAthenaSupplyDrop::SpawnPickupHook(UObject* Context, FFrame& St
 	FVector                                     Position;                                                 // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	FVector                                     Direction;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
-	Stack.Step(Stack.Object, &ItemDefinition);
-	Stack.Step(Stack.Object, &NumberToSpawn);
-	Stack.Step(Stack.Object, &TriggeringPawn);
-	Stack.Step(Stack.Object, &Position);
-	Stack.Step(Stack.Object, &Direction);
+	Stack.StepCompiledIn(&ItemDefinition);
+	Stack.StepCompiledIn(&NumberToSpawn);
+	Stack.StepCompiledIn(&TriggeringPawn);
+	Stack.StepCompiledIn(&Position);
+	Stack.StepCompiledIn(&Direction);
 
 	SpawnPickupOriginal(Context, Stack, Ret);
 

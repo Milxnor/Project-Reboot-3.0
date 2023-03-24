@@ -1,6 +1,7 @@
 #include "FortWeaponItemDefinition.h"
 
 #include "DataTable.h"
+#include "SoftObjectPtr.h"
 
 int UFortWeaponItemDefinition::GetClipSize()
 {
@@ -32,6 +33,13 @@ int UFortWeaponItemDefinition::GetClipSize()
 
 	static auto ClipSizeOffset = FindOffsetStruct("/Script/FortniteGame.FortBaseWeaponStats", "ClipSize");
 	return *(int*)(__int64(Row) + ClipSizeOffset);
+}
+
+UFortWorldItemDefinition* UFortWeaponItemDefinition::GetAmmoData()
+{
+	static auto AmmoDataOffset = GetOffset("AmmoData");
+	auto AmmoData = Get<TSoftObjectPtr<UFortWorldItemDefinition>>(AmmoDataOffset);
+	return AmmoData.Get();
 }
 
 UClass* UFortWeaponItemDefinition::StaticClass()

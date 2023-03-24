@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -204,6 +204,7 @@
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
     <ClCompile Include="GameState.cpp" />
+    <ClCompile Include="InventoryManagementLibrary.cpp" />
     <ClCompile Include="KismetMathLibrary.cpp" />
     <ClCompile Include="KismetStringLibrary.cpp" />
     <ClCompile Include="LevelActor.cpp" />
@@ -284,6 +285,7 @@
     <ClInclude Include="globals.h" />
     <ClInclude Include="hooking.h" />
     <ClInclude Include="inc.h" />
+    <ClInclude Include="InventoryManagementLibrary.h" />
     <ClInclude Include="KismetMathLibrary.h" />
     <ClInclude Include="KismetStringLibrary.h" />
     <ClInclude Include="KismetSystemLibrary.h" />
@@ -295,6 +297,7 @@
     <ClInclude Include="NetSerialization.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="ObjectMacros.h" />
+    <ClInclude Include="OnlineReplStructs.h" />
     <ClInclude Include="OutputDevice.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="PersistentObjectPtr.h" />

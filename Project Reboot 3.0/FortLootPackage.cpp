@@ -170,12 +170,12 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
         for (int i = 0; i < LTDTables.size(); i++)
         {
-            LOG_INFO(LogDev, "[{}] LTD {}", LTDTables.at(i)->GetFullName());
+            LOG_INFO(LogDev, "[{}] LTD {}", i, LTDTables.at(i)->GetFullName());
         }
 
         for (int i = 0; i < LPTables.size(); i++)
         {
-            LOG_INFO(LogDev, "[{}] LP {}", LPTables.at(i)->GetFullName());
+            LOG_INFO(LogDev, "[{}] LP {}", i, LPTables.at(i)->GetFullName());
         }
     }
 

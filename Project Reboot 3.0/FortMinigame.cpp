@@ -10,7 +10,7 @@ void AFortMinigame::ClearPlayerInventoryHook(UObject* Context, FFrame& Stack, vo
 
 	AFortPlayerControllerAthena* PlayerController = nullptr;
 
-	Stack.Step(Stack.Object, &PlayerController);
+	Stack.StepCompiledIn(&PlayerController);
 
 	if (!PlayerController)
 		return;

@@ -244,6 +244,8 @@ namespace Hooking
 
             if (bHookExec)
             {
+                LOG_INFO(LogDev, "Hooking Exec {}", Function->GetName());
+
                 if (Original)
                     *Original = Exec;
 
