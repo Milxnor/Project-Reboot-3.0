@@ -41,7 +41,7 @@ public:
 
 			static auto TeamIndexOffset = GetOffset("TeamIndex", false);
 
-			if (TeamIndexOffset != 0)
+			if (TeamIndexOffset != -1)
 				Get<uint8_t>(TeamIndexOffset) = InTeam;
 		}
 		else

@@ -49,10 +49,10 @@ public:
 	{
 		static auto CosmeticLoadoutPCOffset = this->GetOffset("CosmeticLoadoutPC", false);
 
-		if (CosmeticLoadoutPCOffset == 0)
+		if (CosmeticLoadoutPCOffset == -1)
 			CosmeticLoadoutPCOffset = this->GetOffset("CustomizationLoadout");
 
-		if (CosmeticLoadoutPCOffset == 0)
+		if (CosmeticLoadoutPCOffset == -1)
 			return nullptr;
 
 		auto CosmeticLoadout = this->GetPtr<FFortAthenaLoadout>(CosmeticLoadoutPCOffset);

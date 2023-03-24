@@ -9,7 +9,7 @@ void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 {
 	static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver", false);
 
-	if (ReplicationDriverOffset == 0)
+	if (ReplicationDriverOffset == -1)
 	{
 		NetDriver->ServerReplicateActors();
 	}

@@ -270,7 +270,7 @@ inline int FindOffsetStruct(const std::string& StructName, const std::string& Me
 	if (bWarnIfNotFound)
 		LOG_WARN(LogFinder, "Unable to find1 {}", MemberName);
 
-	return 0;
+	return -1;
 }
 
 static void CopyStruct(void* Dest, void* Src, size_t Size)
@@ -319,9 +319,7 @@ static UObject* GetPlaylistToUse()
 	auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
 	// Playlist = FindObject("/BlueCheese/Playlists/Playlist_ShowdownAlt_BlueCheese_Trios.Playlist_ShowdownAlt_BlueCheese_Trios");
 
-	/*
-
-	if (Globals::bGoingToPlayEvent)
+	/* if (Globals::bGoingToPlayEvent)
 	{
 		if (Fortnite_Version != 12.61)
 		{
@@ -337,8 +335,9 @@ static UObject* GetPlaylistToUse()
 				Playlist = EventPlaylist;
 			}
 		}
-	}
-	*/
+	} */
+
+	// SET OVERRIDE PLAYLIST DOWN HERE
 
 	// Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
 

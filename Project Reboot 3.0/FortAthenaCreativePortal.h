@@ -30,7 +30,7 @@ public:
 	{
 		static auto OwningPlayerOffset = GetOffset("OwningPlayer", false);
 
-		if (OwningPlayerOffset == 0)
+		if (OwningPlayerOffset == -1)
 			return nullptr;
 
 		return GetPtr<void>(OwningPlayerOffset);

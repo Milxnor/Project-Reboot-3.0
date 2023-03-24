@@ -56,7 +56,7 @@ void ShowFoundation(UObject* BuildingFoundation)
 
 	static auto bShowHLODWhenDisabledOffset = BuildingFoundation->GetOffset("bShowHLODWhenDisabled", false);
 
-	if (bShowHLODWhenDisabledOffset != 0)
+	if (bShowHLODWhenDisabledOffset != -1)
 	{
 		static auto bShowHLODWhenDisabledFieldMask = GetFieldMask(BuildingFoundation->GetProperty("bShowHLODWhenDisabled"));
 		BuildingFoundation->SetBitfieldValue(bShowHLODWhenDisabledOffset, bShowHLODWhenDisabledFieldMask, true);
@@ -67,7 +67,7 @@ void ShowFoundation(UObject* BuildingFoundation)
 
 	static auto DynamicFoundationRepDataOffset = BuildingFoundation->GetOffset("DynamicFoundationRepData", false);
 
-	if (DynamicFoundationRepDataOffset != 0)
+	if (DynamicFoundationRepDataOffset != -1)
 	{
 		auto DynamicFoundationRepData = BuildingFoundation->GetPtr<void>(DynamicFoundationRepDataOffset);
 
@@ -81,7 +81,7 @@ void ShowFoundation(UObject* BuildingFoundation)
 
 	static auto FoundationEnabledStateOffset = BuildingFoundation->GetOffset("FoundationEnabledState", false);
 
-	if (FoundationEnabledStateOffset != 0)
+	if (FoundationEnabledStateOffset != -1)
 		BuildingFoundation->Get<EDynamicFoundationEnabledState>(FoundationEnabledStateOffset) = EDynamicFoundationEnabledState::Enabled;
 }
 
@@ -123,7 +123,7 @@ FName AFortGameModeAthena::RedirectLootTier(const FName& LootTier)
 {
 	static auto RedirectAthenaLootTierGroupsOffset = this->GetOffset("RedirectAthenaLootTierGroups", false);
 
-	if (RedirectAthenaLootTierGroupsOffset == 0)
+	if (RedirectAthenaLootTierGroupsOffset == -1)
 	{
 		static auto Loot_TreasureFName = UKismetStringLibrary::Conv_StringToName(L"Loot_Treasure");
 		static auto Loot_AmmoFName = UKismetStringLibrary::Conv_StringToName(L"Loot_Ammo");
@@ -276,7 +276,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				{
 					static auto UpdateMapOffset = Scripting->GetOffset("UpdateMap", false);
 
-					if (UpdateMapOffset != 0)
+					if (UpdateMapOffset != -1)
 					{
 						Scripting->Get<bool>(UpdateMapOffset) = true;
 
@@ -386,7 +386,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			{
 				static auto AdditionalLevelsOffset = PlaylistToUse->GetOffset("AdditionalLevels", false);
 
-				if (AdditionalLevelsOffset != 0)
+				if (AdditionalLevelsOffset != -1)
 				{
 					auto& AdditionalLevels = PlaylistToUse->Get<TArray<TSoftObjectPtr<UClass>>>(AdditionalLevelsOffset);
 
@@ -710,7 +710,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		static auto CharacterPartsOffset = PlayerStateAthena->GetOffset("CharacterParts", false);
 		static auto CustomCharacterPartsStruct = FindObject<UStruct>("/Script/FortniteGame.CustomCharacterParts");
 
-		if (CharacterPartsOffset != 0) // && CustomCharacterPartsStruct)
+		if (CharacterPartsOffset != -1) // && CustomCharacterPartsStruct)
 		{
 			auto CharacterParts = PlayerStateAthena->GetPtr<__int64>("CharacterParts");
 
@@ -732,7 +732,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	static auto SquadIdOffset = PlayerStateAthena->GetOffset("SquadId", false);
 
-	if (SquadIdOffset != 0)
+	if (SquadIdOffset != -1)
 		PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2;
 
 	// idk if this is needed
@@ -807,7 +807,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
 
 		// if (false)
-		// if (GameMemberInfoArrayOffset != 0)
+		// if (GameMemberInfoArrayOffset != -1)
 		if (Engine_Version >= 423)
 		{
 			struct FGameMemberInfo : public FFastArraySerializerItem
@@ -867,7 +867,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 		AFortAthenaCreativePortal* Portal = nullptr;
 
-		if (AvailablePortalsOffset != 0)
+		if (AvailablePortalsOffset != -1)
 		{
 			auto& AvailablePortals = CreativePortalManager->Get<TArray<AActor*>>(AvailablePortalsOffset);
 
@@ -918,7 +918,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			static auto PlayersReadyOffset = Portal->GetOffset("PlayersReady", false);
 
-			if (PlayersReadyOffset != 0)
+			if (PlayersReadyOffset != -1)
 			{
 				auto& PlayersReady = Portal->Get<TArray<FUniqueNetIdRepl>>(PlayersReadyOffset);
 				PlayersReady.AddPtr(PlayerStateUniqueId, FUniqueNetIdRepl::GetSizeOfStruct()); // im not even sure what this is for
@@ -926,7 +926,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			static auto bUserInitiatedLoadOffset = Portal->GetOffset("bUserInitiatedLoad", false);
 
-			if (bUserInitiatedLoadOffset != 0)
+			if (bUserInitiatedLoadOffset != -1)
 				Portal->GetUserInitiatedLoad() = true;
 
 			Portal->GetInErrorState() = false;
@@ -976,7 +976,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	{
 		static auto QuickBarsOffset = NewPlayer->GetOffset("QuickBars", false);
 
-		if (QuickBarsOffset != 0)
+		if (QuickBarsOffset != -1)
 		{
 			static auto FortQuickBarsClass = FindObject<UClass>("/Script/FortniteGame.FortQuickBars");
 			NewPlayer->Get<AActor*>(QuickBarsOffset) = GetWorld()->SpawnActor<AActor>(FortQuickBarsClass);

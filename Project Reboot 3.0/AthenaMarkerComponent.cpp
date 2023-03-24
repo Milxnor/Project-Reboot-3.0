@@ -33,9 +33,9 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 	MarkerData->GetMarkerType() = MarkerRequestPtr->GetMarkerType();
 	MarkerData->GetOwner() = PlayerState;
 	MarkerData->GetWorldNormal() = MarkerRequestPtr->GetWorldNormal();
-	if (WorldPositionOffset != 0)
+	if (WorldPositionOffset != -1)
 		MarkerData->GetWorldPosition() = MarkerRequestPtr->GetWorldPosition();
-	if (WorldPositionOffset != 0)
+	if (WorldPositionOffset != -1)
 		MarkerData->GetWorldPositionOffset() = MarkerRequestPtr->GetWorldPositionOffset();
 	MarkerData->GetMarkerID() = MarkerID;
 	MarkerData->GetMarkedActorClass().SoftObjectPtr.WeakPtr.ObjectIndex = -1;

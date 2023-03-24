@@ -52,7 +52,7 @@ void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound)
 	if (bWarnIfNotFound)
 		LOG_WARN(LogFinder, "Unable to find0{}", ChildName);
 
-	return 0;
+	return nullptr;
 }
 
 int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound)
@@ -60,7 +60,7 @@ int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound)
 	auto Property = GetProperty(ChildName, bWarnIfNotFound);
 
 	if (!Property)
-		return 0;
+		return -1;
 
 	return  *(int*)(__int64(Property) + Offsets::Offset_Internal);
 }

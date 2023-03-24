@@ -39,7 +39,7 @@ void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, co
 
 	static auto CharacterPartsOffset = PlayerState->GetOffset("CharacterParts", false);
 
-	if (CharacterPartsOffset != 0)
+	if (CharacterPartsOffset != -1)
 	{
 		auto CharacterPartsPS = PlayerState->GetPtr<__int64>("CharacterParts");
 
@@ -123,10 +123,10 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 
 	LOG_INFO(LogDev, __FUNCTION__);
 
-	if (ItemLevelOffset != 0)
+	if (ItemLevelOffset != -1)
 		Stack.StepCompiledIn(&ItemLevel);
 
-	if (PickupInstigatorHandleOffset != 0)
+	if (PickupInstigatorHandleOffset != -1)
 		Stack.StepCompiledIn(&PickupInstigatorHandle);
 
 	if (!ItemDefinition)
@@ -395,7 +395,7 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 	int                                                WorldLevel;                                               // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int                                                ForcedLootTier;                                           // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
-	if (WorldContextObjectOffset != 0)
+	if (WorldContextObjectOffset != -1)
 		Stack.StepCompiledIn(&WorldContextObject);
 
 	auto& OutLootToDrop = Stack.StepCompiledInRef<TArray<FFortItemEntry>>(&OutLootToDropTempBuf);

@@ -12,7 +12,7 @@ UObject*& AFortGameStateAthena::GetCurrentPlaylist()
 {
 	static auto CurrentPlaylistInfoOffset = GetOffset("CurrentPlaylistInfo", false);
 
-	if (CurrentPlaylistInfoOffset == 0)
+	if (CurrentPlaylistInfoOffset == -1)
 	{
 		static auto CurrentPlaylistDataOffset = GetOffset("CurrentPlaylistData");
 		return Get(CurrentPlaylistDataOffset);

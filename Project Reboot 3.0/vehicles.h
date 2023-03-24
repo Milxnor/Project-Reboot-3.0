@@ -129,7 +129,7 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 
 	static auto VehicleClassOffset = VehicleSpawner->GetOffset("VehicleClass", false);
 
-	if (VehicleClassOffset != 0) // 10.40 and below?
+	if (VehicleClassOffset != -1) // 10.40 and below?
 	{
 		auto& SoftVehicleClass = VehicleSpawner->Get<TSoftObjectPtr<UClass>>(VehicleClassOffset);
 		auto StrongVehicleClass = SoftVehicleClass.Get();
@@ -146,7 +146,7 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 
 	static auto FortVehicleItemDefOffset = VehicleSpawner->GetOffset("FortVehicleItemDef");
 
-	if (FortVehicleItemDefOffset == 0)
+	if (FortVehicleItemDefOffset == -1)
 		return nullptr;
 
 	auto& SoftFortVehicleItemDef = VehicleSpawner->Get<TSoftObjectPtr<UFortItemDefinition>>(FortVehicleItemDefOffset);
@@ -202,7 +202,7 @@ static inline void SpawnVehicles()
 
 		static auto VIDClass = FindObject<UClass>("/Script/FortniteGame.FortVehicleItemDefinition");
 
-		if (FortVehicleItemDefVariantsOffset != 0)
+		if (FortVehicleItemDefVariantsOffset != -1)
 		{
 			struct FVehicleWeightedDef
 			{
@@ -250,7 +250,7 @@ static inline void SpawnVehicles()
 		{
 			static auto FortVehicleItemDefOffset = VehicleSpawner->GetOffset("FortVehicleItemDef");
 			
-			if (FortVehicleItemDefOffset == 0)
+			if (FortVehicleItemDefOffset == -1)
 			{
 
 			}
