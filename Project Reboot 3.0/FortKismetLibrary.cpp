@@ -387,13 +387,17 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 
 bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool* Ret)
 {
+	static auto WorldContextObjectOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.PickLootDrops", "WorldContextObject", false);
+
 	UObject* WorldContextObject;                                       // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	TArray<FFortItemEntry>                      OutLootToDropTempBuf;                                            // (Parm, OutParm, ZeroConstructor, NativeAccessSpecifierPublic)
 	FName                                       TierGroupName;                                            // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int                                                WorldLevel;                                               // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int                                                ForcedLootTier;                                           // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
-	Stack.StepCompiledIn(&WorldContextObject);
+	if (WorldContextObjectOffset != 0)
+		Stack.StepCompiledIn(&WorldContextObject);
+
 	auto& OutLootToDrop = Stack.StepCompiledInRef<TArray<FFortItemEntry>>(&OutLootToDropTempBuf);
 	Stack.StepCompiledIn(&TierGroupName);
 	Stack.StepCompiledIn(&WorldLevel);
@@ -402,6 +406,12 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 	LOG_INFO(LogDev, "Picking loot for {}.", TierGroupName.ComparisonIndex.Value ? TierGroupName.ToString() : "InvalidName");
 
 	auto LootDrops = PickLootDrops(TierGroupName, true);
+
+	/* LootDrop skuffed{};
+	skuffed.ItemDefinition = FindObject<UFortItemDefinition>("AGID_CarminePack", nullptr, ANY_PACKAGE);
+	skuffed.Count = 1;
+
+	LootDrops.push_back(skuffed); */
 
 	for (int i = 0; i < LootDrops.size(); i++)
 	{

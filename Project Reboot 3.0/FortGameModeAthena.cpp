@@ -737,9 +737,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	// idk if this is needed
 
-	double (*sub_7FF753D401D0)(UObject* a1) = decltype(sub_7FF753D401D0)(__int64(GetModuleHandleW(0)) + 0x1A001D0);
-	LOG_INFO(LogDev, "TIme: {}", sub_7FF753D401D0(GetWorld()));
-
 	static auto bHasServerFinishedLoadingOffset = NewPlayer->GetOffset("bHasServerFinishedLoading");
 	NewPlayer->Get<bool>(bHasServerFinishedLoadingOffset) = true;
 

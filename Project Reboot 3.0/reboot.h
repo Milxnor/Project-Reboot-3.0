@@ -340,7 +340,9 @@ static UObject* GetPlaylistToUse()
 	}
 	*/
 
-	Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
+	// Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
+
+	// Playlist = FindObject("/Game/Athena/Playlists/Carmine/Playlist_Carmine.Playlist_Carmine");
 
 	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
 	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");

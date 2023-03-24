@@ -718,6 +718,9 @@ static inline uint64 FindDispatchRequest()
 
 static inline uint64 FindGIsClient()
 {
+	if (Fortnite_Version == 4.1)
+		return __int64(GetModuleHandleW(0)) + 0x4BF6F17;
+
 	if (Fortnite_Version == 11.31)
 		return __int64(GetModuleHandleW(0)) + 0x6F41270;
 
