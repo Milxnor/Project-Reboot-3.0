@@ -9,6 +9,61 @@
 
 using UFortInventoryOwnerInterface = UObject;
 
+struct FSpawnItemVariantParams
+{
+	static UStruct* GetStruct()
+	{
+		static auto SpawnItemVariantsParamsStruct = FindObject<UStruct>("/Script/FortniteGame.SpawnItemVariantParams");
+		return SpawnItemVariantsParamsStruct;
+	}
+
+	static int GetStructSize()
+	{
+		static auto StructSize = GetStruct()->GetPropertiesSize();
+		return StructSize;
+	}
+
+	UFortWorldItemDefinition*& GetWorldItemDefinition()
+	{
+		static auto WorldItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.SpawnItemVariantParams", "WorldItemDefinition");
+		return *(UFortWorldItemDefinition**)(__int64(this) + WorldItemDefinitionOffset);
+	}
+
+	int& GetNumberToSpawn()
+	{
+		static auto NumberToSpawnOffset = FindOffsetStruct("/Script/FortniteGame.SpawnItemVariantParams", "NumberToSpawn");
+		return *(int*)(__int64(this) + NumberToSpawnOffset);
+	}
+
+	EFortPickupSourceTypeFlag& GetSourceType()
+	{
+		static auto SourceTypeOffset = FindOffsetStruct("/Script/FortniteGame.SpawnItemVariantParams", "SourceType");
+		return *(EFortPickupSourceTypeFlag*)(__int64(this) + SourceTypeOffset);
+	}
+
+	EFortPickupSpawnSource& GetSource()
+	{
+		static auto SourceOffset = FindOffsetStruct("/Script/FortniteGame.SpawnItemVariantParams", "Source");
+		return *(EFortPickupSpawnSource*)(__int64(this) + SourceOffset);
+	}
+
+	FVector& GetDirection()
+	{
+		static auto DirectionOffset = FindOffsetStruct("/Script/FortniteGame.SpawnItemVariantParams", "Direction");
+		return *(FVector*)(__int64(this) + DirectionOffset);
+	}
+
+	FVector& GetPosition()
+	{
+		static auto PositionOffset = FindOffsetStruct("/Script/FortniteGame.SpawnItemVariantParams", "Position");
+
+		if (PositionOffset == -1)
+			PositionOffset = 0x2C; // wtf
+
+		return *(FVector*)(__int64(this) + PositionOffset);
+	}
+};
+
 class UFortKismetLibrary : public UObject
 {
 public:
@@ -22,10 +77,14 @@ public:
 	static inline AFortPickup* (*K2_SpawnPickupInWorldWithClassOriginal)(UObject* Context, FFrame& Stack, AFortPickup** Ret);
 	static inline void (*CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline void (*K2_SpawnPickupInWorldWithLootTierOriginal)(UObject* Context, FFrame& Stack, void* Ret);
+	static inline bool (*SpawnInstancedPickupInWorldOriginal)(UObject* Context, FFrame& Stack, bool* Ret);
+	static inline void (*SpawnItemVariantPickupInWorldOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 
 	static UFortResourceItemDefinition* K2_GetResourceItemDefinition(EFortResourceType ResourceType);
 	static void ApplyCharacterCosmetics(UObject* WorldContextObject, const TArray<UObject*>& CharacterParts, UObject* PlayerState, bool* bSuccess);
 
+	static void SpawnItemVariantPickupInWorldHook(UObject* Context, FFrame& Stack, void* Ret);
+	static bool SpawnInstancedPickupInWorldHook(UObject* Context, FFrame& Stack, bool* Ret);
 	static void K2_SpawnPickupInWorldWithLootTierHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void GiveItemToInventoryOwnerHook(UObject* Context, FFrame& Stack, void* Ret);

@@ -2,6 +2,7 @@
 #include "ScriptInterface.h"
 #include "FortPickup.h"
 #include "FortLootPackage.h"
+#include "AbilitySystemComponent.h"
 
 UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EFortResourceType ResourceType)
 {
@@ -63,6 +64,64 @@ void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, co
 	{
 		// TODO Add character data support
 	}
+}
+
+void UFortKismetLibrary::SpawnItemVariantPickupInWorldHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	UObject* WorldContextObject;                                // 0x0(0x8)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	PadHexB0 Params; // = *Alloc<FSpawnItemVariantParams>(FSpawnItemVariantParams::GetStructSize());
+
+	Stack.StepCompiledIn(&WorldContextObject);
+	Stack.StepCompiledIn(&Params);
+
+	LOG_INFO(LogDev, __FUNCTION__);
+
+	auto ParamsPtr = (FSpawnItemVariantParams*)&Params;
+
+	auto ItemDefinition = ParamsPtr->GetWorldItemDefinition();
+
+	LOG_INFO(LogDev, "ItemDefinition: {}", ItemDefinition ? ItemDefinition->GetFullName() : "InvalidObject");
+
+	if (!ItemDefinition)
+		return SpawnItemVariantPickupInWorldOriginal(Context, Stack, Ret);
+
+	auto& Position = ParamsPtr->GetPosition();
+
+	LOG_INFO(LogDev, "{} {} {}", Position.X, Position.Y, Position.Z);
+
+	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Position, ParamsPtr->GetNumberToSpawn(), ParamsPtr->GetSourceType(), ParamsPtr->GetSource());
+
+	return SpawnItemVariantPickupInWorldOriginal(Context, Stack, Ret);
+}
+
+bool UFortKismetLibrary::SpawnInstancedPickupInWorldHook(UObject* Context, FFrame& Stack, bool* Ret)
+{
+	UObject* WorldContextObject;                                // 0x0(0x8)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	UFortWorldItemDefinition* ItemDefinition;                                    // 0x8(0x8)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int32                                        NumberToSpawn;                                     // 0x10(0x4)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	FVector                               Position;                                          // 0x14(0xC)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	FVector                               Direction;                                         // 0x20(0xC)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int32                                        OverrideMaxStackCount;                             // 0x2C(0x4)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	bool                                         bToss;                                             // 0x30(0x1)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	bool                                         bRandomRotation;                                   // 0x31(0x1)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	bool                                         bBlockedFromAutoPickup;
+
+	LOG_INFO(LogDev, __FUNCTION__);
+
+	Stack.StepCompiledIn(&WorldContextObject);
+	Stack.StepCompiledIn(&ItemDefinition);
+	Stack.StepCompiledIn(&NumberToSpawn);
+	Stack.StepCompiledIn(&Position);
+	Stack.StepCompiledIn(&Direction);
+	Stack.StepCompiledIn(&OverrideMaxStackCount);
+	Stack.StepCompiledIn(&bToss);
+	Stack.StepCompiledIn(&bRandomRotation);
+	Stack.StepCompiledIn(&bBlockedFromAutoPickup);
+
+	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn);
+
+	*Ret = Pickup;
+	return *Ret;
 }
 
 void UFortKismetLibrary::K2_SpawnPickupInWorldWithLootTierHook(UObject* Context, FFrame& Stack, void* Ret)
