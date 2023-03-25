@@ -79,10 +79,12 @@ public:
 	static inline void (*K2_SpawnPickupInWorldWithLootTierOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline bool (*SpawnInstancedPickupInWorldOriginal)(UObject* Context, FFrame& Stack, bool* Ret);
 	static inline void (*SpawnItemVariantPickupInWorldOriginal)(UObject* Context, FFrame& Stack, void* Ret);
+	static inline void (*PickLootDropsWithNamedWeightsOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 
 	static UFortResourceItemDefinition* K2_GetResourceItemDefinition(EFortResourceType ResourceType);
 	static void ApplyCharacterCosmetics(UObject* WorldContextObject, const TArray<UObject*>& CharacterParts, UObject* PlayerState, bool* bSuccess);
 
+	static void PickLootDropsWithNamedWeightsHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void SpawnItemVariantPickupInWorldHook(UObject* Context, FFrame& Stack, void* Ret);
 	static bool SpawnInstancedPickupInWorldHook(UObject* Context, FFrame& Stack, bool* Ret);
 	static void K2_SpawnPickupInWorldWithLootTierHook(UObject* Context, FFrame& Stack, void* Ret);

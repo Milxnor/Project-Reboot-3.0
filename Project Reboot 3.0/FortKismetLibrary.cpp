@@ -66,6 +66,12 @@ void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, co
 	}
 }
 
+void UFortKismetLibrary::PickLootDropsWithNamedWeightsHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	LOG_INFO(LogDev, __FUNCTION__);
+	return PickLootDropsWithNamedWeightsOriginal(Context, Stack, Ret);
+}
+
 void UFortKismetLibrary::SpawnItemVariantPickupInWorldHook(UObject* Context, FFrame& Stack, void* Ret)
 {
 	UObject* WorldContextObject;                                // 0x0(0x8)(Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
@@ -149,7 +155,7 @@ void UFortKismetLibrary::CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHo
 
 	LOG_INFO(LogDev, __FUNCTION__);
 
-	return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
+	// return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
 
 	int Count = 1;
 
@@ -167,9 +173,11 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 {
 	static auto ItemLevelOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemLevel", false);
 	static auto PickupInstigatorHandleOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "PickupInstigatorHandle", false);
+	static auto ItemVariantGuidOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner", "ItemVariantGuid", false);
 
 	TScriptInterface<UFortInventoryOwnerInterface> InventoryOwner; // = *(TScriptInterface<UFortInventoryOwnerInterface>*)(__int64(Params) + InventoryOwnerOffset);
 	UFortWorldItemDefinition* ItemDefinition = nullptr; // *(UFortWorldItemDefinition**)(__int64(Params) + ItemDefinitionOffset);
+	FGuid ItemVariantGuid;
 	int NumberToGive; // = *(int*)(__int64(Params) + NumberToGiveOffset);
 	bool bNotifyPlayer; // = *(bool*)(__int64(Params) + bNotifyPlayerOffset);
 	int ItemLevel; // = *(int*)(__int64(Params) + ItemLevelOffset);
@@ -177,6 +185,7 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 
 	Stack.StepCompiledIn(&InventoryOwner);
 	Stack.StepCompiledIn(&ItemDefinition);
+	if (ItemVariantGuidOffset != -1) Stack.StepCompiledIn(&ItemVariantGuid);
 	Stack.StepCompiledIn(&NumberToGive);
 	Stack.StepCompiledIn(&bNotifyPlayer);
 
@@ -293,15 +302,19 @@ void UFortKismetLibrary::K2_RemoveItemFromPlayerByGuidHook(UObject* Context, FFr
 
 void UFortKismetLibrary::K2_GiveItemToPlayerHook(UObject* Context, FFrame& Stack, void* Ret)
 {
+	static auto ItemVariantGuidOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.K2_GiveItemToPlayer", "ItemVariantGuid", false);
+
 	auto Params = Stack.Locals;
 
 	AFortPlayerController* PlayerController = nullptr;
 	UFortWorldItemDefinition* ItemDefinition = nullptr;
+	FGuid ItemVariantGuid;
 	int NumberToGive;
 	bool bNotifyPlayer;
 
 	Stack.StepCompiledIn(&PlayerController);
 	Stack.StepCompiledIn(&ItemDefinition);
+	if (ItemVariantGuidOffset != -1) Stack.StepCompiledIn(&ItemVariantGuid);
 	Stack.StepCompiledIn(&NumberToGive);
 	Stack.StepCompiledIn(&bNotifyPlayer);
 

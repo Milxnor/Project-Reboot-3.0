@@ -46,7 +46,10 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 	static auto bPickedUpOffset = Pickup->GetOffset("bPickedUp");
 
 	if (Pickup->Get<bool>(bPickedUpOffset))
+	{
+		LOG_INFO(LogDev, "Trying to pickup picked up weapon?");
 		return;
+	}
 
 	static auto IncomingPickupsOffset = Pawn->GetOffset("IncomingPickups");
 	Pawn->Get<TArray<AFortPickup*>>(IncomingPickupsOffset).Add(Pickup);

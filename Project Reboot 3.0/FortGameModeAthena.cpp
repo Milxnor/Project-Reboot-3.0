@@ -972,7 +972,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	LOG_INFO(LogDev, "HandleStartingNewPlayer end");
 
-	if (Engine_Version < 420)
+	if (Fortnite_Version <= 2.5)
 	{
 		static auto QuickBarsOffset = NewPlayer->GetOffset("QuickBars", false);
 
