@@ -543,6 +543,8 @@ static inline uint64 FindCollectGarbage()
 
 static inline uint64 FindActorGetNetMode()
 {
+	// return 0;
+
 	if (Engine_Version == 500)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 F6 41 08 10 48 8B D9 0F 85 ? ? ? ? 48 8B 41 20 48 85 C0 0F 84 ? ? ? ? F7 40").Get();
 
@@ -565,6 +567,9 @@ static inline uint64 FindActorGetNetMode()
 static inline uint64 FindRemoveFromAlivePlayers()
 {
 	auto Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: Player [%s] removed from alive players list (Team [%d]).  Player count is now [%d].  Team count is now [%d].", false).Get();
+
+	if (!Addrr)
+		Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: Player [%s] removed from alive players list (Team [%d]).  Player count is now [%d]. PlayerBots count is now [%d]. Team count is now [%d].", false).Get();
 
 	if (!Addrr)
 		Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena::RemoveFromAlivePlayers: Player [%s] PC [%s] removed from alive players list (Team [%d]).  Player count is now [%d]. PlayerBots count is now [%d]. Team count is now [%d].", true, 0, Fortnite_Version >= 18).Get(); // todo check version
@@ -690,8 +695,8 @@ static inline uint64 FindGIsServer()
 	// if (Fortnite_Version == 19.10)
 		// return __int64(GetModuleHandleW(0)) + 0xB30CF9D;
 
-	if (Fortnite_Version == 2.5)
-		return __int64(GetModuleHandleW(0)) + 0x46AD735;
+	// if (Fortnite_Version == 2.5)
+		// return __int64(GetModuleHandleW(0)) + 0x46AD735;
 	if (Fortnite_Version == 12.41)
 		return __int64(GetModuleHandleW(0)) + 0x804B65A;
 
@@ -794,8 +799,8 @@ static inline uint64 FindDispatchRequest()
 
 static inline uint64 FindGIsClient()
 {
-	if (Fortnite_Version == 2.5)
-		return __int64(GetModuleHandleW(0)) + 0x46AD734;
+	// if (Fortnite_Version == 2.5)
+		// return __int64(GetModuleHandleW(0)) + 0x46AD734;
 	if (Fortnite_Version == 4.1)
 		return __int64(GetModuleHandleW(0)) + 0x4BF6F17;
 
