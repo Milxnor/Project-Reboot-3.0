@@ -272,10 +272,35 @@ static inline uint64 FindGetPlayerViewpoint()
 	if (Engine_Version == 420)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 41 56 41 57 48 8B EC 48 83 EC 50").Get(); // idk why finder doesnt work and cba to debug
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s");
-	// return FindBytes(Addr, { 0x48, 0x89 /*, 0x5C */}, 2000, 0, true, 1);
-	auto add = FindBytes(Addr, { 0x40, 0x55 }, 1000, 0, true);
-	return add ? add : FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true);
+	auto Addrr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s").Get();
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x55)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x74)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
+		{
+			return Addrr - i;
+		}
+	}
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
 }
 
 static inline uint64 FindSpawnActor()
@@ -422,6 +447,9 @@ static inline uint64 FindCompletePickupAnimation()
 	if (Engine_Version == 427)
 		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 68 10 48 89 70 18 48 89 78 20 41 54 41 56 41 57 48 83 EC 20 48 8B B1 ? ? ? ? 48 8B D9 48 85 F6").Get(); // 17.30
 
+	if (Engine_Version == 500)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 48 8B B9").Get(); // 19.10
+
 	return 0;
 }
 
@@ -528,10 +556,38 @@ static inline uint64 FindActorGetNetMode()
 
 	if (!AActorGetNetmodeStrRef.Get())
 	{
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B 01 48 8B D9 FF 90 ? ? ? ? 4C 8B").Get();
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B 01 48 8B D9 FF 90 ? ? ? ? 4C 8B").Get(); // 2.5 i think
 	}
 
 	return Memcury::Scanner(FindBytes(AActorGetNetmodeStrRef, { 0xE8 }, 255, 0, true)).RelativeOffset(1).Get();
+}
+
+static inline uint64 FindRemoveFromAlivePlayers()
+{
+	auto Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: Player [%s] removed from alive players list (Team [%d]).  Player count is now [%d].  Team count is now [%d].", false).Get();
+
+	if (!Addrr)
+		Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena::RemoveFromAlivePlayers: Player [%s] PC [%s] removed from alive players list (Team [%d]).  Player count is now [%d]. PlayerBots count is now [%d]. Team count is now [%d].", true, 0, Fortnite_Version >= 18).Get(); // todo check version
+
+	for (int i = 0; i < 2000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x4C && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x4C)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x54)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
 }
 
 static inline uint64 FindTickFlush()
@@ -910,14 +966,17 @@ static inline uint64 FindFrameStep()
 
 static inline uint64 FindCanActivateAbility()
 {
-	return 0;
+	// return 0;
+
+	if (Engine_Version <= 420)
+		return 0; // ?
 
 	// this doesn't work on like >2.5
 
 	if (Engine_Version == 421 || Engine_Version == 422)
 		return Memcury::Scanner::FindPattern("4C 89 4C 24 20 55 56 57 41 56 48 8D 6C 24 D1").Get();
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"CanActivateAbility %s failed, blueprint refused");
+	auto Addr = Memcury::Scanner::FindStringRef(L"CanActivateAbility %s failed, blueprint refused", true, 0, Engine_Version >= 500);
 	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 2000, 0, true);
 }
 
@@ -984,7 +1043,9 @@ static inline uint64 FindReplaceBuildingActor()
 		return Memcury::Scanner::FindPattern("4C 89 44 24 ? 55 56 57 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 45").Get(); // 1.7.2 & 2.4.2
 	}
 
-	return FindBytes(StringRef, (Engine_Version == 420 || Engine_Version == 421 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }), 1000, 0, true);
+	return FindBytes(StringRef, 
+		(Engine_Version == 420 || Engine_Version == 421 || Engine_Version == 500 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }),
+		1000, 0, true);
 }
 
 static inline uint64 FindSendClientAdjustment()

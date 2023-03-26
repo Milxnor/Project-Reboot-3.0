@@ -239,7 +239,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
     int MinimumLootDrops = 0;
 
-    static int AmountToAdd = Engine_Version >= 424 ? 1 : 0; // fr
+    static int AmountToAdd = Engine_Version >= 424 ? Engine_Version >= 500 ? 2 : 1 : 0; // fr
 
     float NumLootPackageDrops = std::floor(ChosenRowLootTierData->GetNumLootPackageDrops() + AmountToAdd);
 

@@ -73,6 +73,7 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 
 void AFortPlayerPawn::ServerHandlePickupInfoHook(AFortPlayerPawn* Pawn, AFortPickup* Pickup, __int64 Params)
 {
+	LOG_INFO(LogDev, "ServerHandlePickupInfo!");
 	return ServerHandlePickupHook(Pawn, Pickup, 0.40f, FVector(), false);
 }
 

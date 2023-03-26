@@ -99,8 +99,14 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
     {
         // LOG_INFO(LogDev, "0x{:x}", *(uint8_t*)(NativeAddr + i));
 
+        if ((*(uint8_t*)(NativeAddr + i) == 0x41 && *(uint8_t*)(NativeAddr + i + 1) == 0xFF)) // wtf ue500
+        {
+            bFoundValidate = true;
+            continue;
+        }
+
         if ((*(uint8_t*)(NativeAddr + i) == 0xFF && *(uint8_t*)(NativeAddr + i + 1) == 0x90) || // call qword ptr
-            *(uint8_t*)(NativeAddr + i) == 0xFF && *(uint8_t*)(NativeAddr + i + 1) == 0x93) // call qword ptr
+            (*(uint8_t*)(NativeAddr + i) == 0xFF && *(uint8_t*)(NativeAddr + i + 1) == 0x93)) // call qword ptr
         {
             if (bFoundValidate)
             {

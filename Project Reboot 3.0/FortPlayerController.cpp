@@ -554,10 +554,10 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 
 	FGameplayAbilitySpec* Spec = MakeNewSpec((UClass*)AbilityToUse, EmoteAsset, true);
 
-	static unsigned int* (*GiveAbilityAndActivateOnce)(UAbilitySystemComponent * ASC, int* outHandle, __int64 Spec)
-		= decltype(GiveAbilityAndActivateOnce)(Addresses::GiveAbilityAndActivateOnce);
+	static unsigned int* (*GiveAbilityAndActivateOnce)(UAbilitySystemComponent* ASC, int* outHandle, __int64 Spec, FGameplayEventData* TriggerEventData)
+		= decltype(GiveAbilityAndActivateOnce)(Addresses::GiveAbilityAndActivateOnce); // EventData is only on ue500?
 
-	GiveAbilityAndActivateOnce(PlayerState->GetAbilitySystemComponent(), &outHandle, __int64(Spec));
+	GiveAbilityAndActivateOnce(PlayerState->GetAbilitySystemComponent(), &outHandle, __int64(Spec), nullptr);
 }
 
 uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = false)
@@ -693,9 +693,13 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
 
+		std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
+
 		for (int i = 0; i < ItemInstances.Num(); i++)
 		{
 			auto ItemInstance = ItemInstances.at(i);
+
+			LOG_INFO(LogDev, "[{}/{}] CurrentItemInstance {}", i, ItemInstances.Num(), __int64(ItemInstance));
 
 			if (!ItemInstance)
 				continue;
@@ -703,19 +707,52 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			auto ItemEntry = ItemInstance->GetItemEntry();
 			auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
 
+			LOG_INFO(LogDev, "[{}/{}] WorldItemDefinition {}", i, ItemInstances.Num(), WorldItemDefinition ? WorldItemDefinition->GetFullName() : "InvalidObject");
+
 			if (!WorldItemDefinition)
 				continue;
 
-			// if (!WorldItemDefinition->ShouldDropOnDeath())
-				// continue;
+			auto ShouldBeDropped = WorldItemDefinition->CanBeDropped(); // WorldItemDefinition->ShouldDropOnDeath();
+
+			LOG_INFO(LogDev, "[{}/{}] ShouldBeDropped {}", i, ItemInstances.Num(), ShouldBeDropped);
+
+			if (!ShouldBeDropped)
+				continue;
 
 			AFortPickup::SpawnPickup(WorldItemDefinition, DeathLocation, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
 				ItemEntry->GetLoadedAmmo());
 
-			WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
+			GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
+			// WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
+		}
+
+		for (auto& Pair : GuidAndCountsToRemove)
+		{
+			WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second);
 		}
 
 		WorldInventory->Update();
+
+		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
+		if (!DeadPawn->IsDBNO())
+		{
+			static void (*RemoveFromAlivePlayers)(AFortGameModeAthena* GameMode, AFortPlayerController* PlayerController, APlayerState * PlayerState, APawn * FinisherPawn,
+				UFortWeaponItemDefinition * FinishingWeapon, uint8_t DeathCause, char a7)
+				= decltype(RemoveFromAlivePlayers)(Addresses::RemoveFromAlivePlayers);
+
+			AActor* DamageCauser = *(AActor**)(__int64(DeathReport) + MemberOffsets::DeathReport::DamageCauser);
+			UFortWeaponItemDefinition* KillerWeaponDef = nullptr;
+
+			static auto FortProjectileBaseClass = FindObject<UClass>("/Script/FortniteGame.FortProjectileBase");
+
+			if (DamageCauser->IsA(FortProjectileBaseClass))
+				KillerWeaponDef = ((AFortWeapon*)DamageCauser->GetOwner())->GetWeaponData();
+			if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
+				KillerWeaponDef = Weapon->GetWeaponData();
+
+			RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
+		}
 	}
 
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);

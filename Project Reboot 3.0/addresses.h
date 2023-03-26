@@ -51,6 +51,7 @@ namespace Addresses
 	extern inline uint64 SendClientAdjustment = 0;
 	extern inline uint64 FrameStep = 0;
 	extern inline uint64 OnRep_ZiplineState = 0;
+	extern inline uint64 RemoveFromAlivePlayers = 0;
 
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();

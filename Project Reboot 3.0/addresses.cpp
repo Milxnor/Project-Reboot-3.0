@@ -242,6 +242,10 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding GetMaxTickRate");
 
 	Addresses::GetMaxTickRate = FindGetMaxTickRate();
+
+	LOG_INFO(LogDev, "Finding RemoveFromAlivePlayers");
+	Addresses::RemoveFromAlivePlayers = FindRemoveFromAlivePlayers();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -292,6 +296,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "CallPreReplication: 0x{:x}", CallPreReplication - Base);
 	LOG_INFO(LogDev, "OnRep_ZiplineState: 0x{:x}", OnRep_ZiplineState - Base);
 	LOG_INFO(LogDev, "GetMaxTickRate: 0x{:x}", GetMaxTickRate - Base);
+	LOG_INFO(LogDev, "RemoveFromAlivePlayers: 0x{:x}", RemoveFromAlivePlayers - Base);
 }
 
 void Offsets::FindAll()
