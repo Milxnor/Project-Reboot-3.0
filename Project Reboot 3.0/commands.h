@@ -2,6 +2,7 @@
 
 #include "reboot.h"
 #include "FortPlayerControllerAthena.h"
+#include "KismetSystemLibrary.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
@@ -264,6 +265,10 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			Pawn->SetHealth(Health);
 			SendMessageToConsole(PlayerController, L"Set health!\n");
+		}
+		else if (Command == "pausesafezone")
+		{
+			UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
 		}
 		else if (Command == "testspawn")
 		{

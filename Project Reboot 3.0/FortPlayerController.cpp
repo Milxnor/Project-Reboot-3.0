@@ -38,6 +38,11 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 
 	auto ItemDefinition = ItemInstance->GetItemEntry()->GetItemDefinition();
 
+	if (!ItemDefinition)
+		return;
+
+	LOG_INFO(LogDev, "ItemDefinition: {}", ItemDefinition->GetFullName());
+
 	static auto FortGadgetItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortGadgetItemDefinition");
 
 	if (ItemDefinition->IsA(FortGadgetItemDefinitionClass))
@@ -770,6 +775,17 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 
 	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>("/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
 
+	/* auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
+
+	if (!EditToolInstance)
+		return;
+
+	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid()))) */
 	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, FGuid{})))
 	{
 		BuildingActorToEdit->GetEditingPlayer() = PlayerController->GetPlayerState();
@@ -780,7 +796,7 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	}
 }
 
-void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit, UClass* NewBuildingClass, int RotationIterations, char bMirrored)
+/* void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit, UClass* NewBuildingClass, int RotationIterations, char bMirrored)
 {
 	auto PlayerState = (AFortPlayerState*)PlayerController->GetPlayerState();
 
@@ -791,6 +807,8 @@ void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* P
 		// return;
 
 	BuildingActorToEdit->GetEditingPlayer() = nullptr;
+
+	LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
 
 	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
 		decltype(BuildingSMActorReplaceBuildingActor)(Addresses::ReplaceBuildingActor);
@@ -803,6 +821,49 @@ void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* P
 		// if (auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState()))
 			// BuildingActor->SetTeam(PlayerState->GetTeamIndex());
 	}
+} */
+
+void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	auto PlayerController = (AFortPlayerController*)Context;
+
+	auto PlayerState = (AFortPlayerState*)PlayerController->GetPlayerState();
+
+	auto Params = Stack.Locals;
+
+	static auto RotationIterationsOffset = FindOffsetStruct("/Script/FortniteGame.FortPlayerController.ServerEditBuildingActor", "RotationIterations");
+	static auto NewBuildingClassOffset = FindOffsetStruct("/Script/FortniteGame.FortPlayerController.ServerEditBuildingActor", "NewBuildingClass");
+	static auto BuildingActorToEditOffset = FindOffsetStruct("/Script/FortniteGame.FortPlayerController.ServerEditBuildingActor", "BuildingActorToEdit");
+	static auto bMirroredOffset = FindOffsetStruct("/Script/FortniteGame.FortPlayerController.ServerEditBuildingActor", "bMirrored");
+
+	auto BuildingActorToEdit = *(ABuildingSMActor**)(__int64(Params) + BuildingActorToEditOffset);
+	auto NewBuildingClass = *(UClass**)(__int64(Params) + NewBuildingClassOffset);
+	int RotationIterations = Fortnite_Version < 8.30 ? *(int*)(__int64(Params) + RotationIterationsOffset) : (int)(*(uint8*)(__int64(Params) + RotationIterationsOffset));
+	auto bMirrored = *(char*)(__int64(Params) + bMirroredOffset);
+
+	LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
+
+	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
+		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
+
+	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
+		//return ServerEditBuildingActorOriginal(Context, Frame, Ret);
+
+	BuildingActorToEdit->GetEditingPlayer() = nullptr;
+
+	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
+		decltype(BuildingSMActorReplaceBuildingActor)(Addresses::ReplaceBuildingActor);
+
+	if (auto BuildingActor = BuildingSMActorReplaceBuildingActor(BuildingActorToEdit, 1, NewBuildingClass,
+		BuildingActorToEdit->GetCurrentBuildingLevel(), RotationIterations, bMirrored, PlayerController))
+	{
+		BuildingActor->SetPlayerPlaced(true);
+
+		// if (auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState()))
+			// BuildingActor->SetTeam(PlayerState->GetTeamIndex());
+	}
+
+	return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 }
 
 void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToStopEditing)
