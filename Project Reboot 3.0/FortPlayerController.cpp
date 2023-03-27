@@ -742,19 +742,28 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		if (!DeadPawn->IsDBNO())
 		{
-			static void (*RemoveFromAlivePlayers)(AFortGameModeAthena* GameMode, AFortPlayerController* PlayerController, APlayerState * PlayerState, APawn * FinisherPawn,
-				UFortWeaponItemDefinition * FinishingWeapon, uint8_t DeathCause, char a7)
+			static void (*RemoveFromAlivePlayers)(AFortGameModeAthena* GameMode, AFortPlayerController* PlayerController, APlayerState* PlayerState, APawn* FinisherPawn,
+				UFortWeaponItemDefinition* FinishingWeapon, uint8_t DeathCause, char a7)
 				= decltype(RemoveFromAlivePlayers)(Addresses::RemoveFromAlivePlayers);
 
 			AActor* DamageCauser = *(AActor**)(__int64(DeathReport) + MemberOffsets::DeathReport::DamageCauser);
 			UFortWeaponItemDefinition* KillerWeaponDef = nullptr;
 
 			static auto FortProjectileBaseClass = FindObject<UClass>("/Script/FortniteGame.FortProjectileBase");
+			LOG_INFO(LogDev, "FortProjectileBaseClass: {}", __int64(FortProjectileBaseClass));
 
 			if (DamageCauser->IsA(FortProjectileBaseClass))
+			{
+				LOG_INFO(LogDev, "From a projectile!");
 				KillerWeaponDef = ((AFortWeapon*)DamageCauser->GetOwner())->GetWeaponData();
+			}
 			if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
+			{
+				LOG_INFO(LogDev, "From a weapon!");
 				KillerWeaponDef = Weapon->GetWeaponData();
+			}
+
+			LOG_INFO(LogDev, "KillerWeaponDef: {}", KillerWeaponDef ? KillerWeaponDef->GetFullName() : "InvalidObject");
 
 			RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
 		}

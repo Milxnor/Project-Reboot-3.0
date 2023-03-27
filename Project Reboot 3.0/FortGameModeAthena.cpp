@@ -569,8 +569,40 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller)
 {
 	LOG_INFO(LogTeam, "PickTeam called!");
-	static auto NextTeamIndex = 3;
-	return NextTeamIndex++;
+
+	auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
+
+	auto Playlist = GameState->GetCurrentPlaylist();
+
+	static int CurrentTeamMembers = 0; // bad
+
+	// std::cout << "Dru!\n";
+
+	if (!Playlist)
+	{
+		CurrentTeamMembers = 0;
+		static int Current = 3;
+		CurrentTeamMembers++;
+		return Current++;
+	}
+
+	static int NextTeamIndex = Playlist->Get<int>("DefaultFirstTeam");
+
+	// std::cout << "CurrentTeamMembers: " << CurrentTeamMembers << '\n';
+
+	static auto MaxSquadSizeOffset = Playlist->GetOffset("MaxSquadSize");
+
+	if (CurrentTeamMembers >= Playlist->Get<int>(MaxSquadSizeOffset))
+	{
+		// std::cout << "Moving next team!\n";
+
+		NextTeamIndex++;
+		CurrentTeamMembers = 0;
+	}
+
+	CurrentTeamMembers++;
+
+	return NextTeamIndex;
 }
 
 void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena* GameMode, AActor* NewPlayerActor)

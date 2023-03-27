@@ -90,32 +90,6 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		{
 			LOG_INFO(LogZone, "Hold [{}] {}", i, ZoneHoldDurations.at(i));
 		}
-
-		/*
-		if (ZoneDurations.ArrayNum >= 1) ZoneDurations.at(0) = 0;
-		if (ZoneDurations.ArrayNum >= 2) ZoneDurations.at(1) = 180;
-		if (ZoneDurations.ArrayNum >= 3) ZoneDurations.at(2) = 120;
-		if (ZoneDurations.ArrayNum >= 4) ZoneDurations.at(3) = 90;
-		if (ZoneDurations.ArrayNum >= 5) ZoneDurations.at(4) = 70;
-		if (ZoneDurations.ArrayNum >= 6) ZoneDurations.at(5) = 60;
-		if (ZoneDurations.ArrayNum >= 7) ZoneDurations.at(6) = 60;
-		if (ZoneDurations.ArrayNum >= 8) ZoneDurations.at(7) = 55;
-		if (ZoneDurations.ArrayNum >= 9) ZoneDurations.at(8) = 45;
-		if (ZoneDurations.ArrayNum >= 10) ZoneDurations.at(9) = 75;
-		if (ZoneDurations.ArrayNum >= 11) ZoneDurations.at(10) = 0;
-
-		if (ZoneHoldDurations.ArrayNum >= 1) ZoneHoldDurations.at(0) = 0;
-		if (ZoneHoldDurations.ArrayNum >= 2) ZoneHoldDurations.at(1) = 170;
-		if (ZoneHoldDurations.ArrayNum >= 3) ZoneHoldDurations.at(2) = 120;
-		if (ZoneHoldDurations.ArrayNum >= 4) ZoneHoldDurations.at(3) = 90;
-		if (ZoneHoldDurations.ArrayNum >= 5) ZoneHoldDurations.at(4) = 80;
-		if (ZoneHoldDurations.ArrayNum >= 6) ZoneHoldDurations.at(5) = 50;
-		if (ZoneHoldDurations.ArrayNum >= 7) ZoneHoldDurations.at(6) = 30;
-		if (ZoneHoldDurations.ArrayNum >= 8) ZoneHoldDurations.at(7) = 0;
-		if (ZoneHoldDurations.ArrayNum >= 9) ZoneHoldDurations.at(8) = 0;
-		if (ZoneHoldDurations.ArrayNum >= 10) ZoneHoldDurations.at(9) = 0;
-		if (ZoneHoldDurations.ArrayNum >= 11) ZoneHoldDurations.at(10) = 0;
-		*/
 	}
 
 	LOG_INFO(LogZone, "SafeZonePhase: {}", GameModeAthena->Get<int>(SafeZonePhaseOffset));
