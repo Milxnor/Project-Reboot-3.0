@@ -46,17 +46,17 @@ static void NoMCPHook() { return; }
 static void CollectGarbageHook() { return; }
 
 static __int64 (*DispatchRequestOriginal)(__int64 a1, __int64* a2, int a3);
-static __int64 DispatchRequestHook(__int64 a1, __int64* a2, int a3) { return DispatchRequestOriginal(a1, a2, 3); }
-double GetServerDeltaTimeFromObjectHook(UObject* Object)
+
+static __int64 DispatchRequestHook(__int64 a1, __int64* a2, int a3)
 {
-    auto World = GetWorld();
+    if (Engine_Version >= 423)
+        return DispatchRequestOriginal(a1, a2, 3); 
 
-    auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)World->GetGameMode())->GetGameState());
+    static auto Offset = FindMcpIsDedicatedServerOffset();
 
-    if (!GameState)
-        return 0;
+    *(int*)(__int64(a2) + Offset) = 3;
 
-    return GameState->GetServerWorldTimeSeconds();
+    return DispatchRequestOriginal(a1, a2, 3);
 }
 
 DWORD WINAPI Main(LPVOID)

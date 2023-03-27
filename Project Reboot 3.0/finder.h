@@ -823,6 +823,16 @@ static inline uint64 FindDispatchRequest()
 	return FindBytes(Addr, std::floor(Fortnite_Version) == 18 ? std::vector<uint8_t>{0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C }, 300, 0, true);
 }
 
+static inline uint64 FindMcpIsDedicatedServerOffset()
+{
+	if (Engine_Version == 421 || Engine_Version == 422) // checked on 5.41 & 6.21 & 7.30
+		return 0x28;
+
+	return 0x60; // 1.7.2 & 4.1
+
+	return 0;
+}
+
 static inline uint64 FindGIsClient()
 {
 	// if (Fortnite_Version == 2.5)

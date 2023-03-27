@@ -568,7 +568,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller)
 {
-	LOG_INFO(LogTeam, "PickTeam called!");
+	LOG_INFO(LogTeams, "PickTeam called!");
 
 	auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
 
@@ -583,6 +583,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		CurrentTeamMembers = 0;
 		static int Current = 3;
 		CurrentTeamMembers++;
+		LOG_INFO(LogTeams, "Player is going on team {} with {} members (No Playlist).", Current, CurrentTeamMembers);
 		return Current++;
 	}
 
@@ -601,6 +602,8 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	}
 
 	CurrentTeamMembers++;
+
+	LOG_INFO(LogTeams, "Player is going on team {} with {} members.", NextTeamIndex, CurrentTeamMembers);
 
 	return NextTeamIndex;
 }

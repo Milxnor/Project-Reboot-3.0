@@ -667,8 +667,14 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	if (MemberOffsets::FortPlayerState::PawnDeathLocation != 0)
 		DeadPlayerState->Get<FVector>(MemberOffsets::FortPlayerState::PawnDeathLocation) = DeathLocation;
 
+	LOG_INFO(LogDev, "Calling OnRep_DeathInfo.");
+
 	static auto OnRep_DeathInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
-	DeadPlayerState->ProcessEvent(OnRep_DeathInfoFn);
+
+	if (OnRep_DeathInfoFn)
+		DeadPlayerState->ProcessEvent(OnRep_DeathInfoFn);
+
+	LOG_INFO(LogDev, "Called OnRep_DeathInfo.");
 
 	if (KillerPlayerState && KillerPlayerState != DeadPlayerState)
 	{
@@ -680,6 +686,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		KillerPlayerState->ClientReportKill(DeadPlayerState);
 		// KillerPlayerState->OnRep_Kills();
 	}
+
+	LOG_INFO(LogDev, "Reported kill.");
 
 	if (KillerPawn && KillerPawn != DeadPawn)
 	{
