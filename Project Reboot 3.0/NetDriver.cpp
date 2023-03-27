@@ -3,6 +3,7 @@
 #include "reboot.h"
 #include "Actor.h"
 #include "NetConnection.h"
+#include "FortPlayerControllerAthena.h"
 #include "GameplayStatics.h"
 
 void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
@@ -178,6 +179,62 @@ static UActorChannel* FindChannel(AActor* Actor, UNetConnection* Connection)
 	return NULL;
 }
 
+struct FNetViewer
+{
+	UNetConnection* Connection;                                               // 0x0000(0x0008) (ZeroConstructor, IsPlainOldData)
+	AActor* InViewer;                                                 // 0x0008(0x0008) (ZeroConstructor, IsPlainOldData)
+	AActor* ViewTarget;                                               // 0x0010(0x0008) (ZeroConstructor, IsPlainOldData)
+	FVector                                     ViewLocation;                                             // 0x0018(0x000C) (IsPlainOldData)
+	FVector                                     ViewDir;
+};
+
+static bool IsActorRelevantToConnection(AActor* Actor, std::vector<FNetViewer>& ConnectionViewers)
+{
+	for (int32 viewerIdx = 0; viewerIdx < ConnectionViewers.size(); viewerIdx++)
+	{
+		if (!ConnectionViewers[viewerIdx].ViewTarget)
+			continue;
+
+		// static bool (*IsNetRelevantFor)(AActor*, AActor*, AActor*, FVector&) = decltype(IsNetRelevantFor)(__int64(GetModuleHandleW(0)) + 0x1ECC700);
+
+		static auto index = Offsets::IsNetRelevantFor;
+
+		// if (Actor->IsNetRelevantFor(ConnectionViewers[viewerIdx].InViewer, ConnectionViewers[viewerIdx].ViewTarget, ConnectionViewers[viewerIdx].ViewLocation))
+		// if (IsNetRelevantFor(Actor, ConnectionViewers[viewerIdx].InViewer, ConnectionViewers[viewerIdx].ViewTarget, ConnectionViewers[viewerIdx].ViewLocation))
+		if (reinterpret_cast<bool(*)(AActor*, AActor*, AActor*, FVector&)>(Actor->VFTable[index])(
+			Actor, ConnectionViewers[viewerIdx].InViewer, ConnectionViewers[viewerIdx].ViewTarget, ConnectionViewers[viewerIdx].ViewLocation))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static FNetViewer ConstructNetViewer(UNetConnection* NetConnection)
+{
+	FNetViewer newViewer{};
+	newViewer.Connection = NetConnection;
+	newViewer.InViewer = NetConnection->GetPlayerController() ? NetConnection->GetPlayerController() : NetConnection->GetOwningActor();
+	newViewer.ViewTarget = NetConnection->GetViewTarget();
+
+	if (!NetConnection->GetOwningActor() || !(!NetConnection->GetPlayerController() || (NetConnection->GetPlayerController() == NetConnection->GetOwningActor())))
+		return newViewer;
+
+	APlayerController* ViewingController = NetConnection->GetPlayerController();
+
+	newViewer.ViewLocation = newViewer.ViewTarget->GetActorLocation();
+
+	if (ViewingController)
+	{
+		FRotator ViewRotation = ViewingController->GetControlRotation();
+		AFortPlayerControllerAthena::GetPlayerViewPointHook(Cast<AFortPlayerControllerAthena>(ViewingController, false), newViewer.ViewLocation, ViewRotation);
+		newViewer.ViewDir = ViewRotation.Vector();
+	}
+
+	return newViewer;
+}
+
 int32 UNetDriver::ServerReplicateActors()
 {
 	int32 Updated = 0;
@@ -202,7 +259,7 @@ int32 UNetDriver::ServerReplicateActors()
 	}
 	else */
 	{
-		ServerTickTime = 1.f / ServerTickTime;
+		ServerTickTime = 1.f / ServerTickTime; // 0
 		// bCPUSaturated = DeltaSeconds > 1.2f * ServerTickTime;
 	}
 
@@ -241,25 +298,27 @@ int32 UNetDriver::ServerReplicateActors()
 
 			auto Channel = FindChannel(Actor, Connection);
 
-			/* std::vector<FNetViewer> ConnectionViewers;
+			static void (*ActorChannelClose)(UActorChannel*) = decltype(ActorChannelClose)(Addresses::ActorChannelClose);
+
+			std::vector<FNetViewer> ConnectionViewers;
 			ConnectionViewers.push_back(ConstructNetViewer(Connection));
 
-			if (!Actor->bAlwaysRelevant && !Actor->bNetUseOwnerRelevancy && !Actor->bOnlyRelevantToOwner)
+			if (!Actor->IsAlwaysRelevant() && !Actor->UsesOwnerRelevancy() && !Actor->IsOnlyRelevantToOwner())
 			{
-				if (Connection && Connection->ViewTarget)
+				if (Connection && Connection->GetViewTarget())
 				{
-					auto Viewer = Connection->ViewTarget;
-					auto Loc = Viewer->K2_GetActorLocation();
+					auto Viewer = Connection->GetViewTarget();
+					auto Loc = Viewer->GetActorLocation();
 
 					if (!IsActorRelevantToConnection(Actor, ConnectionViewers))
 					{
 						if (Channel)
-							CloseChannel(Channel);
+							ActorChannelClose(Channel);
 
 						continue;
 					}
 				}
-			} */
+			}
 
 			static UChannel* (*CreateChannel)(UNetConnection*, int, bool, int32_t) = decltype(CreateChannel)(Addresses::CreateChannel);
 			static __int64 (*ReplicateActor)(UActorChannel*) = decltype(ReplicateActor)(Addresses::ReplicateActor);

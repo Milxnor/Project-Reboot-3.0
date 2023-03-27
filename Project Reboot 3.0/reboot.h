@@ -24,7 +24,7 @@ static inline T* FindObject(const TCHAR* Name, UClass* Class = nullptr, UObject*
 }
 
 template <typename T = UObject>
-static inline T* LoadObject(const TCHAR* Name, UClass* Class = nullptr, UObject* Outer = nullptr)
+static inline T* LoadObject(const TCHAR* Name, UClass* Class = T::StaticClass(), UObject* Outer = nullptr)
 {
 	if (!StaticLoadObjectOriginal)
 	{
@@ -46,7 +46,8 @@ static inline T* LoadObject(const std::string& NameStr, UClass* Class = nullptr,
 template <typename T = UObject>
 static inline T* FindObject(const std::string& NameStr, UClass* Class = nullptr, UObject* Outer = nullptr)
 {
-	auto NameCWSTR = std::wstring(NameStr.begin(), NameStr.end()).c_str();
+	std::string name = NameStr;
+	auto NameCWSTR = std::wstring(name.begin(), name.end()).c_str();
 	return StaticFindObject<T>(Class, Outer, NameCWSTR);
 }
 

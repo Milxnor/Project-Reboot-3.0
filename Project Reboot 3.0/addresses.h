@@ -52,6 +52,7 @@ namespace Addresses
 	extern inline uint64 FrameStep = 0;
 	extern inline uint64 OnRep_ZiplineState = 0;
 	extern inline uint64 RemoveFromAlivePlayers = 0;
+	extern inline uint64 ActorChannelClose = 0;
 
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();
@@ -70,7 +71,8 @@ namespace Offsets
 	extern inline uint64 Offset_Internal = 0;
 	extern inline uint64 ServerReplicateActors = 0;
 	extern inline uint64 ReplicationFrame = 0;
-	
+	extern inline uint64 IsNetRelevantFor = 0;
+
 	void FindAll();
 	void Print();
 }

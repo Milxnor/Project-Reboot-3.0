@@ -768,7 +768,7 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced())
 		return;
 
-	auto Pawn = Cast<AFortPawn>(PlayerController->GetPawn(), false);
+	auto Pawn = PlayerController->GetMyFortPawn();
 
 	if (!Pawn)
 		return;

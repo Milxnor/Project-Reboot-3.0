@@ -19,6 +19,8 @@ public:
 	bool IsActorBeingDestroyed();
 	bool IsNetStartup();
 	bool IsAlwaysRelevant();
+	bool UsesOwnerRelevancy();
+	bool IsOnlyRelevantToOwner();
 	void SetOwner(AActor* Owner);
 	
 	static class UClass* StaticClass();

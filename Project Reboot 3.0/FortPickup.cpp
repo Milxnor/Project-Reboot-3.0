@@ -61,6 +61,8 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 
 char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 {
+	// LOG_INFO(LogDev, "Woah!");
+
 	auto Pawn = Cast<AFortPlayerPawn>(Pickup->GetPickupLocationData()->GetPickupTarget());
 
 	if (!Pawn)

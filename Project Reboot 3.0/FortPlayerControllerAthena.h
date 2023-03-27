@@ -75,4 +75,10 @@ public:
 	static void ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn);
 	static void ServerPlaySquadQuickChatMessage(AFortPlayerControllerAthena* PlayerController, __int64 ChatEntry, __int64 SenderID);
 	static void GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
+
+	static UClass* StaticClass()
+	{
+		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerControllerAthena");
+		return Class;
+	}
 };

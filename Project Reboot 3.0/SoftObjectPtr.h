@@ -4,6 +4,7 @@
 
 #include "PersistentObjectPtr.h"
 #include "SoftObjectPath.h"
+#include "AssetPtr.h"
 
 #include "reboot.h"
 
@@ -20,9 +21,17 @@ public:
 
 	T* Get()
 	{
-		if (SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value <= 0)
-			return nullptr;
+		if (Engine_Version <= 416)
+		{
+			auto& AssetPtr = *(TAssetPtr<T>*)this;
+			return AssetPtr.Get();
+		}
+		else
+		{
+			if (SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value <= 0)
+				return nullptr;
 
-		return FindObject<T>(SoftObjectPtr.ObjectID.AssetPathName.ToString());
+			return FindObject<T>(SoftObjectPtr.ObjectID.AssetPathName.ToString());
+		}
 	}
 };

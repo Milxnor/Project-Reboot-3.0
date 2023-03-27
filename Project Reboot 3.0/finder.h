@@ -308,9 +308,23 @@ static inline uint64 FindGetPlayerViewpoint()
 	return 0;
 }
 
+static inline uint64 FindIsNetRelevantForOffset()
+{
+	if (Engine_Version == 416)
+		return 648 / 8;
+
+	return 0;
+}
+
+static inline uint64 FindActorChannelClose()
+{
+	auto StringRef = Memcury::Scanner::FindStringRef(L"UActorChannel::Close: ChIndex: %d, Actor: %s");
+
+	return FindBytes(StringRef, { 0x48, 0x89, 0x5C }, 1000, 0, true);
+}
+
 static inline uint64 FindSpawnActor()
 {
-
 	if (Engine_Version >= 427)
 	{
 		auto stat = Memcury::Scanner::FindStringRef(L"STAT_SpawnActorTime");
@@ -366,7 +380,11 @@ static inline uint64 FindInitListen()
 
 static inline uint64 FindOnDamageServer()
 {
-	auto Addr = FindFunctionCall(L"OnDamageServer", { 0x40, 0x55 });
+	auto Addr = FindFunctionCall(L"OnDamageServer", 
+		Engine_Version == 416 ? std::vector<uint8_t>{ 0x4C, 0x89, 0x4C} : 
+		Engine_Version == 419 || Engine_Version >= 427 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x40, 0x55 }
+	);
+
 	return Addr;
 }
 
@@ -437,6 +455,9 @@ static inline uint64 FindSpecConstructor()
 
 static inline uint64 FindCompletePickupAnimation()
 {
+	if (Engine_Version == 416 || Engine_Version == 419)
+		return Memcury::Scanner::FindPattern("4C 8B DC 53 55 56 48 83 EC 60 48 8B F1 48 8B 89 ? ? ? ? 48 85 C9").Get();
+
 	if (Engine_Version == 420)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 48 8B 89 ? ? ? ? 48 85 C9 74 20 48 8D 44 24").Get();
 

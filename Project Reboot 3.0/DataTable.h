@@ -14,6 +14,12 @@ public:
 
 		return *(TMap<FName, RowDataType*>*)(__int64(this) + (RowStructOffset + sizeof(UObject*))); // because after rowstruct is rowmap
 	}
+
+	static UClass* StaticClass()
+	{
+		static auto Class = FindObject<UClass>("/Script/Engine.DataTable");
+		return Class;
+	}
 };
 
 struct FDataTableRowHandle

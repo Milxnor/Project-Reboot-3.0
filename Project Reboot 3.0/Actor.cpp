@@ -127,6 +127,20 @@ bool AActor::IsAlwaysRelevant()
 	return ReadBitfieldValue(bAlwaysRelevantOffset, bAlwaysRelevantFieldMask);
 }
 
+bool AActor::UsesOwnerRelevancy()
+{
+	static auto bNetUseOwnerRelevancyOffset = GetOffset("bNetUseOwnerRelevancy");
+	static auto bNetUseOwnerRelevancyFieldMask = GetFieldMask(GetProperty("bNetUseOwnerRelevancy"));
+	return ReadBitfieldValue(bNetUseOwnerRelevancyOffset, bNetUseOwnerRelevancyFieldMask);
+}
+
+bool AActor::IsOnlyRelevantToOwner()
+{
+	static auto bOnlyRelevantToOwnerOffset = GetOffset("bOnlyRelevantToOwner");
+	static auto bOnlyRelevantToOwnerFieldMask = GetFieldMask(GetProperty("bOnlyRelevantToOwner"));
+	return ReadBitfieldValue(bOnlyRelevantToOwnerOffset, bOnlyRelevantToOwnerFieldMask);
+}
+
 UClass* AActor::StaticClass()
 {
 	static auto Class = FindObject<UClass>(L"/Script/Engine.Actor");

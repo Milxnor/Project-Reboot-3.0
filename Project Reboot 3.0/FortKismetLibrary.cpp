@@ -6,6 +6,26 @@
 
 UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EFortResourceType ResourceType)
 {
+	if (ResourceType == EFortResourceType::Wood)
+	{
+		static auto WoodItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
+		return WoodItemData;
+	}
+	else if (ResourceType == EFortResourceType::Stone)
+	{
+		static auto StoneItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+		return StoneItemData;
+	}
+	else if (ResourceType == EFortResourceType::Metal)
+	{
+		static auto MetalItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+		return MetalItemData;
+	}
+
+	return nullptr;
+
+	// The function below doesn't exist on some very old builds.
+	
 	static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_GetResourceItemDefinition");
 
 	struct { EFortResourceType type; UFortResourceItemDefinition* ret; } params{ResourceType};

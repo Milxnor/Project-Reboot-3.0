@@ -39,7 +39,7 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 	if (BuildingResourceAmountOverride.RowName.IsValid())
 	{
 		// auto AssetManager = Cast<UFortAssetManager>(GEngine->AssetManager);
-		// auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGGetGameStateAthena);
+		// auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameStateAthena);
 		UCurveTable* CurveTable = nullptr; // GameState->CurrentPlaylistInfo.BasePlaylist ? GameState->CurrentPlaylistInfo.BasePlaylist->ResourceRates.Get() : nullptr;
 
 		// LOG_INFO(LogDev, "Before1");

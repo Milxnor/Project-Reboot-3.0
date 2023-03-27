@@ -643,6 +643,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				for (auto& LootDrop : LootDrops)
 					AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
 			}
+
+			CurrentActor->K2_DestroyActor();
 		}
 
 		bool bPrint = false;
@@ -670,6 +672,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				for (auto& LootDrop : LootDrops)
 					AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
 			}
+
+			CurrentActor->K2_DestroyActor();
 		}
 	}
 
@@ -717,9 +721,11 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts", false);
 			auto Parts = (UObject**)(__int64(CharacterParts) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
 
-			static auto headPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
-			static auto bodyPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
-			static auto backpackPart = LoadObject("/Game/Characters/CharacterParts/Backpacks/NoBackpack.NoBackpack");
+			static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
+
+			static auto headPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1", CustomCharacterPartClass);
+			static auto bodyPart = LoadObject("/Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01", CustomCharacterPartClass);
+			static auto backpackPart = LoadObject("/Game/Characters/CharacterParts/Backpacks/NoBackpack.NoBackpack", CustomCharacterPartClass);
 
 			Parts[(int)EFortCustomPartType::Head] = headPart;
 			Parts[(int)EFortCustomPartType::Body] = bodyPart;
@@ -762,9 +768,11 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	if (Globals::bAbilitiesEnabled)
 	{
+		static auto FortAbilitySetClass = FindObject<UClass>("/Script/FortniteGame.FortAbilitySet");
+
 		static auto GameplayAbilitySet = Fortnite_Version >= 8.30 ? // LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
-			LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") :
-			LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer");
+			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer", FortAbilitySetClass) :
+			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer", FortAbilitySetClass);
 
 		LOG_INFO(LogDev, "GameplayAbilitySet {}", __int64(GameplayAbilitySet));
 
@@ -982,6 +990,12 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			NewPlayer->Get<AActor*>(QuickBarsOffset) = GetWorld()->SpawnActor<AActor>(FortQuickBarsClass);
 			NewPlayer->Get<AActor*>(QuickBarsOffset)->SetOwner(NewPlayer);
 		}
+	}
+
+	if (Engine_Version <= 420) // not sure if needed on s3-s4
+	{
+		static auto OverriddenBackpackSizeOffset = NewPlayer->GetOffset("OverriddenBackpackSize");
+		NewPlayer->Get<int>(OverriddenBackpackSizeOffset) = 5;
 	}
 
 	return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);

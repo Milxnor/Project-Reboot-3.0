@@ -102,3 +102,13 @@ struct FQuat FRotator::Quaternion()
 
 	return RotationQuat;
 }
+
+FVector FRotator::Vector() const
+{
+	float CP, SP, CY, SY;
+	SinCos(&SP, &CP, Pitch * (PI / 180.0f));
+	SinCos(&SY, &CY, Yaw * (PI / 180.0f));
+	FVector V = FVector(CP * CY, CP * SY, SP);
+
+	return V;
+}

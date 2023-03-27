@@ -246,6 +246,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding RemoveFromAlivePlayers");
 	Addresses::RemoveFromAlivePlayers = FindRemoveFromAlivePlayers();
 
+	LOG_INFO(LogDev, "Finding ActorChannelClose");
+	Addresses::ActorChannelClose = FindActorChannelClose();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -297,6 +300,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "OnRep_ZiplineState: 0x{:x}", OnRep_ZiplineState - Base);
 	LOG_INFO(LogDev, "GetMaxTickRate: 0x{:x}", GetMaxTickRate - Base);
 	LOG_INFO(LogDev, "RemoveFromAlivePlayers: 0x{:x}", RemoveFromAlivePlayers - Base);
+	LOG_INFO(LogDev, "ActorChannelClose: 0x{:x}", ActorChannelClose - Base);
 }
 
 void Offsets::FindAll()
@@ -343,6 +347,8 @@ void Offsets::FindAll()
 		Offsets::ReplicationFrame = 0xB2;
 	else if (Fortnite_Version == 2.5)
 		Offsets::ReplicationFrame = 0xCA;
+
+	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();
 }
 
 void Offsets::Print()
@@ -354,6 +360,7 @@ void Offsets::Print()
 	LOG_INFO(LogDev, "Func: 0x{:x}", Func);
 	LOG_INFO(LogDev, "ServerReplicateActors: 0x{:x}", ServerReplicateActors);
 	LOG_INFO(LogDev, "ReplicationFrame: 0x{:x}", ReplicationFrame);
+	LOG_INFO(LogDev, "IsNetRelevantFor: 0x{:x}", IsNetRelevantFor);
 }
 
 void Addresses::Init()

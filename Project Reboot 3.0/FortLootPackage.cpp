@@ -156,10 +156,10 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     if (recursive > 10)
         return LootDrops;
 
-    static std::vector<UDataTable*> LTDTables;
-    static std::vector<UDataTable*> LPTables;
+    /* static */ std::vector<UDataTable*> LTDTables;
+    /* static */ std::vector<UDataTable*> LPTables;
 
-    static bool bHasFoundTables = false;
+    /* static */ bool bHasFoundTables = false;
 
     if (!bHasFoundTables)
     {
@@ -168,7 +168,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
         LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
 
-        for (int i = 0; i < LTDTables.size(); i++)
+        /* for (int i = 0; i < LTDTables.size(); i++)
         {
             LOG_INFO(LogDev, "[{}] LTD {}", i, LTDTables.at(i)->GetFullName());
         }
@@ -176,7 +176,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         for (int i = 0; i < LPTables.size(); i++)
         {
             LOG_INFO(LogDev, "[{}] LP {}", i, LPTables.at(i)->GetFullName());
-        }
+        } */
     }
 
     std::vector<FFortLootTierData*> TierGroupLTDs;
@@ -193,14 +193,15 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
         // auto TierGroupNameStr = TierGroupName.ToString();
 
-        // LOG_INFO(LogLoot, "LTDRowMapNum: {}", LTDRowMapNum);
+        // if (bPrint)
+            // LOG_INFO(LogLoot, "LTDRowMapNum: {} LTD: {}", LTDRowMapNum, IsBadReadPtr(LTD, 8) ? "BadRead" : LTD->GetFullName());
 
         for (int i = 0; i < LTDRowMapNum; i++)
         {
             auto& CurrentLTD = LTDRowMap.Pairs.Elements[i].ElementData.Value;
             auto TierData = (FFortLootTierData*)CurrentLTD.Value();
 
-            if (IsBadReadPtr(TierData, 8))
+            if (IsBadReadPtr(TierData, 8)) // this shouldn't be needed
                 continue;
 
             if (TierGroupName == TierData->GetTierGroup() && TierData->GetWeight() != 0)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Quat.h"
+#include "Vector.h"
 
 struct FRotator
 {
@@ -9,4 +10,6 @@ struct FRotator
 	float Roll;
 
 	FQuat Quaternion();
+
+	FVector Vector() const;
 };

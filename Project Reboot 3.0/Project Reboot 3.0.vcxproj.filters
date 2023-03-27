@@ -461,6 +461,12 @@
     <ClInclude Include="OnlineReplStructs.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
     </ClInclude>
+    <ClInclude Include="AssetPtr.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="StringAssetReference.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\Misc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -642,6 +648,9 @@
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Creative\Minigame">
       <UniqueIdentifier>{7905895d-5ebf-4313-a9de-06f507c35113}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\CoreUObject\Public\Misc">
+      <UniqueIdentifier>{915f7622-6003-445e-a43f-04d5c7e13b49}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
