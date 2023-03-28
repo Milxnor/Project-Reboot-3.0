@@ -471,7 +471,14 @@ static inline uint64 FindCompletePickupAnimation()
 		return Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED").Get(); // 10.40
 
 	if (Engine_Version == 427)
-		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 68 10 48 89 70 18 48 89 78 20 41 54 41 56 41 57 48 83 EC 20 48 8B B1 ? ? ? ? 48 8B D9 48 85 F6").Get(); // 17.30
+	{
+		auto sig = Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 68 10 48 89 70 18 48 89 78 20 41 54 41 56 41 57 48 83 EC 20 48 8B B1 ? ? ? ? 48 8B D9 48 85 F6", false).Get(); // 17.30
+	
+		if (!sig)
+			sig = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 54 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 48 8B B9 ? ? ? ? 48 8B D9 48 85 FF 74 16 48 89").Get(); // 18.40
+
+		return sig;
+	}
 
 	if (Engine_Version == 500)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 48 8B B9").Get(); // 19.10
@@ -1085,7 +1092,7 @@ static inline uint64 FindReplaceBuildingActor()
 	}
 
 	return FindBytes(StringRef, 
-		(Engine_Version == 420 || Engine_Version == 421 || Engine_Version == 500 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }),
+		(Engine_Version == 420 || Engine_Version == 421 || Fortnite_Version >= 18 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }),
 		1000, 0, true);
 }
 
