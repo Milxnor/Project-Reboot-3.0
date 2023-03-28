@@ -41,7 +41,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	if (!ItemDefinition)
 		return;
 
-	LOG_INFO(LogDev, "ItemDefinition: {}", ItemDefinition->GetFullName());
+	// LOG_INFO(LogDev, "ItemDefinition: {}", ItemDefinition->GetFullName());
 
 	static auto FortGadgetItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortGadgetItemDefinition");
 
@@ -637,7 +637,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	// LOG_INFO(LogDev, "Tags: {}", Tags.ToStringSimple(true));
 
-	auto DeathCause = ToDeathCause(Tags, false);
+	auto DeathCause = ToDeathCause(Tags, false); // DeadPawn->IsDBNO() ??
 
 	LOG_INFO(LogDev, "DeathCause: {}", (int)DeathCause);
 

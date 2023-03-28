@@ -609,17 +609,25 @@ static inline uint64 FindRemoveFromAlivePlayers()
 
 	for (int i = 0; i < 2000; i++)
 	{
-		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x4C && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x4C)
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x4C && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x4C) // most common
 		{
 			return Addrr - i;
 		}
 
-		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x54)
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x54) // idk what verisont bh
 		{
+			for (int z = 3; z < 50; z++)
+			{
+				if (*(uint8_t*)(uint8_t*)(Addrr - i - z) == 0x4C && *(uint8_t*)(uint8_t*)(Addrr - i - z + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i - z + 2) == 0x4C)
+				{
+					return Addrr - i - z;
+				}
+			}
+
 			return Addrr - i;
 		}
 
-		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4) // i forgot what version
 		{
 			return Addrr - i;
 		}
@@ -975,7 +983,15 @@ static inline uint64 FindRealloc()
 
 static inline uint64 FindPickTeam()
 {
-	if (Engine_Version >= 427) // different start
+	if (Engine_Version == 426)
+	{
+		auto testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 56 41 54 41 55 41 56 48 83 EC 60 4C 8B A1").Get(); // 14.60 ????
+
+		if (testAddr)
+			return testAddr;
+	}
+
+	else if (Engine_Version >= 427) // different start
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 88 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 4C 8B A1").Get();
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%d]", false);

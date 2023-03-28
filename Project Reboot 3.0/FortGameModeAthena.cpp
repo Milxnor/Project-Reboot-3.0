@@ -582,12 +582,12 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	{
 		CurrentTeamMembers = 0;
 		static int Current = 3;
-		CurrentTeamMembers++;
 		LOG_INFO(LogTeams, "Player is going on team {} with {} members (No Playlist).", Current, CurrentTeamMembers);
+		CurrentTeamMembers++;
 		return Current++;
 	}
 
-	static int NextTeamIndex = Playlist->Get<int>("DefaultFirstTeam");
+	static int NextTeamIndex = Playlist->Get<uint8>("DefaultFirstTeam"); // + 1?
 
 	// std::cout << "CurrentTeamMembers: " << CurrentTeamMembers << '\n';
 
@@ -601,9 +601,9 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		CurrentTeamMembers = 0;
 	}
 
-	CurrentTeamMembers++;
-
 	LOG_INFO(LogTeams, "Player is going on team {} with {} members.", NextTeamIndex, CurrentTeamMembers);
+
+	CurrentTeamMembers++;
 
 	return NextTeamIndex;
 }
