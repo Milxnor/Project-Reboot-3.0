@@ -61,7 +61,10 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 
 char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 {
-	// LOG_INFO(LogDev, "Woah!");
+	constexpr bool bTestPrinting = false; // we could just use our own logger but eh
+
+	if constexpr (bTestPrinting)
+		LOG_INFO(LogDev, "CompletePickupAnimationHook!");
 
 	auto Pawn = Cast<AFortPlayerPawn>(Pickup->GetPickupLocationData()->GetPickupTarget());
 
@@ -92,10 +95,10 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 	auto ItemInstanceToSwap = WorldInventory->FindItemInstance(CurrentItemGuid);
 
-	if (!ItemInstanceToSwap)
-		return CompletePickupAnimationOriginal(Pickup);
+	// if (!ItemInstanceToSwap)
+		// return CompletePickupAnimationOriginal(Pickup);
 
-	auto ItemEntryToSwap = ItemInstanceToSwap->GetItemEntry();
+	auto ItemEntryToSwap = ItemInstanceToSwap ? ItemInstanceToSwap->GetItemEntry() : nullptr;
 	auto ItemDefinitionToSwap = ItemEntryToSwap ? Cast<UFortWorldItemDefinition>(ItemEntryToSwap->GetItemDefinition()) : nullptr;
 	bool bHasSwapped = false;
 
@@ -105,6 +108,9 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 	auto ItemDefGoingInPrimary = IsPrimaryQuickbar(PickupItemDefinition);
 
 	std::vector<std::pair<FFortItemEntry*, FFortItemEntry*>> PairsToMarkDirty; // vector of sets or something so no duplicates??
+	
+	if constexpr (bTestPrinting)
+		LOG_INFO(LogDev, "Start cpyCount: {}", cpyCount);
 
 	bool bForceOverflow = false;
 
@@ -126,6 +132,8 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 				PrimarySlotsFilled++;
 			}
 
+			// LOG_INFO(LogDev, "[{}] PrimarySlotsFilled: {}", i, PrimarySlotsFilled);
+
 			bIsInventoryFull = (PrimarySlotsFilled /* - 6 */) >= 5;
 
 			if (bIsInventoryFull) // probs shouldnt do in loop but alr
@@ -139,12 +147,18 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 					bHasSwapped = true;
 
+					if constexpr (bTestPrinting)
+						LOG_INFO(LogDev, "[{}] Swapping: {}", i, ItemDefinitionToSwap->GetFullName());
+
 					continue; // ???
 				}
 			}
 
 			if (CurrentItemEntry->GetItemDefinition() == PickupItemDefinition)
 			{
+				if constexpr (bTestPrinting)
+					LOG_INFO(LogDev, "[{}] Found stack of item!", i);
+
 				if (CurrentItemEntry->GetCount() < PickupItemDefinition->GetMaxStackSize())
 				{
 					int OverStack = CurrentItemEntry->GetCount() + cpyCount - PickupItemDefinition->GetMaxStackSize();
@@ -158,6 +172,9 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 					bEverStacked = true;
 
+					if constexpr (bTestPrinting)
+						LOG_INFO(LogDev, "[{}] We are stacking {}.", i, AmountToStack);
+
 					// if (cpyCount > 0)
 						// break;
 				}
@@ -167,6 +184,9 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 			if ((bIsInventoryFull || bForceOverflow) && cpyCount > 0) // overflow
 			{
+				if constexpr (bTestPrinting)
+					LOG_INFO(LogDev, "[{}] Overflow", i);
+
 				UFortWorldItemDefinition* ItemDefinitionToSpawn = PickupItemDefinition;
 				int AmountToSpawn = cpyCount > PickupItemDefinition->GetMaxStackSize() ? PickupItemDefinition->GetMaxStackSize() : cpyCount;
 
@@ -181,12 +201,18 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 		if (cpyCount > 0 && !bIsInventoryFull)
 		{
+			if constexpr (bTestPrinting)
+				LOG_INFO(LogDev, "Attempting to add to inventory.");
+
 			if (bDoesStackExist ? PickupItemDefinition->DoesAllowMultipleStacks() : true)
 			{
 				auto NewItemCount = cpyCount > PickupItemDefinition->GetMaxStackSize() ? PickupItemDefinition->GetMaxStackSize() : cpyCount;
 
 				auto NewItem = WorldInventory->AddItem(PickupItemDefinition, nullptr,
 					NewItemCount, PickupEntry->GetLoadedAmmo(), true);
+
+				if constexpr (bTestPrinting)
+					LOG_INFO(LogDev, "Added item with count {} to inventory.", NewItemCount);
 
 				// if (NewItem)
 					cpyCount -= NewItemCount;

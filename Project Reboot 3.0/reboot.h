@@ -347,6 +347,8 @@ static UObject* GetPlaylistToUse()
 	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
 	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");
 
+	Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultDuo.Playlist_DefaultDuo");
+
 	if (Globals::bCreative)
 		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 

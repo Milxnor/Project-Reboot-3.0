@@ -101,7 +101,7 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
 
         if ((*(uint8_t*)(NativeAddr + i) == 0x41 && *(uint8_t*)(NativeAddr + i + 1) == 0xFF)) // wtf ue500
         {
-            LOG_INFO(LogDev, "Uhhhhhh report this to milxnor if u not on 19.10 {}", Function->GetName());
+            LOG_INFO(LogDev, "Uhhhhhh report this to milxnor if u not on 18.40+ {}", Function->GetName());
             bFoundValidate = true;
             continue;
         }

@@ -985,19 +985,22 @@ static inline uint64 FindPickTeam()
 {
 	if (Engine_Version == 426)
 	{
-		auto testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 56 41 54 41 55 41 56 48 83 EC 60 4C 8B A1").Get(); // 14.60 ????
+		auto testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 56 41 54 41 55 41 56 48 83 EC 60 4C 8B A1").Get(); // 14.60 what is happening lol ????
 
 		if (testAddr)
 			return testAddr;
 	}
 
+	else if (Engine_Version == 500)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 88 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 45 33 ED 4D").Get(); // 19.10
+
 	else if (Engine_Version >= 427) // different start
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 88 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 4C 8B A1").Get();
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%d]", false);
+	auto Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%d]", false, 0, Engine_Version >= 427); // todo check if its just s18+ but this doesn't matter for now cuz we hardcode sig
 
 	if (!Addr.Get())
-		Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%s]");
+		Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%s]"); // i don't even know what version this is
 
 	return FindBytes(Addr, Fortnite_Version <= 2.5 ? std::vector<uint8_t>{ 0x48, 0x89, 0x6C } : std::vector<uint8_t>{ 0x40, 0x55 }, 1000, 0, true);
 }
