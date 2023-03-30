@@ -984,6 +984,12 @@
 
             auto RelativeOffset(uint32_t offset) -> Scanner
             {
+                if (!_address.Get())
+                {
+                    LOG_WARN(LogMemory, "Trying to relative offset an invalid offset!");
+                    return *this;
+                }
+
                 _address.RelativeOffset(offset);
 
                 return *this;

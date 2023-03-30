@@ -113,7 +113,9 @@ static inline uint64 FindObjectArray()
 			addr = aa.Get() ? aa.RelativeOffset(3).Get() : 0;
 
 			if (!addr)
-				addr = Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8D 1C C8 81 4B ? ? ? ? ? 49 63 76 30", false).RelativeOffset(3).Get();
+			{
+				addr = Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8D 1C C8 81 4B ? ? ? ? ? 49 63 76 30", false).Get() ? Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8D 1C C8 81 4B ? ? ? ? ? 49 63 76 30", false).RelativeOffset(3).Get() : 0;
+			}
 		}
 	}
 
@@ -259,12 +261,26 @@ static inline uint64 FindGetMaxTickRate() // Uengine::getmaxtickrate
 
     LOG_INFO(LogHook, "GetMaxTickRateIndex {}", GetMaxTickRateIndex); */
 
-	auto stringRef = Memcury::Scanner::FindStringRef(L"Hitching by request!");
+	auto Addrr = Memcury::Scanner::FindStringRef(L"Hitching by request!").Get();
 
-	if (!stringRef.Get())
+	if (!Addrr)
 		return 0;
 
-	return FindBytes(stringRef, Fortnite_Version <= 2.5 ? std::vector<uint8_t>{ 0x40, 0x53 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C }, 1000, 0, true);
+	for (int i = 0; i < 400; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x53)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
+	// return FindBytes(stringRef, Fortnite_Version <= 4.1 ? std::vector<uint8_t>{ 0x40, 0x53 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C }, 1000, 0, true);
 }
 
 static inline uint64 FindGetPlayerViewpoint()
@@ -944,19 +960,33 @@ static inline uint64 FindGIsClient()
 
 static inline uint64 FindGetNetMode()
 {
-	/* return Memcury::Scanner::FindStringRef(L" (client %d)")
-		.ScanFor({ 0x48, 0x8B, 0xC8, 0xE8 }, false)
-		.RelativeOffset(4)
-		.Get(); // credit ender */
-
 	if (std::floor(Fortnite_Version) == 18)
 		return Memcury::Scanner::FindPattern("48 83 EC 28 48 83 79 ? ? 75 20 48 8B 91 ? ? ? ? 48 85 D2 74 1E 48 8B 02 48 8B CA FF 90").Get();
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"PREPHYSBONES");
-	auto BeginningFunction = Memcury::Scanner(FindBytes(Addr, { 0x40, 0x55 }, 1000, 0, true));
-	auto CallToFunc = Memcury::Scanner(FindBytes(BeginningFunction, { 0xE8 }));
 
-	return CallToFunc.RelativeOffset(1).Get();
+	auto BeginningFunction = FindBytes(Addr, { 0x40, 0x55 }, 1000, 0, true);
+
+	uint64 CallToFunc = 0;
+
+	for (int i = 0; i < 400; i++)
+	{
+		if ((*(uint8_t*)(uint8_t*)(BeginningFunction + i) == 0xE8) && (*(uint8_t*)(uint8_t*)(BeginningFunction + i - 1) != 0x8B)) // scuffed but idk how to guarantee its not a register
+		{
+			CallToFunc = BeginningFunction + i;
+			break;
+		}
+	}
+
+	if (!CallToFunc)
+	{
+		LOG_WARN(LogDev, "Failed to find call for UWorld::GetNetMode! Report this to Milxnor immediately.");
+		return 0;
+	}
+
+	LOG_INFO(LogDev, "CallToFunc: 0x{:x}", CallToFunc - __int64(GetModuleHandleW(0)));
+
+	return Memcury::Scanner(CallToFunc).RelativeOffset(1).Get();
 
 	// return (uintptr_t)GetModuleHandleW(0) + 0x34d2140;
 }
