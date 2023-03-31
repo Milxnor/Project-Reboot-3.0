@@ -312,7 +312,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
             if (!LootPackage)
                 continue;
 
-            if (LootPackage->GetLootPackageID() == ChosenRowLootTierData->GetLootPackage() && LootPackage->GetWeight() != 0)
+            if (LootPackage->GetLootPackageID() == ChosenRowLootTierData->GetLootPackage() && LootPackage->GetWeight() != 0 && LootPackage->GetCount() != 0)
             {
                 TierGroupLPs.push_back(LootPackage);
             }
@@ -409,7 +409,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
                     auto LootPackage = (FFortLootPackageData*)CurrentLP.Value();
 
-                    if (LootPackage->GetLootPackageID().ToString() == TierGroupLPStr && LootPackage->GetWeight() != 0)
+                    if (LootPackage->GetLootPackageID().ToString() == TierGroupLPStr && LootPackage->GetWeight() != 0 && LootPackage->GetCount() != 0)
                     {
                         lootPackageCalls.push_back(LootPackage);
                     }

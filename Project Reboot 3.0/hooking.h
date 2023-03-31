@@ -77,6 +77,37 @@ inline __int64 GetFunctionIdxOrPtr2(UFunction* Function)
     return functionAddyOrOffset;
 }
 
+inline __int64 GetIndexFromVirtualFunctionCall(__int64 NativeAddr)
+{
+    std::string wtf = "";
+
+    int shots = 0;
+
+    bool bFoundFirstNumber = false;
+
+    for (__int64 z = (NativeAddr + 5); z != (NativeAddr + 1); z -= 1)
+    {
+        auto anafa = (int)(*(uint8_t*)z);
+
+        auto asfk = anafa < 10 ? "0" + std::format("{:x}", anafa) : std::format("{:x}", anafa);
+
+        // std::cout << std::format("[{}] 0x{}\n", shots, asfk);
+
+        if (*(uint8_t*)z == 0 ? bFoundFirstNumber : true)
+        {
+            wtf += asfk;
+            bFoundFirstNumber = true;
+        }
+
+        shots++;
+    }
+
+    std::transform(wtf.begin(), wtf.end(), wtf.begin(), ::toupper);
+
+    // LOG_INFO(LogDev, "wtf: {}", wtf);
+
+    return HexToDec(wtf);
+}
 
 inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
 {
@@ -114,34 +145,7 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
         {
             if (bFoundValidate)
             {
-                std::string wtf = "";
-
-                int shots = 0;
-
-                bool bFoundFirstNumber = false;
-
-                for (__int64 z = (NativeAddr + i + 5); z != (NativeAddr + i + 1); z -= 1)
-                {
-                    auto anafa = (int)(*(uint8_t*)z);
-
-                    auto asfk = anafa < 10 ? "0" + std::format("{:x}", anafa) : std::format("{:x}", anafa);
-
-                    // std::cout << std::format("[{}] 0x{}\n", shots, asfk);
-
-                    if (*(uint8_t*)z == 0 ? bFoundFirstNumber : true)
-                    {
-                        wtf += asfk;
-                        bFoundFirstNumber = true;
-                    }
-
-                    shots++;
-                }
-
-                std::transform(wtf.begin(), wtf.end(), wtf.begin(), ::toupper);
-
-                // LOG_INFO(LogDev, "wtf: {}", wtf);
-
-                return HexToDec(wtf);
+                return GetIndexFromVirtualFunctionCall(NativeAddr + i);
             }
             else
             {

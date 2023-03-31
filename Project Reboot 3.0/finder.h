@@ -1169,7 +1169,7 @@ static inline uint64 FindReplaceBuildingActor()
 	}
 
 	return FindBytes(StringRef, 
-		(Engine_Version == 420 || Engine_Version == 421 || Fortnite_Version >= 18 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }),
+		(Engine_Version == 420 || Engine_Version == 421 || Engine_Version >= 427 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }),
 		1000, 0, true);
 }
 

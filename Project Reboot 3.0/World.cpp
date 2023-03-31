@@ -79,5 +79,5 @@ void UWorld::Listen()
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;
 
-	LOG_INFO(LogNet, "Listening on port {}!", Port);
+	LOG_INFO(LogNet, "Listening on port {}!", Port + AmountOfRestarts);
 }

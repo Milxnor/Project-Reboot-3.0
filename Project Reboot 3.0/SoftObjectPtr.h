@@ -19,7 +19,7 @@ struct TSoftObjectPtr
 public:
 	FSoftObjectPtr SoftObjectPtr;
 
-	T* Get()
+	T* Get(UClass* ClassToLoad = nullptr, bool bTryToLoad = false)
 	{
 		if (Engine_Version <= 416)
 		{
@@ -30,6 +30,11 @@ public:
 		{
 			if (SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value <= 0)
 				return nullptr;
+
+			if (bTryToLoad)
+			{
+				return LoadObject<T>(SoftObjectPtr.ObjectID.AssetPathName.ToString(), ClassToLoad);
+			}
 
 			return FindObject<T>(SoftObjectPtr.ObjectID.AssetPathName.ToString());
 		}

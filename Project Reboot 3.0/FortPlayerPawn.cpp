@@ -14,6 +14,40 @@ void AFortPlayerPawn::ServerChoosePart(EFortCustomPartType Part, UObject* Chosen
 	this->ProcessEvent(fn, &AFortPlayerPawn_ServerChoosePart_Params);
 }
 
+void AFortPlayerPawn::ForceLaunchPlayerZiplinine() // Thanks android
+{
+	float ZiplineJumpDampening = -0.5f;
+	float ZiplineJumpStrength = 1500.f;
+
+	static auto CharacterMovementOffset = GetOffset("CharacterMovement");
+	auto CharacterMovement = this->Get(CharacterMovementOffset);
+
+	static auto VelocityOffset = CharacterMovement->GetOffset("Velocity");
+	auto& v23 = CharacterMovement->Get<FVector>(VelocityOffset);
+	//v23.X = abs(v23.X);
+	//v23.Y = abs(v23.Y);
+
+	FVector v21 = { -750, -750, ZiplineJumpStrength };
+
+	if (ZiplineJumpDampening * v23.X >= -750.f)
+		v21.X = fminf(ZiplineJumpDampening * v23.X, 750);
+
+	if (ZiplineJumpDampening * v23.Y >= -750.f)
+		v21.Y = fminf(ZiplineJumpDampening * v23.Y, 750);
+
+	// todo check if in vehicle
+
+	static auto LaunchCharacterFn = FindObject<UFunction>("/Script/Engine.Character.LaunchCharacter");
+
+	struct
+	{
+		FVector                                     LaunchVelocity;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		bool                                               bXYOverride;                                              // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		bool                                               bZOverride;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} ACharacter_LaunchCharacter_Params{ v21, false, false };
+	ProcessEvent(LaunchCharacterFn, &ACharacter_LaunchCharacter_Params);
+}
+
 void AFortPlayerPawn::ServerSendZiplineStateHook(AFortPlayerPawn* Pawn, FZiplinePawnState InZiplineState)
 {
 	static auto ZiplineStateOffset = Pawn->GetOffset("ZiplineState");
@@ -28,9 +62,18 @@ void AFortPlayerPawn::ServerSendZiplineStateHook(AFortPlayerPawn* Pawn, FZipline
 		static auto ZiplinePawnStateSize = ZiplinePawnStateStruct->GetPropertiesSize();
 
 		CopyStruct(PawnZiplineState, &InZiplineState, ZiplinePawnStateSize);
-	}
 
-	static bool bFoundFunc = false;
+		static auto bIsZipliningOffset = FindOffsetStruct("/Script/FortniteGame.ZiplinePawnState", "bIsZiplining");
+		static auto bJumpedOffset = FindOffsetStruct("/Script/FortniteGame.ZiplinePawnState", "bJumped");
+
+		if (!(*(bool*)(__int64(PawnZiplineState) + bIsZipliningOffset)))
+		{
+			if ((*(bool*)(__int64(PawnZiplineState) + bJumpedOffset)))
+			{
+				Pawn->ForceLaunchPlayerZiplinine();
+			}
+		}
+	}
 
 	static void (*OnRep_ZiplineState)(AFortPlayerPawn* Pawn) = decltype(OnRep_ZiplineState)(Addresses::OnRep_ZiplineState);
 

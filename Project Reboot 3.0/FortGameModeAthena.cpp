@@ -760,25 +760,16 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	LOG_INFO(LogDev, "Spawned loot!");
 
-	static bool bSpawnedVehicles = Engine_Version < 424; // todo fix
-
-	if (!bSpawnedVehicles)
+	if (Engine_Version >= 423 && Engine_Version < 426) // 423+ we need to spawn manually and vehicle sync doesn't work on >S13.
 	{
-		bSpawnedVehicles = true;
+		static int LastNum420 = 1;
 
-		/* static auto GalileoSpawnerClass = FindObject<UClass>("/Game/Athena/AI/Galileo/BP_Galileo_Spawner.BP_Galileo_Spawner_C");
-		auto GalileoSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), GalileoSpawnerClass);
-
-		LOG_INFO(LogDev, "GalileoSpawners.Num(): {}", GalileoSpawners.Num());
-
-		for (int i = 0; i < GalileoSpawners.Num(); i++)
+		if (AmountOfRestarts != LastNum420)
 		{
-			auto GalileoSpawner = GalileoSpawners.at(i);
+			LastNum420 = AmountOfRestarts;
 
-			auto NewPawn = SpawnAIFromCustomizationData(GalileoSpawner->GetActorLocation(), GalileoSpawner->Get("BotData"));
-		} */
-
-		// SpawnVehicles();
+			SpawnVehicles2();
+		}
 	}
 
 	auto NewPlayer = (AFortPlayerControllerAthena*)NewPlayerActor;

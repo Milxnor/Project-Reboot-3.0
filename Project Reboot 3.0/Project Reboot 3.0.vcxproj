@@ -198,6 +198,7 @@
     <ClCompile Include="FortPlayerController.cpp" />
     <ClCompile Include="FortPlayerControllerAthena.cpp" />
     <ClCompile Include="FortPlayerPawn.cpp" />
+    <ClCompile Include="FortPlayerStateAthena.cpp" />
     <ClCompile Include="FortPlaysetItemDefinition.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
     <ClCompile Include="FortWeaponItemDefinition.cpp" />
@@ -233,6 +234,7 @@
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="BuildingContainer.h" />
     <ClInclude Include="BuildingGameplayActor.h" />
+    <ClInclude Include="BuildingGameplayActorSpawnMachine.h" />
     <ClInclude Include="BuildingSMActor.h" />
     <ClInclude Include="BuildingTrap.h" />
     <ClInclude Include="calendar.h" />

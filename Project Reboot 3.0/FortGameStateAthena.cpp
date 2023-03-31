@@ -2,6 +2,7 @@
 
 #include "reboot.h"
 #include "FortPlayerStateAthena.h"
+#include "FortGameModeAthena.h"
 
 /* void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState)
 {
@@ -54,10 +55,61 @@ int AFortGameStateAthena::GetAircraftIndex(AFortPlayerState* PlayerState)
 
 bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState) // actually in zone
 {
+	auto GameModeAthena = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 	static auto IsRespawningAllowedFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateZone.IsRespawningAllowed");
 
+	LOG_INFO(LogDev, "IsRespawningAllowedFn: {}", __int64(IsRespawningAllowedFn));
+
 	if (!IsRespawningAllowedFn)
+	{
+		auto CurrentPlaylist = GetCurrentPlaylist();
+
+		if (!CurrentPlaylist)
+			return false;
+
+		static auto RespawnTypeOffset = CurrentPlaylist->GetOffset("RespawnType");
+
+		if (RespawnTypeOffset == -1)
+			return false;
+
+		auto& RespawnType = CurrentPlaylist->Get<uint8_t>(RespawnTypeOffset);
+		LOG_INFO(LogDev, "RespawnType: {}", (int)RespawnType);
+
+		if (RespawnType == 1)
+			return true;
+		
+		if (RespawnType == 2) // InfiniteRespawnExceptStorm
+		{
+			static auto SafeZoneIndicatorOffset = GameModeAthena->GetOffset("SafeZoneIndicator");
+			auto SafeZoneIndicator = GameModeAthena->Get<AActor*>(SafeZoneIndicatorOffset);
+
+			if (!SafeZoneIndicator)
+				return true;
+
+			/*
+			
+			10.40
+
+			bool __fastcall sub_7FF68F5A83A0(__int64 SafeZoneIndicator, float *a2)
+			{
+			  __m128 v2; // xmm1
+			  float v3; // xmm2_4
+
+			  v2 = *(*(SafeZoneIndicator + 928) + 464i64);
+			  v3 = _mm_shuffle_ps(v2, v2, 85).m128_f32[0];
+			  return (*(SafeZoneIndicator + 924) * *(SafeZoneIndicator + 924)) >= (((v3 - a2[1]) * (v3 - a2[1]))
+																				 + ((v2.m128_f32[0] - *a2) * (v2.m128_f32[0] - *a2)));
+			}
+
+			If this returns true, then return true
+
+			*/
+
+			return true; // Do this until we implement ^^
+		}
+
 		return false;
+	}
 
 	struct { AFortPlayerState* PlayerState; bool ReturnValue; } AFortGameStateZone_IsRespawningAllowed_Params{PlayerState};
 	this->ProcessEvent(IsRespawningAllowedFn, &AFortGameStateZone_IsRespawningAllowed_Params);

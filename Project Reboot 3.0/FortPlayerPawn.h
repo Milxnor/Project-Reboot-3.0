@@ -23,6 +23,7 @@ class AFortPlayerPawn : public AFortPawn
 {
 public:
 	void ServerChoosePart(EFortCustomPartType Part, class UObject* ChosenCharacterPart);
+	void ForceLaunchPlayerZiplinine(); // Thanks android
 
 	static void ServerSendZiplineStateHook(AFortPlayerPawn* Pawn, FZiplinePawnState InZiplineState);
 	static void ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup* Pickup, float InFlyTime, FVector InStartDirection, bool bPlayPickupSound);

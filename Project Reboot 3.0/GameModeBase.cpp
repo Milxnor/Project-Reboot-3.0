@@ -29,10 +29,20 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 	static auto fn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
 
-	struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; } 
-	AGameModeBase_SpawnDefaultPawnAtTransform_Params{NewPlayer, StartSpot->GetTransform()};
+	FTransform SpawnTransform = StartSpot->GetTransform();
 
-	GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+	struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; } 
+	AGameModeBase_SpawnDefaultPawnAtTransform_Params{NewPlayer, SpawnTransform };
+
+	// GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+
+	FActorSpawnParameters SpawnParameters{};
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	auto NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParameters); // AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
+
+	if (!NewPawn)
+		return nullptr;
 
 	bool bIsRespawning = false;
 
@@ -68,8 +78,8 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 				WorldInventory->AddItem(BuildingItemData_Stair_W, nullptr);
 				WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
 				WorldInventory->AddItem(PickaxeDefinition, nullptr);
-				WorldInventory->AddItem(WoodItemData, nullptr, 100);
-				WorldInventory->AddItem(DamageTrap, nullptr);
+				// WorldInventory->AddItem(WoodItemData, nullptr, 100);
+				// WorldInventory->AddItem(DamageTrap, nullptr);
 				// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel.WID_WestSausage_Parallel"), nullptr, 1, 1000);
 				// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/HappyGhost/WID_Athena_HappyGhost.WID_Athena_HappyGhost"), nullptr);
 
@@ -78,5 +88,5 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		}
 	}
 
-	return AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
+	return NewPawn;
 }

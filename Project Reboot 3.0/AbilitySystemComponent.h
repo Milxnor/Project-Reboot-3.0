@@ -35,10 +35,5 @@ public:
 	FGameplayAbilitySpecHandle GiveAbilityEasy(UClass* AbilityClass);
 	FGameplayAbilitySpec* FindAbilitySpecFromHandle(FGameplayAbilitySpecHandle Handle);
 
-	static void ServerTryActivateAbilityHook1(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex10 PredictionKey);
-	static void ServerTryActivateAbilityHook2(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex18 PredictionKey);
-	static void ServerTryActivateAbilityWithEventDataHook1(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex10 PredictionKey, FGameplayEventData TriggerEventData);
-	static void ServerTryActivateAbilityWithEventDataHook2(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex18 PredictionKey, FGameplayEventData TriggerEventData);
-	
-	static void ServerAbilityRPCBatchHook(UAbilitySystemComponent* AbilitySystemComponent, __int64 BatchInfo);
+	static void InternalServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, const FPredictionKey* PredictionKey, const FGameplayEventData* TriggerEventData);
 };

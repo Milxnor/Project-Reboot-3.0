@@ -128,11 +128,12 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 	SpawnTransform.Scale3D = { 1, 1, 1 };
 
 	static auto VehicleClassOffset = VehicleSpawner->GetOffset("VehicleClass", false);
+	static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
 
 	if (VehicleClassOffset != -1) // 10.40 and below?
 	{
 		auto& SoftVehicleClass = VehicleSpawner->Get<TSoftObjectPtr<UClass>>(VehicleClassOffset);
-		auto StrongVehicleClass = SoftVehicleClass.Get();
+		auto StrongVehicleClass = SoftVehicleClass.Get(BGAClass, true);
 
 		if (!StrongVehicleClass)
 		{
@@ -150,7 +151,7 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 		return nullptr;
 
 	auto& SoftFortVehicleItemDef = VehicleSpawner->Get<TSoftObjectPtr<UFortItemDefinition>>(FortVehicleItemDefOffset);
-	auto StrongFortVehicleItemDef = SoftFortVehicleItemDef.Get();
+	auto StrongFortVehicleItemDef = SoftFortVehicleItemDef.Get(nullptr, true);
 
 	if (!StrongFortVehicleItemDef)
 	{
@@ -161,7 +162,7 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 
 	static auto VehicleActorClassOffset = StrongFortVehicleItemDef->GetOffset("VehicleActorClass");
 	auto& SoftVehicleActorClass = StrongFortVehicleItemDef->Get<TSoftObjectPtr<UClass>>(VehicleActorClassOffset);
-	auto StrongVehicleActorClass = SoftVehicleActorClass.Get();
+	auto StrongVehicleActorClass = SoftVehicleActorClass.Get(BGAClass, true);
 
 	if (!StrongVehicleActorClass)
 	{

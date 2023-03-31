@@ -25,8 +25,7 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 	}
 }
 
-void InternalServerTryActivateAbility(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, /* bool InputPressed, */
-	const FPredictionKey* PredictionKey, const FGameplayEventData* TriggerEventData) // https://github.com/EpicGames/UnrealEngine/blob/4.23/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/AbilitySystemComponent_Abilities.cpp#L1445
+void UAbilitySystemComponent::InternalServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, const FPredictionKey* PredictionKey, const FGameplayEventData* TriggerEventData) // https://github.com/EpicGames/UnrealEngine/blob/4.23/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/AbilitySystemComponent_Abilities.cpp#L1445
 {
 	using UGameplayAbility = UObject;
 
@@ -156,39 +155,4 @@ FGameplayAbilitySpec* UAbilitySystemComponent::FindAbilitySpecFromHandle(FGamepl
 	LoopSpecs(this, compareHandles);
 
 	return SpecToReturn;
-}
-
-void UAbilitySystemComponent::ServerTryActivateAbilityHook1(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex10 PredictionKey)
-{
-	LOG_INFO(LogAbilities, "ServerTryActivateAbility1");
-	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */ (FPredictionKey*)&PredictionKey, nullptr);
-}
-
-void UAbilitySystemComponent::ServerTryActivateAbilityHook2(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex18 PredictionKey)
-{
-	LOG_INFO(LogAbilities, "ServerTryActivateAbility2");
-	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */ (FPredictionKey*)&PredictionKey, nullptr);
-}
-
-void UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook1(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex10 PredictionKey, FGameplayEventData TriggerEventData)
-{
-	LOG_INFO(LogAbilities, "ServerTryActivateAbilityWithEventData1");
-	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */
-		(FPredictionKey*)&PredictionKey, &TriggerEventData);
-}
-
-void UAbilitySystemComponent::ServerTryActivateAbilityWithEventDataHook2(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, PadHex18 PredictionKey, FGameplayEventData TriggerEventData)
-{
-	LOG_INFO(LogAbilities, "ServerTryActivateAbilityWithEventData2");
-	InternalServerTryActivateAbility(AbilitySystemComponent, Handle, /* InputPressed, */
-		(FPredictionKey*)&PredictionKey, &TriggerEventData);
-}
-
-void UAbilitySystemComponent::ServerAbilityRPCBatchHook(UAbilitySystemComponent* AbilitySystemComponent, __int64 BatchInfo)
-{
-	static auto AbilitySpecHandleOffset = 0x0;
-	static auto PredictionKeyOffset = 0x0008;
-
-	InternalServerTryActivateAbility(AbilitySystemComponent, *(FGameplayAbilitySpecHandle*)(__int64(BatchInfo) + AbilitySpecHandleOffset),
-		/* InputPressed, */ (FPredictionKey*)(__int64(BatchInfo) + PredictionKeyOffset), nullptr);
 }
