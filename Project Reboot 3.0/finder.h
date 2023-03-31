@@ -754,6 +754,34 @@ static inline uint64 FindGIsServer()
 
 	// if (Fortnite_Version == 2.5)
 		// return __int64(GetModuleHandleW(0)) + 0x46AD735;
+
+	auto Addrr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering").Get();
+
+	/* int found = 0;
+
+	for (int i = 0; i < 600; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x88 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x1D)
+		{
+			for (int z = 0; z < 15; z++)
+			{
+				LOG_INFO(LogDev, "[{}] [{}] GIsServerTest: 0x{:x}", found, z, Memcury::Scanner(Addrr - i).RelativeOffset(z).Get() - __int64(GetModuleHandleW(0)));
+			}
+
+			found++;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0xC6 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x05)
+		{
+			for (int z = 0; z < 15; z++)
+			{
+				LOG_INFO(LogDev, "[{}] [{}] GIsServerTest: 0x{:x}", found, z, Memcury::Scanner(Addrr - i).RelativeOffset(z).Get() - __int64(GetModuleHandleW(0)));
+			}
+
+			found++;
+		}
+	} */
+
 	if (Fortnite_Version == 12.41)
 		return __int64(GetModuleHandleW(0)) + 0x804B65A;
 

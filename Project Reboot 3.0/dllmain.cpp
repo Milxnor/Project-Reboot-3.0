@@ -35,8 +35,10 @@ enum ENetMode
     NM_MAX,
 };
 
-static ENetMode GetNetModeHook() { /* std::cout << "AA!\n"; */ return ENetMode::NM_DedicatedServer; }
-static ENetMode GetNetModeHook2() { /* std::cout << "AA!\n"; */ return ENetMode::NM_DedicatedServer; }
+constexpr ENetMode NetMode = ENetMode::NM_DedicatedServer;
+
+static ENetMode GetNetModeHook() { return NetMode; }
+static ENetMode GetNetModeHook2() { return NetMode; }
 
 static bool ReturnTrueHook() { return true; }
 static float GetMaxTickRateHook()  { return 30.f; }
@@ -466,7 +468,6 @@ DWORD WINAPI Main(LPVOID)
             GameState->Get<float>("WarmupCountdownStartTime") = 0;
             GameMode->Get<float>("WarmupEarlyCountdownDuration") = 0;
         }
-
 
         else if (GetAsyncKeyState(VK_F9) & 1)
         {

@@ -633,7 +633,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	auto/*&*/ Tags = MemberOffsets::FortPlayerPawn::CorrectTags == 0 ? FGameplayTagContainer()
 		: DeadPawn->Get<FGameplayTagContainer>(MemberOffsets::FortPlayerPawn::CorrectTags);
-		// *(FGameplayTagContainer*)(__int64(DeathReport) + MemberOffsets::DeathReport::Tags);
+	// *(FGameplayTagContainer*)(__int64(DeathReport) + MemberOffsets::DeathReport::Tags);
 
 	// LOG_INFO(LogDev, "Tags: {}", Tags.ToStringSimple(true));
 
@@ -645,18 +645,18 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	*(uint8*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathCause) = DeathCause;
 	*(AActor**)(__int64(DeathInfo) + MemberOffsets::DeathInfo::FinisherOrDowner) = KillerPlayerState ? KillerPlayerState : DeadPlayerState;
 
-	if (MemberOffsets::DeathInfo::DeathLocation != 0)
+	if (MemberOffsets::DeathInfo::DeathLocation != -1)
 		*(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) = DeathLocation;
 
-	if (MemberOffsets::DeathInfo::DeathTags != 0)
+	if (MemberOffsets::DeathInfo::DeathTags != -1)
 		*(FGameplayTagContainer*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathTags) = Tags;
 
-	if (MemberOffsets::DeathInfo::bInitialized != 0)
+	if (MemberOffsets::DeathInfo::bInitialized != -1)
 		*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bInitialized) = true;
 
 	if (DeathCause == FallDamageEnumValue)
 	{
-		if (MemberOffsets::FortPlayerPawnAthena::LastFallDistance != 0)
+		if (MemberOffsets::FortPlayerPawnAthena::LastFallDistance != -1)
 			*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = DeadPawn->Get<float>(MemberOffsets::FortPlayerPawnAthena::LastFallDistance);
 	}
 	else
@@ -664,23 +664,21 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = KillerPawn ? KillerPawn->GetDistanceTo(DeadPawn) : 0;
 	}
 
-	if (MemberOffsets::FortPlayerState::PawnDeathLocation != 0)
+	if (MemberOffsets::FortPlayerState::PawnDeathLocation != -1)
 		DeadPlayerState->Get<FVector>(MemberOffsets::FortPlayerState::PawnDeathLocation) = DeathLocation;
-
-	LOG_INFO(LogDev, "Calling OnRep_DeathInfo.");
 
 	static auto OnRep_DeathInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
 
 	if (OnRep_DeathInfoFn)
+	{
 		DeadPlayerState->ProcessEvent(OnRep_DeathInfoFn);
-
-	LOG_INFO(LogDev, "Called OnRep_DeathInfo.");
+	}
 
 	if (KillerPlayerState && KillerPlayerState != DeadPlayerState)
 	{
 		KillerPlayerState->Get<int>(MemberOffsets::FortPlayerStateAthena::KillScore)++;
 
-		if (MemberOffsets::FortPlayerStateAthena::TeamKillScore != 0)
+		if (MemberOffsets::FortPlayerStateAthena::TeamKillScore != -1)
 			KillerPlayerState->Get<int>(MemberOffsets::FortPlayerStateAthena::TeamKillScore)++;
 
 		KillerPlayerState->ClientReportKill(DeadPlayerState);
@@ -712,7 +710,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		{
 			auto ItemInstance = ItemInstances.at(i);
 
-			LOG_INFO(LogDev, "[{}/{}] CurrentItemInstance {}", i, ItemInstances.Num(), __int64(ItemInstance));
+			// LOG_INFO(LogDev, "[{}/{}] CurrentItemInstance {}", i, ItemInstances.Num(), __int64(ItemInstance));
 
 			if (!ItemInstance)
 				continue;
@@ -720,14 +718,14 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			auto ItemEntry = ItemInstance->GetItemEntry();
 			auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
 
-			LOG_INFO(LogDev, "[{}/{}] WorldItemDefinition {}", i, ItemInstances.Num(), WorldItemDefinition ? WorldItemDefinition->GetFullName() : "InvalidObject");
+			// LOG_INFO(LogDev, "[{}/{}] WorldItemDefinition {}", i, ItemInstances.Num(), WorldItemDefinition ? WorldItemDefinition->GetFullName() : "InvalidObject");
 
 			if (!WorldItemDefinition)
 				continue;
 
 			auto ShouldBeDropped = WorldItemDefinition->CanBeDropped(); // WorldItemDefinition->ShouldDropOnDeath();
 
-			LOG_INFO(LogDev, "[{}/{}] ShouldBeDropped {}", i, ItemInstances.Num(), ShouldBeDropped);
+			// LOG_INFO(LogDev, "[{}/{}] ShouldBeDropped {}", i, ItemInstances.Num(), ShouldBeDropped);
 
 			if (!ShouldBeDropped)
 				continue;
@@ -771,7 +769,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 				KillerWeaponDef = Weapon->GetWeaponData();
 			}
 
-			LOG_INFO(LogDev, "KillerWeaponDef: {}", KillerWeaponDef ? KillerWeaponDef->GetFullName() : "InvalidObject");
+			// LOG_INFO(LogDev, "KillerWeaponDef: {}", KillerWeaponDef ? KillerWeaponDef->GetFullName() : "InvalidObject");
 
 			RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
 		}

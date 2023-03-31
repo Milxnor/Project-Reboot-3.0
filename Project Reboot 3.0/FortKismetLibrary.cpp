@@ -177,7 +177,7 @@ void UFortKismetLibrary::CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHo
 
 	// return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
 
-	int Count = 1;
+	int Count = 1; // uh?
 
 	auto AmmoDefinition = WeaponItemDefinition->GetAmmoData();
 

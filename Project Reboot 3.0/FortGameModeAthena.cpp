@@ -39,6 +39,45 @@ enum class EDynamicFoundationType : uint8_t
 	EDynamicFoundationType_MAX = 4
 };
 
+
+static UObject* GetPlaylistToUse()
+{
+	auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
+	// Playlist = FindObject("/BlueCheese/Playlists/Playlist_ShowdownAlt_BlueCheese_Trios.Playlist_ShowdownAlt_BlueCheese_Trios");
+
+	if (Globals::bGoingToPlayEvent)
+	{
+		if (Fortnite_Version != 12.61)
+		{
+			auto EventPlaylist = GetEventPlaylist();
+
+			if (!EventPlaylist)
+			{
+				LOG_ERROR(LogPlaylist, "No event playlist! Turning off going to play event");
+				Globals::bGoingToPlayEvent = false;
+			}
+			else
+			{
+				Playlist = EventPlaylist;
+			}
+		}
+	}
+
+	// SET OVERRIDE PLAYLIST DOWN HERE
+
+	// Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
+
+	// Playlist = FindObject("/Game/Athena/Playlists/Carmine/Playlist_Carmine.Playlist_Carmine");
+
+	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
+	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");
+
+	if (Globals::bCreative)
+		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
+
+	return Playlist;
+}
+
 void ShowFoundation(UObject* BuildingFoundation)
 {
 	if (!BuildingFoundation)

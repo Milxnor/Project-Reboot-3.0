@@ -257,7 +257,8 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 			!strstr(FunctionFullName.c_str(), "PinkOatmeal_GreenGlop_C") &&
 			!strstr(ObjectName.c_str(), "CBGA_GreenGlop_WithGrav_C") &&
 			!strstr(ObjectName.c_str(), "FlopperSpawn") &&
-			!strstr(FunctionFullName.c_str(), "GCNL_EnvCampFire_Fire_C"))
+			!strstr(FunctionFullName.c_str(), "GCNL_EnvCampFire_Fire_C") &&
+			!strstr(FunctionName.c_str(), "BlueprintGetAllHighlightableComponents"))
 		{
 			LOG_INFO(LogDev, "Function called: {} with {}", FunctionFullName, ObjectName);
 		}

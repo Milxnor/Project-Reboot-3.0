@@ -21,24 +21,6 @@
 
 void Addresses::SetupVersion()
 {
-	if (false)
-	{
-		Engine_Version = 423;
-		Fortnite_Version = 10.40;
-	}
-
-	if (false)
-	{
-		Engine_Version = 424;
-		Fortnite_Version = 11.01;
-	}
-
-	if (false)
-	{
-		Engine_Version = 425;
-		Fortnite_Version = 12.41;
-	}
-
 	static FString(*GetEngineVersion)() = decltype(GetEngineVersion)(Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 41 B8 04 ? ? ? 48 8B D3", false).Get());
 
 	std::string FullVersion;
@@ -325,10 +307,10 @@ void Offsets::FindAll()
 		Offsets::ServerReplicateActors = std::floor(Fortnite_Version) == 5 ? 0x54 : 0x56;
 	else if (Engine_Version >= 422 && Engine_Version <= 424)
 		Offsets::ServerReplicateActors = Fortnite_Version >= 7.40 && Fortnite_Version < 8.40 ? 0x57 :
-		Engine_Version == 424 ? (Fortnite_Version >= 11.00 && Fortnite_Version <= 11.01 ? 0x57 :
+		Engine_Version == 424 ? (Fortnite_Version >= 11.00 && Fortnite_Version <= 11.10 ? 0x57 :
 			(Fortnite_Version == 11.30 || Fortnite_Version == 11.31 ? 0x59 : 0x5A)) : 0x56;
 
-	// ^ I know this makes no sense, 7.40-8.40 is 0x57, other 7-10 is 0x56, 11.00-11.01 = 0x57, 11.31 = 0x59, other S11 is 0x5A
+	// ^ I know this makes no sense, 7.40-8.40 is 0x57, other 7-10 is 0x56, 11.00-11.10 = 0x57, 11.30-11.31 = 0x59, other S11 is 0x5A
 
 	else if (std::floor(Fortnite_Version) == 12 || std::floor(Fortnite_Version) == 13)
 		Offsets::ServerReplicateActors = 0x5D;
@@ -406,21 +388,15 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 57 48 81 EC ? ? ? ? 48 8B BA ? ? ? ? 48 8B DA 0F 29").Get()); // Pawn Overlap
 	}
 
-	if (Engine_Version == 422)
-	{
-		// toNull.push_back(Memcury::Scanner::FindPattern("40 55 56 41 54 48 8B EC 48 81 EC ? ? ? ? 48 8B 01 4C 8B E2 48 8B F1 FF 90").Get()); // chnaging cameasesion
-	}
-
 	if (Engine_Version == 425)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("40 57 41 56 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F1 74 3A 80 3D ? ? ? ? ? 0F 82").Get()); // collect garbage
-		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C 89 60 F0 45 0F B6 E0 4C").Get()); // Changing Gamesession
-		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C 89 60 F0 4C 8B E2 4C 89").Get()); // ^
 	}
 
 	if (Engine_Version == 500)
 	{
-		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 48 8B FA 48 8B D9 48 85 D2 0F 84 ? ? ? ? 8B").Get()); // idk lmfao
+		// toNull.push_back(Memcury::Scanner::FindPattern("").Get()); // collectgarbage
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 48 8B FA 48 8B D9 48 85 D2 0F 84 ? ? ? ? 8B").Get()); // idk lmfao
 	}
 
 	if (Fortnite_Version == 12.61)
