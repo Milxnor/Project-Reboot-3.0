@@ -616,19 +616,38 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	auto Playlist = GameState->GetCurrentPlaylist();
 
 	static int CurrentTeamMembers = 0; // bad
+	static int Current = 3;
+
+	static int LastNum = 1;
+
+	if (AmountOfRestarts != LastNum)
+	{
+		LastNum = AmountOfRestarts;
+
+		Current = 3;
+		CurrentTeamMembers = 0;
+	}
 
 	// std::cout << "Dru!\n";
 
 	if (!Playlist)
 	{
 		CurrentTeamMembers = 0;
-		static int Current = 3;
 		LOG_INFO(LogTeams, "Player is going on team {} with {} members (No Playlist).", Current, CurrentTeamMembers);
 		CurrentTeamMembers++;
 		return Current++;
 	}
 
 	static int NextTeamIndex = Playlist->Get<uint8>("DefaultFirstTeam"); // + 1?
+
+	static int LastNum1 = 1;
+
+	if (AmountOfRestarts != LastNum1)
+	{
+		LastNum1 = AmountOfRestarts;
+
+		NextTeamIndex = Playlist->Get<uint8>("DefaultFirstTeam");
+	}
 
 	// std::cout << "CurrentTeamMembers: " << CurrentTeamMembers << '\n';
 
@@ -765,8 +784,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	auto NewPlayer = (AFortPlayerControllerAthena*)NewPlayerActor;
 
 	auto PlayerStateAthena = NewPlayer->GetPlayerStateAthena();
-
-	LOG_INFO(LogDev, "PlayerStateAthena: {}", __int64(PlayerStateAthena));
 
 	if (!PlayerStateAthena)
 		return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);

@@ -99,11 +99,14 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
     {
         // LOG_INFO(LogDev, "0x{:x}", *(uint8_t*)(NativeAddr + i));
 
-        if ((*(uint8_t*)(NativeAddr + i) == 0x41 && *(uint8_t*)(NativeAddr + i + 1) == 0xFF)) // wtf ue500
+        if (Fortnite_Version >= 19) // We should NOT do this, instead, if we expect a validate and we don't find before C3, then search for 0x41 0xFF.
         {
-            LOG_INFO(LogDev, "Uhhhhhh report this to milxnor if u not on 18.40+ {}", Function->GetName());
-            bFoundValidate = true;
-            continue;
+            if ((*(uint8_t*)(NativeAddr + i) == 0x41 && *(uint8_t*)(NativeAddr + i + 1) == 0xFF)) // wtf s18+
+            {
+                LOG_INFO(LogDev, "Uhhhhhh report this to milxnor if u not on s19+ {}", Function->GetName());
+                bFoundValidate = true;
+                continue;
+            }
         }
 
         if ((*(uint8_t*)(NativeAddr + i) == 0xFF && *(uint8_t*)(NativeAddr + i + 1) == 0x90) || // call qword ptr

@@ -129,7 +129,7 @@ static __forceinline T* Cast(UObject* Object, bool bCheckType = true)
 	return nullptr;
 }
 
-extern inline int AmountOfRestarts = 0;
+extern inline int AmountOfRestarts = 0; // DO NOT CHANGE
 
 struct PlaceholderBitfield
 {
