@@ -132,7 +132,7 @@ DWORD WINAPI Main(LPVOID)
     GetLocalPlayerController()->ProcessEvent(SwitchLevel, &Level);
 
     LOG_INFO(LogPlayer, "Switched level.");
-
+  
     Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);
 
     LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
@@ -154,11 +154,18 @@ DWORD WINAPI Main(LPVOID)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr);
     }
 
-    auto& LocalPlayers = GetLocalPlayers();
-
-    if (LocalPlayers.Num() && LocalPlayers.Data)
+    if (true)
     {
-        LocalPlayers.Remove(0);
+        auto& LocalPlayers = GetLocalPlayers();
+
+        if (LocalPlayers.Num() && LocalPlayers.Data)
+        {
+            LocalPlayers.Remove(0);
+        }
+    }
+    else if (false)
+    {
+        UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
     }
 
     for (auto func : Addresses::GetFunctionsToNull())
@@ -377,7 +384,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::TickFlush, (PVOID)UNetDriver::TickFlushHook, (PVOID*)&UNetDriver::TickFlushOriginal);
     // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x1A001D0), GetServerDeltaTimeFromObjectHook);
 
-    // if (/* Engine_Version >= 420 && */ Engine_Version < 427)
+    // if (Engine_Version < 427)
     {
         Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
     }
@@ -387,7 +394,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::PickTeam, (PVOID)AFortGameModeAthena::Athena_PickTeamHook);
     // Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)AFortGameModeAthena::SetZoneToIndexHook, (PVOID*)&AFortGameModeAthena::SetZoneToIndexOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::CompletePickupAnimation, (PVOID)AFortPickup::CompletePickupAnimationHook, (PVOID*)&AFortPickup::CompletePickupAnimationOriginal);
-    Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook); // ahhh wtf
+    // Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook); // ahhh wtf
     // Hooking::MinHook::Hook((PVOID)FindFunctionCall(L"ServerRemoveInventoryItem"), UFortInventoryInterface::RemoveInventoryItemHook);
    
     if (Fortnite_Version >= 13)
@@ -437,7 +444,7 @@ DWORD WINAPI Main(LPVOID)
         MemberOffsets::DeathReport::KillerPlayerState = FindOffsetStruct("/Script/FortniteGame.FortPlayerDeathReport", "KillerPlayerState");
         MemberOffsets::DeathReport::DamageCauser = FindOffsetStruct("/Script/FortniteGame.FortPlayerDeathReport", "DamageCauser");
     }
-
+    
     srand(time(0));
 
     LOG_INFO(LogHook, "Finished!");
@@ -473,6 +480,34 @@ DWORD WINAPI Main(LPVOID)
         {
             Globals::bLogProcessEvent = !Globals::bLogProcessEvent;
         }
+
+        /* else if (GetAsyncKeyState(VK_F10) & 1)
+        {
+            FString LevelA = Engine_Version < 424
+                ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+                ? L"open Asteria_Terrain"
+                : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+                : L"open Artemis_Terrain"
+                : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+                : L"open Apollo_Terrain";
+
+            static auto BeaconClass = FindObject<UClass>(L"/Script/FortniteGame.FortOnlineBeaconHost");
+            auto AllFortBeacons = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BeaconClass);
+
+            for (int i = 0; i < AllFortBeacons.Num(); i++)
+            {
+                AllFortBeacons.at(i)->K2_DestroyActor();
+            }
+
+            AllFortBeacons.Free();
+
+            LOG_INFO(LogDev, "Switching!");
+            ((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
+            // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
+            // UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
+            LOG_INFO(LogDev, "Restarting!");
+            AmountOfRestarts++;
+        } */
         
         Sleep(1000 / 30);
     }

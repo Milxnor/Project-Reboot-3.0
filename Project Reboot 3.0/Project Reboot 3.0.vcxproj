@@ -201,6 +201,7 @@
     <ClCompile Include="FortPlaysetItemDefinition.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
     <ClCompile Include="FortWeaponItemDefinition.cpp" />
+    <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
     <ClCompile Include="GameState.cpp" />

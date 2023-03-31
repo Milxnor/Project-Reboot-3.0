@@ -43,9 +43,12 @@ inline void InitLogger()
 
     FILE* stream = nullptr;
 
-    freopen_s(&stream, "in.txt", "r", stdin);
-    freopen_s(&stream, "out.txt", "w+", stdout);
-    freopen_s(&stream, "err.txt", "w", stderr);
+    // if (false)
+    {
+        freopen_s(&stream, "in.txt", "r", stdin);
+        freopen_s(&stream, "out.txt", "w+", stdout);
+        freopen_s(&stream, "err.txt", "w", stderr);
+    }
 
     SetConsoleTitleA("Project Reboot 3.0");
 

@@ -260,6 +260,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		LocalPlayers.Remove(0);
 	}
 
+	// LOG_INFO(LogDev, "ReadyToStartMatch!");
+
 	static int LastNum2 = 1;
 
 	if (AmountOfRestarts != LastNum2)
@@ -649,105 +651,91 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena* GameMode, AActor* NewPlayerActor)
 {
-	if (!NewPlayerActor)
+	if (NewPlayerActor == GetLocalPlayerController()) // we dont really need this but it also functions as a nullptr check usually
 		return;
-
-	LOG_INFO(LogPlayer, "HandleStartingNewPlayer!");
-
-	static bool bFirst = Engine_Version >= 424;
 
 	auto GameState = GameMode->GetGameStateAthena();
 
-	if (bFirst)
+	LOG_INFO(LogPlayer, "HandleStartingNewPlayer!");
+
+	if (Engine_Version < 427)
 	{
-		bFirst = false;
-		
-		auto CurrentPlaylist = GameState->GetCurrentPlaylist();
+		static int LastNum69 = 19451;
 
-		// if (!CurrentPlaylist || !CurrentPlaylist->Get<bool>("bSkipWarmup"))
+		if (LastNum69 != AmountOfRestarts)
 		{
-			/* GameState->GetGamePhase() = EAthenaGamePhase::Warmup;
-			GameState->OnRep_GamePhase(); */
-		}
+			LastNum69 = AmountOfRestarts;
 
-		// GameState->OnRep_CurrentPlaylistInfo();
-	}
+			auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
+			auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
-	static bool bSpawnedFloorLoot = Engine_Version >= 427;
+			TArray<AActor*> SpawnIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnIsland_FloorLoot);
 
-	if (!bSpawnedFloorLoot)
-	{
-		bSpawnedFloorLoot = true;
+			TArray<AActor*> BRIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BRIsland_FloorLoot);
 
-		auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
-		auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
+			auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
+			auto BRIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot");
 
-		TArray<AActor*> SpawnIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnIsland_FloorLoot);
+			float UpZ = 50;
 
-		TArray<AActor*> BRIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BRIsland_FloorLoot);
+			EFortPickupSourceTypeFlag SpawnFlag = EFortPickupSourceTypeFlag::Container;
 
-		auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
-		auto BRIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot");
+			bool bPrintWarmup = false;
 
-		float UpZ = 50;
-
-		EFortPickupSourceTypeFlag SpawnFlag = EFortPickupSourceTypeFlag::Container;
-
-		bool bPrintWarmup = false;
-
-		for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
-		{
-			ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
-
-			// CurrentActor->K2_DestroyActor();
-			// continue;
-
-			auto Location = CurrentActor->GetActorLocation();
-			Location.Z += UpZ;
-
-			std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
-
-			if (bPrintWarmup)
+			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 			{
-				std::cout << "\n\n";
+				ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
+
+				// CurrentActor->K2_DestroyActor();
+				// continue;
+
+				auto Location = CurrentActor->GetActorLocation();
+				Location.Z += UpZ;
+
+				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
+
+				if (bPrintWarmup)
+				{
+					std::cout << "\n\n";
+				}
+
+				if (LootDrops.size())
+				{
+					for (auto& LootDrop : LootDrops)
+						AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+				}
+
+				CurrentActor->K2_DestroyActor();
 			}
 
-			if (LootDrops.size())
+			bool bPrint = false;
+
+			int spawned = 0;
+
+			for (int i = 0; i < BRIsland_FloorLoot_Actors.Num(); i++)
 			{
-				for (auto& LootDrop : LootDrops)
-					AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+				ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
+
+				// CurrentActor->K2_DestroyActor();
+				spawned++;
+				// continue;
+
+				auto Location = CurrentActor->GetActorLocation();
+				Location.Z += UpZ;
+
+				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
+
+				if (bPrint)
+					std::cout << "\n";
+
+				if (LootDrops.size())
+				{
+					for (auto& LootDrop : LootDrops)
+						AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+				}
+
+				CurrentActor->K2_DestroyActor();
 			}
-
-			CurrentActor->K2_DestroyActor();
-		}
-
-		bool bPrint = false;
-
-		int spawned = 0;
-
-		for (int i = 0; i < BRIsland_FloorLoot_Actors.Num(); i++)
-		{
-			ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
-
-			// CurrentActor->K2_DestroyActor();
-			spawned++;
-			// continue;
-
-			auto Location = CurrentActor->GetActorLocation();
-			Location.Z += UpZ;
-
-			std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
-
-			if (bPrint)
-				std::cout << "\n";
-
-			if (LootDrops.size())
-			{
-				for (auto& LootDrop : LootDrops)
-					AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
-			}
-
-			CurrentActor->K2_DestroyActor();
 		}
 	}
 

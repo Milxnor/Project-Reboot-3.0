@@ -3,6 +3,7 @@
 #include <locale>
 
 #include "Array.h"
+#include "log.h"
 
 class FString
 {
@@ -43,5 +44,15 @@ public:
 	FString(const wchar_t* str)
 	{
 		Set(str);
+	}
+
+	~FString()
+	{
+		if (Data.Data)
+		{
+			// LOG_INFO(LogDev, "Deconstructing FString!");
+		}
+
+		// Free();
 	}
 };

@@ -6,6 +6,8 @@ class AGameMode : public AGameModeBase
 {
 public:
 
+	void RestartGame();
+
 	class AGameState*& GetGameState()
 	{
 		static auto GameStateOffset = this->GetOffset("GameState");
