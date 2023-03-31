@@ -141,6 +141,20 @@ bool AActor::IsOnlyRelevantToOwner()
 	return ReadBitfieldValue(bOnlyRelevantToOwnerOffset, bOnlyRelevantToOwnerFieldMask);
 }
 
+bool AActor::CanBeDamaged()
+{
+	static auto bCanBeDamagedOffset = GetOffset("bCanBeDamaged");
+	static auto bCanBeDamagedFieldMask = GetFieldMask(GetProperty("bOnlyRelevantToOwner"));
+	return ReadBitfieldValue(bCanBeDamagedOffset, bCanBeDamagedFieldMask);
+}
+
+void AActor::SetCanBeDamaged(bool NewValue)
+{
+	static auto bCanBeDamagedOffset = GetOffset("bCanBeDamaged");
+	static auto bCanBeDamagedFieldMask = GetFieldMask(GetProperty("bOnlyRelevantToOwner"));
+	SetBitfieldValue(bCanBeDamagedOffset, bCanBeDamagedFieldMask, NewValue);
+}
+
 UClass* AActor::StaticClass()
 {
 	static auto Class = FindObject<UClass>(L"/Script/Engine.Actor");

@@ -103,15 +103,6 @@ DWORD WINAPI Main(LPVOID)
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFort VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogGameMode VeryVerbose", nullptr);
 
-    static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
-    FString Level = Engine_Version < 424
-        ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
-        ? L"Asteria_Terrain"
-        : Globals::bCreative ? L"Creative_NoApollo_Terrain" 
-        : L"Artemis_Terrain"
-        : Globals::bCreative ? L"Creative_NoApollo_Terrain" 
-        : L"Apollo_Terrain";
-
     if (Globals::bNoMCP)
     {
         if (Hooking::MinHook::Hook((PVOID)Addresses::NoMCP, (PVOID)NoMCPHook, nullptr))
@@ -129,10 +120,6 @@ DWORD WINAPI Main(LPVOID)
 
     LOG_INFO(LogDev, "Size: 0x{:x}", sizeof(TMap<FName, void*>));
 
-    GetLocalPlayerController()->ProcessEvent(SwitchLevel, &Level);
-
-    LOG_INFO(LogPlayer, "Switched level.");
-  
     Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);
 
     LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
@@ -147,6 +134,50 @@ DWORD WINAPI Main(LPVOID)
             *(bool*)FindGIsClient() = false;
     }
 
+    bool bUseSwitchLevel = false;
+
+    if (bUseSwitchLevel)
+    {
+        static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
+        FString Level = Engine_Version < 424
+            ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+            ? L"Asteria_Terrain"
+            : Globals::bCreative ? L"Creative_NoApollo_Terrain"
+            : L"Artemis_Terrain"
+            : Globals::bCreative ? L"Creative_NoApollo_Terrain"
+            : L"Apollo_Terrain";
+
+        GetLocalPlayerController()->ProcessEvent(SwitchLevel, &Level);
+    }
+    else
+    {
+        if (true)
+        {
+            auto& LocalPlayers = GetLocalPlayers();
+
+            if (LocalPlayers.Num() && LocalPlayers.Data)
+            {
+                LocalPlayers.Remove(0);
+            }
+        }
+        else if (false)
+        {
+            UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
+        }
+
+        FString LevelB = Engine_Version < 424
+            ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+            ? L"open Asteria_Terrain"
+            : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+            : L"open Artemis_Terrain"
+            : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+            : L"open Apollo_Terrain";
+
+        UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelB, nullptr);
+    }
+
+    LOG_INFO(LogPlayer, "Switched level.");
+
     if (Fortnite_Version == 17.30)
     {
         // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)Return2Hook, nullptr);
@@ -154,18 +185,21 @@ DWORD WINAPI Main(LPVOID)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr);
     }
 
-    if (true)
+    if (bUseSwitchLevel)
     {
-        auto& LocalPlayers = GetLocalPlayers();
-
-        if (LocalPlayers.Num() && LocalPlayers.Data)
+        if (true)
         {
-            LocalPlayers.Remove(0);
+            auto& LocalPlayers = GetLocalPlayers();
+
+            if (LocalPlayers.Num() && LocalPlayers.Data)
+            {
+                LocalPlayers.Remove(0);
+            }
         }
-    }
-    else if (false)
-    {
-        UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
+        else if (false)
+        {
+            UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
+        }
     }
 
     for (auto func : Addresses::GetFunctionsToNull())
@@ -481,7 +515,7 @@ DWORD WINAPI Main(LPVOID)
             Globals::bLogProcessEvent = !Globals::bLogProcessEvent;
         }
 
-        /* else if (GetAsyncKeyState(VK_F10) & 1)
+        else if (GetAsyncKeyState(VK_F10) & 1)
         {
             FString LevelA = Engine_Version < 424
                 ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
@@ -507,7 +541,7 @@ DWORD WINAPI Main(LPVOID)
             // UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
             LOG_INFO(LogDev, "Restarting!");
             AmountOfRestarts++;
-        } */
+        }
         
         Sleep(1000 / 30);
     }

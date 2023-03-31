@@ -185,6 +185,101 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
+		else if (Command == "launch")
+		{
+			if (Arguments.size() <= 3)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide X, Y, and Z!\n");
+				return;
+			}
+
+			float X{}, Y{}, Z{};
+
+			try { X = std::stof(Arguments[1]); }
+			catch (...) {}
+			try { Y = std::stof(Arguments[2]); }
+			catch (...) {}
+			try { Z = std::stof(Arguments[3]); }
+			catch (...) {}
+
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to teleport!");
+				return;
+			}
+
+			static auto LaunchCharacterFn = FindObject<UFunction>("/Script/Engine.Character.LaunchCharacter");
+
+			struct 
+			{
+				FVector                                     LaunchVelocity;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+				bool                                               bXYOverride;                                              // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+				bool                                               bZOverride;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			} ACharacter_LaunchCharacter_Params{ FVector(X, Y, Z), false, false};
+			Pawn->ProcessEvent(LaunchCharacterFn, &ACharacter_LaunchCharacter_Params);
+			SendMessageToConsole(PlayerController, L"Launched character!");
+		}
+		else if (Command == "setshield")
+		{
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn!");
+				return;
+			}
+
+			float Shield = 0.f;
+
+			if (NumArgs >= 1)
+			{
+				try { Shield = std::stof(Arguments[1]); }
+				catch (...) {}
+			}
+
+			Pawn->SetShield(Shield);
+			SendMessageToConsole(PlayerController, L"Set shield!\n");
+		}
+		/* else if (Command == "god")
+		{
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn!");
+				return;
+			}
+
+			Pawn->SetCanBeDamaged(!Pawn->CanBeDamaged());
+			SendMessageToConsole(PlayerController, std::wstring(L"God set to " + std::to_wstring(!(bool)Pawn->CanBeDamaged())).c_str());
+		}
+		else if (Command == "applycid")
+		{
+			auto PlayerState = Cast<AFortPlayerState>(ReceivingController->GetPlayerState());
+
+			if (!PlayerState) // ???
+			{
+				SendMessageToConsole(PlayerController, L"No playerstate!");
+				return;
+			}
+
+			auto Pawn = Cast<AFortPlayerPawn>(ReceivingController->GetMyFortPawn());
+
+			std::string CIDStr = Arguments[1];
+			auto CIDDef = FindObject(CIDStr, nullptr, ANY_PACKAGE);
+			// auto CIDDef = UObject::FindObject<UAthenaCharacterItemDefinition>(CIDStr);
+
+			if (!CIDDef)
+			{
+				SendMessageToConsole(PlayerController, L"Invalid character item definition!");
+				return;
+			}
+
+			ApplyCID(Pawn, CIDDef);
+			SendMessageToConsole(PlayerController, L"Applied CID!");
+		} */
 		else if (Command == "summon")
 		{
 			if (Arguments.size() <= 1)

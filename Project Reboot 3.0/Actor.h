@@ -21,6 +21,8 @@ public:
 	bool IsAlwaysRelevant();
 	bool UsesOwnerRelevancy();
 	bool IsOnlyRelevantToOwner();
+	bool CanBeDamaged();
+	void SetCanBeDamaged(bool NewValue);
 	void SetOwner(AActor* Owner);
 	
 	static class UClass* StaticClass();

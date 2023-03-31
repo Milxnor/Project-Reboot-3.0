@@ -43,7 +43,9 @@ inline void InitLogger()
 
     FILE* stream = nullptr;
 
-    // if (false)
+    bool bStopFortniteOutput = true;
+
+    if (bStopFortniteOutput)
     {
         freopen_s(&stream, "in.txt", "r", stdin);
         freopen_s(&stream, "out.txt", "w+", stdout);

@@ -253,16 +253,16 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			GameState->OnRep_CurrentPlaylistInfo();
 	};
 
-	auto& LocalPlayers = GetLocalPlayers();
+	/* auto& LocalPlayers = GetLocalPlayers();
 
 	if (LocalPlayers.Num() && LocalPlayers.Data)
 	{
 		LocalPlayers.Remove(0);
-	}
-
-	// LOG_INFO(LogDev, "ReadyToStartMatch!");
+	} */
 
 	static int LastNum2 = 1;
+
+	// LOG_INFO(LogDev, "ReadyToStartMatch AmountOfRestarts: {} LastNum2: {}!", AmountOfRestarts, LastNum2);
 
 	if (AmountOfRestarts != LastNum2)
 	{
