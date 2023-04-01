@@ -430,19 +430,41 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::GetPlayerViewpoint, (PVOID)AFortPlayerControllerAthena::GetPlayerViewPointHook, (PVOID*)&AFortPlayerControllerAthena::GetPlayerViewPointOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::TickFlush, (PVOID)UNetDriver::TickFlushHook, (PVOID*)&UNetDriver::TickFlushOriginal);
     // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x1A001D0), GetServerDeltaTimeFromObjectHook);
-
-    // if (Engine_Version < 427)
-    {
-        Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
-    }
+    Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
     
     Hooking::MinHook::Hook((PVOID)Addresses::GetMaxTickRate, GetMaxTickRateHook);
     // Hooking::MinHook::Hook((PVOID)Addresses::CollectGarbage, (PVOID)CollectGarbageHook, nullptr);
     Hooking::MinHook::Hook((PVOID)Addresses::PickTeam, (PVOID)AFortGameModeAthena::Athena_PickTeamHook);
     // Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)AFortGameModeAthena::SetZoneToIndexHook, (PVOID*)&AFortGameModeAthena::SetZoneToIndexOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::CompletePickupAnimation, (PVOID)AFortPickup::CompletePickupAnimationHook, (PVOID*)&AFortPickup::CompletePickupAnimationOriginal);
-    // Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook); // ahhh wtf
-    // Hooking::MinHook::Hook((PVOID)FindFunctionCall(L"ServerRemoveInventoryItem"), UFortInventoryInterface::RemoveInventoryItemHook);
+    Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook); // ahhh wtf
+
+    auto ServerRemoveInventoryItemFunctionCallRef = Memcury::Scanner::FindPointerRef((PVOID)FindFunctionCall(L"ServerRemoveInventoryItem",
+        Fortnite_Version >= 16 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C }), 0, true);
+
+    LOG_INFO(LogDev, "ServerRemoveInventoryItemFunctionCallRef: 0x{:x}", ServerRemoveInventoryItemFunctionCallRef.Get() - __int64(GetModuleHandleW(0)));
+
+    uint64 ServerRemoveInventoryItemFunctionCallBeginFunctionAddr = 0;
+
+    for (int i = 0; i < 400; i++)
+    {
+        if (*(uint8_t*)(uint8_t*)(ServerRemoveInventoryItemFunctionCallRef.Get() - i) == 0x48 && *(uint8_t*)(uint8_t*)(ServerRemoveInventoryItemFunctionCallRef.Get() - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(ServerRemoveInventoryItemFunctionCallRef.Get() - i + 2) == 0x5C)
+        {
+            ServerRemoveInventoryItemFunctionCallBeginFunctionAddr = ServerRemoveInventoryItemFunctionCallRef.Get() - i;
+            break;
+        }
+
+        if (*(uint8_t*)(uint8_t*)(ServerRemoveInventoryItemFunctionCallRef.Get() - i) == 0x48 && *(uint8_t*)(uint8_t*)(ServerRemoveInventoryItemFunctionCallRef.Get() - i + 1) == 0x83 && *(uint8_t*)(uint8_t*)(ServerRemoveInventoryItemFunctionCallRef.Get() - i + 2) == 0xEC)
+        {
+            ServerRemoveInventoryItemFunctionCallBeginFunctionAddr = ServerRemoveInventoryItemFunctionCallRef.Get() - i;
+            break;
+        }
+    }
+
+    Hooking::MinHook::Hook(
+        Memcury::Scanner(ServerRemoveInventoryItemFunctionCallBeginFunctionAddr).GetAs<PVOID>(),
+        UFortInventoryInterface::RemoveInventoryItemHook
+    );
    
     if (Fortnite_Version >= 13)
         Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)SetZoneToIndexHook, (PVOID*)&SetZoneToIndexOriginal);
@@ -516,11 +538,16 @@ DWORD WINAPI Main(LPVOID)
             auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
             auto GameState = GameMode->GetGameState();
 
+            /*
             GameState->Get<float>("WarmupCountdownEndTime") = 0;
             GameMode->Get<float>("WarmupCountdownDuration") = 0;
 
             GameState->Get<float>("WarmupCountdownStartTime") = 0;
             GameMode->Get<float>("WarmupEarlyCountdownDuration") = 0;
+            */
+
+            FString cmd = L"startaircraft";
+            UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
         }
 
         else if (GetAsyncKeyState(VK_F9) & 1)

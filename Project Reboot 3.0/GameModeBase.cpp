@@ -27,19 +27,29 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 	GameMode->Get<UClass*>("DefaultPawnClass") = PawnClass;
 
+	constexpr bool bUseSpawnActor = false;
+
 	static auto fn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
 
 	FTransform SpawnTransform = StartSpot->GetTransform();
-
-	struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; } 
-	AGameModeBase_SpawnDefaultPawnAtTransform_Params{NewPlayer, SpawnTransform };
-
-	// GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+	APawn* NewPawn = nullptr;
 
 	FActorSpawnParameters SpawnParameters{};
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	auto NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParameters); // AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
+	if constexpr (bUseSpawnActor)
+	{
+		NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParameters);
+	}
+	else
+	{
+		struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
+		AGameModeBase_SpawnDefaultPawnAtTransform_Params{ NewPlayer, SpawnTransform };
+
+		GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+
+		NewPawn = AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
+	}
 
 	if (!NewPawn)
 		return nullptr;

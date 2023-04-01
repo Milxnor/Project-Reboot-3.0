@@ -28,6 +28,13 @@ void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor
 	this->ProcessEvent(fn, &AFortPlayerController_ClientReportDamagedResourceBuilding_Params);
 }
 
+bool AFortPlayerController::DoesBuildFree()
+{
+	static auto bBuildFreeOffset = GetOffset("bBuildFree");
+	static auto bBuildFreeFieldMask = GetFieldMask(GetProperty("bBuildFree"));
+	return ReadBitfieldValue(bBuildFreeOffset, bBuildFreeFieldMask);
+}
+
 void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid)
 {
 	auto ItemInstance = PlayerController->GetWorldInventory()->FindItemInstance(ItemGuid);
@@ -454,12 +461,30 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	if (!BuildingActor)
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
-	// static auto OwnerPersistentIDOffset = BuildingActor->GetOffset("OwnerPersistentID");
-	// BuildingActor->Get<int>(OwnerPersistentIDOffset) = PlayerStateAthena->GetWorldPlayerId();
+	auto MatDefinition = UFortKismetLibrary::K2_GetResourceItemDefinition(BuildingActor->GetResourceType());
+	auto WorldInventory = PlayerController->GetWorldInventory();
+	auto MatInstance = WorldInventory->FindItemInstance(MatDefinition);
+
+	bool bShouldDestroy = MatInstance ? PlayerController->DoesBuildFree() ? false : MatInstance->GetItemEntry()->GetCount() < 10 : true;
+
+	if (bShouldDestroy)
+	{
+		BuildingActor->SilentDie();
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+	}
 
 	BuildingActor->SetPlayerPlaced(true);
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
-	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex());
+	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex()); // required?
+
+	if (!PlayerController->DoesBuildFree())
+	{
+		bool bShouldUpdate = false;
+		WorldInventory->RemoveItem(MatInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, 10);
+
+		if (bShouldUpdate)
+			WorldInventory->Update();
+	}
 
 	return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 }

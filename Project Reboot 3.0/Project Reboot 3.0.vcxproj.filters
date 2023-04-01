@@ -476,6 +476,9 @@
     <ClInclude Include="BuildingGameplayActorSpawnMachine.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors</Filter>
     </ClInclude>
+    <ClInclude Include="GameplayAbilityTypes.h">
+      <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">

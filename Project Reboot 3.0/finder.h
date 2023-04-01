@@ -397,7 +397,7 @@ static inline uint64 FindInitListen()
 static inline uint64 FindOnDamageServer()
 {
 	auto Addr = FindFunctionCall(L"OnDamageServer", 
-		Engine_Version == 416 ? std::vector<uint8_t>{ 0x4C, 0x89, 0x4C} : 
+		Engine_Version == 416 ? std::vector<uint8_t>{ 0x4C, 0x89, 0x4C } : 
 		Engine_Version == 419 || Engine_Version >= 427 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x40, 0x55 }
 	);
 
@@ -621,7 +621,7 @@ static inline uint64 FindRemoveFromAlivePlayers()
 		Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: Player [%s] removed from alive players list (Team [%d]).  Player count is now [%d]. PlayerBots count is now [%d]. Team count is now [%d].", false).Get();
 
 	if (!Addrr)
-		Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena::RemoveFromAlivePlayers: Player [%s] PC [%s] removed from alive players list (Team [%d]).  Player count is now [%d]. PlayerBots count is now [%d]. Team count is now [%d].", true, 0, Fortnite_Version >= 18).Get(); // todo check version
+		Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena::RemoveFromAlivePlayers: Player [%s] PC [%s] removed from alive players list (Team [%d]).  Player count is now [%d]. PlayerBots count is now [%d]. Team count is now [%d].", true, 0, Fortnite_Version >= 16).Get(); // checked on 16.40
 
 	for (int i = 0; i < 2000; i++)
 	{

@@ -677,7 +677,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	LOG_INFO(LogPlayer, "HandleStartingNewPlayer!");
 
-	if (Engine_Version < 427)
+	// if (Engine_Version < 427)
 	{
 		static int LastNum69 = 19451;
 
@@ -689,7 +689,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
 			TArray<AActor*> SpawnIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnIsland_FloorLoot);
-
 			TArray<AActor*> BRIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BRIsland_FloorLoot);
 
 			auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
@@ -755,10 +754,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 				CurrentActor->K2_DestroyActor();
 			}
-		}
-	}
 
-	LOG_INFO(LogDev, "Spawned loot!");
+			// SpawnIsland_FloorLoot_Actors.Free();
+			// BRIsland_FloorLoot_Actors.Free();
+		}
+
+		LOG_INFO(LogDev, "Spawned loot!");
+	}
 
 	if (Engine_Version >= 423 && Engine_Version < 426) // 423+ we need to spawn manually and vehicle sync doesn't work on >S13.
 	{

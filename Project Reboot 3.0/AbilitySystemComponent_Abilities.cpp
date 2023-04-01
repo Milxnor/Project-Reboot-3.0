@@ -25,6 +25,13 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 	}
 }
 
+void UAbilitySystemComponent::ConsumeAllReplicatedData(FGameplayAbilitySpecHandle AbilityHandle, FPredictionKey* AbilityOriginalPredictionKey)
+{
+	// static auto AbilityTargetDataMapOffset = ActivatableAbilitiesOffset + FGameplayAbilitySpecContainerSize ?
+
+	return;
+}
+
 void UAbilitySystemComponent::InternalServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, const FPredictionKey* PredictionKey, const FGameplayEventData* TriggerEventData) // https://github.com/EpicGames/UnrealEngine/blob/4.23/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/AbilitySystemComponent_Abilities.cpp#L1445
 {
 	using UGameplayAbility = UObject;
@@ -42,7 +49,7 @@ void UAbilitySystemComponent::InternalServerTryActivateAbilityHook(UAbilitySyste
 		return;
 	}
 
-	// ConsumeAllReplicatedData(Handle, PredictionKey);
+	AbilitySystemComponent->ConsumeAllReplicatedData(Handle, (FPredictionKey*)PredictionKey);
 
 	/* const */ UGameplayAbility * AbilityToActivate = Spec->GetAbility();
 

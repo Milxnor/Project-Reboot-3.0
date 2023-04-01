@@ -282,6 +282,7 @@
     <ClInclude Include="GameMode.h" />
     <ClInclude Include="GameModeBase.h" />
     <ClInclude Include="GameplayAbilitySpec.h" />
+    <ClInclude Include="GameplayAbilityTypes.h" />
     <ClInclude Include="GameplayStatics.h" />
     <ClInclude Include="GameplayTagContainer.h" />
     <ClInclude Include="GameSession.h" />

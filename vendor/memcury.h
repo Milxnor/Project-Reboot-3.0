@@ -758,13 +758,15 @@
                 return Scanner(add);
             }
 
-            static auto FindPointerRef(void* Pointer) -> Scanner // credit me and ender
+            static auto FindPointerRef(void* Pointer, int useRefNum = 0, bool bUseFirstResult = false) -> Scanner // credit me and ender
             {
                 PE::Address add{ nullptr };
 
                 auto textSection = PE::Section::GetSection(".text");
 
                 const auto scanBytes = reinterpret_cast<std::uint8_t*>(textSection.GetSectionStart().Get());
+
+                int aa = 0;
 
                 // scan only text section
                 for (DWORD i = 0x0; i < textSection.GetSectionSize(); i++)
@@ -774,6 +776,12 @@
                         if (PE::Address(&scanBytes[i]).RelativeOffset(3).GetAs<void*>() == Pointer)
                         {
                             add = PE::Address(&scanBytes[i]);
+
+                            if (bUseFirstResult)
+                                return Scanner(add);
+
+                            /* if (++aa > useRefNum)
+                                break; */
                         }
                     }
 
@@ -782,6 +790,12 @@
                         if (PE::Address(&scanBytes[i]).RelativeOffset(1).GetAs<void*>() == Pointer)
                         {
                             add = PE::Address(&scanBytes[i]);
+
+                            if (bUseFirstResult)
+                                return Scanner(add);
+
+                            /* if (++aa > useRefNum)
+                                break; */
                         }
                     }
                 }
@@ -1394,5 +1408,14 @@
     {
         auto FunctionPtr = Memcury::Scanner::FindStringRef(Name, true, skip).ScanFor({ 0x48, 0x8D, 0x0D }).RelativeOffset(3).GetAs<void*>();
 
-        return Memcury::Scanner::FindPointerRef(FunctionPtr).ScanFor(Bytes, false).Get();
+        auto PtrRef = Memcury::Scanner::FindPointerRef(FunctionPtr);
+
+        /* if (!PtrRef.Get() || PtrRef.Get() == __int64(FunctionPtr))
+        {
+            std::wstring NameWStr = std::wstring(Name);
+            LOG_WARN(LogMemory, "Failed to find pointer reference for {}", std::string(NameWStr.begin(), NameWStr.end()));
+            return 0;
+        } */
+
+        return PtrRef.ScanFor(Bytes, false).Get();
     }

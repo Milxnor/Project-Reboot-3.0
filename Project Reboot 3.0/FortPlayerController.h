@@ -61,6 +61,8 @@ public:
 		return CosmeticLoadout;
 	}
 
+	bool DoesBuildFree();
+
 	static void ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid);
 	static void ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret);
 

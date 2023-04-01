@@ -33,7 +33,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 
 	LOG_INFO(LogDev, "SafeZoneDefinitionOffset: 0x{:x}", SafeZoneDefinitionOffset);
 
-	static auto ZoneDurationsOffset = std::floor(Fortnite_Version) >= 18 ? 0x248 : 0x1F8;
+	static auto ZoneDurationsOffset = std::floor(Fortnite_Version) == 17 ? 0x258 : std::floor(Fortnite_Version) >= 18 ? 0x248 : 0x1F8;
 	static auto ZoneHoldDurationsOffset = ZoneDurationsOffset - 0x10;
 
 	auto& ZoneDurations = *(TArray<float>*)(__int64(SafeZoneDefinition) + ZoneDurationsOffset);
