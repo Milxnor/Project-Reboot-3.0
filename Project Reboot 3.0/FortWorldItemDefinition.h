@@ -19,6 +19,13 @@ public:
 		return ReadBitfieldValue(bDropOnDeathOffset, bDropOnDeathFieldMask);
 	}
 
+	bool ShouldPersistWhenFinalStackEmpty()
+	{
+		static auto bPersistInInventoryWhenFinalStackEmptyOffset = GetOffset("bPersistInInventoryWhenFinalStackEmpty");
+		static auto bPersistInInventoryWhenFinalStackEmptyFieldMask = GetFieldMask(GetProperty("bPersistInInventoryWhenFinalStackEmpty"));
+		return ReadBitfieldValue(bPersistInInventoryWhenFinalStackEmptyOffset, bPersistInInventoryWhenFinalStackEmptyFieldMask);
+	}
+
 	static UClass* StaticClass()
 	{
 		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortWorldItemDefinition");

@@ -489,6 +489,34 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 }
 
+AActor* AFortPlayerController::SpawnToyInstanceHook(UObject* Context, FFrame* Stack, AActor** Ret)
+{
+	LOG_INFO(LogDev, "SpawnToyInstance!");
+
+	auto PlayerController = Cast<AFortPlayerController>(Context);
+
+	UClass* ToyClass = nullptr;
+	FTransform SpawnPosition;
+
+	Stack->StepCompiledIn(&ToyClass);
+	Stack->StepCompiledIn(&SpawnPosition);
+
+	SpawnToyInstanceOriginal(Context, Stack, Ret);
+
+	if (!ToyClass)
+		return nullptr;
+
+	FActorSpawnParameters SpawnParameters{};
+	SpawnParameters.Owner = PlayerController;
+	auto NewToy = GetWorld()->SpawnActor<AActor>(ToyClass, SpawnPosition, SpawnParameters);
+
+	static auto ActiveToyInstancesOffset = PlayerController->GetOffset("ActiveToyInstances");
+
+
+	*Ret = NewToy;
+	return *Ret;
+}
+
 void AFortPlayerController::DropSpecificItemHook(UObject* Context, FFrame& Stack, void* Ret)
 {
 	UFortItemDefinition* DropItemDef = nullptr;
@@ -546,7 +574,7 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	bool bShouldUpdate = false;
 
-	if (!WorldInventory->RemoveItem(ItemGuid, &bShouldUpdate, Count))
+	if (!WorldInventory->RemoveItem(ItemGuid, &bShouldUpdate, Count, true))
 		return;
 
 	if (bShouldUpdate)
@@ -564,12 +592,28 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 	UObject* AbilityToUse = nullptr;
 
 	static auto AthenaSprayItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.AthenaSprayItemDefinition");
+	static auto AthenaToyItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.AthenaToyItemDefinition");
 
 	if (EmoteAsset->IsA(AthenaSprayItemDefinitionClass))
 	{
 		static auto SprayGameplayAbilityDefault = FindObject("/Game/Abilities/Sprays/GAB_Spray_Generic.Default__GAB_Spray_Generic_C");
 		AbilityToUse = SprayGameplayAbilityDefault;
 	}
+
+	else if (EmoteAsset->IsA(AthenaToyItemDefinitionClass))
+	{
+		static auto ToySpawnAbilityOffset = EmoteAsset->GetOffset("ToySpawnAbility");
+		auto& ToySpawnAbilitySoft = EmoteAsset->Get<TSoftObjectPtr<UClass>>(ToySpawnAbilityOffset);
+
+		static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
+
+		auto ToySpawnAbility = ToySpawnAbilitySoft.Get(BGAClass, true);
+
+		if (ToySpawnAbility)
+			AbilityToUse = ToySpawnAbility->CreateDefaultObject();
+	}
+
+	// LOG_INFO(LogDev, "Before AbilityToUse: {}", AbilityToUse ? AbilityToUse->GetFullName() : "InvalidObject");
 
 	if (!AbilityToUse)
 	{
@@ -767,7 +811,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		for (auto& Pair : GuidAndCountsToRemove)
 		{
-			WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second);
+			WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
 		}
 
 		WorldInventory->Update();

@@ -117,11 +117,13 @@ public:
 	}
 
 	std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count = 1, int LoadedAmmo = -1, bool bShouldAddToStateValues = false);
-	bool RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count);
+	bool RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count, bool bForceRemoval = false);
 	void ModifyCount(UFortItem* ItemInstance, int New, bool bRemove = false, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries = nullptr, bool bUpdate = true);
 	
 	UFortItem* GetPickaxeInstance();
 	UFortItem* FindItemInstance(UFortItemDefinition* ItemDefinition);
+
+	void CorrectLoadedAmmo(const FGuid& Guid, int NewAmmoCount);
 
 	UFortItem* FindItemInstance(const FGuid& Guid);
 	FFortItemEntry* FindReplicatedEntry(const FGuid& Guid);

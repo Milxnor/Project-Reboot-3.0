@@ -72,6 +72,8 @@ static UObject* GetPlaylistToUse()
 	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
 	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");
 
+	// Playlist = FindObject("/Game/Athena/Playlists/Low/Playlist_Low_Solo.Playlist_Low_Solo");
+
 	if (Globals::bCreative)
 		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
@@ -613,7 +615,9 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
 
-	auto Playlist = GameState->GetCurrentPlaylist();
+	static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
+
+	auto Playlist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
 
 	static int CurrentTeamMembers = 0; // bad
 	static int Current = 3;

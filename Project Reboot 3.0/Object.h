@@ -88,5 +88,8 @@ public:
 	template <typename T = UObject*>
 	T* GetPtr(const std::string& ChildName) { return GetPtr<T>(GetOffset(ChildName)); }
 
+	void AddToRoot();
+	bool IsValidLowLevel();
+
 	// static class UClass* StaticClass();
 };

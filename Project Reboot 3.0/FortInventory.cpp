@@ -170,7 +170,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 	return std::make_pair(NewItemInstances, ModifiedItemInstances);
 }
 
-bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count)
+bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count, bool bForceRemoval)
 {
 	if (bShouldUpdate)
 		*bShouldUpdate = false;
@@ -188,8 +188,11 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	auto NewCount = ReplicatedEntry->GetCount() - Count;
 
-	if (NewCount > 0)
+	if (NewCount > 0 || (ItemDefinition->ShouldPersistWhenFinalStackEmpty() && !bForceRemoval))
 	{
+		if (ItemDefinition->ShouldPersistWhenFinalStackEmpty())
+			NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot
+
 		ItemInstance->GetItemEntry()->GetCount() = NewCount;
 		ReplicatedEntry->GetCount() = NewCount;
 
@@ -289,6 +292,28 @@ UFortItem* AFortInventory::FindItemInstance(UFortItemDefinition* ItemDefinition)
 	}
 
 	return nullptr;
+}
+
+void AFortInventory::CorrectLoadedAmmo(const FGuid& Guid, int NewAmmoCount)
+{
+	auto CurrentWeaponInstance = FindItemInstance(Guid);
+
+	if (!CurrentWeaponInstance)
+		return;
+
+	auto CurrentWeaponReplicatedEntry = FindReplicatedEntry(Guid);
+
+	if (!CurrentWeaponReplicatedEntry)
+		return;
+
+	if (CurrentWeaponReplicatedEntry->GetLoadedAmmo() != NewAmmoCount)
+	{
+		CurrentWeaponInstance->GetItemEntry()->GetLoadedAmmo() = NewAmmoCount;
+		CurrentWeaponReplicatedEntry->GetLoadedAmmo() = NewAmmoCount;
+
+		GetItemList().MarkItemDirty(CurrentWeaponInstance->GetItemEntry());
+		GetItemList().MarkItemDirty(CurrentWeaponReplicatedEntry);
+	}
 }
 
 UFortItem* AFortInventory::FindItemInstance(const FGuid& Guid)

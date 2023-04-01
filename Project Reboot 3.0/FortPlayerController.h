@@ -31,6 +31,7 @@ public:
 	static inline void (*ServerAttemptInteractOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 	static inline void (*ServerEditBuildingActorOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline void (*DropSpecificItemOriginal)(UObject* Context, FFrame& Stack, void* Ret);
+	static inline AActor* (*SpawnToyInstanceOriginal)(UObject* Context, FFrame* Stack, AActor** Ret);
 
 	void ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot);
 
@@ -69,6 +70,7 @@ public:
 	static void ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation);
 	// static void ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData);
 	static void ServerCreateBuildingActorHook(UObject* Context, FFrame* Stack, void* Ret);
+	static AActor* SpawnToyInstanceHook(UObject* Context, FFrame* Stack, AActor** Ret);
 	static void DropSpecificItemHook(UObject* Context, FFrame& Stack, void* Ret);
 
 	static void ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef);

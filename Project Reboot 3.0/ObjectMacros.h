@@ -1,5 +1,7 @@
 #pragma once
 
+#include "inc.h"
+
 enum EObjectFlags
 {
     RF_NoFlags = 0x00000000,
@@ -33,3 +35,31 @@ enum EObjectFlags
     RF_HasExternalPackage = 0x10000000,
     RF_AllocatedInSharedPage = 0x80000000,
 };
+
+enum class EInternalObjectFlags : int
+{
+    None = 0,
+
+    LoaderImport = 1 << 20, ///< Object is ready to be imported by another package during loading
+    Garbage = 1 << 21, ///< Garbage from logical point of view and should not be referenced. This flag is mirrored in EObjectFlags as RF_Garbage for performance
+    PersistentGarbage = 1 << 22, ///< Same as above but referenced through a persistent reference so it can't be GC'd
+    ReachableInCluster = 1 << 23, ///< External reference to object in cluster exists
+    ClusterRoot = 1 << 24, ///< Root of a cluster
+    Native = 1 << 25, ///< Native (UClass only). 
+    Async = 1 << 26, ///< Object exists only on a different thread than the game thread.
+    AsyncLoading = 1 << 27, ///< Object is being asynchronously loaded.
+    Unreachable = 1 << 28, ///< Object is not reachable on the object graph.
+    // PendingKill UE_DEPRECATED(5.0, "PendingKill flag should no longer be used. Use Garbage flag instead.") = 1 << 29, ///< Objects that are pending destruction (invalid for gameplay but valid objects). This flag is mirrored in EObjectFlags as RF_PendingKill for performance
+    RootSet = 1 << 30, ///< Object will not be garbage collected, even if unreferenced.
+    PendingConstruction = 1 << 31 ///< Object didn't have its class constructor called yet (only the UObjectBase one to initialize its most basic members)
+
+    /* GarbageCollectionKeepFlags = Native | Async | AsyncLoading | LoaderImport,
+    PRAGMA_DISABLE_DEPRECATION_WARNINGS
+    MirroredFlags = Garbage | PendingKill, /// Flags mirrored in EObjectFlags
+
+    //~ Make sure this is up to date!
+    AllFlags = LoaderImport | Garbage | PersistentGarbage | ReachableInCluster | ClusterRoot | Native | Async | AsyncLoading | Unreachable | PendingKill | RootSet | PendingConstruction
+    PRAGMA_ENABLE_DEPRECATION_WARNINGS */
+};
+
+ENUM_CLASS_FLAGS(EInternalObjectFlags)

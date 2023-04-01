@@ -11,8 +11,9 @@ char UFortInventoryInterface::RemoveInventoryItemHook(__int64 a1, FGuid a2, int 
 	int SuperAdditionalOffset = Engine_Version >= 427 ? 16 : 8;
 	auto ControllerObject = (UObject*)(__int64(a1) - (FortPlayerControllerSuperSize + SuperAdditionalOffset));
 
-	LOG_INFO(LogDev, "FortPlayerControllerSuperSize: {}", FortPlayerControllerSuperSize);
-	LOG_INFO(LogDev, "ControllerObject: {}", ControllerObject->GetFullName());
+	LOG_INFO(LogDev, "bForceRemoval: {}", (bool)bForceRemoval);
+	// LOG_INFO(LogDev, "FortPlayerControllerSuperSize: {}", FortPlayerControllerSuperSize);
+	// LOG_INFO(LogDev, "ControllerObject: {}", ControllerObject->GetFullName());
 
 	if (!ControllerObject)
 		return false;
@@ -28,7 +29,7 @@ char UFortInventoryInterface::RemoveInventoryItemHook(__int64 a1, FGuid a2, int 
 		return false;
 
 	bool bShouldUpdate = false;
-	WorldInventory->RemoveItem(a2, &bShouldUpdate, Count);
+	WorldInventory->RemoveItem(a2, &bShouldUpdate, Count, bForceRemoval);
 
 	if (bShouldUpdate)
 		WorldInventory->Update();

@@ -19,6 +19,19 @@ struct TSoftObjectPtr
 public:
 	FSoftObjectPtr SoftObjectPtr;
 
+	bool IsValid()
+	{
+		if (Engine_Version <= 416)
+		{
+			auto& AssetPtr = *(TAssetPtr<T>*)this;
+			return true;
+		}
+		else
+		{
+			return SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value;
+		}
+	}
+
 	T* Get(UClass* ClassToLoad = nullptr, bool bTryToLoad = false)
 	{
 		if (Engine_Version <= 416)

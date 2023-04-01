@@ -145,7 +145,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 					auto SwappedPickup = SpawnPickup(ItemDefinitionToSwap, PawnLoc, ItemEntryToSwap->GetCount(), 
 						EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, ItemEntryToSwap->GetLoadedAmmo(), Pawn);
 
-					WorldInventory->RemoveItem(CurrentItemGuid, nullptr, ItemEntryToSwap->GetCount());
+					WorldInventory->RemoveItem(CurrentItemGuid, nullptr, ItemEntryToSwap->GetCount(), true);
 
 					bHasSwapped = true;
 

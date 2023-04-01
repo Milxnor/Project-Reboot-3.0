@@ -3,6 +3,7 @@
 #include "inc.h"
 
 #include "Object.h"
+#include "ObjectMacros.h"
 
 struct FUObjectItem
 {
@@ -10,6 +11,24 @@ struct FUObjectItem
 	int32 Flags;
 	int32 ClusterRootIndex;
 	int32 SerialNumber;
+
+	FORCEINLINE void SetFlag(EInternalObjectFlags FlagToSet)
+	{
+		// static_assert(sizeof(int32) == sizeof(Flags), "Flags must be 32-bit for atomics.");
+		int32 StartValue = int32(Flags);
+
+		if ((StartValue & int32(FlagToSet)) == int32(FlagToSet))
+		{
+			return;
+		}
+
+		int32 NewValue = StartValue | int32(FlagToSet);
+	}
+
+	FORCEINLINE void SetRootSet()
+	{
+		SetFlag(EInternalObjectFlags::RootSet);
+	}
 };
 
 class FFixedUObjectArray
@@ -26,6 +45,34 @@ public:
 	{
 		if (!IsValidIndex(Index)) return nullptr;
 		return &Objects[Index];
+	}
+
+	bool IsValid(UObject* Object)
+	{
+		int32 Index = Object->InternalIndex;
+		if (Index == -1)
+		{
+			// UE_LOG(LogUObjectArray, Warning, TEXT("Object is not in global object array"));
+			return false;
+		}
+		if (!IsValidIndex(Index))
+		{
+			// UE_LOG(LogUObjectArray, Warning, TEXT("Invalid object index %i"), Index);
+			return false;
+		}
+
+		FUObjectItem* Slot = GetItemByIndex(Index);
+		if (!Slot || Slot->Object == nullptr)
+		{
+			// UE_LOG(LogUObjectArray, Warning, TEXT("Empty slot"));
+			return false;
+		}
+		if (Slot->Object != Object)
+		{
+			// UE_LOG(LogUObjectArray, Warning, TEXT("Other object in slot"));
+			return false;
+		}
+		return true;
 	}
 
 	FORCEINLINE UObject* GetObjectByIndex(int32 Index)
@@ -69,6 +116,34 @@ public:
 		return Chunk + WithinChunkIndex;
 	}
 
+	bool IsValid(UObject* Object)
+	{
+		int32 Index = Object->InternalIndex;
+		if (Index == -1)
+		{
+			// UE_LOG(LogUObjectArray, Warning, TEXT("Object is not in global object array"));
+			return false;
+		}
+		if (!IsValidIndex(Index))
+		{
+			// UE_LOG(LogUObjectArray, Warning, TEXT("Invalid object index %i"), Index);
+			return false;
+		}
+
+		FUObjectItem* Slot = GetItemByIndex(Index);
+		if (!Slot || Slot->Object == nullptr)
+		{
+			// UE_LOG(LogUObjectArray, Warning, TEXT("Empty slot"));
+			return false;
+		}
+		if (Slot->Object != Object)
+		{
+			// UE_LOG(LogUObjectArray, Warning, TEXT("Other object in slot"));
+			return false;
+		}
+		return true;
+	}
+
 	FORCEINLINE UObject* GetObjectByIndex(int32 Index)
 	{
 		if (auto Item = GetItemByIndex(Index))
@@ -84,4 +159,9 @@ extern inline FFixedUObjectArray* UnchunkedObjects = 0;
 FORCEINLINE UObject* GetObjectByIndex(int32 Index)
 {
 	return ChunkedObjects ? ChunkedObjects->GetObjectByIndex(Index) : UnchunkedObjects->GetObjectByIndex(Index);
+}
+
+FORCEINLINE FUObjectItem* GetItemByIndex(int32 Index)
+{
+	return ChunkedObjects ? ChunkedObjects->GetItemByIndex(Index) : UnchunkedObjects->GetItemByIndex(Index);
 }

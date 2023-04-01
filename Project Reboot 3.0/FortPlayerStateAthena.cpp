@@ -43,7 +43,7 @@ void AFortPlayerStateAthena::ServerSetInAircraftHook(UObject* Context, FFrame& S
 
 		for (auto& Pair : GuidAndCountsToRemove)
 		{
-			WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second);
+			WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
 		}
 
 		WorldInventory->Update();

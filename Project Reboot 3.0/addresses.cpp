@@ -393,12 +393,6 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindPattern("40 57 41 56 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F1 74 3A 80 3D ? ? ? ? ? 0F 82").Get()); // collect garbage
 	}
 
-	if (Engine_Version == 500)
-	{
-		// toNull.push_back(Memcury::Scanner::FindPattern("").Get()); // collectgarbage
-		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 48 8B FA 48 8B D9 48 85 D2 0F 84 ? ? ? ? 8B").Get()); // idk lmfao
-	}
-
 	if (Fortnite_Version == 12.61)
 	{
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 55 56 57 41 56 48 81 EC ? ? ? ? 4C 8B B1 ? ? ? ? 33 F6 4C 89 B4 24 ? ? ? ? 48 8B").Get()); // fritter crash
@@ -409,14 +403,20 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindPattern("40 55 57 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F9 74 3B 80 3D ? ? ? ? ? 0F").Get());
 	}
 
-	if (Fortnite_Version == 17.30)
+	if (std::floor(Fortnite_Version) == 17)
 	{
-		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 70 08 48 89 78 10 55 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 ED").Get());
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 70 08 48 89 78 10 55 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 ED").Get()); // collectgarbage
 	}
 
 	if (Fortnite_Version == 17.50)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 49 8B D9 45 8A").Get()); // no reservation in game
+	}
+
+	if (Engine_Version == 500)
+	{
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 F6 0F 29 70 A8 44 38 35").Get()); // zone
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A8 48 81 EC ? ? ? ? 45 33 FF").Get()); // Garbage collection
 	}
 
 	toNull.push_back(Addresses::ChangeGameSessionId);

@@ -4,6 +4,7 @@
 
 #include "Class.h"
 #include "KismetSystemLibrary.h"
+#include "UObjectArray.h"
 
 FName* getFNameOfProp(void* Property)
 {
@@ -100,3 +101,35 @@ bool UObject::IsA(UClass* otherClass)
 	static auto Class = FindObject<UClass>("/Script/CoreUObject.Object");
 	return Class;
 } */
+
+void UObject::AddToRoot()
+{
+	auto Item = GetItemByIndex(InternalIndex);
+
+	if (!Item)
+	{
+		LOG_INFO(LogDev, "Invalid item");
+		return;
+	}
+
+	Item->SetRootSet();
+}
+
+bool UObject::IsValidLowLevel()
+{
+	if (this == nullptr)
+	{
+		// UE_LOG(LogUObjectBase, Warning, TEXT("NULL object"));
+		return false;
+	}
+	if (IsBadReadPtr(this, 8)) // needed?
+	{
+		return false;
+	}
+	if (!ClassPrivate)
+	{
+		// UE_LOG(LogUObjectBase, Warning, TEXT("Object is not registered"));
+		return false;
+	}
+	return ChunkedObjects ? ChunkedObjects->IsValid(this) : UnchunkedObjects ? UnchunkedObjects->IsValid(this) : false;
+}

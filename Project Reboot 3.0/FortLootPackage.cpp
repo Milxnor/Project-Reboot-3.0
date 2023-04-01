@@ -7,38 +7,42 @@
 #include "GameplayTagContainer.h"
 #include "FortGameModeAthena.h"
 
+#include <random>
+
+float GetRandomFloatForLooting(float min, float max)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(min, max);
+    float random_number = dis(gen);
+
+    return random_number;
+
+    return UKismetMathLibrary::RandomFloatInRange(min, max);
+}
+
 static FFortLootTierData* GetLootTierData2(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
 {
     float TotalWeight = 0;
+    FFortLootTierData* SelectedItem = nullptr;
 
     for (auto Item : LootTierData)
     {
         TotalWeight += Item->GetWeight();
     }
 
-    float RandomNumber = TotalWeight * (rand() * 0.000030518509); // UKismetMathLibrary::RandomFloatInRange(0, TotalWeight); // is -1 needed?
-
-    FFortLootTierData* SelectedItem = nullptr;
-
-    if (bPrint)
-    {
-        std::cout << std::format("TotalWeight: {}\n", TotalWeight);
-    }
+    float RandomNumber = GetRandomFloatForLooting(0, 1);
+    float cumulative_weight = 0.0f;
 
     for (auto Item : LootTierData)
     {
-        if (bPrint)
-        {
-            std::cout << std::format("Rand: {} Weight: {}\n", RandomNumber, Item->GetWeight());
-        }
+        cumulative_weight += Item->GetWeight() / TotalWeight;
 
         if (RandomNumber <= Item->GetWeight())
         {
             SelectedItem = Item;
             break;
         }
-
-        RandomNumber -= Item->GetWeight();
     }
 
     if (!SelectedItem)
@@ -50,25 +54,25 @@ static FFortLootTierData* GetLootTierData2(std::vector<FFortLootTierData*>& Loot
 static FFortLootPackageData* GetLootPackage2(std::vector<FFortLootPackageData*>& LootPackages)
 {
     float TotalWeight = 0;
+    FFortLootPackageData* SelectedItem = nullptr;
 
     for (auto Item : LootPackages)
     {
         TotalWeight += Item->GetWeight();
     }
 
-    float RandomNumber = TotalWeight * (rand() * 0.000030518509); // UKismetMathLibrary::RandomFloatInRange(0, TotalWeight); // is -1 needed?
-
-    FFortLootPackageData* SelectedItem = nullptr;
+    float RandomNumber = GetRandomFloatForLooting(0, 1);
+    float cumulative_weight = 0.0f;
 
     for (auto Item : LootPackages)
     {
+        cumulative_weight += Item->GetWeight() / TotalWeight;
+
         if (RandomNumber <= Item->GetWeight())
         {
             SelectedItem = Item;
             break;
         }
-
-        RandomNumber -= Item->GetWeight();
     }
 
     if (!SelectedItem)
@@ -79,31 +83,20 @@ static FFortLootPackageData* GetLootPackage2(std::vector<FFortLootPackageData*>&
 
 static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
 {
-    return GetLootTierData2(LootTierData, bPrint);
+    // return GetLootTierData2(LootTierData, bPrint);
 
     float TotalWeight = 0;
+    FFortLootTierData* SelectedItem = nullptr;
 
     for (auto Item : LootTierData)
     {
         TotalWeight += Item->GetWeight();
     }
 
-    float RandomNumber = UKismetMathLibrary::RandomFloatInRange(0, TotalWeight); // is -1 needed?
-
-    FFortLootTierData* SelectedItem = nullptr;
-
-    if (bPrint)
-    {
-        std::cout << std::format("TotalWeight: {}\n", TotalWeight);
-    }
+    float RandomNumber = GetRandomFloatForLooting(0, TotalWeight); // is -1 needed?
 
     for (auto Item : LootTierData)
     {
-        if (bPrint)
-        {
-            std::cout << std::format("Rand: {} Weight: {}\n", RandomNumber, Item->GetWeight());
-        }
-
         if (RandomNumber <= Item->GetWeight())
         {
             SelectedItem = Item;
@@ -121,18 +114,17 @@ static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootT
 
 static FFortLootPackageData* GetLootPackage(std::vector<FFortLootPackageData*>& LootPackages)
 {
-    return GetLootPackage2(LootPackages);
+    // return GetLootPackage2(LootPackages);
 
     float TotalWeight = 0;
+    FFortLootPackageData* SelectedItem = nullptr;
 
     for (auto Item : LootPackages)
     {
         TotalWeight += Item->GetWeight();
     }
 
-    float RandomNumber = UKismetMathLibrary::RandomFloatInRange(0, TotalWeight); // is -1 needed?
-
-    FFortLootPackageData* SelectedItem = nullptr;
+    float RandomNumber = GetRandomFloatForLooting(0, TotalWeight); // is -1 needed?
 
     for (auto Item : LootPackages)
     {
@@ -158,8 +150,6 @@ public:
     TSoftObjectPtr<UDataTable>            LootPackageData;                                   // 0x28(0x28)(Edit, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 };
 
-
-
 std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recursive)
 {
     std::vector<LootDrop> LootDrops;
@@ -168,8 +158,9 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         return LootDrops;
 
     auto GameState = ((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena();
+    static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
-// #define BELUGA
+#define BELUGA
 
 #ifndef BELUGA
     /* static */ std::vector<UDataTable*> LTDTables;
@@ -183,19 +174,56 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     static bool bHasFoundTables = false;
 #endif
 
-    auto CurrentPlaylist = GameState->GetCurrentPlaylist();
+    auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
 
     if (!bHasFoundTables)
     {
         bHasFoundTables = true;
 
-        LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
-        LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
+        bool bFoundPlaylistTable = false;
+
+        static auto DataTableClass = FindObject<UClass>("/Script/Engine.DataTable");
+        static auto CompositeDataTableClass = FindObject<UClass>("/Script/Engine.CompositeDataTable");
+
+        if (CurrentPlaylist)
+        {
+            static auto LootTierDataOffset = CurrentPlaylist->GetOffset("LootTierData");
+            auto& LootTierDataSoft = CurrentPlaylist->Get<TSoftObjectPtr<UDataTable>>(LootTierDataOffset);
+
+            static auto LootPackagesOffset = CurrentPlaylist->GetOffset("LootPackages");
+            auto& LootPackagesSoft = CurrentPlaylist->Get<TSoftObjectPtr<UDataTable>>(LootPackagesOffset);
+
+            if (LootTierDataSoft.IsValid() && LootPackagesSoft.IsValid())
+            {
+                auto LootTierDataStr = LootTierDataSoft.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                auto LootPackagesStr = LootPackagesSoft.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                auto LootTierDataTableIsComposite = LootTierDataStr.contains("Composite");
+                auto LootPackageTableIsComposite = LootPackagesStr.contains("Composite");
+
+                auto StrongLootTierData = LootTierDataSoft.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                auto StrongLootPackage = LootPackagesSoft.Get(LootPackageTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+
+                if (StrongLootTierData && StrongLootPackage)
+                {
+                    LTDTables.push_back(StrongLootTierData);
+                    LPTables.push_back(StrongLootPackage);
+
+                    bFoundPlaylistTable = true;
+                }
+            }
+        }
+
+        if (!bFoundPlaylistTable)
+        {
+            LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
+            LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
+        }
+
+        // LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Athena/Playlists/Playground/AthenaLootTierData_Client.AthenaLootTierData_Client"));
+        // LPTables.push_back(LoadObject<UDataTable>(L"/Game/Athena/Playlists/Playground/AthenaLootPackages_Client.AthenaLootPackages_Client"));
 
 #ifdef BELUGA
         static auto FortGameFeatureDataClass = FindObject<UClass>("/Script/FortniteGame.FortGameFeatureData");
-        static auto DataTableClass = FindObject<UClass>("/Script/Engine.DataTable");
-        static auto CompositeDataTableClass = FindObject<UClass>("/Script/Engine.CompositeDataTable");
 
         if (FortGameFeatureDataClass)
         {
@@ -340,15 +368,17 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
 #endif
 
-        /* for (int i = 0; i < LTDTables.size(); i++)
+        for (int i = 0; i < LTDTables.size(); i++)
         {
+            LTDTables.at(i)->AddToRoot();
             LOG_INFO(LogDev, "[{}] LTD {}", i, LTDTables.at(i)->GetFullName());
         }
 
         for (int i = 0; i < LPTables.size(); i++)
         {
+            LPTables.at(i)->AddToRoot();
             LOG_INFO(LogDev, "[{}] LP {}", i, LPTables.at(i)->GetFullName());
-        } */
+        }
     }
 
     std::vector<FFortLootTierData*> TierGroupLTDs;
@@ -357,16 +387,16 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     {
         auto LTD = LTDTables[p];
 
-        if (!LTD)
+        // if (bPrint)
+            // LOG_INFO(LogLoot, "LTD: {}", !LTD->IsValidLowLevel() ? "BadRead" : LTD->GetFullName());
+
+        if (!LTD->IsValidLowLevel())
             continue;
 
         auto& LTDRowMap = LTD->GetRowMap();
         auto LTDRowMapNum = LTDRowMap.Pairs.Elements.Num();
 
         // auto TierGroupNameStr = TierGroupName.ToString();
-
-        // if (bPrint)
-            // LOG_INFO(LogLoot, "LTDRowMapNum: {} LTD: {}", LTDRowMapNum, IsBadReadPtr(LTD, 8) ? "BadRead" : LTD->GetFullName());
 
         for (int i = 0; i < LTDRowMapNum; i++)
         {
@@ -474,6 +504,10 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     for (int p = 0; p < LPTables.size(); p++)
     {
         auto LP = LPTables[p];
+
+        if (!LP->IsValidLowLevel())
+            continue;
+
         auto& LPRowMap = LP->GetRowMap();
 
         for (int i = 0; i < LPRowMap.Pairs.Elements.Num(); i++)
@@ -573,6 +607,9 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         {
             for (int p = 0; p < LPTables.size(); p++)
             {
+                if (!LPTables[p]->IsValidLowLevel())
+                    continue;
+
                 auto& LPRowMap = LPTables[p]->GetRowMap();
 
                 for (int j = 0; j < LPRowMap.Pairs.Elements.Num(); j++)
