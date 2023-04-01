@@ -147,6 +147,7 @@ static inline std::vector<Event> Events =
 
 		"/Fritter/BP_Fritter_Script.BP_Fritter_Script_C",
 		"/Game/Athena/Playlists/Fritter/Playlist_Fritter_High.Playlist_Fritter_High",
+		//"/Game/Athena/Playlists/Fritter/Playlist_Fritter_Lowest.Playlist_Fritter_Lowest",
 		12.61
 	),
 	Event

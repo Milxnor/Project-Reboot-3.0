@@ -21,7 +21,7 @@ void AFortPlayerStateAthena::ServerSetInAircraftHook(UObject* Context, FFrame& S
 
 	auto& ItemInstances = InventoryList.GetItemInstances();
 
-	if ((/* (bNewInAircraft && !PlayerController->IsInAircraft()) || */ (Globals::bLateGame ? bNewInAircraft : true)) && ItemInstances.Num())
+	if (/* (bNewInAircraft && !PlayerController->IsInAircraft()) || */ /* (Globals::bLateGame ? bNewInAircraft : true)) && */ ItemInstances.Num())
 	{
 		// std::cout << "InventoryList.ItemInstances.Num(): " << InventoryList.ItemInstances.Num() << '\n';
 

@@ -463,9 +463,13 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	auto MatDefinition = UFortKismetLibrary::K2_GetResourceItemDefinition(BuildingActor->GetResourceType());
 	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+
 	auto MatInstance = WorldInventory->FindItemInstance(MatDefinition);
 
-	bool bShouldDestroy = MatInstance ? PlayerController->DoesBuildFree() ? false : MatInstance->GetItemEntry()->GetCount() < 10 : true;
+	bool bShouldDestroy = MatInstance ? (PlayerController->DoesBuildFree() ? false : MatInstance->GetItemEntry()->GetCount() < 10) : true;
 
 	if (bShouldDestroy)
 	{

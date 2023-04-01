@@ -138,6 +138,7 @@ DWORD WINAPI Main(LPVOID)
             *(bool*)FindGIsClient() = false;
     }
 
+    bool bUseRemovePlayer = false;
     bool bUseSwitchLevel = false;
 
     if (bUseSwitchLevel)
@@ -155,7 +156,7 @@ DWORD WINAPI Main(LPVOID)
     }
     else
     {
-        if (true)
+        if (!bUseRemovePlayer)
         {
             auto& LocalPlayers = GetLocalPlayers();
 
@@ -164,7 +165,7 @@ DWORD WINAPI Main(LPVOID)
                 LocalPlayers.Remove(0);
             }
         }
-        else if (false)
+        else if (bUseRemovePlayer)
         {
             UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
         }
@@ -191,7 +192,7 @@ DWORD WINAPI Main(LPVOID)
 
     if (bUseSwitchLevel)
     {
-        if (true)
+        if (!bUseRemovePlayer)
         {
             auto& LocalPlayers = GetLocalPlayers();
 
@@ -200,7 +201,7 @@ DWORD WINAPI Main(LPVOID)
                 LocalPlayers.Remove(0);
             }
         }
-        else if (false)
+        else if (bUseRemovePlayer)
         {
             UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
         }

@@ -285,7 +285,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			if (Fortnite_Version >= 4)
 				SetPlaylist(PlaylistToUse, true);
 
-			LOG_INFO(LogDev, "Set playlist!");
+			auto CurrentPlaylist = GameState->GetCurrentPlaylist();
+			LOG_INFO(LogDev, "Set playlist to {}!", CurrentPlaylist->IsValidLowLevel() ? CurrentPlaylist->GetFullName() : "Invalid");
 		}
 
 		// if (false)
@@ -766,7 +767,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		LOG_INFO(LogDev, "Spawned loot!");
 	}
 
-	if (Engine_Version >= 423 && Engine_Version < 426) // 423+ we need to spawn manually and vehicle sync doesn't work on >S13.
+	if (Engine_Version >= 423 && Fortnite_Version <= 12.41) // 423+ we need to spawn manually and vehicle sync doesn't work on >S13.
 	{
 		static int LastNum420 = 1;
 

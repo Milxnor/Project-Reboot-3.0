@@ -294,8 +294,10 @@ static inline uint64 FindGetMaxTickRate() // Uengine::getmaxtickrate
 
 static inline uint64 FindGetPlayerViewpoint()
 {
-	if (Engine_Version == 420)
+	if (Engine_Version == 420 && Fortnite_Version < 4.5)
+	{
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 41 56 41 57 48 8B EC 48 83 EC 50").Get(); // idk why finder doesnt work and cba to debug
+	}
 
 	auto Addrr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s").Get();
 
@@ -488,7 +490,7 @@ static inline uint64 FindCompletePickupAnimation()
 
 	if (Engine_Version == 421)
 	{
-		auto adda = Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9").Get();
+		auto adda = Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9", false).Get();
 
 		if (!adda)
 			adda = Memcury::Scanner::FindPattern("40 53 56 57 48 83 EC 30 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84").Get(); // 6.21
@@ -526,6 +528,9 @@ static inline uint64 FindNoMCP()
 		// 19.10
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 20 65 48 8B 04 25 ? ? ? ? BA ? ? ? ? 48 8B 08 8B 04 0A 39 05 ? ? ? ? 7F 23 8A 05 ? ? ? ? 48 8B 5C 24 ? 48 8B 6C 24 ? 48 8B 74 24 ? 48 83 C4 20 41 5F 41 5E 41 5D 41 5C 5F C3 48 8D 0D ? ? ? ? E8 ? ? ? ? 83 3D ? ? ? ? ? 75 C8 E8 ? ? ? ? 45 33").Get();
 	} */
+
+	if (Fortnite_Version == 4.5)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 90 EB EA").RelativeOffset(1).Get();
 
 	if (std::floor(Fortnite_Version) == 3)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 48 8D 4C 24 ?").RelativeOffset(1).Get();
@@ -914,16 +919,14 @@ static inline uint64 FindGIsClient()
 		// return __int64(GetModuleHandleW(0)) + 0x46AD734;
 	if (Fortnite_Version == 4.1)
 		return __int64(GetModuleHandleW(0)) + 0x4BF6F17;
-
 	if (Fortnite_Version == 11.31)
 		return __int64(GetModuleHandleW(0)) + 0x6F41270;
-
 	if (Fortnite_Version == 12.41)
 		return __int64(GetModuleHandleW(0)) + 0x804B659;
-
+	if (Fortnite_Version == 12.61)
+		return __int64(GetModuleHandleW(0)) + 0x8237B86;
 	if (Fortnite_Version == 14.60)
 		return __int64(GetModuleHandleW(0)) + 0x939930D;
-
 	if (Fortnite_Version == 17.30)
 		return __int64(GetModuleHandleW(0)) + 0x973E49B;
 

@@ -380,7 +380,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Fortnite_Version > 2.5 && Engine_Version == 420)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 57 48 81 EC ? ? ? ? 4C 8B 82 ? ? ? ? 48 8B F9 0F 29 70 E8 0F 29 78 D8").Get()); // Pawn Overlap
-		// toNull.push_back(Memcury::Scanner::FindPattern("E8 ? ? ? ? EB 26 40 38 3D ? ? ? ?").RelativeOffset(1).Get()); // collectgarbage
+		toNull.push_back(Memcury::Scanner::FindPattern("E8 ? ? ? ? EB 26 40 38 3D ? ? ? ?").RelativeOffset(1).Get()); // collectgarbage
 	}
 
 	if (Engine_Version == 421)
@@ -393,8 +393,15 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindPattern("40 57 41 56 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F1 74 3A 80 3D ? ? ? ? ? 0F 82").Get()); // collect garbage
 	}
 
+	if (Fortnite_Version == 12.41)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 68 10 48 89 70 18 48 89 78 20 41 54 41 56 41 57 48 83 EC 70 48 8B 35").Get()); // random travis crash
+		toNull.push_back(Memcury::Scanner::FindPattern("40 57 41 56 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F1 74 3A 80 3D ? ? ? ? ? 0F").Get()); // collect garbage
+	}
+
 	if (Fortnite_Version == 12.61)
 	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 57 41 54 41 56 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 20 4C 8B A5").Get()); // idfk
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 55 56 57 41 56 48 81 EC ? ? ? ? 4C 8B B1 ? ? ? ? 33 F6 4C 89 B4 24 ? ? ? ? 48 8B").Get()); // fritter crash
 	}
 
