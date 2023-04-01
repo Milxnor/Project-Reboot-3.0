@@ -638,7 +638,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		return Current++;
 	}
 
-	static int NextTeamIndex = Playlist->Get<uint8>("DefaultFirstTeam"); // + 1?
+	static int NextTeamIndex = 3; // Playlist->Get<uint8>("DefaultFirstTeam"); // + 1?
 
 	static int LastNum1 = 1;
 
@@ -646,7 +646,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	{
 		LastNum1 = AmountOfRestarts;
 
-		NextTeamIndex = Playlist->Get<uint8>("DefaultFirstTeam");
+		NextTeamIndex = 3; // Playlist->Get<uint8>("DefaultFirstTeam"); // + 1?
 	}
 
 	// std::cout << "CurrentTeamMembers: " << CurrentTeamMembers << '\n';

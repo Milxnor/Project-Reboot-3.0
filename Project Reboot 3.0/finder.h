@@ -222,12 +222,13 @@ static inline uint64 FindOnRep_ZiplineState()
 	if (Fortnite_Version < 7)
 		return 0;
 
-	static auto Addrr = Memcury::Scanner::FindStringRef(L"ZIPLINES!! Role(%s)  AFortPlayerPawn::OnRep_ZiplineState ZiplineState.bIsZiplining=%d", false).Get();
+	auto Addrr = Memcury::Scanner::FindStringRef(L"ZIPLINES!! Role(%s)  AFortPlayerPawn::OnRep_ZiplineState ZiplineState.bIsZiplining=%d", false).Get();
 
 	if (!Addrr)
-		Addrr = Memcury::Scanner::FindStringRef(L"ZIPLINES!! GetLocalRole()(%s)  AFortPlayerPawn::OnRep_ZiplineState ZiplineState.bIsZiplining=%d").Get();
+		Addrr = Memcury::Scanner::FindStringRef(L"ZIPLINES!! GetLocalRole()(%s)  AFortPlayerPawn::OnRep_ZiplineState ZiplineState.bIsZiplining=%d", false).Get();
 
-	// L"%s LocalRole[%s] ZiplineState.bIsZiplining[%d]" for 18.40???
+	if (!Addrr)
+		Addrr = Memcury::Scanner::FindStringRef("AFortPlayerPawn::HandleZiplineStateChanged").Get(); // L"%s LocalRole[%s] ZiplineState.bIsZiplining[%d]"
 
 	if (!Addrr)
 		return 0;
@@ -240,6 +241,11 @@ static inline uint64 FindOnRep_ZiplineState()
 		}
 
 		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
 		{
 			return Addrr - i;
 		}
@@ -260,6 +266,9 @@ static inline uint64 FindGetMaxTickRate() // Uengine::getmaxtickrate
         .GetAs<int*>() / 8;
 
     LOG_INFO(LogHook, "GetMaxTickRateIndex {}", GetMaxTickRateIndex); */
+
+	if (Engine_Version == 500)
+		return Memcury::Scanner::FindPattern("40 53 48 83 EC 50 0F 29 74 24 ? 48 8B D9 0F 29 7C 24 ? 0F 28 F9 44 0F 29").Get(); // the string is in func + it's in function chunks.
 
 	auto Addrr = Memcury::Scanner::FindStringRef(L"Hitching by request!").Get();
 
@@ -478,7 +487,14 @@ static inline uint64 FindCompletePickupAnimation()
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 48 8B 89 ? ? ? ? 48 85 C9 74 20 48 8D 44 24").Get();
 
 	if (Engine_Version == 421)
-		return Memcury::Scanner::FindPattern("40 53 56 57 48 83 EC 30 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84").Get(); // 6.21
+	{
+		auto adda = Memcury::Scanner::FindPattern("40 53 56 48 83 EC 38 4C 89 6C 24 ? 48 8B F1 4C 8B A9").Get();
+
+		if (!adda)
+			adda = Memcury::Scanner::FindPattern("40 53 56 57 48 83 EC 30 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84").Get(); // 6.21
+
+		return adda;
+	}
 
 	if (Engine_Version == 422)
 		return Memcury::Scanner::FindPattern("40 53 56 57 48 83 EC 30 4C 89 6C 24 ? 48 8B F1 4C 8B A9 ? ? ? ? 4D 85 ED 0F 84").Get(); // 7.30

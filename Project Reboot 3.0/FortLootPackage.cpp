@@ -3,7 +3,9 @@
 #include "DataTable.h"
 #include "KismetMathLibrary.h"
 #include "FortWeaponItemDefinition.h"
-
+#include "UObjectArray.h"
+#include "GameplayTagContainer.h"
+#include "FortGameModeAthena.h"
 
 static FFortLootTierData* GetLootTierData2(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
 {
@@ -149,6 +151,15 @@ static FFortLootPackageData* GetLootPackage(std::vector<FFortLootPackageData*>& 
     return SelectedItem;
 }
 
+struct FFortGameFeatureLootTableData
+{
+public:
+    TSoftObjectPtr<UDataTable>             LootTierData;                                      // 0x0(0x28)(Edit, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+    TSoftObjectPtr<UDataTable>            LootPackageData;                                   // 0x28(0x28)(Edit, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+};
+
+
+
 std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recursive)
 {
     std::vector<LootDrop> LootDrops;
@@ -156,10 +167,23 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     if (recursive > 10)
         return LootDrops;
 
+    auto GameState = ((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena();
+
+// #define BELUGA
+
+#ifndef BELUGA
     /* static */ std::vector<UDataTable*> LTDTables;
     /* static */ std::vector<UDataTable*> LPTables;
 
     /* static */ bool bHasFoundTables = false;
+#else
+    static std::vector<UDataTable*> LTDTables;
+    static std::vector<UDataTable*> LPTables;
+
+    static bool bHasFoundTables = false;
+#endif
+
+    auto CurrentPlaylist = GameState->GetCurrentPlaylist();
 
     if (!bHasFoundTables)
     {
@@ -167,6 +191,154 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
         LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
         LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
+
+#ifdef BELUGA
+        static auto FortGameFeatureDataClass = FindObject<UClass>("/Script/FortniteGame.FortGameFeatureData");
+        static auto DataTableClass = FindObject<UClass>("/Script/Engine.DataTable");
+        static auto CompositeDataTableClass = FindObject<UClass>("/Script/Engine.CompositeDataTable");
+
+        if (FortGameFeatureDataClass)
+        {
+            for (int i = 0; i < ChunkedObjects->Num(); i++)
+            {
+                auto Object = ChunkedObjects->GetObjectByIndex(i);
+
+                if (!Object)
+                    continue;
+
+                if (Object->IsA(FortGameFeatureDataClass))
+                {
+                    auto GameFeatureData = Object;
+                    static auto DefaultLootTableDataOffset = GameFeatureData->GetOffset("DefaultLootTableData");
+
+                    auto DefaultLootTableData = GameFeatureData->GetPtr<FFortGameFeatureLootTableData>(DefaultLootTableDataOffset);
+
+                    auto LootTierDataTableStr = DefaultLootTableData->LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+
+                    auto LootTierDataTableIsComposite = LootTierDataTableStr.contains("Composite");
+                    auto LootPackageTableStr = DefaultLootTableData->LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                    auto LootPackageTableIsComposite = LootPackageTableStr.contains("Composite");
+
+                    auto LootTierDataPtr = DefaultLootTableData->LootTierData.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                    auto LootPackagePtr = DefaultLootTableData->LootPackageData.Get(LootPackageTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+
+                    if (LootPackagePtr)
+                    {
+                        LPTables.push_back(LootPackagePtr);
+                    }
+
+                    if (CurrentPlaylist)
+                    {
+                        static auto PlaylistOverrideLootTableDataOffset = GameFeatureData->GetOffset("PlaylistOverrideLootTableData");
+                        auto PlaylistOverrideLootTableData = GameFeatureData->GetPtr<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
+
+                        auto PlaylistOverrideLootTableData_Data = PlaylistOverrideLootTableData->Pairs.Elements.Data;
+
+                        static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
+                        auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
+
+                        for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); i++)
+                        {
+                            auto& Tag = GameplayTagContainer->GameplayTags.At(i);
+
+                            for (int j = 0; j < PlaylistOverrideLootTableData_Data.Num(); j++)
+                            {
+                                auto Value = PlaylistOverrideLootTableData_Data.at(j).ElementData.Value;
+                                auto CurrentOverrideTag = Value.First;
+
+                                if (Tag.TagName == CurrentOverrideTag.TagName)
+                                {
+                                    auto OverrideLootPackageTableStr = Value.Second.LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                                    auto bOverrideIsComposite = OverrideLootPackageTableStr.contains("Composite");
+
+                                    auto ptr = Value.Second.LootPackageData.Get(bOverrideIsComposite ? CompositeDataTableClass : DataTableClass, true);
+
+                                    if (ptr)
+                                    {
+                                        if (bOverrideIsComposite)
+                                        {
+                                            static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
+
+                                            auto ParentTables = ptr->GetPtr<TArray<UDataTable*>>(ParentTablesOffset);
+
+                                            for (int z = 0; z < ParentTables->size(); z++)
+                                            {
+                                                auto ParentTable = ParentTables->At(z);
+
+                                                if (ParentTable)
+                                                {
+                                                    LPTables.push_back(ParentTable);
+                                                }
+                                            }
+                                        }
+
+                                        LPTables.push_back(ptr);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (LootTierDataPtr)
+                    {
+                        LTDTables.push_back(LootTierDataPtr);
+                    }
+
+                    if (CurrentPlaylist)
+                    {
+                        static auto PlaylistOverrideLootTableDataOffset = GameFeatureData->GetOffset("PlaylistOverrideLootTableData");
+                        auto PlaylistOverrideLootTableData = GameFeatureData->GetPtr<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
+
+                        auto PlaylistOverrideLootTableData_Data = PlaylistOverrideLootTableData->Pairs.Elements.Data;
+
+                        static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
+                        auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
+
+                        for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); i++)
+                        {
+                            auto& Tag = GameplayTagContainer->GameplayTags.At(i);
+
+                            for (int j = 0; j < PlaylistOverrideLootTableData_Data.Num(); j++)
+                            {
+                                auto Value = PlaylistOverrideLootTableData_Data.at(j).ElementData.Value;
+                                auto CurrentOverrideTag = Value.First;
+
+                                if (Tag.TagName == CurrentOverrideTag.TagName)
+                                {
+                                    auto OverrideLootTierDataStr = Value.Second.LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                                    auto bOverrideIsComposite = OverrideLootTierDataStr.contains("Composite");
+
+                                    auto ptr = Value.Second.LootTierData.Get(bOverrideIsComposite ? CompositeDataTableClass : DataTableClass, true);
+
+                                    if (ptr)
+                                    {
+                                        if (bOverrideIsComposite)
+                                        {
+                                            static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
+
+                                            auto ParentTables = ptr->GetPtr<TArray<UDataTable*>>(ParentTablesOffset);
+
+                                            for (int z = 0; z < ParentTables->size(); z++)
+                                            {
+                                                auto ParentTable = ParentTables->At(z);
+
+                                                if (ParentTable)
+                                                {
+                                                    LTDTables.push_back(ParentTable);
+                                                }
+                                            }
+                                        }
+
+                                        LTDTables.push_back(ptr);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+#endif
 
         /* for (int i = 0; i < LTDTables.size(); i++)
         {
@@ -240,7 +412,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
     int MinimumLootDrops = 0;
 
-    static int AmountToAdd = Engine_Version >= 424 ? Engine_Version >= 500 ? 2 : 1 : 0; // fr
+    static int AmountToAdd = Engine_Version >= 424 ? Engine_Version >= 500 ? 1 : 1 : 0; // fr
 
     float NumLootPackageDrops = std::floor(ChosenRowLootTierData->GetNumLootPackageDrops() + AmountToAdd);
 

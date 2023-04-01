@@ -429,7 +429,6 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook((PVOID)Addresses::GetPlayerViewpoint, (PVOID)AFortPlayerControllerAthena::GetPlayerViewPointHook, (PVOID*)&AFortPlayerControllerAthena::GetPlayerViewPointOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::TickFlush, (PVOID)UNetDriver::TickFlushHook, (PVOID*)&UNetDriver::TickFlushOriginal);
-    // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x1A001D0), GetServerDeltaTimeFromObjectHook);
     Hooking::MinHook::Hook((PVOID)Addresses::OnDamageServer, (PVOID)ABuildingActor::OnDamageServerHook, (PVOID*)&ABuildingActor::OnDamageServerOriginal);
     
     Hooking::MinHook::Hook((PVOID)Addresses::GetMaxTickRate, GetMaxTickRateHook);
@@ -475,6 +474,7 @@ DWORD WINAPI Main(LPVOID)
 
     if (Fortnite_Version > 1.8)
     {
+        LOG_INFO(LogDev, "ahh!");
         LOG_INFO(LogDev, "Test: 0x{:x}", FindFunctionCall(L"ClientOnPawnDied") - __int64(GetModuleHandleW(0)));
         Hooking::MinHook::Hook((PVOID)FindFunctionCall(L"ClientOnPawnDied"), AFortPlayerController::ClientOnPawnDiedHook, (PVOID*)&AFortPlayerController::ClientOnPawnDiedOriginal);
     }
@@ -538,16 +538,14 @@ DWORD WINAPI Main(LPVOID)
             auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
             auto GameState = GameMode->GetGameState();
 
-            /*
             GameState->Get<float>("WarmupCountdownEndTime") = 0;
             GameMode->Get<float>("WarmupCountdownDuration") = 0;
 
             GameState->Get<float>("WarmupCountdownStartTime") = 0;
             GameMode->Get<float>("WarmupEarlyCountdownDuration") = 0;
-            */
 
-            FString cmd = L"startaircraft";
-            UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
+            // FString cmd = L"startaircraft";
+            // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
         }
 
         else if (GetAsyncKeyState(VK_F9) & 1)

@@ -22,9 +22,13 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 	static auto FortPickupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickup");
 	auto PlayerState = Pawn ? Cast<AFortPlayerState>(Pawn->GetPlayerState()) : nullptr;
 
-	if (auto Pickup = GetWorld()->SpawnActor<AFortPickup>(OverrideClass ? OverrideClass : FortPickupClass, Location))
+	FActorSpawnParameters SpawnParameters{};
+	// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	if (auto Pickup = GetWorld()->SpawnActor<AFortPickup>(OverrideClass ? OverrideClass : FortPickupClass, Location, FQuat(), FVector(1, 1, 1), SpawnParameters))
 	{
 		static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
+		Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = Pawn;
 
 		auto PrimaryPickupItemEntry = Pickup->GetPrimaryPickupItemEntry();
 
@@ -34,8 +38,6 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 
 		// static auto OptionalOwnerIDOffset = Pickup->GetOffset("OptionalOwnerID");
 		// Pickup->Get<int>(OptionalOwnerIDOffset) = PlayerState ? PlayerState->GetWorldPlayerId() : -1;
-
-		Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = Pawn;
 
 		bool bToss = true;
 

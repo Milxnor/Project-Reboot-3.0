@@ -25,6 +25,14 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 	}
 }
 
+void UAbilitySystemComponent::RemoveActiveGameplayEffectBySourceEffect(UClass* GEClass, int StacksToRemove, UAbilitySystemComponent* Instigator)
+{
+	static auto RemoveActiveGameplayEffectBySourceEffectFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.RemoveActiveGameplayEffectBySourceEffect");
+	struct { UClass* GameplayEffect; UObject* InstigatorAbilitySystemComponent; int StacksToRemove; } UAbilitySystemComponent_RemoveActiveGameplayEffectBySourceEffect_Params{ GEClass, Instigator, StacksToRemove };
+
+	this->ProcessEvent(RemoveActiveGameplayEffectBySourceEffectFn, &UAbilitySystemComponent_RemoveActiveGameplayEffectBySourceEffect_Params);
+}
+
 void UAbilitySystemComponent::ConsumeAllReplicatedData(FGameplayAbilitySpecHandle AbilityHandle, FPredictionKey* AbilityOriginalPredictionKey)
 {
 	// static auto AbilityTargetDataMapOffset = ActivatableAbilitiesOffset + FGameplayAbilitySpecContainerSize ?
