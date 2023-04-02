@@ -128,12 +128,16 @@ void AFortPlayerControllerAthena::ServerReadyToStartMatchHook(AFortPlayerControl
 		{
 			auto& QuickBars = PlayerController->Get<AActor*>(QuickBarsOffset);
 
+			LOG_INFO(LogDev, "QuickBarsOld: {}", __int64(QuickBars));
+
 			if (QuickBars)
 				return ServerReadyToStartMatchOriginal(PlayerController);
 
 			static auto FortQuickBarsClass = FindObject<UClass>("/Script/FortniteGame.FortQuickBars");
 
 			QuickBars = GetWorld()->SpawnActor<AActor>(FortQuickBarsClass);
+
+			LOG_INFO(LogDev, "QuickBarsNew: {}", __int64(QuickBars));
 
 			if (!QuickBars)
 				return ServerReadyToStartMatchOriginal(PlayerController);

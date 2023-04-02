@@ -334,9 +334,9 @@ void Offsets::FindAll()
 	if (Engine_Version == 416) // checked on 1.7.2 & 1.8
 		Offsets::ReplicationFrame = 0x288;
 	if (Fortnite_Version == 2.42)
-		Offsets::ReplicationFrame = 0xB2;
+		Offsets::ReplicationFrame = 0x2C8;
 	if (Fortnite_Version == 2.5)
-		Offsets::ReplicationFrame = 0xCA;
+		Offsets::ReplicationFrame = 0x328;
 	if (Fortnite_Version == 1.11)
 		Offsets::ReplicationFrame = 0x2C8;
 
@@ -423,6 +423,11 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Fortnite_Version == 14.60)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("40 55 57 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F9 74 3B 80 3D ? ? ? ? ? 0F").Get());
+	}
+
+	if (Fortnite_Version == 16.50)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 49 8B D9 45 8A F8 4C 8B F2 48").Get()); // no reservation in gakme
 	}
 
 	if (std::floor(Fortnite_Version) == 17)

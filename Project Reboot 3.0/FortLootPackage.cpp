@@ -370,7 +370,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
     }
 
-    if (Engine_Version < 420) // ahhh
+    if (Engine_Version <= 420) // ahhh
     {
         LTDTables.clear();
         LPTables.clear();

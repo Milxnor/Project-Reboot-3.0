@@ -875,13 +875,19 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)
 {
+	// LOG_INFO(LogDev, "ServerBeginEditingBuildingActorHook!");
+
 	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced())
 		return;
 
 	auto Pawn = PlayerController->GetMyFortPawn();
 
+	// LOG_INFO(LogDev, "ServerBeginEditingBuildingAc1341torHook!");
+
 	if (!Pawn)
 		return;
+
+	// LOG_INFO(LogDev, "ServerBeginEditingBuildingActorHook134!");
 
 	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>("/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
 
@@ -898,40 +904,19 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid()))) */
 	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, FGuid{})))
 	{
+		// LOG_INFO(LogDev, "ServerBeginEditingBuild135415ingActorHook!");
+
 		BuildingActorToEdit->GetEditingPlayer() = PlayerController->GetPlayerState();
 		// Onrep?
 
 		EditTool->GetEditActor() = BuildingActorToEdit;
 		// Onrep?
 	}
-}
-
-/* void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit, UClass* NewBuildingClass, int RotationIterations, char bMirrored)
-{
-	auto PlayerState = (AFortPlayerState*)PlayerController->GetPlayerState();
-
-	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
-		return;
-
-	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
-		// return;
-
-	BuildingActorToEdit->GetEditingPlayer() = nullptr;
-
-	LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
-
-	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
-		decltype(BuildingSMActorReplaceBuildingActor)(Addresses::ReplaceBuildingActor);
-
-	if (auto BuildingActor = BuildingSMActorReplaceBuildingActor(BuildingActorToEdit, 1, NewBuildingClass, 
-		BuildingActorToEdit->GetCurrentBuildingLevel(), RotationIterations, bMirrored, PlayerController))
+	else
 	{
-		BuildingActor->SetPlayerPlaced(true);
-
-		// if (auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState()))
-			// BuildingActor->SetTeam(PlayerState->GetTeamIndex());
+		LOG_INFO(LogDev, "Failed to equip editing tool!");
 	}
-} */
+}
 
 void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret)
 {
@@ -954,7 +939,11 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
 
 	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
+	{
+		LOG_INFO(LogDev, "Cheater?");
+		LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", __int64(BuildingActorToEdit->GetEditingPlayer()), __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
 		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
+	}
 
 	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
 		//return ServerEditBuildingActorOriginal(Context, Frame, Ret);

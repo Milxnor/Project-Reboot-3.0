@@ -33,7 +33,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 
 	LOG_INFO(LogDev, "SafeZoneDefinitionOffset: 0x{:x}", SafeZoneDefinitionOffset);
 
-	static auto ZoneDurationsOffset = std::floor(Fortnite_Version) == 17 ? 0x258 : std::floor(Fortnite_Version) >= 18 ? 0x248 : 0x1F8;
+	static auto ZoneDurationsOffset = Fortnite_Version == 16.50 || std::floor(Fortnite_Version) == 17 ? 0x258 : std::floor(Fortnite_Version) >= 18 ? 0x248 : 0x1F8;
 	static auto ZoneHoldDurationsOffset = ZoneDurationsOffset - 0x10;
 
 	auto& ZoneDurations = *(TArray<float>*)(__int64(SafeZoneDefinition) + ZoneDurationsOffset);
@@ -258,7 +258,8 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 			!strstr(ObjectName.c_str(), "CBGA_GreenGlop_WithGrav_C") &&
 			!strstr(ObjectName.c_str(), "FlopperSpawn") &&
 			!strstr(FunctionFullName.c_str(), "GCNL_EnvCampFire_Fire_C") &&
-			!strstr(FunctionName.c_str(), "BlueprintGetAllHighlightableComponents"))
+			!strstr(FunctionName.c_str(), "BlueprintGetAllHighlightableComponents") &&
+			!strstr(FunctionFullName.c_str(), "Primitive_Structure_AmbAudioComponent"))
 		{
 			LOG_INFO(LogDev, "Function called: {} with {}", FunctionFullName, ObjectName);
 		}

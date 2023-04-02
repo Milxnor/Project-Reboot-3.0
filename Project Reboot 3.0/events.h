@@ -23,6 +23,29 @@ static inline std::vector<Event> Events =
 {
 	Event
 	(
+		"Butterfly",
+		"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C",
+		"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C.LoadButterflySublevel",
+		1,
+		{
+		},
+		{
+			{
+				{
+					true,
+					"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C.ButterflySequence"
+				},
+
+				0
+			}
+		},
+
+		"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C",
+		"/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo",
+		6.21
+	),
+	Event
+	(
 		"Astronomical", 
 		"/CycloneJerky/Gameplay/BP_Jerky_Loader.BP_Jerky_Loader_C",
 		// "/CycloneJerky/Gameplay/BP_Jerky_Loader.BP_Jerky_Loader_C.LoadJerkyLevel", 
@@ -57,7 +80,8 @@ static inline std::vector<Event> Events =
 		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High", 
 		12.41
 	),
-	Event(
+	Event
+	(
 		"Devourer of Worlds",
 		"/Junior/Blueprints/BP_Junior_Loader.BP_Junior_Loader_C",
 		"/Junior/Blueprints/BP_Junior_Loader.BP_Junior_Loader_C.LoadJuniorLevel", 

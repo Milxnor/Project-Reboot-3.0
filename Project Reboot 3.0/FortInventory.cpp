@@ -2,6 +2,14 @@
 #include "FortPlayerController.h"
 #include "FortPickup.h"
 
+enum class EFortQuickBars : uint8_t
+{
+	Primary = 0,
+	Secondary = 1,
+	Max_None = 2,
+	EFortQuickBars_MAX = 3
+};
+
 UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItemDefinition* ItemDefinition, int Count)
 {
 	UFortItem* NewItemInstance = ItemDefinition->CreateTemporaryItemInstanceBP(Count);
@@ -140,14 +148,6 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 			if (QuickBars)
 			{
-				enum class EFortQuickBars : uint8_t
-				{
-					Primary = 0,
-					Secondary = 1,
-					Max_None = 2,
-					EFortQuickBars_MAX = 3
-				};
-
 				struct
 				{
 					FGuid                                       Item;                                                     // (Parm, IsPlainOldData)
@@ -253,6 +253,27 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 		{
 			ReplicatedEntries.Remove(i, FortItemEntrySize);
 			break;
+		}
+	}
+
+	auto FortPlayerController = Cast<AFortPlayerController>(GetOwner());
+
+	if (FortPlayerController && Engine_Version < 420)
+	{
+		static auto QuickBarsOffset = FortPlayerController->GetOffset("QuickBars", false);
+		auto QuickBars = FortPlayerController->Get<AActor*>(QuickBarsOffset);
+
+		if (QuickBars)
+		{
+			static auto ServerRemoveItemInternalFn = FindObject<UFunction>("/Script/FortniteGame.FortQuickBars.ServerRemoveItemInternal");
+
+			struct
+			{
+				FGuid                                       Item;                                                     // (Parm, IsPlainOldData)
+				bool                                               bFindReplacement;                                         // (Parm, ZeroConstructor, IsPlainOldData)
+				bool                                               bForce;                                                   // (Parm, ZeroConstructor, IsPlainOldData)
+			} AFortQuickBars_ServerRemoveItemInternal_Params{ItemGuid, false, true};
+			QuickBars->ProcessEvent(ServerRemoveItemInternalFn, &AFortQuickBars_ServerRemoveItemInternal_Params);
 		}
 	}
 
