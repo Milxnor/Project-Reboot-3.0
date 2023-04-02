@@ -197,11 +197,35 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	auto NewCount = ReplicatedEntry->GetCount() - Count;
 
-	if (NewCount > 0 || (ItemDefinition->ShouldPersistWhenFinalStackEmpty() && !bForceRemoval))
-	{
-		if (ItemDefinition->ShouldPersistWhenFinalStackEmpty())
-			NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot
+	auto& ItemInstances = GetItemList().GetItemInstances();
+	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
 
+	bool bOverrideChangeStackSize = false;
+
+	if (ItemDefinition->ShouldPersistWhenFinalStackEmpty() && !bForceRemoval)
+	{
+		bool bIsFinalStack = true;
+
+		for (int i = 0; i < ItemInstances.Num(); i++)
+		{
+			auto ItemInstance = ItemInstances.at(i);
+
+			if (ItemInstance->GetItemEntry()->GetItemDefinition() == ItemDefinition && ItemInstance->GetItemEntry()->GetItemGuid() != ItemGuid)
+			{
+				bIsFinalStack = false;
+				break;
+			}
+		}
+
+		if (bIsFinalStack)
+		{
+			NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot
+			bOverrideChangeStackSize = true;
+		}
+	}
+
+	if (NewCount > 0 || bOverrideChangeStackSize)
+	{
 		ItemInstance->GetItemEntry()->GetCount() = NewCount;
 		ReplicatedEntry->GetCount() = NewCount;
 
@@ -213,9 +237,6 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	static auto FortItemEntryStruct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntry");
 	static auto FortItemEntrySize = FortItemEntryStruct->GetPropertiesSize();
-
-	auto& ItemInstances = GetItemList().GetItemInstances();
-	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
 
 	for (int i = 0; i < ItemInstances.Num(); i++)
 	{

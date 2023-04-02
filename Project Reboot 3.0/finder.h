@@ -601,7 +601,7 @@ static inline uint64 FindSetZoneToIndex() // actually StartNewSafeZonePhase
 	// return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 54 41 55 41 56 41 57 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 0F 29 70 C8 0F 29 78 B8 44 0F 29 40 ? 44 0F 29 48 ? 44 0F 29 50 ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 4C 8B B1 ? ? ? ? 45 33 ED 89 54 24 70 44 8B FA 48 89 4C 24").Get(); // 18.40
 	// return Memcury::Scanner::FindPattern("40 55 53 56 41 55 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 18 48 8B").Get(); // 14.60
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.", true, 0, Fortnite_Version >= 17).Get();
+	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.", true, 0, Fortnite_Version >= 16.50).Get();
 	// return FindBytes(Addr, { 0x40, 0x55 }, 30000, 0, true);
 
 	if (!Addr)
