@@ -189,6 +189,12 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	if (!ItemDefinition)
 		return false;
 
+	if (Count < 0)
+	{
+		Count = 0;
+		bForceRemoval = true;
+	}
+
 	auto NewCount = ReplicatedEntry->GetCount() - Count;
 
 	if (NewCount > 0 || (ItemDefinition->ShouldPersistWhenFinalStackEmpty() && !bForceRemoval))

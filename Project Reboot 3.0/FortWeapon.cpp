@@ -4,30 +4,32 @@
 #include "reboot.h"
 #include "FortPlayerController.h"
 
-void AFortWeapon::ServerReleaseWeaponAbilityHook(UObject* Context, FFrame* Stack, void* Ret)
+void AFortWeapon::OnPlayImpactFXHook(AFortWeapon* Weapon, __int64 HitResult, uint8_t ImpactPhysicalSurface, UObject* SpawnedPSC)
 {
-	// I don't know where to put this..
-	
-	auto Weapon = (AFortWeapon*)Context;
-	auto Pawn = Cast<AFortPlayerPawn>(Weapon->GetOwner());
+	// grappler
 
-	// LOG_INFO(LogDev, "Owner: {}", Weapon->GetOwner() ? Weapon->GetOwner()->GetFullName() : "InvalidObject");
+	auto Pawn = Cast<AFortPawn>(Weapon->GetOwner());
 
 	if (!Pawn)
-		return ServerReleaseWeaponAbilityOriginal(Context, Stack, Ret);
+		return OnPlayImpactFXOriginal(Weapon, HitResult, ImpactPhysicalSurface, SpawnedPSC);
 
 	auto Controller = Cast<AFortPlayerController>(Pawn->GetController());
-	auto CurrentWeapon = Weapon; // Pawn->GetCurrentWeapon();
+	auto CurrentWeapon = Pawn->GetCurrentWeapon();
 	auto WorldInventory = Controller ? Controller->GetWorldInventory() : nullptr;
 
 	if (!WorldInventory || !CurrentWeapon)
-		return ServerReleaseWeaponAbilityOriginal(Context, Stack, Ret);
+		return OnPlayImpactFXOriginal(Weapon, HitResult, ImpactPhysicalSurface, SpawnedPSC);
 
 	static auto AmmoCountOffset = CurrentWeapon->GetOffset("AmmoCount");
 	auto AmmoCount = CurrentWeapon->Get<int>(AmmoCountOffset);
 
 	WorldInventory->CorrectLoadedAmmo(CurrentWeapon->GetItemEntryGuid(), AmmoCount);
 
+	return OnPlayImpactFXOriginal(Weapon, HitResult, ImpactPhysicalSurface, SpawnedPSC);
+}
+
+void AFortWeapon::ServerReleaseWeaponAbilityHook(UObject* Context, FFrame* Stack, void* Ret)
+{
 	return ServerReleaseWeaponAbilityOriginal(Context, Stack, Ret);
 }
 

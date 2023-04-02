@@ -1,6 +1,7 @@
 #include "FortPawn.h"
 
 #include "reboot.h"
+#include "FortPlayerControllerAthena.h"
 
 AFortWeapon* AFortPawn::EquipWeaponDefinition(UFortWeaponItemDefinition* WeaponData, const FGuid& ItemEntryGuid)
 {
@@ -54,6 +55,24 @@ void AFortPawn::SetShield(float NewShield)
 
 	if (SetShieldFn)
 		this->ProcessEvent(SetShieldFn, &NewShield);
+}
+
+void AFortPawn::NetMulticast_Athena_BatchedDamageCuesHook(UObject* Context, FFrame* Stack, void* Ret)
+{
+	auto Pawn = (AFortPawn*)Context;
+	auto Controller = Cast<AFortPlayerController>(Pawn->GetController());
+	auto CurrentWeapon = Pawn->GetCurrentWeapon();
+	auto WorldInventory = Controller ? Controller->GetWorldInventory() : nullptr;
+
+	if (!WorldInventory || !CurrentWeapon)
+		return NetMulticast_Athena_BatchedDamageCuesOriginal(Context, Stack, Ret);
+
+	static auto AmmoCountOffset = CurrentWeapon->GetOffset("AmmoCount");
+	auto AmmoCount = CurrentWeapon->Get<int>(AmmoCountOffset);
+
+	WorldInventory->CorrectLoadedAmmo(CurrentWeapon->GetItemEntryGuid(), AmmoCount);
+
+	return NetMulticast_Athena_BatchedDamageCuesOriginal(Context, Stack, Ret);
 }
 
 UClass* AFortPawn::StaticClass()

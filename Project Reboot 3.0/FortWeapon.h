@@ -8,6 +8,7 @@ class AFortWeapon : public AActor
 {
 public:
 	static inline void (*ServerReleaseWeaponAbilityOriginal)(UObject* Context, FFrame* Stack, void* Ret);
+	static inline void (*OnPlayImpactFXOriginal)(AFortWeapon* Weapon, __int64 HitResult, uint8_t ImpactPhysicalSurface, UObject* SpawnedPSC);
 
 	template <typename T = class UFortWeaponItemDefinition>
 	T* GetWeaponData()
@@ -22,6 +23,7 @@ public:
 		return Get<FGuid>(ItemEntryGuidOffset);
 	}
 
+	static void OnPlayImpactFXHook(AFortWeapon* Weapon, __int64 HitResult, uint8_t ImpactPhysicalSurface, UObject* SpawnedPSC);
 	static void ServerReleaseWeaponAbilityHook(UObject* Context, FFrame* Stack, void* Ret);
 
 	static UClass* StaticClass();

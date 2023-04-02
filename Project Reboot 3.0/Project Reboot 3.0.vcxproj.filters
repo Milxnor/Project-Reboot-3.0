@@ -431,9 +431,6 @@
     <ClInclude Include="AthenaMarkerComponent.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
-    <ClInclude Include="vehicles.h">
-      <Filter>Reboot\Public</Filter>
-    </ClInclude>
     <ClInclude Include="FortInventoryInterface.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
     </ClInclude>
@@ -478,6 +475,9 @@
     </ClInclude>
     <ClInclude Include="GameplayAbilityTypes.h">
       <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="vehicles.h">
+      <Filter>Reboot\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
