@@ -815,12 +815,12 @@ static inline uint64 FindGIsServer()
 		}
 	} */
 
+	if (Fortnite_Version == 10.40)
+		return __int64(GetModuleHandleW(0)) + 0x637925C;
 	if (Fortnite_Version == 12.41)
 		return __int64(GetModuleHandleW(0)) + 0x804B65A;
-
 	if (Fortnite_Version == 14.60)
 		return __int64(GetModuleHandleW(0)) + 0x939930E;
-
 	if (Fortnite_Version == 17.30)
 		return __int64(GetModuleHandleW(0)) + 0x973E499;
 
@@ -937,6 +937,8 @@ static inline uint64 FindGIsClient()
 		return __int64(GetModuleHandleW(0)) + 0x5BAA38F;
 	if (Fortnite_Version == 4.1)
 		return __int64(GetModuleHandleW(0)) + 0x4BF6F17;
+	if (Fortnite_Version == 10.40)
+		return __int64(GetModuleHandleW(0)) + 0x637925B;
 	if (Fortnite_Version == 11.31)
 		return __int64(GetModuleHandleW(0)) + 0x6F41270;
 	if (Fortnite_Version == 12.41)

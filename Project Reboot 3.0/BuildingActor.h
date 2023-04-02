@@ -24,7 +24,7 @@ public:
 
 	void SilentDie()
 	{
-		static auto SilentDieFn = FindObject<UFunction>("/ScriptFortniteGame.BuildingActor.SilentDie");
+		static auto SilentDieFn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SilentDie");
 		this->ProcessEvent(SilentDieFn);
 	}
 
