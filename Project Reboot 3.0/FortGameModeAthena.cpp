@@ -806,6 +806,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			Parts[(int)EFortCustomPartType::Head] = headPart;
 			Parts[(int)EFortCustomPartType::Body] = bodyPart;
+
+			// if (Fortnite_Version > 2.5)
 			Parts[(int)EFortCustomPartType::Backpack] = backpackPart;
 
 			static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
@@ -1057,21 +1059,10 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	LOG_INFO(LogDev, "HandleStartingNewPlayer end");
 
-	if (Fortnite_Version <= 2.5)
-	{
-		static auto QuickBarsOffset = NewPlayer->GetOffset("QuickBars", false);
-
-		if (QuickBarsOffset != -1)
-		{
-			static auto FortQuickBarsClass = FindObject<UClass>("/Script/FortniteGame.FortQuickBars");
-			NewPlayer->Get<AActor*>(QuickBarsOffset) = GetWorld()->SpawnActor<AActor>(FortQuickBarsClass);
-			NewPlayer->Get<AActor*>(QuickBarsOffset)->SetOwner(NewPlayer);
-		}
-	}
-
-	if (Engine_Version <= 420) // not sure if needed on s3-s4
+	if (Engine_Version <= 420)
 	{
 		static auto OverriddenBackpackSizeOffset = NewPlayer->GetOffset("OverriddenBackpackSize");
+		// LOG_INFO(LogDev, "NewPlayer->Get<int>(OverriddenBackpackSizeOffset): {}", NewPlayer->Get<int>(OverriddenBackpackSizeOffset));
 		NewPlayer->Get<int>(OverriddenBackpackSizeOffset) = 5;
 	}
 

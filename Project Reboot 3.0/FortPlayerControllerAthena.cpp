@@ -68,12 +68,12 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 	static auto AcknowledgedPawnOffset = Controller->GetOffset("AcknowledgedPawn");
 	Controller->Get<APawn*>(AcknowledgedPawnOffset) = Pawn;
 
-	if (Globals::bNoMCP)
-		return;
-
 	auto ControllerAsFort = Cast<AFortPlayerController>(Controller);
 	auto PawnAsFort = Cast<AFortPlayerPawn>(Pawn);
 	auto PlayerStateAsFort = Cast<AFortPlayerState>(Pawn->GetPlayerState());
+
+	if (Globals::bNoMCP)
+		return;
 
 	if (!PawnAsFort)
 		return;
@@ -114,4 +114,33 @@ void AFortPlayerControllerAthena::GetPlayerViewPointHook(AFortPlayerControllerAt
 	}
 
 	return AFortPlayerControllerAthena::GetPlayerViewPointOriginal(PlayerController, Location, Rotation);
+}
+
+void AFortPlayerControllerAthena::ServerReadyToStartMatchHook(AFortPlayerControllerAthena* PlayerController)
+{
+	LOG_INFO(LogDev, "ServerReadyToStartMatch!");
+
+	if (Fortnite_Version <= 2.5) // techinally we should do this at the end of OnReadyToStartMatch
+	{
+		static auto QuickBarsOffset = PlayerController->GetOffset("QuickBars", false);
+
+		if (QuickBarsOffset != -1)
+		{
+			auto& QuickBars = PlayerController->Get<AActor*>(QuickBarsOffset);
+
+			if (QuickBars)
+				return ServerReadyToStartMatchOriginal(PlayerController);
+
+			static auto FortQuickBarsClass = FindObject<UClass>("/Script/FortniteGame.FortQuickBars");
+
+			QuickBars = GetWorld()->SpawnActor<AActor>(FortQuickBarsClass);
+
+			if (!QuickBars)
+				return ServerReadyToStartMatchOriginal(PlayerController);
+
+			PlayerController->Get<AActor*>(QuickBarsOffset)->SetOwner(PlayerController);
+		}
+	}
+
+	return ServerReadyToStartMatchOriginal(PlayerController);
 }

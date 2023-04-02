@@ -37,6 +37,14 @@ bool AFortPlayerController::DoesBuildFree()
 
 void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid)
 {
+	if (Engine_Version <= 420)
+	{
+		static auto OverriddenBackpackSizeOffset = PlayerController->GetOffset("OverriddenBackpackSize");
+		LOG_INFO(LogDev, "PlayerController->Get<int>(OverriddenBackpackSizeOffset): {}", PlayerController->Get<int>(OverriddenBackpackSizeOffset));
+		// PlayerController->Get<int>(OverriddenBackpackSizeOffset) = 5;
+		// PlayerController->ForceNetUpdate();
+	}
+
 	auto ItemInstance = PlayerController->GetWorldInventory()->FindItemInstance(ItemGuid);
 	auto Pawn = Cast<AFortPawn>(PlayerController->GetPawn());
 

@@ -79,6 +79,9 @@ static inline uint64 FindStaticFindObject(int StringSkip = 1)
 	if (Engine_Version == 416)
 		return Memcury::Scanner::FindPattern("4C 8B DC 57 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 49 89 6B F0 49 89 73 E8").Get();
 
+	if (Engine_Version == 419)
+		return Memcury::Scanner::FindPattern("4C 8B DC 49 89 5B 08 49 89 6B 18 49 89 73 20 57 41 56 41 57 48 83 EC 60 80 3D").Get();
+
 	auto Addr = Memcury::Scanner::FindStringRef(L"Illegal call to StaticFindObject() while serializing object data!", true, StringSkip, Engine_Version >= 427);
 	auto Final = FindBytes(Addr, { 0x48, 0x89, 0x5C }, 255, 0, true, 0, false); // Addr.ScanFor(bytes, false).Get();
 
@@ -208,7 +211,14 @@ static inline uint64 FindPauseBeaconRequests()
 		return Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 68 80 3D ? ? ? ? ? 72 2C 48 8B 05 ? ? ? ? 4C 8D 44").Get();
 
 	if (Engine_Version == 419)
-		return Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 68 80 3D ? ? ? ? ? 72").Get(); // i supposed this is just because its getitng wrong string ref
+	{
+		auto aa = Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 6F 80 3D", false).Get();
+
+		if (!aa)
+			return Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 68 80 3D ? ? ? ? ? 72").Get(); // i supposed this is just because its getitng wrong string ref
+
+		return aa;
+	}
 
 	if (Engine_Version == 416)
 		return Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 6F 80 3D ? ? ? ? ? 72 33 48 8B 05").Get();
@@ -337,8 +347,10 @@ static inline uint64 FindGetPlayerViewpoint()
 
 static inline uint64 FindIsNetRelevantForOffset()
 {
-	if (Engine_Version == 416)
-		return 648 / 8;
+	if (Engine_Version == 416) // checked on 1.7.2 & 1.8
+		return 0x420 / 8;
+	if (Fortnite_Version == 1.11 || Fortnite_Version == 2.42 || Fortnite_Version == 2.5)
+		return 0x418 / 8;
 
 	return 0;
 }
@@ -917,6 +929,12 @@ static inline uint64 FindGIsClient()
 {
 	// if (Fortnite_Version == 2.5)
 		// return __int64(GetModuleHandleW(0)) + 0x46AD734;
+	if (Fortnite_Version == 1.72)
+		return __int64(GetModuleHandleW(0)) + 0x6536B65;
+	if (Fortnite_Version == 1.8)
+		return __int64(GetModuleHandleW(0)) + 0x66637E5;
+	if (Fortnite_Version == 1.11)
+		return __int64(GetModuleHandleW(0)) + 0x5BAA38F;
 	if (Fortnite_Version == 4.1)
 		return __int64(GetModuleHandleW(0)) + 0x4BF6F17;
 	if (Fortnite_Version == 11.31)
@@ -1139,6 +1157,8 @@ static inline uint64 FindGiveAbility()
 {
 	if (Engine_Version == 416)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 56 57 41 56 48 83 EC 20 83 B9").Get();
+	if (Fortnite_Version == 1.11)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 56 57 41 56 48 83 EC 20 83 B9 ? ? ? ? ? 49 8B F0").Get();
 	if (Engine_Version == 420)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 56 57 41 56 48 83 EC 20 83 B9 ? ? ? ? ? 49 8B F0 4C 8B F2 48 8B D9 7E 61").Get();
 	if (Engine_Version == 421)
@@ -1223,7 +1243,14 @@ static inline uint64 FindSetChannelActor()
 	if (Engine_Version == 416)
 		return Memcury::Scanner::FindPattern("4C 8B DC 55 53 57 41 54 49 8D AB ? ? ? ? 48 81 EC ? ? ? ? 45 33").Get();
 	if (Engine_Version >= 419 && Fortnite_Version <= 2.5)
-		return Memcury::Scanner::FindPattern("48 8B C4 55 53 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 89 70 E8 48 8B D9").Get();
+	{
+		auto aa = Memcury::Scanner::FindPattern("48 8B C4 55 53 57 41 54 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 45 33 E4 48 89 70", false).Get();
+
+		if (!aa)
+			return Memcury::Scanner::FindPattern("48 8B C4 55 53 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 89 70 E8 48 8B D9").Get();
+		
+		return aa;
+	}
 
 	return 0;
 }

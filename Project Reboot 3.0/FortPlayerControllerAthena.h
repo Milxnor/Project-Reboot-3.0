@@ -57,6 +57,7 @@ class AFortPlayerControllerAthena : public AFortPlayerController
 {
 public:
 	static inline void (*GetPlayerViewPointOriginal)(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
+	static inline void (*ServerReadyToStartMatchOriginal)(AFortPlayerControllerAthena* PlayerController);
 
 	AFortPlayerStateAthena* GetPlayerStateAthena()
 	{
@@ -75,6 +76,7 @@ public:
 	static void ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn);
 	static void ServerPlaySquadQuickChatMessage(AFortPlayerControllerAthena* PlayerController, __int64 ChatEntry, __int64 SenderID);
 	static void GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
+	static void ServerReadyToStartMatchHook(AFortPlayerControllerAthena* PlayerController);
 
 	static UClass* StaticClass()
 	{

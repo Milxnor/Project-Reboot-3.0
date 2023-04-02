@@ -120,6 +120,12 @@ void AActor::SetOwner(AActor* Owner)
 	this->ProcessEvent(SetOwnerFn, &Owner);
 }
 
+void AActor::ForceNetUpdate()
+{
+	static auto ForceNetUpdateFn = FindObject<UFunction>("/Script/Engine.Actor.ForceNetUpdate");
+	this->ProcessEvent(ForceNetUpdateFn);
+}
+
 bool AActor::IsAlwaysRelevant()
 {
 	static auto bAlwaysRelevantOffset = GetOffset("bAlwaysRelevant");

@@ -89,6 +89,7 @@ DWORD WINAPI Main(LPVOID)
     Addresses::Init();
     Addresses::Print();
 
+    LOG_INFO(LogDev, "Fortnite_CL: {}", Fortnite_CL);
     LOG_INFO(LogDev, "Version: {}", Fortnite_Version);
 
     static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
@@ -288,6 +289,8 @@ DWORD WINAPI Main(LPVOID)
         AFortPlayerController::ServerEditBuildingActorHook, (PVOID*)&AFortPlayerController::ServerEditBuildingActorOriginal, false, true);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerEndEditingBuildingActor"),
         AFortPlayerController::ServerEndEditingBuildingActorHook, nullptr, false);
+    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerReadyToStartMatch"),
+        AFortPlayerControllerAthena::ServerReadyToStartMatchHook, (PVOID*)&AFortPlayerControllerAthena::ServerReadyToStartMatchOriginal, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerGiveCreativeItem"),
         AFortPlayerControllerAthena::ServerGiveCreativeItemHook, nullptr, true);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerPlaySquadQuickChatMessage"),

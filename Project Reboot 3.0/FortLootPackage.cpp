@@ -160,19 +160,10 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     auto GameState = ((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena();
     static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
-#define BELUGA
-
-#ifndef BELUGA
-    /* static */ std::vector<UDataTable*> LTDTables;
-    /* static */ std::vector<UDataTable*> LPTables;
-
-    /* static */ bool bHasFoundTables = false;
-#else
     static std::vector<UDataTable*> LTDTables;
     static std::vector<UDataTable*> LPTables;
 
     static bool bHasFoundTables = false;
-#endif
 
     auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
 
@@ -222,7 +213,6 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         // LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Athena/Playlists/Playground/AthenaLootTierData_Client.AthenaLootTierData_Client"));
         // LPTables.push_back(LoadObject<UDataTable>(L"/Game/Athena/Playlists/Playground/AthenaLootPackages_Client.AthenaLootPackages_Client"));
 
-#ifdef BELUGA
         static auto FortGameFeatureDataClass = FindObject<UClass>("/Script/FortniteGame.FortGameFeatureData");
 
         if (FortGameFeatureDataClass)
@@ -366,7 +356,6 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                 }
             }
         }
-#endif
 
         for (int i = 0; i < LTDTables.size(); i++)
         {
@@ -381,6 +370,15 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
     }
 
+    if (Engine_Version < 420) // ahhh
+    {
+        LTDTables.clear();
+        LPTables.clear();
+
+        LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
+        LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
+    }
+
     std::vector<FFortLootTierData*> TierGroupLTDs;
 
     for (int p = 0; p < LTDTables.size(); p++)
@@ -391,7 +389,12 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
             // LOG_INFO(LogLoot, "LTD: {}", !LTD->IsValidLowLevel() ? "BadRead" : LTD->GetFullName());
 
         if (!LTD->IsValidLowLevel())
+        {
+            if (bPrint)
+                LOG_INFO(LogLoot, "BadRead!");
+
             continue;
+        }
 
         auto& LTDRowMap = LTD->GetRowMap();
         auto LTDRowMapNum = LTDRowMap.Pairs.Elements.Num();

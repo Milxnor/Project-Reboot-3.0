@@ -138,29 +138,32 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 			static auto QuickBarsOffset = FortPlayerController->GetOffset("QuickBars", false);
 			auto QuickBars = FortPlayerController->Get<AActor*>(QuickBarsOffset);
 
-			enum class EFortQuickBars : uint8_t
+			if (QuickBars)
 			{
-				Primary = 0,
-				Secondary = 1,
-				Max_None = 2,
-				EFortQuickBars_MAX = 3
-			};
+				enum class EFortQuickBars : uint8_t
+				{
+					Primary = 0,
+					Secondary = 1,
+					Max_None = 2,
+					EFortQuickBars_MAX = 3
+				};
 
-			struct
-			{
-				FGuid                                       Item;                                                     // (Parm, IsPlainOldData)
-				EFortQuickBars                                     InQuickBar;                                               // (Parm, ZeroConstructor, IsPlainOldData)
-				int                                                Slot;                                                     // (Parm, ZeroConstructor, IsPlainOldData)
+				struct
+				{
+					FGuid                                       Item;                                                     // (Parm, IsPlainOldData)
+					EFortQuickBars                                     InQuickBar;                                               // (Parm, ZeroConstructor, IsPlainOldData)
+					int                                                Slot;                                                     // (Parm, ZeroConstructor, IsPlainOldData)
+				}
+				AFortQuickBars_ServerAddItemInternal_Params
+				{
+					NewItemInstance->GetItemEntry()->GetItemGuid(),
+					IsPrimaryQuickbar(ItemDefinition) ? EFortQuickBars::Primary : EFortQuickBars::Secondary,
+					-1
+				};
+
+				static auto ServerAddItemInternalFn = FindObject<UFunction>("/Script/FortniteGame.FortQuickBars.ServerAddItemInternal");
+				QuickBars->ProcessEvent(ServerAddItemInternalFn, &AFortQuickBars_ServerAddItemInternal_Params);
 			}
-			AFortQuickBars_ServerAddItemInternal_Params
-			{
-				NewItemInstance->GetItemEntry()->GetItemGuid(),
-				IsPrimaryQuickbar(ItemDefinition) ? EFortQuickBars ::Primary : EFortQuickBars::Secondary,
-				-1
-			};
-
-			static auto ServerAddItemInternalFn = FindObject<UFunction>("/Script/FortniteGame.FortQuickBars.ServerAddItemInternal");
-			QuickBars->ProcessEvent(ServerAddItemInternalFn, &AFortQuickBars_ServerAddItemInternal_Params);
 		}
 
 		if (bShouldUpdate)

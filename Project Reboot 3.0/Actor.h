@@ -24,6 +24,7 @@ public:
 	bool CanBeDamaged();
 	void SetCanBeDamaged(bool NewValue);
 	void SetOwner(AActor* Owner);
-	
+	void ForceNetUpdate();
+
 	static class UClass* StaticClass();
 };

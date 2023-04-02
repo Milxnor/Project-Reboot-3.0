@@ -39,6 +39,7 @@ int32 ServerReplicateActors_PrepConnections(UNetDriver* NetDriver)
 		// checkSlow(Connection->GetUChildConnection() == NULL);
 
 		AActor* OwningActor = Connection->GetOwningActor();
+
 		if (OwningActor != NULL) // && /* Connection->State == USOCK_Open && */ (Connection->Driver->Time - Connection->LastReceiveTime < 1.5f))
 		{
 			// check(World == OwningActor->GetWorld());
@@ -46,7 +47,19 @@ int32 ServerReplicateActors_PrepConnections(UNetDriver* NetDriver)
 			bFoundReadyConnection = true;
 
 			// the view target is what the player controller is looking at OR the owning actor itself when using beacons
-			Connection->GetViewTarget() = Connection->GetPlayerController() ? Connection->GetPlayerController()->GetViewTarget() : OwningActor;
+			// Connection->GetViewTarget() = Connection->GetPlayerController() ? Connection->GetPlayerController()->GetViewTarget() : OwningActor;
+
+			AActor* DesiredViewTarget = OwningActor;
+
+			if (Connection->GetPlayerController())
+			{
+				if (AActor* ViewTarget = Connection->GetPlayerController()->GetViewTarget())
+				{
+					DesiredViewTarget = ViewTarget;
+				}
+			}
+
+			Connection->GetViewTarget() = DesiredViewTarget;
 		}
 		else
 		{
@@ -239,7 +252,7 @@ int32 UNetDriver::ServerReplicateActors()
 {
 	int32 Updated = 0;
 
-	++*(int*)(this + Offsets::ReplicationFrame);
+	++(*(int*)(__int64(this) + Offsets::ReplicationFrame));
 
 	const int32 NumClientsToTick = ServerReplicateActors_PrepConnections(this);
 
@@ -298,24 +311,27 @@ int32 UNetDriver::ServerReplicateActors()
 
 			auto Channel = FindChannel(Actor, Connection);
 
-			static void (*ActorChannelClose)(UActorChannel*) = decltype(ActorChannelClose)(Addresses::ActorChannelClose);
-
-			std::vector<FNetViewer> ConnectionViewers;
-			ConnectionViewers.push_back(ConstructNetViewer(Connection));
-
-			if (!Actor->IsAlwaysRelevant() && !Actor->UsesOwnerRelevancy() && !Actor->IsOnlyRelevantToOwner())
+			if (Addresses::ActorChannelClose && Offsets::IsNetRelevantFor)
 			{
-				if (Connection && Connection->GetViewTarget())
+				static void (*ActorChannelClose)(UActorChannel*) = decltype(ActorChannelClose)(Addresses::ActorChannelClose);
+
+				std::vector<FNetViewer> ConnectionViewers;
+				ConnectionViewers.push_back(ConstructNetViewer(Connection));
+
+				if (!Actor->IsAlwaysRelevant() && !Actor->UsesOwnerRelevancy() && !Actor->IsOnlyRelevantToOwner())
 				{
-					auto Viewer = Connection->GetViewTarget();
-					auto Loc = Viewer->GetActorLocation();
-
-					if (!IsActorRelevantToConnection(Actor, ConnectionViewers))
+					if (Connection && Connection->GetViewTarget())
 					{
-						if (Channel)
-							ActorChannelClose(Channel);
+						auto Viewer = Connection->GetViewTarget();
+						auto Loc = Viewer->GetActorLocation();
 
-						continue;
+						if (!IsActorRelevantToConnection(Actor, ConnectionViewers))
+						{
+							if (Channel)
+								ActorChannelClose(Channel);
+
+							continue;
+						}
 					}
 				}
 			}
@@ -326,7 +342,7 @@ int32 UNetDriver::ServerReplicateActors()
 
 			if (!Channel)
 			{
-				if (Actor->IsA(APlayerController::StaticClass()) && Actor != Connection->GetPlayerController()) // isnetreelvantfor should handle this iirc
+				if (Actor->IsA(APlayerController::StaticClass()) && Actor != Connection->GetPlayerController()) // isnetrelevantfor should handle this iirc
 					continue;
 
 				Channel = (UActorChannel*)CreateChannel(Connection, 2, true, -1);

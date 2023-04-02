@@ -21,7 +21,11 @@ public:
 
 	bool ShouldPersistWhenFinalStackEmpty()
 	{
-		static auto bPersistInInventoryWhenFinalStackEmptyOffset = GetOffset("bPersistInInventoryWhenFinalStackEmpty");
+		static auto bPersistInInventoryWhenFinalStackEmptyOffset = GetOffset("bPersistInInventoryWhenFinalStackEmpty", false);
+
+		if (bPersistInInventoryWhenFinalStackEmptyOffset == -1)
+			return false;
+
 		static auto bPersistInInventoryWhenFinalStackEmptyFieldMask = GetFieldMask(GetProperty("bPersistInInventoryWhenFinalStackEmpty"));
 		return ReadBitfieldValue(bPersistInInventoryWhenFinalStackEmptyOffset, bPersistInInventoryWhenFinalStackEmptyFieldMask);
 	}

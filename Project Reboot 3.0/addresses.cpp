@@ -45,7 +45,6 @@ void Addresses::SetupVersion()
 	std::string FNVer = FullVersion;
 	std::string EngineVer = FullVersion;
 	std::string CLStr;
-	int CL = 0;
 
 	if (!FullVersion.contains("Live") && !FullVersion.contains(("Next")) && !FullVersion.contains(("Cert")))
 	{
@@ -82,14 +81,23 @@ void Addresses::SetupVersion()
 		// Engine_Version = FullVersion.contains(("Next")) ? 419 : 416;
 		CLStr = FullVersion.substr(FullVersion.find_first_of('-') + 1);
 		CLStr = CLStr.substr(0, CLStr.find_first_of('+'));
-		CL = std::stoi(CLStr);
-		Engine_Version = CL <= 3775276 ? 416 : 419; // std::stoi(FullVersion.substr(0, FullVersion.find_first_of('-')));
+		Fortnite_CL = std::stoi(CLStr);
+		Engine_Version = Fortnite_CL <= 3775276 ? 416 : 419; // std::stoi(FullVersion.substr(0, FullVersion.find_first_of('-')));
 		Fortnite_Version = FullVersion.contains(("Next")) ? 2.4 : 1.8;
 	}
 
 	// Fortnite_Season = std::floor(Fortnite_Version);
 
 	FFastArraySerializer::bNewSerializer = Fortnite_Version >= 8.30;
+
+	if (Fortnite_CL == 3807424)
+		Fortnite_Version = 1.11;
+	if (Fortnite_CL == 3700114)
+		Fortnite_Version = 1.72;
+	if (Fortnite_CL == 3724489)
+		Fortnite_Version = 1.8;
+	if (Fortnite_CL == 3870737)
+		Fortnite_Version = 2.42;
 }
 
 void Addresses::FindAll()
@@ -323,12 +331,14 @@ void Offsets::FindAll()
 	else if (std::floor(Fortnite_Version) >= 21)
 		Offsets::ServerReplicateActors = 0x67; // checked onb 22.30
 
-	if (Engine_Version == 416)
+	if (Engine_Version == 416) // checked on 1.7.2 & 1.8
 		Offsets::ReplicationFrame = 0x288;
-	else if (Engine_Version == 419)
+	if (Fortnite_Version == 2.42)
 		Offsets::ReplicationFrame = 0xB2;
-	else if (Fortnite_Version == 2.5)
+	if (Fortnite_Version == 2.5)
 		Offsets::ReplicationFrame = 0xCA;
+	if (Fortnite_Version == 1.11)
+		Offsets::ReplicationFrame = 0x2C8;
 
 	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();
 }
@@ -376,6 +386,11 @@ void Addresses::Init()
 std::vector<uint64> Addresses::GetFunctionsToNull()
 {
 	std::vector<uint64> toNull;
+
+	if (Fortnite_Version == 1.11)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B 01 49 8B E9 45 0F B6 F8").Get()); // No Reserve
+	}
 
 	if (Fortnite_Version > 2.5 && Engine_Version == 420)
 	{

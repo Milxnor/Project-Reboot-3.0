@@ -14,6 +14,7 @@ typedef unsigned __int64 uint64;
 
 extern inline int Engine_Version = 0; // For example, 420, 421, etc. // Prevent using this when possible.
 extern inline double Fortnite_Version = 0; // For example, 4.1, 6.21, etc. // Prevent using this when possible.
+extern inline int Fortnite_CL = 0;
 
 #define MS_ALIGN(n) __declspec(align(n))
 #define FORCENOINLINE __declspec(noinline)	
