@@ -67,8 +67,7 @@ void AFortPawn::NetMulticast_Athena_BatchedDamageCuesHook(UObject* Context, FFra
 	if (!WorldInventory || !CurrentWeapon)
 		return NetMulticast_Athena_BatchedDamageCuesOriginal(Context, Stack, Ret);
 
-	static auto AmmoCountOffset = CurrentWeapon->GetOffset("AmmoCount");
-	auto AmmoCount = CurrentWeapon->Get<int>(AmmoCountOffset);
+	auto AmmoCount = CurrentWeapon->GetAmmoCount();
 
 	WorldInventory->CorrectLoadedAmmo(CurrentWeapon->GetItemEntryGuid(), AmmoCount);
 

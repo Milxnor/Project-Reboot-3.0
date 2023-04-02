@@ -807,8 +807,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			Parts[(int)EFortCustomPartType::Head] = headPart;
 			Parts[(int)EFortCustomPartType::Body] = bodyPart;
 
-			// if (Fortnite_Version > 2.5)
-			Parts[(int)EFortCustomPartType::Backpack] = backpackPart;
+			if (Fortnite_Version > 2.5)
+				Parts[(int)EFortCustomPartType::Backpack] = backpackPart;
 
 			static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
 			PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);

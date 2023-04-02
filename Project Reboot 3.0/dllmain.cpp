@@ -482,7 +482,8 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::CompletePickupAnimation, (PVOID)AFortPickup::CompletePickupAnimationHook, (PVOID*)&AFortPickup::CompletePickupAnimationOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook); // ahhh wtf
 
-    if (Fortnite_Version >= 2.5)
+    // if (Fortnite_Version >= 2.5)
+    if (Engine_Version >= 419)
     {
         auto ServerRemoveInventoryItemFunctionCallRef = Memcury::Scanner::FindPointerRef((PVOID)FindFunctionCall(L"ServerRemoveInventoryItem",
             Fortnite_Version >= 16 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C }), 0, true);

@@ -272,6 +272,7 @@
     <ClInclude Include="FortPlayerState.h" />
     <ClInclude Include="FortPlayerStateAthena.h" />
     <ClInclude Include="FortPlaysetItemDefinition.h" />
+    <ClInclude Include="FortQuickBars.h" />
     <ClInclude Include="FortResourceItemDefinition.h" />
     <ClInclude Include="FortVolume.h" />
     <ClInclude Include="FortWeapon.h" />

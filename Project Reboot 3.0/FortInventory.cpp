@@ -1,14 +1,7 @@
 #include "FortInventory.h"
 #include "FortPlayerController.h"
 #include "FortPickup.h"
-
-enum class EFortQuickBars : uint8_t
-{
-	Primary = 0,
-	Secondary = 1,
-	Max_None = 2,
-	EFortQuickBars_MAX = 3
-};
+#include "FortQuickBars.h"
 
 UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItemDefinition* ItemDefinition, int Count)
 {
@@ -261,19 +254,17 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	if (FortPlayerController && Engine_Version < 420)
 	{
 		static auto QuickBarsOffset = FortPlayerController->GetOffset("QuickBars", false);
-		auto QuickBars = FortPlayerController->Get<AActor*>(QuickBarsOffset);
+		auto QuickBars = FortPlayerController->Get<AFortQuickBars*>(QuickBarsOffset);
 
 		if (QuickBars)
 		{
-			static auto ServerRemoveItemInternalFn = FindObject<UFunction>("/Script/FortniteGame.FortQuickBars.ServerRemoveItemInternal");
+			auto SlotIndex = QuickBars->GetSlotIndex(ItemGuid);
 
-			struct
+			if (SlotIndex != -1)
 			{
-				FGuid                                       Item;                                                     // (Parm, IsPlainOldData)
-				bool                                               bFindReplacement;                                         // (Parm, ZeroConstructor, IsPlainOldData)
-				bool                                               bForce;                                                   // (Parm, ZeroConstructor, IsPlainOldData)
-			} AFortQuickBars_ServerRemoveItemInternal_Params{ItemGuid, false, true};
-			QuickBars->ProcessEvent(ServerRemoveItemInternalFn, &AFortQuickBars_ServerRemoveItemInternal_Params);
+				QuickBars->ServerRemoveItemInternal(ItemGuid, false, true);
+				QuickBars->EmptySlot(IsPrimaryQuickbar(ItemDefinition) ? EFortQuickBars::Primary : EFortQuickBars::Secondary, SlotIndex);
+			}
 		}
 	}
 

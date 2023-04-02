@@ -23,6 +23,12 @@ public:
 		return Get<FGuid>(ItemEntryGuidOffset);
 	}
 
+	int& GetAmmoCount()
+	{
+		static auto AmmoCountOffset = GetOffset("AmmoCount");
+		return Get<int>(AmmoCountOffset);
+	}
+
 	static void OnPlayImpactFXHook(AFortWeapon* Weapon, __int64 HitResult, uint8_t ImpactPhysicalSurface, UObject* SpawnedPSC);
 	static void ServerReleaseWeaponAbilityHook(UObject* Context, FFrame* Stack, void* Ret);
 

@@ -94,16 +94,6 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	if (!ItemDefinition)
 		return;
 
-	if (Engine_Version < 420) // wtf
-	{
-		static auto CurrentWeaponListOffset = Pawn->GetOffset("CurrentWeaponList");
-		auto& CurrentWeaponList = Pawn->Get<TArray<AFortWeapon*>>(CurrentWeaponListOffset);
-
-		CurrentWeaponList.Data = nullptr;
-		CurrentWeaponList.ArrayNum = 0;
-		CurrentWeaponList.ArrayMax = 0;
-	}
-
 	if (auto Weapon = Pawn->EquipWeaponDefinition((UFortWeaponItemDefinition*)ItemDefinition, ItemInstance->GetItemEntry()->GetItemGuid()))
 	{
 		if (Engine_Version < 420)

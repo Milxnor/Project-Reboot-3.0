@@ -34,5 +34,18 @@ char UFortInventoryInterface::RemoveInventoryItemHook(__int64 a1, FGuid a2, int 
 	if (bShouldUpdate)
 		WorldInventory->Update();
 
+	if (Engine_Version < 424)
+	{
+		auto Pawn = PlayerController->GetMyFortPawn();
+
+		if (Pawn)
+		{
+			auto CurrentWeapon = Pawn->GetCurrentWeapon();
+
+			if (CurrentWeapon)
+				WorldInventory->CorrectLoadedAmmo(CurrentWeapon->GetItemEntryGuid(), CurrentWeapon->GetAmmoCount());
+		}
+	}
+
 	return true;
 }

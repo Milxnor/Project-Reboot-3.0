@@ -22,8 +22,7 @@ void AFortWeapon::OnPlayImpactFXHook(AFortWeapon* Weapon, __int64 HitResult, uin
 	if (!WorldInventory || !CurrentWeapon)
 		return OnPlayImpactFXOriginal(Weapon, HitResult, ImpactPhysicalSurface, SpawnedPSC);
 
-	static auto AmmoCountOffset = CurrentWeapon->GetOffset("AmmoCount");
-	auto AmmoCount = CurrentWeapon->Get<int>(AmmoCountOffset);
+	auto AmmoCount = CurrentWeapon->GetAmmoCount();
 
 	WorldInventory->CorrectLoadedAmmo(CurrentWeapon->GetItemEntryGuid(), AmmoCount);
 

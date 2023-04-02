@@ -325,7 +325,7 @@ static inline uint64 FindGetPlayerViewpoint()
 
 	LOG_INFO(LogDev, "GetPlayerViewpoint StringRef: 0x{:x}", __int64(Addrr) - __int64(GetModuleHandleW(0)));
 
-	for (int i = 0; i < 1500; i++)
+	for (int i = 0; i < 1200; i++)
 	{
 		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x55)
 		{
@@ -335,6 +335,11 @@ static inline uint64 FindGetPlayerViewpoint()
 		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
 		{
 			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0xC3) // hmm
+		{
+			break;
 		}
 	}
 
@@ -954,9 +959,7 @@ static inline uint64 FindMcpIsDedicatedServerOffset()
 	if (Engine_Version == 421 || Engine_Version == 422) // checked on 5.41 & 6.21 & 7.30
 		return 0x28;
 
-	return 0x60; // 1.7.2 & 4.1
-
-	return 0;
+	return 0x60; // 1.7.2 & 1.11 & 4.1
 }
 
 static inline uint64 FindGIsClient()
@@ -1200,10 +1203,27 @@ static inline uint64 FindGiveAbilityAndActivateOnce()
 	if (Engine_Version == 426)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 49 8B 40 10 49 8B D8 48 8B FA 48 8B F1").Get();
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!", true, 0, Engine_Version >= 500);
+	auto Addrr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!", true, 0, Engine_Version >= 500).Get();
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x55)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
+
+	/* auto Addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!", true, 0, Engine_Version >= 500);
 	auto res = FindBytes(Addr, { 0x48, 0x89, 0x5C }, 1000, 0, true);
 
-	return res;
+	return res; */
 }
 
 static inline uint64 FindGiveAbility()

@@ -479,6 +479,9 @@
     <ClInclude Include="vehicles.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
+    <ClInclude Include="FortQuickBars.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
