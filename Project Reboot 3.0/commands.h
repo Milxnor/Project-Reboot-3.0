@@ -185,6 +185,27 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
+		else if (Command == "listplayers")
+		{
+			std::string PlayerNames;
+
+			for (int i = 0; i < ClientConnections.Num(); i++)
+			{
+				auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get("PlayerController"));
+
+				if (!CurrentPlayerController)
+					continue;
+
+				auto CurrentPlayerState = Cast<AFortPlayerStateAthena>(CurrentPlayerController->GetPlayerState());
+
+				if (!CurrentPlayerState)
+					continue;
+
+				PlayerNames += "\"" + CurrentPlayerState->GetPlayerName().ToString() + "\" ";
+			}
+
+			SendMessageToConsole(PlayerController, std::wstring(PlayerNames.begin(), PlayerNames.end()).c_str());
+		}
 		else if (Command == "launch")
 		{
 			if (Arguments.size() <= 3)

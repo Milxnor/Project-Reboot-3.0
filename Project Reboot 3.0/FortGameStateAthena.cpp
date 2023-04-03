@@ -62,7 +62,8 @@ bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState) //
 
 	if (!IsRespawningAllowedFn)
 	{
-		auto CurrentPlaylist = GetCurrentPlaylist();
+		static auto CurrentPlaylistDataOffset = GetOffset("CurrentPlaylistData", false);
+		auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GetCurrentPlaylist();
 
 		if (!CurrentPlaylist)
 			return false;

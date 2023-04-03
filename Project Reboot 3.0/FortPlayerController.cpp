@@ -623,7 +623,7 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 		GiveAbilityAndActivateOnce(PlayerState->GetAbilitySystemComponent(), &outHandle, __int64(Spec), nullptr);
 }
 
-uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = false)
+uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = false, AFortPawn* Pawn = nullptr)
 {
 	static auto ToDeathCauseFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.ToDeathCause");
 
@@ -649,6 +649,8 @@ uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = fa
 	{
 		bHaveFoundAddress = true;
 
+		if (Engine_Version == 419)
+			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 41 0F B6 F8 48 8B DA 48 8B F1 E8 ? ? ? ? 33 ED").Get();
 		if (Engine_Version == 420)
 			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 0F B6 FA 48 8B D9 E8 ? ? ? ? 33 F6 48 89 74 24").Get();
 
@@ -665,6 +667,12 @@ uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = fa
 	if (!Addr)
 	{
 		return 0;
+	}
+
+	if (Engine_Version == 419)
+	{
+		static uint8(*sub_7FF7AB499410)(AFortPawn* Pawn, FGameplayTagContainer TagContainer, char bWasDBNOIg) = decltype(sub_7FF7AB499410)(Addr);
+		return sub_7FF7AB499410(Pawn, TagContainer, bWasDBNO);
 	}
 
 	static uint8 (*sub_7FF7AB499410)(FGameplayTagContainer TagContainer, char bWasDBNOIg) = decltype(sub_7FF7AB499410)(Addr);
@@ -698,7 +706,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	// LOG_INFO(LogDev, "Tags: {}", Tags.ToStringSimple(true));
 
-	auto DeathCause = ToDeathCause(Tags, false); // DeadPawn->IsDBNO() ??
+	auto DeathCause = ToDeathCause(Tags, false, DeadPawn); // DeadPawn->IsDBNO() ??
 
 	LOG_INFO(LogDev, "DeathCause: {}", (int)DeathCause);
 
@@ -722,7 +730,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	}
 	else
 	{
-		*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = KillerPawn ? KillerPawn->GetDistanceTo(DeadPawn) : 0;
+		if (MemberOffsets::DeathInfo::Distance != -1)
+			*(float*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::Distance) = KillerPawn ? KillerPawn->GetDistanceTo(DeadPawn) : 0;
 	}
 
 	if (MemberOffsets::FortPlayerState::PawnDeathLocation != -1)
@@ -819,15 +828,18 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			static auto FortProjectileBaseClass = FindObject<UClass>("/Script/FortniteGame.FortProjectileBase");
 			LOG_INFO(LogDev, "FortProjectileBaseClass: {}", __int64(FortProjectileBaseClass));
 
-			if (DamageCauser->IsA(FortProjectileBaseClass))
+			if (DamageCauser)
 			{
-				LOG_INFO(LogDev, "From a projectile!");
-				KillerWeaponDef = ((AFortWeapon*)DamageCauser->GetOwner())->GetWeaponData();
-			}
-			if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
-			{
-				LOG_INFO(LogDev, "From a weapon!");
-				KillerWeaponDef = Weapon->GetWeaponData();
+				if (DamageCauser->IsA(FortProjectileBaseClass))
+				{
+					LOG_INFO(LogDev, "From a projectile!");
+					KillerWeaponDef = ((AFortWeapon*)DamageCauser->GetOwner())->GetWeaponData();
+				}
+				if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
+				{
+					LOG_INFO(LogDev, "From a weapon!");
+					KillerWeaponDef = Weapon->GetWeaponData();
+				}
 			}
 
 			// LOG_INFO(LogDev, "KillerWeaponDef: {}", KillerWeaponDef ? KillerWeaponDef->GetFullName() : "InvalidObject");
@@ -838,11 +850,11 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			{
 				LOG_INFO(LogDev, "Starting Spectating!");
 
-				/* static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
+				static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
 				PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
 
 				static auto SpectateOnDeathFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.SpectateOnDeath");
-				PlayerController->ProcessEvent(SpectateOnDeathFn); */
+				PlayerController->ProcessEvent(SpectateOnDeathFn);
 			}
 		}
 	}

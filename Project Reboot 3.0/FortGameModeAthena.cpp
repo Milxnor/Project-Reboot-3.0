@@ -693,30 +693,33 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			bool bPrintWarmup = false;
 
-			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
+			if (false)
 			{
-				ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
-
-				// CurrentActor->K2_DestroyActor();
-				// continue;
-
-				auto Location = CurrentActor->GetActorLocation();
-				Location.Z += UpZ;
-
-				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
-
-				if (bPrintWarmup)
+				for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 				{
-					std::cout << "\n\n";
-				}
+					ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
 
-				if (LootDrops.size())
-				{
-					for (auto& LootDrop : LootDrops)
-						AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
-				}
+					// CurrentActor->K2_DestroyActor();
+					// continue;
 
-				CurrentActor->K2_DestroyActor();
+					auto Location = CurrentActor->GetActorLocation();
+					Location.Z += UpZ;
+
+					std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
+
+					if (bPrintWarmup)
+					{
+						std::cout << "\n\n";
+					}
+
+					if (LootDrops.size())
+					{
+						for (auto& LootDrop : LootDrops)
+							AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+					}
+
+					CurrentActor->K2_DestroyActor();
+				}
 			}
 
 			bool bPrint = false;
@@ -750,9 +753,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			// SpawnIsland_FloorLoot_Actors.Free();
 			// BRIsland_FloorLoot_Actors.Free();
-		}
 
-		LOG_INFO(LogDev, "Spawned loot!");
+			LOG_INFO(LogDev, "Spawned loot!");
+		}
 	}
 
 	if (Engine_Version >= 423 && Fortnite_Version <= 12.41) // 423+ we need to spawn manually and vehicle sync doesn't work on >S13.
