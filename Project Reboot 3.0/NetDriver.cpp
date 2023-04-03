@@ -5,6 +5,20 @@
 #include "NetConnection.h"
 #include "FortPlayerControllerAthena.h"
 #include "GameplayStatics.h"
+#include "KismetMathLibrary.h"
+#include <random>
+
+FNetworkObjectList& UNetDriver::GetNetworkObjectList()
+{
+	return *(*(TSharedPtr<FNetworkObjectList>*)(__int64(this) + 0x490));
+}
+
+void UNetDriver::RemoveNetworkActor(AActor* Actor)
+{
+	GetNetworkObjectList().Remove(Actor);
+
+	// RenamedStartupActors.Remove(Actor->GetFName());
+}
 
 void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 {
@@ -34,7 +48,7 @@ int32 ServerReplicateActors_PrepConnections(UNetDriver* NetDriver)
 	for (int32 ConnIdx = 0; ConnIdx < ClientConnections.Num(); ConnIdx++)
 	{
 		UNetConnection* Connection = ClientConnections.at(ConnIdx);
-		// check(Connection);
+		if (!Connection) continue;
 		// check(Connection->State == USOCK_Pending || Connection->State == USOCK_Open || Connection->State == USOCK_Closed);
 		// checkSlow(Connection->GetUChildConnection() == NULL);
 
@@ -42,12 +56,7 @@ int32 ServerReplicateActors_PrepConnections(UNetDriver* NetDriver)
 
 		if (OwningActor != NULL) // && /* Connection->State == USOCK_Open && */ (Connection->Driver->Time - Connection->LastReceiveTime < 1.5f))
 		{
-			// check(World == OwningActor->GetWorld());
-
 			bFoundReadyConnection = true;
-
-			// the view target is what the player controller is looking at OR the owning actor itself when using beacons
-			// Connection->GetViewTarget() = Connection->GetPlayerController() ? Connection->GetPlayerController()->GetViewTarget() : OwningActor;
 
 			AActor* DesiredViewTarget = OwningActor;
 
@@ -90,42 +99,61 @@ enum class ENetDormancy : uint8_t
 	ENetDormancy_MAX = 6
 };
 
-struct FNetworkObjectInfo
+FORCEINLINE float FRand()
 {
-	AActor* Actor;
-	/* TWeakObjectPtr<AActor> WeakActor;
-	double NextUpdateTime;
-	double LastNetReplicateTime;
-	float OptimalNetUpdateDelta;
-	float LastNetUpdateTime;
-	uint32 bPendingNetUpdate : 1;
-	uint32 bForceRelevantNextUpdate : 1;
-	TSet<TWeakObjectPtr<UNetConnection>> DormantConnections;
-	TSet<TWeakObjectPtr<UNetConnection>> RecentlyDormantConnections; */
-};
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0, 1);
+	float random_number = dis(gen);
 
-static void ServerReplicateActors_BuildConsiderList(UNetDriver* NetDriver, std::vector<FNetworkObjectInfo*>& OutConsiderList)
+	return random_number;
+}
+
+#define USEOBJECTLIST
+
+void UNetDriver::ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObjectInfo*>& OutConsiderList)
 {
+	std::vector<AActor*> ActorsToRemove;
+
+#ifdef USEOBJECTLIST
+	auto& ActiveObjects = GetNetworkObjectList().ActiveNetworkObjects;
+#else
 	TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass());
+#endif
 
-	/* auto& ActiveObjects = GetNetworkObjectList(NetDriver).ActiveNetworkObjects;
+	auto World = GetWorld();
 
-	for (int i = 0; i < ActiveObjects.Num(); i++)
+#ifdef USEOBJECTLIST
+	// for (int i = 0; i < ActiveObjects.Elements.Num(); i++)
+	for (const TSharedPtr<FNetworkObjectInfo>& ActorInfo : ActiveObjects)
 	{
-		auto ActorInfo = ActiveObjects.GetElements().GetData()[i].ElementData.Value.Get();
-		auto Actor = ActorInfo->Actor; */
+		// auto& ActorInfo = ActiveObjects.Elements.Data.at(i).ElementData.Value;
+
+		if (!ActorInfo->bPendingNetUpdate && UGameplayStatics::GetTimeSeconds(GetWorld()) <= ActorInfo->NextUpdateTime)
+		{
+			continue;
+		}
+
+		// if (IsBadReadPtr(ActorInfo, 8))
+			// continue;
+
+		auto Actor = ActorInfo->Actor;
+
+#else
 
 	for (int i = 0; i < Actors.Num(); i++)
 	{
 		auto Actor = Actors.at(i);
 
+#endif
+
 		if (!Actor)
 			continue;
 
-		// if (!Actor->bActorInitialized) continue;
-
-		if (Actor->IsActorBeingDestroyed())
+		if (Actor->IsPendingKillPending())
+		// if (Actor->IsPendingKill())
 		{
+			ActorsToRemove.push_back(Actor);
 			continue;
 		}
 
@@ -133,25 +161,93 @@ static void ServerReplicateActors_BuildConsiderList(UNetDriver* NetDriver, std::
 
 		if (Actor->Get<ENetRole>(RemoteRoleOffset) == ENetRole::ROLE_None)
 		{
+			ActorsToRemove.push_back(Actor);
 			continue;
 		}
 
+		// We should add a NetDriverName check but I don't believe it is needed.
+
+		// We should check if the actor is initialized here.
+
+		// We should check the level stuff here.
+
 		static auto NetDormancyOffset = Actor->GetOffset("NetDormancy");
 
-		if (Actor->Get<ENetDormancy>(NetDormancyOffset) == ENetDormancy::DORM_Initial && Actor->IsNetStartup())
+		if (Actor->Get<ENetDormancy>(NetDormancyOffset) == ENetDormancy::DORM_Initial && Actor->IsNetStartupActor()) // IsDormInitialStartupActor
 		{
 			continue;
 		}
 
-		static void (*CallPreReplication)(AActor*, UNetDriver*) = decltype(CallPreReplication)(Addresses::CallPreReplication);
-		CallPreReplication(Actor, NetDriver);
+		// We should check NeedsLoadForClient here.
+		// We should make sure the actor is in the same world here but I don't believe it is needed.
 
+#ifndef USEOBJECTLIST
 		FNetworkObjectInfo* ActorInfo = new FNetworkObjectInfo;
 		ActorInfo->Actor = Actor;
-		OutConsiderList.push_back(ActorInfo);
+#else
+		auto TimeSeconds = UGameplayStatics::GetTimeSeconds(World); // Can we do this outside of the loop?
+
+		if (ActorInfo->LastNetReplicateTime == 0)
+		{
+			ActorInfo->LastNetReplicateTime = UGameplayStatics::GetTimeSeconds(World);
+			ActorInfo->OptimalNetUpdateDelta = 1.0f / Actor->GetNetUpdateFrequency();
+		}
+
+		const float ScaleDownStartTime = 2.0f;
+		const float ScaleDownTimeRange = 5.0f;
+
+		const float LastReplicateDelta = TimeSeconds - ActorInfo->LastNetReplicateTime;
+
+		if (LastReplicateDelta > ScaleDownStartTime)
+		{
+			static auto MinNetUpdateFrequencyOffset = Actor->GetOffset("MinNetUpdateFrequency");
+
+			if (Actor->Get<float>(MinNetUpdateFrequencyOffset) == 0.0f)
+			{
+				Actor->Get<float>(MinNetUpdateFrequencyOffset) = 2.0f;
+			}
+
+			const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();									  // Don't go faster than NetUpdateFrequency
+			const float MaxOptimalDelta = max(1.0f / Actor->GetNetUpdateFrequency(), MinOptimalDelta); // Don't go slower than MinNetUpdateFrequency (or NetUpdateFrequency if it's slower)
+
+			const float Alpha = std::clamp((LastReplicateDelta - ScaleDownStartTime) / ScaleDownTimeRange, 0.0f, 1.0f); // should we use fmath?
+			ActorInfo->OptimalNetUpdateDelta = std::lerp(MinOptimalDelta, MaxOptimalDelta, Alpha); // should we use fmath?
+		}
+
+		if (!ActorInfo->bPendingNetUpdate)
+		{
+			constexpr bool bUseAdapativeNetFrequency = false;
+			const float NextUpdateDelta = bUseAdapativeNetFrequency ? ActorInfo->OptimalNetUpdateDelta : 1.0f / Actor->GetNetUpdateFrequency();
+
+			// then set the next update time
+			float ServerTickTime = 1.f / 30;
+			ActorInfo->NextUpdateTime = TimeSeconds + FRand() * ServerTickTime + NextUpdateDelta;
+			static auto TimeOffset = GetOffset("Time");
+			ActorInfo->LastNetUpdateTime = Get<float>(TimeOffset);
+		}
+
+		ActorInfo->bPendingNetUpdate = false;
+#endif
+
+		OutConsiderList.push_back(ActorInfo.Get());
+
+		static void (*CallPreReplication)(AActor*, UNetDriver*) = decltype(CallPreReplication)(Addresses::CallPreReplication);
+		CallPreReplication(Actor, this);
 	}
 
+#ifndef USEOBJECTLIST
 	Actors.Free();
+#else
+	for (auto Actor : ActorsToRemove)
+	{
+		if (!Actor)
+			continue;
+
+		/* LOG_INFO(LogDev, "Removing actor: {}", Actor ? Actor->GetFullName() : "InvalidObject");
+		RemoveNetworkActor(Actor);
+		LOG_INFO(LogDev, "Finished removing actor."); */
+	}
+#endif
 }
 
 using UChannel = UObject;
@@ -272,16 +368,21 @@ int32 UNetDriver::ServerReplicateActors()
 	}
 	else */
 	{
-		ServerTickTime = 1.f / ServerTickTime; // 0
+		ServerTickTime = 1.f / ServerTickTime;
 		// bCPUSaturated = DeltaSeconds > 1.2f * ServerTickTime;
 	}
 
 	std::vector<FNetworkObjectInfo*> ConsiderList;
-	// ConsiderList.reserve(GetNetworkObjectList(NetDriver).ActiveNetworkObjects.Num());
+
+#ifdef USEOBJECTLIST
+	ConsiderList.reserve(GetNetworkObjectList().ActiveNetworkObjects.Num());
+#endif
 
 	// std::cout << "ConsiderList.size(): " << GetNetworkObjectList(NetDriver).ActiveNetworkObjects.Num() << '\n';
 
-	ServerReplicateActors_BuildConsiderList(this, ConsiderList);
+	auto World = GetWorld();
+
+	ServerReplicateActors_BuildConsiderList(ConsiderList);
 
 	for (int32 i = 0; i < this->GetClientConnections().Num(); i++)
 	{
@@ -347,15 +448,35 @@ int32 UNetDriver::ServerReplicateActors()
 
 				Channel = (UActorChannel*)CreateChannel(Connection, 2, true, -1);
 
-				if (Channel) {
+				if (Channel)
+				{
 					SetChannelActor(Channel, Actor);
-					// Channel->Connection = Connection;
 				}
 
+#ifdef USEOBJECTLIST
+				if (Actor->GetNetUpdateFrequency() < 1.0f)
+				{
+					ActorInfo->NextUpdateTime = UGameplayStatics::GetTimeSeconds(GetWorld()) + 0.2f * FRand();
+				}
+#endif
 			}
 
 			if (Channel)
-				ReplicateActor(Channel);
+			{
+				if (ReplicateActor(Channel))
+				{ 
+#ifdef USEOBJECTLIST
+					auto TimeSeconds = UGameplayStatics::GetTimeSeconds(World);
+					const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();
+					const float MaxOptimalDelta = max(1.0f / Actor->GetMinNetUpdateFrequency(), MinOptimalDelta);
+					const float DeltaBetweenReplications = (TimeSeconds - ActorInfo->LastNetReplicateTime);
+
+					// Choose an optimal time, we choose 70% of the actual rate to allow frequency to go up if needed
+					ActorInfo->OptimalNetUpdateDelta = std::clamp(DeltaBetweenReplications * 0.7f, MinOptimalDelta, MaxOptimalDelta); // should we use fmath?
+					ActorInfo->LastNetReplicateTime = TimeSeconds;
+#endif
+				}
+			}
 		}
 	}
 

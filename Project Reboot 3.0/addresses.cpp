@@ -395,7 +395,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Fortnite_Version > 2.5 && Engine_Version == 420)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 57 48 81 EC ? ? ? ? 4C 8B 82 ? ? ? ? 48 8B F9 0F 29 70 E8 0F 29 78 D8").Get()); // Pawn Overlap
-		toNull.push_back(Memcury::Scanner::FindPattern("E8 ? ? ? ? EB 26 40 38 3D ? ? ? ?").RelativeOffset(1).Get()); // collectgarbage
+		// toNull.push_back(Memcury::Scanner::FindPattern("E8 ? ? ? ? EB 26 40 38 3D ? ? ? ?").RelativeOffset(1).Get()); // collectgarbage
 	}
 
 	if (Engine_Version == 421)

@@ -325,7 +325,7 @@ static inline uint64 FindGetPlayerViewpoint()
 
 	LOG_INFO(LogDev, "GetPlayerViewpoint StringRef: 0x{:x}", __int64(Addrr) - __int64(GetModuleHandleW(0)));
 
-	for (int i = 0; i < 1200; i++)
+	for (int i = 0; i < 1000; i++)
 	{
 		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x55)
 		{
@@ -337,8 +337,9 @@ static inline uint64 FindGetPlayerViewpoint()
 			return Addrr - i;
 		}
 
-		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0xC3) // hmm
+		if (Fortnite_Version == 7.20 && *(uint8_t*)(uint8_t*)(Addrr - i) == 0xC3) // hmm scuffed lmfao
 		{
+			LOG_INFO(LogDev, "Hit C3!");
 			break;
 		}
 	}

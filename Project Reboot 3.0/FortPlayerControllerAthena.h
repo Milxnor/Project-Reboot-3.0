@@ -26,7 +26,8 @@ static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 	{
 		auto& SpecializationSoft = Specializations.at(i);
 
-		auto Specialization = SpecializationSoft.Get();
+		static auto FortHeroSpecializationClass = FindObject<UClass>("/Script/FortniteGame.FortHeroSpecialization");
+		auto Specialization = SpecializationSoft.Get(FortHeroSpecializationClass, true);
 
 		if (Specialization)
 		{
@@ -40,7 +41,8 @@ static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 			for (int z = 0; z < CharacterParts.Num(); z++)
 			{
 				auto& CharacterPartSoft = CharacterParts.at(z);
-				auto CharacterPart = CharacterPartSoft.Get();
+				static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
+				auto CharacterPart = CharacterPartSoft.Get(CustomCharacterPartClass, true);
 
 				CharacterPartsaa.Add(CharacterPart);
 

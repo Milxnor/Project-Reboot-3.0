@@ -10,10 +10,27 @@
 
 struct FFortAthenaLoadout
 {
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortAthenaLoadout");
+		return Struct;
+	}
+
+	static int GetStructSize()
+	{
+		return GetStruct()->GetPropertiesSize();
+	}
+
 	UObject*& GetCharacter()
 	{
 		static auto CharacterOffset = FindOffsetStruct("/Script/FortniteGame.FortAthenaLoadout", "Character");
 		return *(UObject**)(__int64(this) + CharacterOffset);
+	}
+
+	UObject*& GetBackpack()
+	{
+		static auto BackpackOffset = FindOffsetStruct("/Script/FortniteGame.FortAthenaLoadout", "Backpack");
+		return *(UObject**)(__int64(this) + BackpackOffset);
 	}
 
 	UObject*& GetPickaxe()

@@ -126,6 +126,28 @@ void AActor::ForceNetUpdate()
 	this->ProcessEvent(ForceNetUpdateFn);
 }
 
+bool AActor::IsNetStartupActor()
+{
+	return IsNetStartup(); // The implementation on this function depends on the version.
+}
+
+bool AActor::IsPendingKillPending()
+{
+	return IsActorBeingDestroyed() || !IsValidChecked(this);
+}
+
+float& AActor::GetNetUpdateFrequency()
+{
+	static auto NetUpdateFrequencyOffset = GetOffset("NetUpdateFrequency");
+	return Get<float>(NetUpdateFrequencyOffset);
+}
+
+float& AActor::GetMinNetUpdateFrequency()
+{
+	static auto MinNetUpdateFrequencyOffset = GetOffset("MinNetUpdateFrequency");
+	return Get<float>(MinNetUpdateFrequencyOffset);
+}
+
 bool AActor::IsAlwaysRelevant()
 {
 	static auto bAlwaysRelevantOffset = GetOffset("bAlwaysRelevant");

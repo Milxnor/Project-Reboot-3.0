@@ -14,7 +14,7 @@ void AFortPlayerPawn::ServerChoosePart(EFortCustomPartType Part, UObject* Chosen
 	this->ProcessEvent(fn, &AFortPlayerPawn_ServerChoosePart_Params);
 }
 
-void AFortPlayerPawn::ForceLaunchPlayerZiplinine() // Thanks android
+void AFortPlayerPawn::ForceLaunchPlayerZipline() // Thanks android
 {
 	float ZiplineJumpDampening = -0.5f;
 	float ZiplineJumpStrength = 1500.f;
@@ -70,7 +70,7 @@ void AFortPlayerPawn::ServerSendZiplineStateHook(AFortPlayerPawn* Pawn, FZipline
 		{
 			if ((*(bool*)(__int64(PawnZiplineState) + bJumpedOffset)))
 			{
-				Pawn->ForceLaunchPlayerZiplinine();
+				Pawn->ForceLaunchPlayerZipline();
 			}
 		}
 	}

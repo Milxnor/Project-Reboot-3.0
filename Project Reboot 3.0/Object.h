@@ -90,6 +90,25 @@ public:
 
 	void AddToRoot();
 	bool IsValidLowLevel();
+	FORCEINLINE bool IsPendingKill() const;
 
 	// static class UClass* StaticClass();
 };
+
+/* struct FInternalUObjectBaseUtilityIsValidFlagsChecker
+{
+	FORCEINLINE static bool CheckObjectValidBasedOnItsFlags(const UObject* Test)
+	{
+		// Here we don't really check if the flags match but if the end result is the same
+			checkSlow(GUObjectArray.IndexToObject(Test->InternalIndex)->HasAnyFlags(EInternalObjectFlags::PendingKill | EInternalObjectFlags::Garbage) == Test->HasAnyFlags(RF_InternalPendingKill | RF_InternalGarbage));
+			return !Test->HasAnyFlags(RF_InternalPendingKill | RF_InternalGarbage);
+	}
+}; */
+
+FORCEINLINE bool IsValidChecked(const UObject* Test)
+{
+	// if (!Test)
+		// return false;
+
+	return true; // FInternalUObjectBaseUtilityIsValidFlagsChecker::CheckObjectValidBasedOnItsFlags(Test);
+}

@@ -40,7 +40,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	if (Engine_Version <= 420)
 	{
 		static auto OverriddenBackpackSizeOffset = PlayerController->GetOffset("OverriddenBackpackSize");
-		LOG_INFO(LogDev, "PlayerController->Get<int>(OverriddenBackpackSizeOffset): {}", PlayerController->Get<int>(OverriddenBackpackSizeOffset));
+		// LOG_INFO(LogDev, "PlayerController->Get<int>(OverriddenBackpackSizeOffset): {}", PlayerController->Get<int>(OverriddenBackpackSizeOffset));
 		// PlayerController->Get<int>(OverriddenBackpackSizeOffset) = 5;
 		// PlayerController->ForceNetUpdate();
 	}
@@ -220,7 +220,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		auto Vehicle = ReceivingActor;
 		ServerAttemptInteractOriginal(Context, Stack, Ret);
 
-		return;
+		// return;
 
 		auto Pawn = (AFortPlayerPawn*)PlayerController->GetMyFortPawn();
 
@@ -287,19 +287,6 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 		return;
 	}
-	/*
-	else if (ReceivingActor->IsA(FortAthenaSupplyDropClass))
-	{
-		auto LootTierGroup = ReceivingActor->IsA(LlamaClass) ? UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaLlama") : UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaSupplyDrop"); // SupplyDrop->GetLootTierGroupOverride();
-
-		auto LootDrops = PickLootDrops(LootTierGroup);
-
-		for (auto& LootDrop : LootDrops)
-		{
-			AFortPickup::SpawnPickup(LootDrop.ItemDefinition, LocationToSpawnLoot, LootDrop.Count, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::SupplyDrop);
-		}
-	}
-	*/
 
 	return ServerAttemptInteractOriginal(Context, Stack, Ret);
 }

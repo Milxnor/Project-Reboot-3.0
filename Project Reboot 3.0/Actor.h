@@ -25,6 +25,10 @@ public:
 	void SetCanBeDamaged(bool NewValue);
 	void SetOwner(AActor* Owner);
 	void ForceNetUpdate();
+	bool IsNetStartupActor();
+	bool IsPendingKillPending();
+	float& GetNetUpdateFrequency();
+	float& GetMinNetUpdateFrequency();
 
 	static class UClass* StaticClass();
 };

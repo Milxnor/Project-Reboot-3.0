@@ -167,6 +167,12 @@
     <ClCompile Include="FortPlayerStateAthena.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
+    <ClCompile Include="Level.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkObjectList.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -482,6 +488,15 @@
     <ClInclude Include="FortQuickBars.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
     </ClInclude>
+    <ClInclude Include="WeakObjectPtrTemplates.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedPointer.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="Level.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -628,9 +643,6 @@
     <Filter Include="Engine\Source\Runtime\GameplayTags\Classes">
       <UniqueIdentifier>{247d4c62-23f7-4964-8879-5a0d65c44a73}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Source\Runtime\Core\Public\Templates">
-      <UniqueIdentifier>{31a7f342-8b7c-4594-a24d-c4dd5c9d230d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Weapons">
       <UniqueIdentifier>{bcb0d983-0b85-4ca6-9fac-6567c7d79921}</UniqueIdentifier>
     </Filter>
@@ -666,6 +678,9 @@
     </Filter>
     <Filter Include="Engine\Source\Runtime\CoreUObject\Public\Misc">
       <UniqueIdentifier>{915f7622-6003-445e-a43f-04d5c7e13b49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\Templates">
+      <UniqueIdentifier>{31a7f342-8b7c-4594-a24d-c4dd5c9d230d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

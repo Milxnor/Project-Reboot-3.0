@@ -283,10 +283,12 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		else
 		{
 			if (Fortnite_Version >= 4)
+			{
 				SetPlaylist(PlaylistToUse, true);
 
-			auto CurrentPlaylist = GameState->GetCurrentPlaylist();
-			LOG_INFO(LogDev, "Set playlist to {}!", CurrentPlaylist->IsValidLowLevel() ? CurrentPlaylist->GetFullName() : "Invalid");
+				auto CurrentPlaylist = GameState->GetCurrentPlaylist();
+				LOG_INFO(LogDev, "Set playlist to {}!", CurrentPlaylist->IsValidLowLevel() ? CurrentPlaylist->GetFullName() : "Invalid");
+			}
 		}
 
 		// if (false)
@@ -424,15 +426,17 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				}
 			}
 
-			auto PlaylistToUse = GetPlaylistToUse();
+			static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
-			if (PlaylistToUse)
+			auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
+
+			if (CurrentPlaylist)
 			{
-				static auto AdditionalLevelsOffset = PlaylistToUse->GetOffset("AdditionalLevels", false);
+				static auto AdditionalLevelsOffset = CurrentPlaylist->GetOffset("AdditionalLevels", false);
 
 				if (AdditionalLevelsOffset != -1)
 				{
-					auto& AdditionalLevels = PlaylistToUse->Get<TArray<TSoftObjectPtr<UClass>>>(AdditionalLevelsOffset);
+					auto& AdditionalLevels = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UClass>>>(AdditionalLevelsOffset);
 
 					LOG_INFO(LogPlaylist, "Loading {} playlist levels.", AdditionalLevels.Num());
 
@@ -525,6 +529,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
 
 		LOG_INFO(LogDev, "Initializing!");
+
+		if (std::floor(Fortnite_Version) == 3)
+			SetPlaylist(GetPlaylistToUse(), true);
+
 		LOG_INFO(LogDev, "GameMode 0x{:x}", __int64(GameMode));
 
 		GameState->Get<float>("WarmupCountdownEndTime") = TimeSeconds + Duration;
@@ -538,26 +546,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		static auto MaxPlayersOffset = GameSession->GetOffset("MaxPlayers");
 
 		GameSession->Get<int>(MaxPlayersOffset) = 100;
-
-		/*
-		auto AllMegaStormManagers = UGameplayStatics::GetAllActorsOfClass(GetWorld(), GameMode->Get<UClass*>("MegaStormManagerClass"));
-
-		LOG_INFO(LogDev, "AllMegaStormManagers.Num() {}", AllMegaStormManagers.Num());
-
-		if (AllMegaStormManagers.Num())
-		{
-			auto MegaStormManager = (AMegaStormManager*)AllMegaStormManagers.at(0); // GameMode->Get<AMegaStormManager*>(MegaStormManagerOffset);
-
-			LOG_INFO(LogDev, "MegaStormManager {}", __int64(MegaStormManager));
-
-			if (MegaStormManager)
-			{
-				LOG_INFO(LogDev, "MegaStormManager->GetMegaStormCircles().Num() {}", MegaStormManager->GetMegaStormCircles().Num());
-			}
-		}
-		*/
-
-		// GameState->Get<bool>("bGameModeWillSkipAircraft") = Globals::bGoingToPlayEvent && Fortnite_Version == 17.30;
 
 		// if (Engine_Version < 424)
 			GameState->OnRep_CurrentPlaylistInfo(); // ?
@@ -807,8 +795,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			Parts[(int)EFortCustomPartType::Head] = headPart;
 			Parts[(int)EFortCustomPartType::Body] = bodyPart;
 
-			if (Fortnite_Version > 2.5)
-				Parts[(int)EFortCustomPartType::Backpack] = backpackPart;
+			// if (Fortnite_Version > 2.5)
+			Parts[(int)EFortCustomPartType::Backpack] = backpackPart;
 
 			static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
 			PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);
@@ -865,15 +853,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			{
 				UClass* AbilityClass = GameplayAbilities->At(i);
 
-				// LOG_INFO(LogDev, "AbilityClass {}", __int64(AbilityClass));
-
 				if (!AbilityClass)
 					continue;
-
-				// LOG_INFO(LogDev, "AbilityClass Name {}", AbilityClass->GetFullName());
-
-				// LOG_INFO(LogDev, "DefaultAbility {}", __int64(DefaultAbility));
-				// LOG_INFO(LogDev, "DefaultAbility Name {}", DefaultAbility->GetFullName());
 
 				PlayerStateAthena->GetAbilitySystemComponent()->GiveAbilityEasy(AbilityClass);
 			}

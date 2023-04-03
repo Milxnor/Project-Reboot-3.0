@@ -12,6 +12,11 @@ struct FUObjectItem
 	int32 ClusterRootIndex;
 	int32 SerialNumber;
 
+	FORCEINLINE bool IsPendingKill() const
+	{
+		return !!(Flags & int32(EInternalObjectFlags::PendingKill));
+	}
+
 	FORCEINLINE void SetFlag(EInternalObjectFlags FlagToSet)
 	{
 		// static_assert(sizeof(int32) == sizeof(Flags), "Flags must be 32-bit for atomics.");

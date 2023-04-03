@@ -23,7 +23,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 	if (LoadedAmmo == -1)
 	{
-		if (auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDefinition))
+		if (auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDefinition)) // bPreventDefaultPreload ?
 			LoadedAmmo = WeaponDef->GetClipSize();
 		else
 			LoadedAmmo = 0;

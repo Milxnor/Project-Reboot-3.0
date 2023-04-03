@@ -133,3 +133,8 @@ bool UObject::IsValidLowLevel()
 	}
 	return ChunkedObjects ? ChunkedObjects->IsValid(this) : UnchunkedObjects ? UnchunkedObjects->IsValid(this) : false;
 }
+
+FORCEINLINE bool UObject::IsPendingKill() const
+{
+	return ChunkedObjects ? ChunkedObjects->GetItemByIndex(InternalIndex)->IsPendingKill() : UnchunkedObjects ? UnchunkedObjects->GetItemByIndex(InternalIndex)->IsPendingKill() : false;
+}

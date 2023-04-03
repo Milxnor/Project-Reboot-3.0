@@ -61,6 +61,34 @@ static __int64 DispatchRequestHook(__int64 a1, __int64* a2, int a3)
     return DispatchRequestOriginal(a1, a2, 3);
 }
 
+void (*ApplyHomebaseEffectsOnPlayerSetupOriginal)(
+    __int64* GameState,
+    __int64 a2,
+    __int64 a3,
+    __int64 a4,
+    UObject* Hero,
+    char a6,
+    unsigned __int8 a7);
+
+void __fastcall ApplyHomebaseEffectsOnPlayerSetupHook(
+    __int64* GameState,
+    __int64 a2,
+    __int64 a3,
+    __int64 a4,
+    UObject* Hero,
+    char a6,
+    unsigned __int8 a7)
+{
+    LOG_INFO(LogDev, "Old hero: {}", Hero ? Hero->GetFullName() : "InvalidObject");
+
+    auto HeroType = FindObject<UFortItemDefinition>("/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
+
+    static auto ItemDefinitionOffset = Hero->GetOffset("ItemDefinition");
+    Hero->Get<UFortItemDefinition*>(ItemDefinitionOffset) = HeroType;
+
+    return ApplyHomebaseEffectsOnPlayerSetupOriginal(GameState, a2, a3, a4, Hero, a6, a7);
+}
+
 DWORD WINAPI Main(LPVOID)
 {
     InitLogger();
@@ -213,6 +241,8 @@ DWORD WINAPI Main(LPVOID)
         if (func == 0)
             continue;
 
+        LOG_INFO(LogDev, "Nulling 0x{:x}", func - __int64(GetModuleHandleW(0)));
+
         DWORD dwProtection;
         VirtualProtect((PVOID)func, 1, PAGE_EXECUTE_READWRITE, &dwProtection);
 
@@ -228,10 +258,15 @@ DWORD WINAPI Main(LPVOID)
 
     // Globals::bAbilitiesEnabled = Engine_Version < 500;
 
+    if (Fortnite_Version == 1.11)
+    {
+        auto ApplyHomebaseEffectsOnPlayerSetupAddr = Memcury::Scanner::FindPattern("40 55 53 57 41 54 41 56 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 00 4C 8B BD ? ? ? ? 49").Get();
+
+        Hooking::MinHook::Hook((PVOID)ApplyHomebaseEffectsOnPlayerSetupAddr, ApplyHomebaseEffectsOnPlayerSetupHook, (PVOID*)&ApplyHomebaseEffectsOnPlayerSetupOriginal);
+    }
+
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameMode.ReadyToStartMatch"), AFortGameModeAthena::Athena_ReadyToStartMatchHook,
        (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false);
-
-    // return false;
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnFor"),
         AGameModeBase::SpawnDefaultPawnForHook, nullptr, false);
@@ -576,15 +611,62 @@ DWORD WINAPI Main(LPVOID)
 
         else if (GetAsyncKeyState(VK_F8) & 1)
         {
+            auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+            auto GameState = GameMode->GetGameState();
+
+            if (Fortnite_Version == 1.11)
+            {
+                static auto OverrideBattleBusSkin = FindObject("/Game/Athena/Items/Cosmetics/BattleBuses/BBID_WinterBus.BBID_WinterBus");
+                LOG_INFO(LogDev, "OverrideBattleBusSkin: {}", __int64(OverrideBattleBusSkin));
+
+                if (OverrideBattleBusSkin)
+                {
+                    static auto AssetManagerOffset = GetEngine()->GetOffset("AssetManager");
+                    auto AssetManager = GetEngine()->Get(AssetManagerOffset);
+
+                    if (AssetManager)
+                    {
+                        static auto AthenaGameDataOffset = AssetManager->GetOffset("AthenaGameData");
+                        auto AthenaGameData = AssetManager->Get(AthenaGameDataOffset);
+
+                        if (AthenaGameData)
+                        {
+                            static auto DefaultBattleBusSkinOffset = AthenaGameData->GetOffset("DefaultBattleBusSkin");
+                            AthenaGameData->Get(DefaultBattleBusSkinOffset) = OverrideBattleBusSkin;
+                        }
+                    }
+
+                    static auto DefaultBattleBusOffset = GameState->GetOffset("DefaultBattleBus");
+                    GameState->Get(DefaultBattleBusOffset) = OverrideBattleBusSkin;
+
+                    static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
+                    auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
+
+                    for (int i = 0; i < AllAircrafts.Num(); i++)
+                    {
+                        auto Aircraft = AllAircrafts.at(i);
+
+                        static auto DefaultBusSkinOffset = Aircraft->GetOffset("DefaultBusSkin");
+                        Aircraft->Get(DefaultBusSkinOffset) = OverrideBattleBusSkin;
+
+                        static auto SpawnedCosmeticActorOffset = Aircraft->GetOffset("SpawnedCosmeticActor");
+                        auto SpawnedCosmeticActor = Aircraft->Get<AActor*>(SpawnedCosmeticActorOffset);
+
+                        if (SpawnedCosmeticActor)
+                        {
+                            static auto ActiveSkinOffset = SpawnedCosmeticActor->GetOffset("ActiveSkin");
+                            SpawnedCosmeticActor->Get(ActiveSkinOffset) = OverrideBattleBusSkin;
+                        }
+                    }
+                }
+            }
+
             float Duration = 0;
             float EarlyDuration = Duration;
 
             float TimeSeconds = 0; // UGameplayStatics::GetTimeSeconds(GetWorld());
 
             LOG_INFO(LogDev, "Starting bus!");
-
-            auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
-            auto GameState = GameMode->GetGameState();
 
             GameState->Get<float>("WarmupCountdownEndTime") = 0;
             GameMode->Get<float>("WarmupCountdownDuration") = 0;
@@ -603,30 +685,37 @@ DWORD WINAPI Main(LPVOID)
 
         else if (GetAsyncKeyState(VK_F10) & 1)
         {
-            FString LevelA = Engine_Version < 424
-                ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
-                ? L"open Asteria_Terrain"
-                : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-                : L"open Artemis_Terrain"
-                : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-                : L"open Apollo_Terrain";
-
-            static auto BeaconClass = FindObject<UClass>(L"/Script/FortniteGame.FortOnlineBeaconHost");
-            auto AllFortBeacons = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BeaconClass);
-
-            for (int i = 0; i < AllFortBeacons.Num(); i++)
+            if (Engine_Version < 424)
             {
-                AllFortBeacons.at(i)->K2_DestroyActor();
+                FString LevelA = Engine_Version < 424
+                    ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+                    ? L"open Asteria_Terrain"
+                    : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+                    : L"open Artemis_Terrain"
+                    : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+                    : L"open Apollo_Terrain";
+
+                static auto BeaconClass = FindObject<UClass>(L"/Script/FortniteGame.FortOnlineBeaconHost");
+                auto AllFortBeacons = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BeaconClass);
+
+                for (int i = 0; i < AllFortBeacons.Num(); i++)
+                {
+                    AllFortBeacons.at(i)->K2_DestroyActor();
+                }
+
+                AllFortBeacons.Free();
+
+                LOG_INFO(LogDev, "Switching!");
+                ((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
+                // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
+                // UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
+                LOG_INFO(LogGame, "Restarting!");
+                AmountOfRestarts++;
             }
-
-            AllFortBeacons.Free();
-
-            LOG_INFO(LogDev, "Switching!");
-            ((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
-            // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
-            // UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
-            LOG_INFO(LogDev, "Restarting!");
-            AmountOfRestarts++;
+            else
+            {
+                LOG_ERROR(LogGame, "Restarting is not supported on chapter 2 and above!");
+            }
         }
         
         Sleep(1000 / 30);

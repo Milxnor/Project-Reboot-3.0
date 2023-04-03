@@ -209,10 +209,12 @@
     <ClCompile Include="InventoryManagementLibrary.cpp" />
     <ClCompile Include="KismetMathLibrary.cpp" />
     <ClCompile Include="KismetStringLibrary.cpp" />
+    <ClCompile Include="Level.cpp" />
     <ClCompile Include="LevelActor.cpp" />
     <ClCompile Include="NameTypes.cpp" />
     <ClCompile Include="NetConnection.h" />
     <ClCompile Include="NetDriver.cpp" />
+    <ClCompile Include="NetworkObjectList.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerState.cpp" />
@@ -295,6 +297,7 @@
     <ClInclude Include="KismetMathLibrary.h" />
     <ClInclude Include="KismetStringLibrary.h" />
     <ClInclude Include="KismetSystemLibrary.h" />
+    <ClInclude Include="Level.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MegaStormManager.h" />
@@ -315,6 +318,7 @@
     <ClInclude Include="Rotator.h" />
     <ClInclude Include="ScriptInterface.h" />
     <ClInclude Include="Set.h" />
+    <ClInclude Include="SharedPointer.h" />
     <ClInclude Include="SoftObjectPath.h" />
     <ClInclude Include="SoftObjectPtr.h" />
     <ClInclude Include="SparseArray.h" />
@@ -328,6 +332,7 @@
     <ClInclude Include="Vector.h" />
     <ClInclude Include="vehicles.h" />
     <ClInclude Include="WeakObjectPtr.h" />
+    <ClInclude Include="WeakObjectPtrTemplates.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>

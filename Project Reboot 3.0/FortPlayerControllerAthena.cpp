@@ -72,11 +72,18 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 	auto PawnAsFort = Cast<AFortPlayerPawn>(Pawn);
 	auto PlayerStateAsFort = Cast<AFortPlayerState>(Pawn->GetPlayerState());
 
-	if (Globals::bNoMCP)
-		return;
-
 	if (!PawnAsFort)
 		return;
+
+	if (Globals::bNoMCP)
+	{
+		static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
+		static auto backpackPart = LoadObject("/Game/Characters/CharacterParts/Backpacks/NoBackpack.NoBackpack", CustomCharacterPartClass);
+
+		// PawnAsFort->ServerChoosePart(EFortCustomPartType::Backpack, backpackPart);
+
+		return;
+	}
 
 	static auto UpdatePlayerCustomCharacterPartsVisualizationFn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.UpdatePlayerCustomCharacterPartsVisualization");
 
@@ -85,7 +92,40 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 		auto CosmeticLoadout = ControllerAsFort->GetCosmeticLoadout();
 
 		if (CosmeticLoadout)
+		{
+			/* static auto Pawn_CosmeticLoadoutOffset = PawnAsFort->GetOffset("CosmeticLoadout");
+			
+			if (Pawn_CosmeticLoadoutOffset != -1)
+			{
+				CopyStruct(PawnAsFort->GetPtr<__int64>(Pawn_CosmeticLoadoutOffset), CosmeticLoadout, FFortAthenaLoadout::GetStructSize());
+			} */
+
 			ApplyCID(PawnAsFort, CosmeticLoadout->GetCharacter());
+
+			auto Backpack = CosmeticLoadout->GetBackpack();
+
+			if (Backpack)
+			{
+				static auto CharacterPartsOffset = Backpack->GetOffset("CharacterParts");
+
+				if (CharacterPartsOffset != -1)
+				{
+					auto& BackpackCharacterParts = Backpack->Get<TArray<UObject*>>(CharacterPartsOffset);
+
+					for (int i = 0; i < BackpackCharacterParts.Num(); i++)
+					{
+						auto BackpackCharacterPart = BackpackCharacterParts.at(i);
+
+						if (!BackpackCharacterPart)
+							continue;
+						
+						PawnAsFort->ServerChoosePart(EFortCustomPartType::Backpack, BackpackCharacterPart);
+					}
+
+					// UFortKismetLibrary::ApplyCharacterCosmetics(GetWorld(), BackpackCharacterParts, PlayerStateAsFort, &aa);
+				}
+			}
+		}
 
 		return;
 	}

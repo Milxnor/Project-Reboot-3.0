@@ -229,125 +229,128 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                     auto GameFeatureData = Object;
                     static auto DefaultLootTableDataOffset = GameFeatureData->GetOffset("DefaultLootTableData");
 
-                    auto DefaultLootTableData = GameFeatureData->GetPtr<FFortGameFeatureLootTableData>(DefaultLootTableDataOffset);
-
-                    auto LootTierDataTableStr = DefaultLootTableData->LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
-
-                    auto LootTierDataTableIsComposite = LootTierDataTableStr.contains("Composite");
-                    auto LootPackageTableStr = DefaultLootTableData->LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
-                    auto LootPackageTableIsComposite = LootPackageTableStr.contains("Composite");
-
-                    auto LootTierDataPtr = DefaultLootTableData->LootTierData.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
-                    auto LootPackagePtr = DefaultLootTableData->LootPackageData.Get(LootPackageTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
-
-                    if (LootPackagePtr)
+                    if (DefaultLootTableDataOffset != -1)
                     {
-                        LPTables.push_back(LootPackagePtr);
-                    }
+                        auto DefaultLootTableData = GameFeatureData->GetPtr<FFortGameFeatureLootTableData>(DefaultLootTableDataOffset);
 
-                    if (CurrentPlaylist)
-                    {
-                        static auto PlaylistOverrideLootTableDataOffset = GameFeatureData->GetOffset("PlaylistOverrideLootTableData");
-                        auto PlaylistOverrideLootTableData = GameFeatureData->GetPtr<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
+                        auto LootTierDataTableStr = DefaultLootTableData->LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
 
-                        auto PlaylistOverrideLootTableData_Data = PlaylistOverrideLootTableData->Pairs.Elements.Data;
+                        auto LootTierDataTableIsComposite = LootTierDataTableStr.contains("Composite");
+                        auto LootPackageTableStr = DefaultLootTableData->LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                        auto LootPackageTableIsComposite = LootPackageTableStr.contains("Composite");
 
-                        static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
-                        auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
+                        auto LootTierDataPtr = DefaultLootTableData->LootTierData.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                        auto LootPackagePtr = DefaultLootTableData->LootPackageData.Get(LootPackageTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
 
-                        for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); i++)
+                        if (LootPackagePtr)
                         {
-                            auto& Tag = GameplayTagContainer->GameplayTags.At(i);
+                            LPTables.push_back(LootPackagePtr);
+                        }
 
-                            for (int j = 0; j < PlaylistOverrideLootTableData_Data.Num(); j++)
+                        if (CurrentPlaylist)
+                        {
+                            static auto PlaylistOverrideLootTableDataOffset = GameFeatureData->GetOffset("PlaylistOverrideLootTableData");
+                            auto PlaylistOverrideLootTableData = GameFeatureData->GetPtr<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
+
+                            auto PlaylistOverrideLootTableData_Data = PlaylistOverrideLootTableData->Pairs.Elements.Data;
+
+                            static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
+                            auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
+
+                            for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); i++)
                             {
-                                auto Value = PlaylistOverrideLootTableData_Data.at(j).ElementData.Value;
-                                auto CurrentOverrideTag = Value.First;
+                                auto& Tag = GameplayTagContainer->GameplayTags.At(i);
 
-                                if (Tag.TagName == CurrentOverrideTag.TagName)
+                                for (int j = 0; j < PlaylistOverrideLootTableData_Data.Num(); j++)
                                 {
-                                    auto OverrideLootPackageTableStr = Value.Second.LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
-                                    auto bOverrideIsComposite = OverrideLootPackageTableStr.contains("Composite");
+                                    auto Value = PlaylistOverrideLootTableData_Data.at(j).ElementData.Value;
+                                    auto CurrentOverrideTag = Value.First;
 
-                                    auto ptr = Value.Second.LootPackageData.Get(bOverrideIsComposite ? CompositeDataTableClass : DataTableClass, true);
-
-                                    if (ptr)
+                                    if (Tag.TagName == CurrentOverrideTag.TagName)
                                     {
-                                        if (bOverrideIsComposite)
+                                        auto OverrideLootPackageTableStr = Value.Second.LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                                        auto bOverrideIsComposite = OverrideLootPackageTableStr.contains("Composite");
+
+                                        auto ptr = Value.Second.LootPackageData.Get(bOverrideIsComposite ? CompositeDataTableClass : DataTableClass, true);
+
+                                        if (ptr)
                                         {
-                                            static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
-
-                                            auto ParentTables = ptr->GetPtr<TArray<UDataTable*>>(ParentTablesOffset);
-
-                                            for (int z = 0; z < ParentTables->size(); z++)
+                                            if (bOverrideIsComposite)
                                             {
-                                                auto ParentTable = ParentTables->At(z);
+                                                static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
 
-                                                if (ParentTable)
+                                                auto ParentTables = ptr->GetPtr<TArray<UDataTable*>>(ParentTablesOffset);
+
+                                                for (int z = 0; z < ParentTables->size(); z++)
                                                 {
-                                                    LPTables.push_back(ParentTable);
+                                                    auto ParentTable = ParentTables->At(z);
+
+                                                    if (ParentTable)
+                                                    {
+                                                        LPTables.push_back(ParentTable);
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        LPTables.push_back(ptr);
+                                            LPTables.push_back(ptr);
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if (LootTierDataPtr)
-                    {
-                        LTDTables.push_back(LootTierDataPtr);
-                    }
-
-                    if (CurrentPlaylist)
-                    {
-                        static auto PlaylistOverrideLootTableDataOffset = GameFeatureData->GetOffset("PlaylistOverrideLootTableData");
-                        auto PlaylistOverrideLootTableData = GameFeatureData->GetPtr<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
-
-                        auto PlaylistOverrideLootTableData_Data = PlaylistOverrideLootTableData->Pairs.Elements.Data;
-
-                        static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
-                        auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
-
-                        for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); i++)
+                        if (LootTierDataPtr)
                         {
-                            auto& Tag = GameplayTagContainer->GameplayTags.At(i);
+                            LTDTables.push_back(LootTierDataPtr);
+                        }
 
-                            for (int j = 0; j < PlaylistOverrideLootTableData_Data.Num(); j++)
+                        if (CurrentPlaylist)
+                        {
+                            static auto PlaylistOverrideLootTableDataOffset = GameFeatureData->GetOffset("PlaylistOverrideLootTableData");
+                            auto PlaylistOverrideLootTableData = GameFeatureData->GetPtr<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
+
+                            auto PlaylistOverrideLootTableData_Data = PlaylistOverrideLootTableData->Pairs.Elements.Data;
+
+                            static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
+                            auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
+
+                            for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); i++)
                             {
-                                auto Value = PlaylistOverrideLootTableData_Data.at(j).ElementData.Value;
-                                auto CurrentOverrideTag = Value.First;
+                                auto& Tag = GameplayTagContainer->GameplayTags.At(i);
 
-                                if (Tag.TagName == CurrentOverrideTag.TagName)
+                                for (int j = 0; j < PlaylistOverrideLootTableData_Data.Num(); j++)
                                 {
-                                    auto OverrideLootTierDataStr = Value.Second.LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
-                                    auto bOverrideIsComposite = OverrideLootTierDataStr.contains("Composite");
+                                    auto Value = PlaylistOverrideLootTableData_Data.at(j).ElementData.Value;
+                                    auto CurrentOverrideTag = Value.First;
 
-                                    auto ptr = Value.Second.LootTierData.Get(bOverrideIsComposite ? CompositeDataTableClass : DataTableClass, true);
-
-                                    if (ptr)
+                                    if (Tag.TagName == CurrentOverrideTag.TagName)
                                     {
-                                        if (bOverrideIsComposite)
+                                        auto OverrideLootTierDataStr = Value.Second.LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                                        auto bOverrideIsComposite = OverrideLootTierDataStr.contains("Composite");
+
+                                        auto ptr = Value.Second.LootTierData.Get(bOverrideIsComposite ? CompositeDataTableClass : DataTableClass, true);
+
+                                        if (ptr)
                                         {
-                                            static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
-
-                                            auto ParentTables = ptr->GetPtr<TArray<UDataTable*>>(ParentTablesOffset);
-
-                                            for (int z = 0; z < ParentTables->size(); z++)
+                                            if (bOverrideIsComposite)
                                             {
-                                                auto ParentTable = ParentTables->At(z);
+                                                static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
 
-                                                if (ParentTable)
+                                                auto ParentTables = ptr->GetPtr<TArray<UDataTable*>>(ParentTablesOffset);
+
+                                                for (int z = 0; z < ParentTables->size(); z++)
                                                 {
-                                                    LTDTables.push_back(ParentTable);
+                                                    auto ParentTable = ParentTables->At(z);
+
+                                                    if (ParentTable)
+                                                    {
+                                                        LTDTables.push_back(ParentTable);
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        LTDTables.push_back(ptr);
+                                            LTDTables.push_back(ptr);
+                                        }
                                     }
                                 }
                             }
