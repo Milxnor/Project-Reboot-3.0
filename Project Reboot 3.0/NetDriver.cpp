@@ -10,7 +10,7 @@
 
 FNetworkObjectList& UNetDriver::GetNetworkObjectList()
 {
-	return *(*(TSharedPtr<FNetworkObjectList>*)(__int64(this) + 0x490));
+	return *(*(TSharedPtr<FNetworkObjectList>*)(__int64(this) + Offsets::NetworkObjectList));
 }
 
 void UNetDriver::RemoveNetworkActor(AActor* Actor)

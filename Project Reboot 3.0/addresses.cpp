@@ -239,6 +239,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding ActorChannelClose");
 	Addresses::ActorChannelClose = FindActorChannelClose();
 
+	LOG_INFO(LogDev, "Finding StepExplicitProperty");
+	Addresses::FrameStepExplicitProperty = FindStepExplicitProperty();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -291,6 +294,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "GetMaxTickRate: 0x{:x}", GetMaxTickRate - Base);
 	LOG_INFO(LogDev, "RemoveFromAlivePlayers: 0x{:x}", RemoveFromAlivePlayers - Base);
 	LOG_INFO(LogDev, "ActorChannelClose: 0x{:x}", ActorChannelClose - Base);
+	LOG_INFO(LogDev, "FrameStepExplicitProperty: 0x{:x}", FrameStepExplicitProperty - Base);
 }
 
 void Offsets::FindAll()
@@ -332,13 +336,24 @@ void Offsets::FindAll()
 		Offsets::ServerReplicateActors = 0x67; // checked onb 22.30
 
 	if (Engine_Version == 416) // checked on 1.7.2 & 1.8
+	{
+		Offsets::NetworkObjectList = 0x3F8;
 		Offsets::ReplicationFrame = 0x288;
+	}
 	if (Fortnite_Version == 2.42)
+	{
 		Offsets::ReplicationFrame = 0x2C8;
+	}
 	if (Fortnite_Version == 2.5)
+	{
+		Offsets::NetworkObjectList = 0x4F0;
 		Offsets::ReplicationFrame = 0x328;
-	if (Fortnite_Version == 1.11)
+	}
+	if (Engine_Version == 419) // checked 2.4.2 & 1.11
+	{
+		Offsets::NetworkObjectList = 0x490;
 		Offsets::ReplicationFrame = 0x2C8;
+	}
 
 	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();
 }

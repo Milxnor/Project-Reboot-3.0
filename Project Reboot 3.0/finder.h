@@ -363,6 +363,11 @@ static inline uint64 FindGetPlayerViewpoint()
 	return 0;
 }
 
+static inline uint64 FindStepExplicitProperty()
+{
+	return Memcury::Scanner::FindPattern("41 8B 40 ? 4D 8B C8").Get();
+}
+
 static inline uint64 FindIsNetRelevantForOffset()
 {
 	if (Engine_Version == 416) // checked on 1.7.2 & 1.8

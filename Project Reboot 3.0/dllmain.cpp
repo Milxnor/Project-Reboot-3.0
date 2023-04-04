@@ -25,6 +25,7 @@
 #include "KismetSystemLibrary.h"
 #include "die.h"
 #include "InventoryManagementLibrary.h"
+#include "FortPlayerPawnAthena.h"
 
 enum ENetMode
 {
@@ -330,6 +331,9 @@ DWORD WINAPI Main(LPVOID)
         }
     }
 
+    auto off = (void*)(&((struct FFrame*)NULL)->MostRecentPropertyAddress);
+    LOG_INFO(LogDev, "{}", off);
+
     LOG_INFO(LogDev, "OnPlayImpactFX: 0x{:x}", OnPlayImpactFXAddr - __int64(GetModuleHandleW(0)));
     Hooking::MinHook::Hook((PVOID)OnPlayImpactFXAddr, AFortWeapon::OnPlayImpactFXHook, (PVOID*)&AFortWeapon::OnPlayImpactFXOriginal);
 
@@ -370,6 +374,8 @@ DWORD WINAPI Main(LPVOID)
         AFortPawn::NetMulticast_Athena_BatchedDamageCuesHook, (PVOID*)&AFortPawn::NetMulticast_Athena_BatchedDamageCuesOriginal, false, true);
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
+    /* Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawnAthena.OnCapsuleBeginOverlap") ? FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawnAthena.OnCapsuleBeginOverlap") : FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.OnCapsuleBeginOverlap"),
+        AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook, (PVOID*)&AFortPlayerPawnAthena::OnCapsuleBeginOverlapOriginal, false, true); */
 
     if (Addresses::FrameStep) // put all non rpc exec hooks in this scope
     {

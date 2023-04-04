@@ -177,6 +177,7 @@
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="EngineTypes.cpp" />
     <ClCompile Include="events.cpp" />
     <ClCompile Include="FortAthenaCreativePortal.cpp" />
     <ClCompile Include="FortAthenaSupplyDrop.cpp" />
@@ -198,6 +199,7 @@
     <ClCompile Include="FortPlayerController.cpp" />
     <ClCompile Include="FortPlayerControllerAthena.cpp" />
     <ClCompile Include="FortPlayerPawn.cpp" />
+    <ClCompile Include="FortPlayerPawnAthena.cpp" />
     <ClCompile Include="FortPlayerStateAthena.cpp" />
     <ClCompile Include="FortPlaysetItemDefinition.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
@@ -271,6 +273,7 @@
     <ClInclude Include="FortPlayerController.h" />
     <ClInclude Include="FortPlayerControllerAthena.h" />
     <ClInclude Include="FortPlayerPawn.h" />
+    <ClInclude Include="FortPlayerPawnAthena.h" />
     <ClInclude Include="FortPlayerState.h" />
     <ClInclude Include="FortPlayerStateAthena.h" />
     <ClInclude Include="FortPlaysetItemDefinition.h" />

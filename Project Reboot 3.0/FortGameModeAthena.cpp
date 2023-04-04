@@ -693,7 +693,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			bool bPrintWarmup = false;
 
-			if (false)
+			if (Engine_Version != 419)
 			{
 				for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 				{

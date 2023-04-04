@@ -10,3 +10,9 @@ enum class ESpawnActorCollisionHandlingMethod : uint8
 	AdjustIfPossibleButDontSpawnIfColliding,
 	DontSpawnIfColliding
 };
+
+struct FHitResult
+{
+	static class UStruct* GetStruct();
+	static int GetStructSize();
+};

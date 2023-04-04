@@ -24,9 +24,18 @@ inline void SendMessageToConsole(AFortPlayerController* PlayerController, const 
 	float MsgLifetime = 1; // unused by ue
 	FName TypeName = FName(); // auto set to "Event"
 
-	// PlayerController->ClientMessage(Msg, TypeName, MsgLifetime);
-	auto brah = Msg.ToString();
-	LOG_INFO(LogDev, "{}", brah);
+	static auto ClientMessageFn = FindObject<UFunction>("/Script/Engine.PlayerController.ClientMessage");
+	struct
+	{
+		FString                                     S;                                                        // (Parm, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FName                                       Type;                                                     // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		float                                              MsgLifeTime;                                              // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} APlayerController_ClientMessage_Params{Msg, TypeName, MsgLifetime};
+
+	PlayerController->ProcessEvent(ClientMessageFn, &APlayerController_ClientMessage_Params);
+
+	// auto brah = Msg.ToString();
+	// LOG_INFO(LogDev, "{}", brah);
 }
 
 void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
@@ -435,6 +444,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			}
 
 			Pawn->TeleportTo(FVector(X, Y, Z), Pawn->GetActorRotation());
+			SendMessageToConsole(PlayerController, L"Teleported!");
 		}
 	}
 }

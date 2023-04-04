@@ -18,16 +18,26 @@ public:
 
 	// MORE STUFF HERE
 
-	void* MostRecentProperty;
-	uint8_t* MostRecentPropertyAddress;
+	void* MostRecentProperty; // 48
+	uint8_t* MostRecentPropertyAddress; // 56
+
+	void*& GetPropertyChainForCompiledIn()
+	{
+		static auto PropertyChainForCompiledInOffset = 0x80;
+		return *(void**)(__int64(this) + PropertyChainForCompiledInOffset);
+	}
 
 	uint8_t*& GetMostRecentPropertyAddress()
 	{
 		auto off = (void*)(&((struct FFrame*)NULL)->MostRecentPropertyAddress);
 		LOG_INFO(LogDev, "{}", off);
 		return MostRecentPropertyAddress;
-		static auto MostRecentPropertyAddressOffset = 56;
-		return *(uint8_t**)(__int64(this) + MostRecentPropertyAddressOffset);
+	}
+
+	void StepExplicitProperty(void* const Result, void* Property)
+	{
+		static void (*StepExplicitPropertyOriginal)(__int64 frame, void* const Result, void* Property) = decltype(StepExplicitPropertyOriginal)(Addresses::FrameStepExplicitProperty);
+		StepExplicitPropertyOriginal(__int64(this), Result, Property);
 	}
 
 	void Step(UObject* Context, RESULT_DECL)
@@ -39,7 +49,7 @@ public:
 		// (GNatives[B])(Context, *this, RESULT_PARAM);
 	}
 
-	__forceinline void StepCompiledIn(void* Result/*, const FFieldClass* ExpectedPropertyType*/) // https://github.com/EpicGames/UnrealEngine/blob/cdaec5b33ea5d332e51eee4e4866495c90442122/Engine/Source/Runtime/CoreUObject/Public/UObject/Stack.h#L444
+	__forceinline void StepCompiledIn(void* const Result/*, const FFieldClass* ExpectedPropertyType*/) // https://github.com/EpicGames/UnrealEngine/blob/cdaec5b33ea5d332e51eee4e4866495c90442122/Engine/Source/Runtime/CoreUObject/Public/UObject/Stack.h#L444
 	{
 		if (Code)
 		{
@@ -53,6 +63,10 @@ public:
 			FProperty* Property = (FProperty*)PropertyChainForCompiledIn;
 			PropertyChainForCompiledIn = Property->Next;
 			StepExplicitProperty(Result, Property); */
+
+			auto& Property = GetPropertyChainForCompiledIn();
+			GetPropertyChainForCompiledIn() = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
+			StepExplicitProperty(Result, Property);
 		}
 	}
 
