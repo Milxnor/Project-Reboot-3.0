@@ -12,4 +12,9 @@ public:
 	{
 		return ChunkedObjects ? ChunkedObjects->GetObjectByIndex(ObjectIndex) : UnchunkedObjects ? UnchunkedObjects->GetObjectByIndex(ObjectIndex) : nullptr;
 	}
+
+	bool operator==(const FWeakObjectPtr& other)
+	{
+		return ObjectIndex == other.ObjectIndex && ObjectSerialNumber == other.ObjectSerialNumber; // i need to check in ue if we check serialnumber
+	}
 };

@@ -18,6 +18,44 @@ FName* getFNameOfProp(void* Property)
 	return NamePrivate;
 };
 
+void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound) const
+{
+	for (auto CurrentClass = ClassPrivate; CurrentClass; CurrentClass = *(UClass**)(__int64(CurrentClass) + Offsets::SuperStruct))
+	{
+		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
+
+		if (Property)
+		{
+			// LOG_INFO(LogDev, "Reading prop name..");
+
+			std::string PropName = getFNameOfProp(Property)->ToString();
+
+			// LOG_INFO(LogDev, "PropName: {}", PropName);
+
+			if (PropName == ChildName)
+			{
+				return Property;
+			}
+
+			while (Property)
+			{
+				if (PropName == ChildName)
+				{
+					return Property;
+				}
+
+				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
+				PropName = Property ? getFNameOfProp(Property)->ToString() : "";
+			}
+		}
+	}
+
+	if (bWarnIfNotFound)
+		LOG_WARN(LogFinder, "Unable to find0{}", ChildName);
+
+	return nullptr;
+}
+
 void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound)
 {
 	for (auto CurrentClass = ClassPrivate; CurrentClass; CurrentClass = *(UClass**)(__int64(CurrentClass) + Offsets::SuperStruct))
@@ -57,6 +95,16 @@ void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound)
 }
 
 int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound)
+{
+	auto Property = GetProperty(ChildName, bWarnIfNotFound);
+
+	if (!Property)
+		return -1;
+
+	return  *(int*)(__int64(Property) + Offsets::Offset_Internal);
+}
+
+int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound) const
 {
 	auto Property = GetProperty(ChildName, bWarnIfNotFound);
 

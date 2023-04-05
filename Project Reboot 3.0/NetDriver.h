@@ -11,15 +11,17 @@
 #include "Map.h"
 #include "SharedPointer.h"
 #include "Level.h"
+#include "ActorChannel.h"
+#include "NetworkGuid.h"
 
 struct FActorDestructionInfo
 {
 	TWeakObjectPtr<ULevel>		Level;
 	TWeakObjectPtr<UObject>		ObjOuter;
-	FVector			            DestroyedPosition;
-	int32       	            NetGUID;
-	FString			            PathName;
-	FName			            StreamingLevelName;
+	FVector			DestroyedPosition;
+	FNetworkGUID	NetGUID;
+	FString			PathName;
+	FName			StreamingLevelName;
 };
 struct FNetworkObjectInfo
 {
@@ -50,12 +52,16 @@ struct FNetworkObjectInfo
 
 	/** List of connections that this actor is dormant on */
 	TSet<TWeakObjectPtr<UNetConnection>> DormantConnections;
-
-	/** A list of connections that this actor has recently been dormant on, but the actor doesn't have a channel open yet.
-	*  These need to be differentiated from actors that the client doesn't know about, but there's no explicit list for just those actors.
-	*  (this list will be very transient, with connections being moved off the DormantConnections list, onto this list, and then off once the actor has a channel again)
-	*/
 	TSet<TWeakObjectPtr<UNetConnection>> RecentlyDormantConnections;
+};
+
+struct FNetViewer
+{
+	UNetConnection* Connection;                                               // 0x0000(0x0008) (ZeroConstructor, IsPlainOldData)
+	AActor* InViewer;                                                 // 0x0008(0x0008) (ZeroConstructor, IsPlainOldData)
+	AActor* ViewTarget;                                               // 0x0010(0x0008) (ZeroConstructor, IsPlainOldData)
+	FVector                                     ViewLocation;                                             // 0x0018(0x000C) (IsPlainOldData)
+	FVector                                     ViewDir;
 };
 
 class FNetworkObjectList
@@ -70,6 +76,23 @@ public:
 	TMap<TWeakObjectPtr<UNetConnection>, int32> NumDormantObjectsPerConnection;
 
 	void Remove(AActor* const Actor);
+};
+
+struct FActorPriority
+{
+	int32						Priority;	// Update priority, higher = more important.
+
+	FNetworkObjectInfo* ActorInfo;	// Actor info.
+	UActorChannel* Channel;	// Actor channel.
+
+	FActorDestructionInfo* DestructionInfo;	// Destroy an actor
+
+	FActorPriority() :
+		Priority(0), ActorInfo(NULL), Channel(NULL), DestructionInfo(NULL)
+	{}
+
+	FActorPriority(UNetConnection* InConnection, UActorChannel* InChannel, FNetworkObjectInfo* InActorInfo, const std::vector<FNetViewer>& Viewers, bool bLowBandwidth);
+	FActorPriority(UNetConnection* InConnection, FActorDestructionInfo* DestructInfo, const std::vector<FNetViewer>& Viewers);
 };
 
 class UWorld;
@@ -96,16 +119,49 @@ public:
 
 	static void TickFlushHook(UNetDriver* NetDriver);
 
+	UObject*& GetWorldPackage() const
+	{
+		static auto WorldPackageOffset = GetOffset("WorldPackage");
+		return Get<UObject*>(WorldPackageOffset);
+	}
+
 	TArray<UNetConnection*>& GetClientConnections()
 	{
 		static auto ClientConnectionsOffset = GetOffset("ClientConnections");
 		return Get<TArray<UNetConnection*>>(ClientConnectionsOffset);
 	}
 
+	float& GetTime()
+	{
+		static auto TimeOffset = GetOffset("Time");
+		return Get<float>(TimeOffset);
+	}
+
+	float& GetRelevantTimeout()
+	{
+		static auto RelevantTimeoutOffset = GetOffset("RelevantTimeout");
+		return Get<float>(RelevantTimeoutOffset);
+	}
+
+	float& GetSpawnPrioritySeconds()
+	{
+		static auto SpawnPrioritySecondsOffset = GetOffset("SpawnPrioritySeconds");
+		return Get<float>(SpawnPrioritySecondsOffset);
+	}
+
+	int32& GetNetTag()
+	{
+		static auto NetTagOffset = 0x1DC + 4;
+		return Get<int32>(NetTagOffset);
+	}
+
+	bool IsLevelInitializedForActor(const AActor* InActor, const UNetConnection* InConnection) const;
 	void RemoveNetworkActor(AActor* Actor);
 	bool InitListen(FNetworkNotify* InNotify, FURL& ListenURL, bool bReuseAddressAndPort, FString& Error) { return InitListenOriginal(this, InNotify, ListenURL, bReuseAddressAndPort, Error); }
 	void SetWorld(UWorld* World) { return SetWorldOriginal(this, World); }
 	int32 ServerReplicateActors();
+	int32 ServerReplicateActors_ProcessPrioritizedActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, FActorPriority** PriorityActors, const int32 FinalSortedCount, int32& OutUpdated);
 	void ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObjectInfo*>& OutConsiderList);
+	int32 ServerReplicateActors_PrioritizeActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, const std::vector<FNetworkObjectInfo*> ConsiderList, const bool bCPUSaturated, FActorPriority*& OutPriorityList, FActorPriority**& OutPriorityActors);
 	FNetworkObjectList& GetNetworkObjectList();
 };

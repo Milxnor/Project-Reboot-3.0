@@ -4,6 +4,25 @@
 
 #include "reboot.h"
 
+bool AActor::IsTearOff()
+{
+	static auto bTearOffOffset = GetOffset("bTearOff");
+	static auto bTearOffFieldMask = GetFieldMask(GetProperty("bTearOff"));
+	return ReadBitfieldValue(bTearOffOffset, bTearOffFieldMask);
+}
+
+/* FORCEINLINE */ ENetDormancy& AActor::GetNetDormancy()
+{
+	static auto NetDormancyOffset = GetOffset("NetDormancy");
+	return Get<ENetDormancy>(NetDormancyOffset);
+}
+
+int32& AActor::GetNetTag()
+{
+	static auto NetTagOffset = GetOffset("NetTag");
+	return Get<int32>(NetTagOffset);
+}
+
 FTransform AActor::GetTransform()
 {
 	FTransform Ret;
@@ -146,6 +165,13 @@ float& AActor::GetMinNetUpdateFrequency()
 {
 	static auto MinNetUpdateFrequencyOffset = GetOffset("MinNetUpdateFrequency");
 	return Get<float>(MinNetUpdateFrequencyOffset);
+}
+
+const AActor* AActor::GetNetOwner() const
+{
+	static int GetNetOwnerOffset = 0x448; // 1.11
+	const AActor* (*GetNetOwnerOriginal)(const AActor*) = decltype(GetNetOwnerOriginal)(this->VFTable[GetNetOwnerOffset / 8]);
+	return GetNetOwnerOriginal(this);
 }
 
 bool AActor::IsAlwaysRelevant()

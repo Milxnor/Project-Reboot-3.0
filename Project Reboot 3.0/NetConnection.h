@@ -1,6 +1,10 @@
 #pragma once
 
 #include "Player.h"
+#include "Array.h"
+#include "Map.h"
+#include "WeakObjectPtrTemplates.h"
+#include "ActorChannel.h"
 
 class UNetConnection : public UPlayer
 {
@@ -11,9 +15,51 @@ public:
 		return Get<AActor*>(OwningActorOffset);
 	}
 
+	FName& GetClientWorldPackageName() const
+	{
+		static auto ClientWorldPackageNameOffset = 0x337B8;
+		return *(FName*)(__int64(this) + ClientWorldPackageNameOffset);
+	}
+
 	AActor*& GetViewTarget()
 	{
 		static auto ViewTargetOffset = GetOffset("ViewTarget");
 		return Get<AActor*>(ViewTargetOffset);
+	}
+
+	TSet<FName>& GetClientVisibleLevelNames()
+	{
+		static auto ClientVisibleLevelNamesOffset = 0x336C8;
+		return *(TSet<FName>*)(__int64(this) + ClientVisibleLevelNamesOffset);
+	}
+
+	class UNetDriver*& GetDriver()
+	{
+		static auto DriverOffset = GetOffset("Driver");
+		return Get<UNetDriver*>(DriverOffset);
+	}
+
+	int32& GetTickCount()
+	{
+		static auto TickCountOffset = GetOffset("LastReceiveTime") + 8 + 8 + 8 + 8 + 8 + 4;
+		return Get<int32>(TickCountOffset);
+	}
+
+	TMap<TWeakObjectPtr<AActor>, UActorChannel*>& GetActorChannels()
+	{
+		static auto ActorChannelsOffset = 0x33588;
+		return *(TMap<TWeakObjectPtr<AActor>, UActorChannel*>*)(__int64(this) + ActorChannelsOffset);
+	}
+
+	TArray<AActor*>& GetSentTemporaries()
+	{
+		static auto SentTemporariesOffset = GetOffset("SentTemporaries");
+		return Get<TArray<AActor*>>(SentTemporariesOffset);
+	}
+
+	bool ClientHasInitializedLevelFor(const AActor* TestActor) const
+	{
+		bool (*ClientHasInitializedLevelForOriginal)(const UNetConnection* Connection, const AActor * TestActor) = decltype(ClientHasInitializedLevelForOriginal)(this->VFTable[0x300 / 8]);
+		return ClientHasInitializedLevelForOriginal(this, TestActor);
 	}
 };

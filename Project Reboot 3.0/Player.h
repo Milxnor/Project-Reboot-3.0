@@ -6,7 +6,7 @@
 class UPlayer : public UObject
 {
 public:
-	APlayerController*& GetPlayerController()
+	APlayerController*& GetPlayerController() const
 	{
 		static auto PlayerControllerOffset = GetOffset("PlayerController");
 		return Get<APlayerController*>(PlayerControllerOffset);

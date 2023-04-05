@@ -11,6 +11,8 @@
 #include "FortPlayerPawn.h"
 #include "globals.h"
 #include "FortInventoryInterface.h"
+#include <fstream>
+#include "GenericPlatformTime.h"
 
 #include "Map.h"
 #include "events.h"
@@ -149,6 +151,9 @@ DWORD WINAPI Main(LPVOID)
         Hooking::MinHook::Hook((PVOID)Addresses::DispatchRequest, (PVOID)DispatchRequestHook, (PVOID*)&DispatchRequestOriginal);
         Hooking::MinHook::Hook((PVOID)Addresses::GetNetMode, (PVOID)GetNetModeHook, nullptr);
     }
+
+    GSRandSeed = FGenericPlatformTime::Cycles();
+    ReplicationRandStream = FRandomStream(FGenericPlatformTime::Cycles());
 
     Hooking::MinHook::Hook((PVOID)Addresses::KickPlayer, (PVOID)AGameSession::KickPlayerHook, (PVOID*)&AGameSession::KickPlayerOriginal);
 
@@ -721,6 +726,16 @@ DWORD WINAPI Main(LPVOID)
             else
             {
                 LOG_ERROR(LogGame, "Restarting is not supported on chapter 2 and above!");
+            }
+        }
+
+        else if (GetAsyncKeyState(VK_F11) & 1)
+        {
+            std::ofstream stream("Test.log");
+
+            for (auto& Current : ReplicatedActors)
+            {
+                stream << Current << '\n';
             }
         }
         

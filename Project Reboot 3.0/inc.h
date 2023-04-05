@@ -16,6 +16,18 @@ extern inline int Engine_Version = 0; // For example, 420, 421, etc. // Prevent 
 extern inline double Fortnite_Version = 0; // For example, 4.1, 6.21, etc. // Prevent using this when possible.
 extern inline int Fortnite_CL = 0;
 
+struct PlaceholderBitfield
+{
+	uint8_t First : 1;
+	uint8_t Second : 1;
+	uint8_t Third : 1;
+	uint8_t Fourth : 1;
+	uint8_t Fifth : 1;
+	uint8_t Sixth : 1;
+	uint8_t Seventh : 1;
+	uint8_t Eighth : 1;
+};
+
 #define MS_ALIGN(n) __declspec(align(n))
 #define FORCENOINLINE __declspec(noinline)	
 

@@ -13,4 +13,9 @@ struct TWeakObjectPtr : public TWeakObjectPtrBase
 	{
 		return (T*)TWeakObjectPtrBase::Get();
 	}
+
+	bool operator==(const TWeakObjectPtr& other)
+	{
+		return TWeakObjectPtrBase::operator==(other);
+	}
 };

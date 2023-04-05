@@ -228,6 +228,7 @@
   <ItemGroup>
     <ClInclude Include="AbilitySystemComponent.h" />
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="ActorChannel.h" />
     <ClInclude Include="ActorComponent.h" />
     <ClInclude Include="addresses.h" />
     <ClInclude Include="ai.h" />
@@ -242,6 +243,7 @@
     <ClInclude Include="BuildingSMActor.h" />
     <ClInclude Include="BuildingTrap.h" />
     <ClInclude Include="calendar.h" />
+    <ClInclude Include="Channel.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />
@@ -293,6 +295,8 @@
     <ClInclude Include="GameplayTagContainer.h" />
     <ClInclude Include="GameSession.h" />
     <ClInclude Include="GameState.h" />
+    <ClInclude Include="GenericPlatformMath.h" />
+    <ClInclude Include="GenericPlatformTime.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="hooking.h" />
     <ClInclude Include="inc.h" />
@@ -307,6 +311,7 @@
     <ClInclude Include="NameTypes.h" />
     <ClInclude Include="NetDriver.h" />
     <ClInclude Include="NetSerialization.h" />
+    <ClInclude Include="NetworkGuid.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="ObjectMacros.h" />
     <ClInclude Include="OnlineReplStructs.h" />
@@ -317,6 +322,7 @@
     <ClInclude Include="PlayerController.h" />
     <ClInclude Include="PlayerState.h" />
     <ClInclude Include="Quat.h" />
+    <ClInclude Include="RandomStream.h" />
     <ClInclude Include="reboot.h" />
     <ClInclude Include="Rotator.h" />
     <ClInclude Include="ScriptInterface.h" />
@@ -329,6 +335,7 @@
     <ClInclude Include="StringAssetReference.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Tuple.h" />
+    <ClInclude Include="UnrealMathUtility.h" />
     <ClInclude Include="UnrealString.h" />
     <ClInclude Include="UObjectArray.h" />
     <ClInclude Include="UObjectGlobals.h" />

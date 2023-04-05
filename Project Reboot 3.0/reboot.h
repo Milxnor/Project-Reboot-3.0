@@ -4,8 +4,10 @@
 #include "Engine.h"
 // #include "World.h"
 
+#include "RandomStream.h"
 #include "Class.h"
 #include "globals.h"
+#include <set>
 
 /* enum class REBOOT_ERROR : uint8
 {
@@ -130,18 +132,9 @@ static __forceinline T* Cast(UObject* Object, bool bCheckType = true)
 }
 
 extern inline int AmountOfRestarts = 0; // DO NOT CHANGE
-
-struct PlaceholderBitfield
-{
-	uint8_t First : 1;
-	uint8_t Second : 1;
-	uint8_t Third : 1;
-	uint8_t Fourth : 1;
-	uint8_t Fifth : 1;
-	uint8_t Sixth : 1;
-	uint8_t Seventh : 1;
-	uint8_t Eighth : 1;
-};
+extern inline FRandomStream ReplicationRandStream = (0);
+extern inline int32 GSRandSeed = 0;
+extern inline std::set<std::string> ReplicatedActors = {};
 
 inline uint8_t GetFieldMask(void* Property, int additional = 0)
 {

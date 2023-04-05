@@ -506,6 +506,27 @@
     <ClInclude Include="FortPlayerPawnAthena.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Pawns</Filter>
     </ClInclude>
+    <ClInclude Include="GenericPlatformMath.h">
+      <Filter>Engine\Source\Runtime\Core\Public\GenericPlatform</Filter>
+    </ClInclude>
+    <ClInclude Include="ActorChannel.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Channel.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkGuid.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="UnrealMathUtility.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="GenericPlatformTime.h">
+      <Filter>Engine\Source\Runtime\Core\Public\GenericPlatform</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomStream.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -690,6 +711,9 @@
     </Filter>
     <Filter Include="Engine\Source\Runtime\Core\Public\Templates">
       <UniqueIdentifier>{31a7f342-8b7c-4594-a24d-c4dd5c9d230d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\GenericPlatform">
+      <UniqueIdentifier>{653d6dbf-b361-41ea-a9b8-b85737412d66}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

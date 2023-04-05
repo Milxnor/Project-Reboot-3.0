@@ -166,12 +166,12 @@ public:
             int32 PreviousFreeIndex = -1;
             int32 NextFreeIndex = -1;
 
-            if (NumFreeIndices == 0)
+            /* if (NumFreeIndices == 0)
             {
                 FirstFreeIndex = IndexToRemove;
                 Data.at(IndexToRemove) = { -1, -1 };
             }
-            else
+            else */
             {
                 for (auto It = AllocationFlags.begin(); It != AllocationFlags.end(); ++It)
                 {
@@ -189,6 +189,7 @@ public:
                     }
                 }
             }
+
             AllocationFlags.Set(IndexToRemove, false);
             NumFreeIndices++;
 

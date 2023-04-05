@@ -45,10 +45,12 @@ public:
 	bool IsA(UClass* Other);
 
 	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true);
+	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true) const;
 	int GetOffset(const std::string& ChildName, bool bWarnIfNotFound = true);
+	int GetOffset(const std::string& ChildName, bool bWarnIfNotFound = true) const;
 
 	template <typename T = UObject*>
-	T& Get(int Offset) { return *(T*)(__int64(this) + Offset); }
+	T& Get(int Offset) const { return *(T*)(__int64(this) + Offset); }
 
 	bool ReadBitfieldValue(int Offset, uint8_t FieldMask);
 	bool ReadBitfieldValue(const std::string& ChildName, uint8_t FieldMask) { return ReadBitfieldValue(GetOffset(ChildName), FieldMask); }
