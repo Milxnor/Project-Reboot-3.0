@@ -64,7 +64,7 @@ static UObject* GetPlaylistToUse()
 
 	// SET OVERRIDE PLAYLIST DOWN HERE
 
-	Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultDuo.Playlist_DefaultDuo");
+	// Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultDuo.Playlist_DefaultDuo");
 
 	// Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
 
@@ -557,7 +557,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		// SetupNavConfig();
 
 		static auto bAlwaysDBNOOffset = GameMode->GetOffset("bAlwaysDBNO");
-		GameMode->Get<bool>(bAlwaysDBNOOffset) = true;
+		// GameMode->Get<bool>(bAlwaysDBNOOffset) = true;
 		
 		LOG_INFO(LogDev, "Initialized!");
 	}

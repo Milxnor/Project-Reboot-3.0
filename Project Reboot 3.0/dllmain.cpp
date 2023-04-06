@@ -249,7 +249,7 @@ DWORD WINAPI Main(LPVOID)
     auto ServerCheatAllIndex = GetFunctionIdxOrPtr(FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ServerCheatAll"));
 
     if (ServerCheatAllIndex)
-        AddressesToNull.push_back(FortPlayerControllerAthenaDefault->VFTable[ServerCheatAllIndex / 8]);
+        AddressesToNull.push_back(__int64(FortPlayerControllerAthenaDefault->VFTable[ServerCheatAllIndex / 8]));
 
     for (auto func : AddressesToNull)
     {
@@ -344,9 +344,6 @@ DWORD WINAPI Main(LPVOID)
             }
         }
     }
-
-    auto off = (void*)(&((struct FFrame*)NULL)->MostRecentPropertyAddress);
-    LOG_INFO(LogDev, "{}", off);
 
     LOG_INFO(LogDev, "OnPlayImpactFX: 0x{:x}", OnPlayImpactFXAddr - __int64(GetModuleHandleW(0)));
     Hooking::MinHook::Hook((PVOID)OnPlayImpactFXAddr, AFortWeapon::OnPlayImpactFXHook, (PVOID*)&AFortWeapon::OnPlayImpactFXOriginal);
