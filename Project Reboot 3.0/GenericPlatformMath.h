@@ -15,6 +15,12 @@ public:
 		return (float)TruncToInt(F);
 	}
 
+	template< class T >
+	static constexpr FORCEINLINE T Min(const T A, const T B)
+	{
+		return (A <= B) ? A : B;
+	}
+
 	static FORCEINLINE int32 FloorToInt(float F)
 	{
 		return TruncToInt(floorf(F));

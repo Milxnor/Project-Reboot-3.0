@@ -44,7 +44,6 @@ static ENetMode GetNetModeHook() { return NetMode; }
 static ENetMode GetNetModeHook2() { return NetMode; }
 
 static bool ReturnTrueHook() { return true; }
-static float GetMaxTickRateHook()  { return 30.f; }
 static int Return2Hook() { return 2; }
 
 static void NoMCPHook() { return; }
@@ -133,6 +132,9 @@ DWORD WINAPI Main(LPVOID)
     static auto AthenaMarkerComponentDefault = FindObject<UAthenaMarkerComponent>(L"/Script/FortniteGame.Default__AthenaMarkerComponent");
     static auto FortWeaponDefault = FindObject<AFortWeapon>(L"/Script/FortniteGame.Default__FortWeapon");
 
+    // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetPackageMap VeryVerbose", nullptr);
+    // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetTraffic VeryVerbose", nullptr);
+    // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNet VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogBuilding VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortUIDirector NoLogging", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
@@ -242,7 +244,14 @@ DWORD WINAPI Main(LPVOID)
         }
     }
 
-    for (auto func : Addresses::GetFunctionsToNull())
+    auto AddressesToNull = Addresses::GetFunctionsToNull();
+
+    auto ServerCheatAllIndex = GetFunctionIdxOrPtr(FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ServerCheatAll"));
+
+    if (ServerCheatAllIndex)
+        AddressesToNull.push_back(FortPlayerControllerAthenaDefault->VFTable[ServerCheatAllIndex / 8]);
+
+    for (auto func : AddressesToNull)
     {
         if (func == 0)
             continue;

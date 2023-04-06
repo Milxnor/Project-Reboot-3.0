@@ -185,6 +185,7 @@ public:
                 return It.GetIndex();
             }
         }
+
         return -1;
     }
     FORCEINLINE bool Remove(const SetType& ElementToRemove)

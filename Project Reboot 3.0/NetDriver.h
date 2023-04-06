@@ -23,6 +23,7 @@ struct FActorDestructionInfo
 	FString			PathName;
 	FName			StreamingLevelName;
 };
+
 struct FNetworkObjectInfo
 {
 	/** Pointer to the replicated actor. */
@@ -109,6 +110,16 @@ struct FURL // idk where this actually goes
 	FString                                     Portal;                                                   // 0x0058(0x0010) (ZeroConstructor)
 };
 
+struct FNetGUIDCache
+{
+	bool SupportsObject(const UObject* Object, const TWeakObjectPtr<UObject>* WeakObjectPtr = nullptr) const
+	{
+		// 1.11
+		bool (*SupportsObjectOriginal)(__int64, const UObject*, const TWeakObjectPtr<UObject>*) = decltype(SupportsObjectOriginal)(__int64(GetModuleHandleW(0)) + 0x1AF01E0);
+		return SupportsObjectOriginal(__int64(this), Object, WeakObjectPtr);
+	}
+};
+
 class UNetDriver : public UObject
 {
 public:
@@ -118,6 +129,18 @@ public:
 	static inline void (*TickFlushOriginal)(UNetDriver* NetDriver);
 
 	static void TickFlushHook(UNetDriver* NetDriver);
+
+	FNetGUIDCache* GetGuidCache()
+	{
+		static auto GuidCacheOffset = GetOffset("WorldPackage") + 8; // checked for 1.11
+		return GetPtr<FNetGUIDCache>(GuidCacheOffset);
+	}
+
+	UWorld*& GetNetDriverWorld() const
+	{
+		static auto WorldOffset = GetOffset("World");
+		return Get<UWorld*>(WorldOffset);
+	}
 
 	UObject*& GetWorldPackage() const
 	{
@@ -161,7 +184,7 @@ public:
 	void SetWorld(UWorld* World) { return SetWorldOriginal(this, World); }
 	int32 ServerReplicateActors();
 	int32 ServerReplicateActors_ProcessPrioritizedActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, FActorPriority** PriorityActors, const int32 FinalSortedCount, int32& OutUpdated);
-	void ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObjectInfo*>& OutConsiderList);
+	void ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObjectInfo*>& OutConsiderList, const float ServerTickTime);
 	int32 ServerReplicateActors_PrioritizeActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, const std::vector<FNetworkObjectInfo*> ConsiderList, const bool bCPUSaturated, FActorPriority*& OutPriorityList, FActorPriority**& OutPriorityActors);
 	FNetworkObjectList& GetNetworkObjectList();
 };

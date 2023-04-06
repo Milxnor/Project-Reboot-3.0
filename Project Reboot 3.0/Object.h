@@ -31,9 +31,15 @@ public:
 	FName NamePrivate;
 	UObject* OuterPrivate;
 
-	static inline void (*ProcessEventOriginal)(UObject*, UFunction*, void*);
+	static inline void (*ProcessEventOriginal)(const UObject*, UFunction*, void*);
 
 	/* virtual */ void ProcessEvent(UFunction* Function, void* Parms = nullptr)
+	{
+		// LOG_INFO(LogDev, "PE: 0x{:x}", __int64(ProcessEventOriginal) - __int64(GetModuleHandleW(0)));
+		ProcessEventOriginal(this, Function, Parms);
+	}
+
+	/* virtual */ void ProcessEvent(UFunction* Function, void* Parms = nullptr) const
 	{
 		// LOG_INFO(LogDev, "PE: 0x{:x}", __int64(ProcessEventOriginal) - __int64(GetModuleHandleW(0)));
 		ProcessEventOriginal(this, Function, Parms);

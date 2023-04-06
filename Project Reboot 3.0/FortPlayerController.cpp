@@ -930,7 +930,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
 	{
 		LOG_INFO(LogDev, "Cheater?");
-		LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", __int64(BuildingActorToEdit->GetEditingPlayer()), __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
+		LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
 		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 	}
 

@@ -30,9 +30,87 @@ public:
 	inline int Num() const { return ArrayNum; }
 	inline int size() const { return ArrayNum; }
 
+	/* FORCENOINLINE void ResizeTo(int32 NewMax)
+	{
+		if (NewMax)
+		{
+			NewMax = AllocatorInstance.CalculateSlackReserve(NewMax, sizeof(ElementType));
+		}
+		if (NewMax != ArrayMax)
+		{
+			ArrayMax = NewMax;
+			AllocatorInstance.ResizeAllocation(ArrayNum, ArrayMax, sizeof(ElementType));
+		}
+	}
+
+	void Empty(int32 Slack = 0)
+	{
+		// DestructItems(GetData(), ArrayNum);
+
+		// checkSlow(Slack >= 0);
+		ArrayNum = 0;
+
+		if (ArrayMax != Slack)
+		{
+			ResizeTo(Slack);
+		}
+	}
+
+	void Reset(int32 NewSize = 0)
+	{
+		// If we have space to hold the excepted size, then don't reallocate
+		if (NewSize <= ArrayMax)
+		{
+			// DestructItems(GetData(), ArrayNum);
+			ArrayNum = 0;
+		}
+		else
+		{
+			Empty(NewSize);
+		}
+	} */
+
+	void RemoveAtImpl(int32 Index, int32 Count, bool bAllowShrinking)
+	{
+		if (Count)
+		{
+			// CheckInvariants();
+			// checkSlow((Count >= 0) & (Index >= 0) & (Index + Count <= ArrayNum));
+
+			// DestructItems(GetData() + Index, Count); // TODO milxnor
+
+			// Skip memmove in the common case that there is nothing to move.
+			int32 NumToMove = ArrayNum - Index - Count;
+			if (NumToMove)
+			{
+				/* FMemory::Memmove
+				(
+					(uint8*)AllocatorInstance.GetAllocation() + (Index) * sizeof(ElementType),
+					(uint8*)AllocatorInstance.GetAllocation() + (Index + Count) * sizeof(ElementType),
+					NumToMove * sizeof(ElementType)
+				); */
+				// memmove(Data + (Index) * sizeof(InElementType), Data + (Index + Count) * sizeof(InElementType), NumToMove * sizeof(InElementType)); // i think this wrong
+			}
+			ArrayNum -= Count;
+
+			if (bAllowShrinking)
+			{
+				// ResizeShrink(); // TODO milxnor
+			}
+		}
+	}
+
+
 	FORCEINLINE SizeType CalculateSlackGrow(SizeType NumElements, SizeType NumAllocatedElements, SIZE_T NumBytesPerElement) const
 	{
 		return ArrayMax - NumElements;
+	}
+
+	template <typename CountType>
+	FORCEINLINE void RemoveAt(int32 Index, CountType Count, bool bAllowShrinking = true)
+	{
+		// static_assert(!TAreTypesEqual<CountType, bool>::Value, "TArray::RemoveAt: unexpected bool passed as the Count argument");
+		RemoveAtImpl(Index, Count, bAllowShrinking);
 	}
 
 	void Reserve(int Number, size_t Size = sizeof(InElementType))

@@ -307,3 +307,7 @@ namespace MemberOffsets
 		extern inline int bDBNO = 0, Downer = 0, FinisherOrDowner = 0, DeathCause = 0, Distance = 0, DeathLocation = 0, bInitialized = 0, DeathTags = 0;
 	}
 }
+
+static inline float GetMaxTickRateHook() { return 30.f; }
+
+#define VALIDATEOFFSET(offset) if (!offset) LOG_WARN(LogDev, "[{}] Invalid offset", __FUNCTIONNAME__);

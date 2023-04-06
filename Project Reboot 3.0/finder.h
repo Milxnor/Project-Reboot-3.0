@@ -974,7 +974,7 @@ static inline uint64 FindGIsClient()
 		// return __int64(GetModuleHandleW(0)) + 0x46AD734;
 	if (Fortnite_Version == 1.72)
 		return __int64(GetModuleHandleW(0)) + 0x6536B65;
-	if (Fortnite_Version == 1.8)
+	if (Fortnite_Version == 1.8) 
 		return __int64(GetModuleHandleW(0)) + 0x66637E5;
 	if (Fortnite_Version == 1.11)
 		return __int64(GetModuleHandleW(0)) + 0x5BAA38F;
@@ -1125,8 +1125,11 @@ static inline uint64 FindPickTeam()
 {
 	if (Engine_Version == 426)
 	{
-		auto testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 56 41 54 41 55 41 56 48 83 EC 60 4C 8B A1").Get(); // 14.60 what is happening lol ????
+		auto testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 56 41 54 41 55 41 56 48 83 EC 60 4C 8B A1", false).Get(); // 14.60 what is happening lol ????
 
+		if (!testAddr)
+			testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 55 56 41 55 41 56 48 83 EC 70 48 8B", false).Get(); // 15.10
+		
 		if (testAddr)
 			return testAddr;
 	}
@@ -1136,6 +1139,9 @@ static inline uint64 FindPickTeam()
 
 	else if (Engine_Version >= 427) // different start
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 88 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 4C 8B A1").Get();
+
+	if (Fortnite_Version == 7.20)
+		return Memcury::Scanner::FindPattern("89 54 24 10 53 56 41 54 41 55 41 56 48 81 EC").Get();
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%d]", false, 0, Engine_Version >= 427); // todo check if its just s18+ but this doesn't matter for now cuz we hardcode sig
 

@@ -16,7 +16,7 @@ float UFortItemDefinition::GetMaxStackSize()
 {
 	static auto MaxStackSizeOffset = this->GetOffset("MaxStackSize");
 
-	bool bIsScalableFloat = Engine_Version >= 424; // idk
+	bool bIsScalableFloat = Fortnite_Version >= 12; // idk
 
 	if (!bIsScalableFloat)
 		return Get<int>(MaxStackSizeOffset);

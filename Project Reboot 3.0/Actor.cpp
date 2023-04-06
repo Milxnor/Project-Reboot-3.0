@@ -174,6 +174,20 @@ const AActor* AActor::GetNetOwner() const
 	return GetNetOwnerOriginal(this);
 }
 
+void AActor::GetActorEyesViewPoint(FVector* OutLocation, FRotator* OutRotation) const
+{
+	static auto GetActorEyesViewPointFn = FindObject<UFunction>("/Script/Engine.Actor.GetActorEyesViewPoint");
+	struct
+	{
+		struct FVector                                     OutLocation;                                              // (Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		struct FRotator                                    OutRotation;                                              // (Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
+	} AActor_GetActorEyesViewPoint_Params{};
+	this->ProcessEvent(GetActorEyesViewPointFn, &AActor_GetActorEyesViewPoint_Params);
+
+	*OutLocation = AActor_GetActorEyesViewPoint_Params.OutLocation;
+	*OutRotation = AActor_GetActorEyesViewPoint_Params.OutRotation;
+}
+
 bool AActor::IsAlwaysRelevant()
 {
 	static auto bAlwaysRelevantOffset = GetOffset("bAlwaysRelevant");

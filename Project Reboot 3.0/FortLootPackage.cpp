@@ -400,13 +400,9 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
 
         auto& LTDRowMap = LTD->GetRowMap();
-        auto LTDRowMapNum = LTDRowMap.Pairs.Elements.Num();
 
-        // auto TierGroupNameStr = TierGroupName.ToString();
-
-        for (int i = 0; i < LTDRowMapNum; i++)
+        for (auto& CurrentLTD : LTDRowMap)
         {
-            auto& CurrentLTD = LTDRowMap.Pairs.Elements[i].ElementData.Value;
             auto TierData = (FFortLootTierData*)CurrentLTD.Value();
 
             if (IsBadReadPtr(TierData, 8)) // this shouldn't be needed
@@ -516,9 +512,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
         auto& LPRowMap = LP->GetRowMap();
 
-        for (int i = 0; i < LPRowMap.Pairs.Elements.Num(); i++)
+        for (auto& CurrentLP : LPRowMap)
         {
-            auto& CurrentLP = LPRowMap.Pairs.Elements[i].ElementData.Value;
             auto LootPackage = (FFortLootPackageData*)CurrentLP.Value();
 
             if (!LootPackage)
@@ -618,10 +613,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
                 auto& LPRowMap = LPTables[p]->GetRowMap();
 
-                for (int j = 0; j < LPRowMap.Pairs.Elements.Num(); j++)
+                for (auto& CurrentLP : LPRowMap)
                 {
-                    auto& CurrentLP = LPRowMap.Pairs.Elements[j].ElementData.Value;
-
                     auto LootPackage = (FFortLootPackageData*)CurrentLP.Value();
 
                     if (LootPackage->GetLootPackageID().ToString() == TierGroupLPStr && LootPackage->GetWeight() != 0 && LootPackage->GetCount() != 0)

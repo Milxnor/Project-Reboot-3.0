@@ -23,3 +23,13 @@ bool ULevel::HasVisibilityChangeRequestPending()
 
 	return this == CurrentLevelPendingVisibility || this == CurrentLevelPendingInvisibility;
 }
+
+AWorldSettings* ULevel::GetWorldSettings(bool bChecked) const
+{
+	if (bChecked)
+	{
+		// checkf(WorldSettings != nullptr, TEXT("%s"), *GetPathName());
+	}
+	static auto WorldSettingsOffset = GetOffset("WorldSettings");
+	return Get<AWorldSettings*>(WorldSettingsOffset);
+}

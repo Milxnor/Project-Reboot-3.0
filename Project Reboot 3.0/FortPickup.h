@@ -69,6 +69,12 @@ public:
 
 	void TossPickup(FVector FinalLocation, class AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, EFortPickupSourceTypeFlag InPickupSourceTypeFlags, EFortPickupSpawnSource InPickupSpawnSource);
 
+	void OnRep_PrimaryPickupItemEntry()
+	{
+		static auto OnRep_PrimaryPickupItemEntryFn = FindObject<UFunction>("/Script/FortniteGame.FortPickup.OnRep_PrimaryPickupItemEntry");
+		this->ProcessEvent(OnRep_PrimaryPickupItemEntryFn);
+	}
+
 	FFortPickupLocationData* GetPickupLocationData()
 	{
 		static auto PickupLocationDataOffset = this->GetOffset("PickupLocationData");

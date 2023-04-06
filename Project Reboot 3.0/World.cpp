@@ -5,10 +5,10 @@
 
 #include "reboot.h"
 
-UObject* UWorld::K2_GetWorldSettings()
+AWorldSettings* UWorld::K2_GetWorldSettings()
 {
 	static auto fn = FindObject<UFunction>("/Script/Engine.World.K2_GetWorldSettings");
-	UObject* WorldSettings;
+	AWorldSettings* WorldSettings;
 	this->ProcessEvent(fn, &WorldSettings);
 	return WorldSettings;
 }
@@ -80,4 +80,36 @@ void UWorld::Listen()
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;
 
 	LOG_INFO(LogNet, "Listening on port {}!", Port + AmountOfRestarts);
+}
+
+AWorldSettings* UWorld::GetWorldSettings(const bool bCheckStreamingPersistent, const bool bChecked) const
+{
+	// checkSlow(!IsInActualRenderingThread());
+	AWorldSettings* WorldSettings = nullptr;
+	static auto PersistentLevelOffset = GetOffset("PersistentLevel");
+	if (Get(PersistentLevelOffset))
+	{
+		WorldSettings = Get<ULevel*>(PersistentLevelOffset)->GetWorldSettings(bChecked);
+
+		if (bCheckStreamingPersistent)
+		{
+			static auto StreamingLevelsOffset = GetOffset("StreamingLevels");
+			auto& StreamingLevels = Get<TArray<UObject*>>(StreamingLevelsOffset);
+
+			static auto LevelStreamingPersistentClass = FindObject<UClass>("/Script/Engine.LevelStreamingPersistent");
+
+			if (StreamingLevels.Num() > 0 &&
+				StreamingLevels.at(0) &&
+				StreamingLevels.at(0)->IsA(LevelStreamingPersistentClass))
+			{
+				static auto LoadedLevelOffset = StreamingLevels.at(0)->GetOffset("LoadedLevel");
+				ULevel* Level = StreamingLevels.at(0)->Get<ULevel*>(LoadedLevelOffset);
+				if (Level != nullptr)
+				{
+					WorldSettings = Level->GetWorldSettings();
+				}
+			}
+		}
+	}
+	return WorldSettings;
 }

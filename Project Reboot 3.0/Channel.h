@@ -22,4 +22,6 @@ public:
 		static auto BitfieldOffset = GetOffset("Connection") + 8;
 		return ((PlaceholderBitfield*)(__int64(this) + BitfieldOffset))->Third;
 	}
+
+	int32 IsNetReady(bool Saturate);
 };

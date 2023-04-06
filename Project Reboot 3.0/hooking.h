@@ -111,6 +111,9 @@ inline __int64 GetIndexFromVirtualFunctionCall(__int64 NativeAddr)
 
 inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
 {
+    if (!Function)
+        return 0;
+
     auto NativeAddr = __int64(Function->GetFunc());
 
     auto FuncName = Function->GetName();

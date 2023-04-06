@@ -27,6 +27,19 @@ public:
 		return Get<AActor*>(ViewTargetOffset);
 	}
 
+	int32 IsNetReady(bool Saturate)
+	{
+		static auto IsNetReadyOffset = 0x298; // 1.11
+		int32 (*IsNetReadyOriginal)(UNetConnection* Connection, bool Saturate) = decltype(IsNetReadyOriginal)(this->VFTable[IsNetReadyOffset / 8]);
+		return IsNetReadyOriginal(this, Saturate);
+	}
+
+	double& GetLastReceiveTime()
+	{
+		static auto LastReceiveTimeOffset = GetOffset("LastReceiveTime");
+		return Get<double>(LastReceiveTimeOffset);
+	}
+
 	TSet<FName>& GetClientVisibleLevelNames()
 	{
 		static auto ClientVisibleLevelNamesOffset = 0x336C8;
@@ -59,7 +72,7 @@ public:
 
 	bool ClientHasInitializedLevelFor(const AActor* TestActor) const
 	{
-		bool (*ClientHasInitializedLevelForOriginal)(const UNetConnection* Connection, const AActor * TestActor) = decltype(ClientHasInitializedLevelForOriginal)(this->VFTable[0x300 / 8]);
+		bool (*ClientHasInitializedLevelForOriginal)(const UNetConnection* Connection, const AActor* TestActor) = decltype(ClientHasInitializedLevelForOriginal)(this->VFTable[0x300 / 8]);
 		return ClientHasInitializedLevelForOriginal(this, TestActor);
 	}
 };

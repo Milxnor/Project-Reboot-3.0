@@ -2,6 +2,7 @@
 
 #include "Array.h"
 #include "BitArray.h"
+#include "log.h"
 
 template <typename ElementType>
 union TSparseArrayElementOrListLink
@@ -161,10 +162,16 @@ public:
 
     FORCEINLINE bool RemoveAt(const int32 IndexToRemove)
     {
+        LOG_INFO(LogDev, "IndexToRemove: {}", IndexToRemove);
+        LOG_INFO(LogDev, "AllocationFlags.IsSet(IndexToRemove): {}", AllocationFlags.IsSet(IndexToRemove));
+        LOG_INFO(LogDev, "Data.Num(): {}", Data.Num());
+
         if (IndexToRemove >= 0 && IndexToRemove < Data.Num() && AllocationFlags.IsSet(IndexToRemove))
         {
             int32 PreviousFreeIndex = -1;
             int32 NextFreeIndex = -1;
+
+            LOG_INFO(LogDev, "NumFreeIndices: {}", NumFreeIndices);
 
             /* if (NumFreeIndices == 0)
             {

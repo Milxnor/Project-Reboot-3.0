@@ -39,7 +39,6 @@ enum class EDynamicFoundationType : uint8_t
 	EDynamicFoundationType_MAX = 4
 };
 
-
 static UObject* GetPlaylistToUse()
 {
 	auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
@@ -64,6 +63,8 @@ static UObject* GetPlaylistToUse()
 	}
 
 	// SET OVERRIDE PLAYLIST DOWN HERE
+
+	Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultDuo.Playlist_DefaultDuo");
 
 	// Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
 
@@ -274,20 +275,23 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		GameMode->Get<int>("WarmupRequiredPlayerCount") = 1;
 		
-		auto PlaylistToUse = GetPlaylistToUse();
+		if (Fortnite_Version >= 3) // idk when they switched off id
+		{
+			auto PlaylistToUse = GetPlaylistToUse();
 
-		if (!PlaylistToUse)
-		{
-			LOG_ERROR(LogPlaylist, "Failed to find playlist! Proceeding, but will probably not work as expected!");
-		}
-		else
-		{
-			if (Fortnite_Version >= 4)
+			if (!PlaylistToUse)
 			{
-				SetPlaylist(PlaylistToUse, true);
+				LOG_ERROR(LogPlaylist, "Failed to find playlist! Proceeding, but will probably not work as expected!");
+			}
+			else
+			{
+				if (Fortnite_Version >= 4)
+				{
+					SetPlaylist(PlaylistToUse, true);
 
-				auto CurrentPlaylist = GameState->GetCurrentPlaylist();
-				LOG_INFO(LogDev, "Set playlist to {}!", CurrentPlaylist->IsValidLowLevel() ? CurrentPlaylist->GetFullName() : "Invalid");
+					auto CurrentPlaylist = GameState->GetCurrentPlaylist();
+					LOG_INFO(LogDev, "Set playlist to {}!", CurrentPlaylist->IsValidLowLevel() ? CurrentPlaylist->GetFullName() : "Invalid");
+				}
 			}
 		}
 
@@ -548,10 +552,13 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		GameSession->Get<int>(MaxPlayersOffset) = 100;
 
 		// if (Engine_Version < 424)
-			GameState->OnRep_CurrentPlaylistInfo(); // ?
+		GameState->OnRep_CurrentPlaylistInfo(); // ?
 
 		// SetupNavConfig();
 
+		static auto bAlwaysDBNOOffset = GameMode->GetOffset("bAlwaysDBNO");
+		GameMode->Get<bool>(bAlwaysDBNOOffset) = true;
+		
 		LOG_INFO(LogDev, "Initialized!");
 	}
 
@@ -628,6 +635,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		CurrentTeamMembers = 0;
 		LOG_INFO(LogTeams, "Player is going on team {} with {} members (No Playlist).", Current, CurrentTeamMembers);
 		CurrentTeamMembers++;
+		return Current;
 		return Current++;
 	}
 
@@ -693,15 +701,15 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			bool bPrintWarmup = false;
 
-			if (Engine_Version != 419)
+			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 			{
-				for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
+				ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
+
+				// CurrentActor->K2_DestroyActor();
+				// continue;
+
+				if (Engine_Version != 419)
 				{
-					ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
-
-					// CurrentActor->K2_DestroyActor();
-					// continue;
-
 					auto Location = CurrentActor->GetActorLocation();
 					Location.Z += UpZ;
 
@@ -715,11 +723,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 					if (LootDrops.size())
 					{
 						for (auto& LootDrop : LootDrops)
-							AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+						{
+							auto Pickup = AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+						}
 					}
-
-					CurrentActor->K2_DestroyActor();
 				}
+
+				CurrentActor->K2_DestroyActor();
 			}
 
 			bool bPrint = false;
@@ -745,7 +755,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				if (LootDrops.size())
 				{
 					for (auto& LootDrop : LootDrops)
-						AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+					{
+						auto Pickup = AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+					}
 				}
 
 				CurrentActor->K2_DestroyActor();

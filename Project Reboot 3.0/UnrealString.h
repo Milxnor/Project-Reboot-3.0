@@ -7,6 +7,7 @@
 
 class FString
 {
+public:
 	TArray<TCHAR> Data;
 
 public:

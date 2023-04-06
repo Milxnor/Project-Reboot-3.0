@@ -116,4 +116,10 @@ public:
 
 		return -1;
 	}
+
+	static UClass* StaticClass()
+	{
+		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortQuickBars");
+		return Class;
+	}
 };

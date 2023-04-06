@@ -175,6 +175,7 @@
     <ClCompile Include="BuildingWeapons.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Controller.cpp" />
+    <ClCompile Include="DataChannel.cpp" />
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EngineTypes.cpp" />

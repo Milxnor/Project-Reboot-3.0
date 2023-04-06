@@ -4,10 +4,16 @@
 #include "Transform.h"
 #include "Object.h"
 #include "Rotator.h"
+#include "Actor.h"
 
 struct FNetworkNotify
 {
 
+};
+
+class AWorldSettings : public AActor
+{
+public:
 };
 
 struct FActorSpawnParameters
@@ -56,7 +62,8 @@ public:
 		return SpawnActor<ActorType>(Class, UserTransformPtr, SpawnParameters);
 	}
 
-	UObject* K2_GetWorldSettings();
+	AWorldSettings* GetWorldSettings(bool bCheckStreamingPersistent = false, bool bChecked = true) const;
+	AWorldSettings* K2_GetWorldSettings();
 
 	void Listen();
 };
