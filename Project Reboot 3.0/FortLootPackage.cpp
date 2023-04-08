@@ -373,7 +373,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
     }
 
-    if (Engine_Version <= 420) // ahhh
+    if (Fortnite_Version < 6) // ahhh
     {
         LTDTables.clear();
         LPTables.clear();

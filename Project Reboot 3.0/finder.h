@@ -115,7 +115,12 @@ static inline uint64 FindProcessEvent()
 static inline uint64 FindObjectArray()
 {
 	if (Engine_Version >= 421)
+	{
+		if (Fortnite_Version <= 6.02)
+			return Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8D 04 D1").RelativeOffset(3).Get();
+
 		return Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8B 0C C8 48 8B 04 D1").RelativeOffset(3).Get();
+	}
 
 	auto cc = Memcury::Scanner::FindPattern("48 8B 05 ? ? ? ? 48 8D 14 C8 EB 03 49 8B D6 8B 42 08 C1 E8 1D A8 01 0F 85 ? ? ? ? F7 86 ? ? ? ? ? ? ? ?", false);
 	auto addr = cc.Get() ? cc.RelativeOffset(3).Get() : 0; // 4.16

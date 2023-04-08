@@ -168,5 +168,5 @@ FORCEINLINE UObject* GetObjectByIndex(int32 Index)
 
 FORCEINLINE FUObjectItem* GetItemByIndex(int32 Index)
 {
-	return ChunkedObjects ? ChunkedObjects->GetItemByIndex(Index) : UnchunkedObjects->GetItemByIndex(Index);
+	return ChunkedObjects ? ChunkedObjects->GetItemByIndex(Index) : UnchunkedObjects ? UnchunkedObjects->GetItemByIndex(Index) : nullptr;
 }
