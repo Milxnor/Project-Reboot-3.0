@@ -5,6 +5,7 @@
 #include "Object.h"
 #include "reboot.h"
 #include "GameplayStatics.h"
+#include "FortPlaylist.h"
 
 struct Event
 {
@@ -256,12 +257,12 @@ static inline std::vector<Event> Events =
 	)	
 };
 
-static inline UObject* GetEventPlaylist()
+static inline UFortPlaylist* GetEventPlaylist()
 {
 	for (auto& CurrentEvent : Events)
 	{
 		if (CurrentEvent.Version == Fortnite_Version)
-			return FindObject(CurrentEvent.PlaylistName, nullptr, ANY_PACKAGE);
+			return FindObject<UFortPlaylist>(CurrentEvent.PlaylistName, nullptr, ANY_PACKAGE);
 	}
 
 	return nullptr;

@@ -9,20 +9,20 @@
 
 } */
 
-UObject*& AFortGameStateAthena::GetCurrentPlaylist()
+UFortPlaylist*& AFortGameStateAthena::GetCurrentPlaylist()
 {
 	static auto CurrentPlaylistInfoOffset = GetOffset("CurrentPlaylistInfo", false);
 
 	if (CurrentPlaylistInfoOffset == -1)
 	{
 		static auto CurrentPlaylistDataOffset = GetOffset("CurrentPlaylistData");
-		return Get(CurrentPlaylistDataOffset);
+		return Get<UFortPlaylist*>(CurrentPlaylistDataOffset);
 	}
 
 	auto CurrentPlaylistInfo = this->GetPtr<FFastArraySerializer>(CurrentPlaylistInfoOffset);
 
 	static auto BasePlaylistOffset = FindOffsetStruct("/Script/FortniteGame.PlaylistPropertyArray", "BasePlaylist");
-	return *(UObject**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset);
+	return *(UFortPlaylist**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset);
 }
 
 int AFortGameStateAthena::GetAircraftIndex(AFortPlayerState* PlayerState)

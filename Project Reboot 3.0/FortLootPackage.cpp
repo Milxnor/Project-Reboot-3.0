@@ -378,9 +378,6 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         LTDTables.clear();
         LPTables.clear();
 
-        LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
-        LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
-
         bool bFoundPlaylistTable = false;
 
         if (CurrentPlaylist)
@@ -409,6 +406,12 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                     bFoundPlaylistTable = true;
                 }
             }
+        }
+
+        if (!bFoundPlaylistTable)
+        {
+            LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
+            LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
         }
     }
 

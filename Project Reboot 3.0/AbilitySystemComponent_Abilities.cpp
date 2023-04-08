@@ -50,6 +50,23 @@ FActiveGameplayEffectHandle UAbilitySystemComponent::ApplyGameplayEffectToSelf(U
 	return ContextHandle;
 } */
 
+bool UAbilitySystemComponent::HasAbility(UObject* DefaultAbility)
+{
+	auto ActivatableAbilities = GetActivatableAbilities();
+
+	auto& Items = ActivatableAbilities->GetItems();
+
+	for (int i = 0; i < Items.Num(); i++)
+	{
+		auto Spec = Items.AtPtr(i, FGameplayAbilitySpec::GetStructSize());
+
+		if (Spec->GetAbility() == DefaultAbility)
+			return true;
+	}
+
+	return false;
+}
+
 void UAbilitySystemComponent::RemoveActiveGameplayEffectBySourceEffect(UClass* GEClass, int StacksToRemove, UAbilitySystemComponent* Instigator)
 {
 	static auto RemoveActiveGameplayEffectBySourceEffectFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.RemoveActiveGameplayEffectBySourceEffect");
@@ -114,8 +131,7 @@ void UAbilitySystemComponent::InternalServerTryActivateAbilityHook(UAbilitySyste
 		AbilitySystemComponent->ClientActivateAbilityFailed(Handle, *(int16_t*)(__int64(PredictionKey) + CurrentOffset));
 		SetBitfield((PlaceholderBitfield*)(__int64(Spec) + InputPressedOffset), 1, false); // InputPressed = false
 
-		static auto ActivatableAbilitiesOffset = AbilitySystemComponent->GetOffset("ActivatableAbilities");
-		AbilitySystemComponent->Get<FFastArraySerializer>(ActivatableAbilitiesOffset).MarkItemDirty(Spec); 
+		AbilitySystemComponent->GetActivatableAbilities()->MarkItemDirty(Spec);
 	}
 	else
 	{
@@ -123,11 +139,19 @@ void UAbilitySystemComponent::InternalServerTryActivateAbilityHook(UAbilitySyste
 	}
 }
 
-FGameplayAbilitySpecHandle UAbilitySystemComponent::GiveAbilityEasy(UClass* AbilityClass, UObject* SourceObject)
+FGameplayAbilitySpecHandle UAbilitySystemComponent::GiveAbilityEasy(UClass* AbilityClass, UObject* SourceObject, bool bDoNotRegive)
 {
 	// LOG_INFO(LogDev, "Making spec!");
 
-	auto NewSpec = MakeNewSpec(AbilityClass, SourceObject);
+	auto DefaultAbility = AbilityClass->CreateDefaultObject();
+
+	if (!DefaultAbility)
+		return FGameplayAbilitySpecHandle();
+
+	if (bDoNotRegive && HasAbility(DefaultAbility))
+		return FGameplayAbilitySpecHandle();
+
+	auto NewSpec = MakeNewSpec((UClass*)DefaultAbility, SourceObject, true);
 
 	// LOG_INFO(LogDev, "Made spec!");
 

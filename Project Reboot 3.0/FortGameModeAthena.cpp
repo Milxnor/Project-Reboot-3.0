@@ -23,6 +23,7 @@
 #include "Map.h"
 #include "OnlineReplStructs.h"
 #include "BGA.h"
+#include "vendingmachine.h"
 
 enum class EDynamicFoundationEnabledState : uint8_t
 {
@@ -41,13 +42,16 @@ enum class EDynamicFoundationType : uint8_t
 	EDynamicFoundationType_MAX = 4
 };
 
-std::string PlaylistName = "/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo";
+std::string PlaylistName = 
+"/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo";
 // "/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground";
 // "/Game/Athena/Playlists/Carmine/Playlist_Carmine.Playlist_Carmine";
+// "/Game/Athena/Playlists/Fill/Playlist_Fill_Solo.Playlist_Fill_Solo";
+// "/Game/Athena/Playlists/Low/Playlist_Low_Solo.Playlist_Low_Solo";
 
-static UObject* GetPlaylistToUse()
+static UFortPlaylist* GetPlaylistToUse()
 {
-	auto Playlist = FindObject(PlaylistName);
+	auto Playlist = FindObject<UFortPlaylist>(PlaylistName);
 
 	if (Globals::bGoingToPlayEvent)
 	{
@@ -70,7 +74,7 @@ static UObject* GetPlaylistToUse()
 	// SET OVERRIDE PLAYLIST DOWN HERE
 
 	if (Globals::bCreative)
-		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
+		Playlist = FindObject<UFortPlaylist>("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
 	return Playlist;
 }
@@ -445,9 +449,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				}
 			}
 
-			static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
-
-			auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
+			GET_PLAYLIST(GameState);
 
 			if (CurrentPlaylist)
 			{
@@ -706,6 +708,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	auto GameState = GameMode->GetGameStateAthena();
 
+	static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
+	auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
+
 	LOG_INFO(LogPlayer, "HandleStartingNewPlayer!");
 
 	// if (Engine_Version < 427)
@@ -716,6 +721,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		{
 			LastNum69 = AmountOfRestarts;
 
+			// FillVendingMachines();
 			SpawnBGAs();
 
 			auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
@@ -883,7 +889,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerStateAthena->GetWorldPlayerId() = PlayerStateAthena->GetPlayerID(); // ++CurrentPlayerId; // PlayerStateAthena->Get<int>(PlayerIdOffset); // 
 	}
 
-	if (Globals::bAbilitiesEnabled)
 	{
 		static auto GameplayAbilitySet = (UFortAbilitySet*)(Fortnite_Version >= 8.30 ? // LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
 			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer", UFortAbilitySet::StaticClass()) :
@@ -891,10 +896,19 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 		LOG_INFO(LogDev, "GameplayAbilitySet {}", __int64(GameplayAbilitySet));
 
+		auto AbilitySystemComponent = PlayerStateAthena->GetAbilitySystemComponent();
+
 		if (GameplayAbilitySet)
 		{
 			LOG_INFO(LogDev, "GameplayAbilitySet Name {}", GameplayAbilitySet->GetName());
-			GameplayAbilitySet->GiveToAbilitySystem(PlayerStateAthena->GetAbilitySystemComponent());
+			GameplayAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
+		}
+
+		GET_PLAYLIST(GameState);
+
+		if (CurrentPlaylist)
+		{
+			// CurrentPlaylist->ApplyModifiersToActor(PlayerStateAthena); // scuffed we need to do as pawn spawns
 		}
 	}
 

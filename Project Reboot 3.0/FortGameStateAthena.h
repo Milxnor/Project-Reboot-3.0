@@ -2,6 +2,7 @@
 
 #include "GameState.h"
 #include "FortPlayerState.h"
+#include "FortPlaylist.h"
 
 enum class EAthenaGamePhase : uint8_t
 {
@@ -30,7 +31,7 @@ public:
 		return Get<EAthenaGamePhase>(GamePhaseOffset);
 	}
 
-	UObject*& GetCurrentPlaylist();
+	UFortPlaylist*& GetCurrentPlaylist();
 
 	// void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
 

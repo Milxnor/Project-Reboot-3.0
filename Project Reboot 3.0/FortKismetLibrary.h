@@ -79,6 +79,7 @@ public:
 	static inline void (*K2_SpawnPickupInWorldWithLootTierOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline bool (*SpawnInstancedPickupInWorldOriginal)(UObject* Context, FFrame& Stack, bool* Ret);
 	static inline void (*SpawnItemVariantPickupInWorldOriginal)(UObject* Context, FFrame& Stack, void* Ret);
+	static inline void (*K2_GiveBuildingResourceOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline void (*PickLootDropsWithNamedWeightsOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 
 	static UFortResourceItemDefinition* K2_GetResourceItemDefinition(EFortResourceType ResourceType);
@@ -93,6 +94,7 @@ public:
 	static void K2_RemoveItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void K2_RemoveItemFromPlayerByGuidHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void K2_GiveItemToPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
+	static void K2_GiveBuildingResourceHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void K2_RemoveFortItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
 	static AFortPickup* K2_SpawnPickupInWorldHook(UObject* Context, FFrame& Stack, AFortPickup** Ret);
 	static AFortPickup* K2_SpawnPickupInWorldWithClassHook(UObject* Context, FFrame& Stack, AFortPickup** Ret);

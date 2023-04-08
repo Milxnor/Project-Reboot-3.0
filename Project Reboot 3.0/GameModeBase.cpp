@@ -2,6 +2,7 @@
 
 #include "reboot.h"
 #include "FortPlayerControllerAthena.h"
+#include "FortGameModeAthena.h"
 
 UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InController)
 {
@@ -59,6 +60,15 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	if (!bIsRespawning)
 	{
 		auto NewPlayerAsAthena = Cast<AFortPlayerControllerAthena>(NewPlayer);
+
+		auto GameState = ((AFortGameModeAthena*)GameMode)->GetGameStateAthena();
+
+		GET_PLAYLIST(GameState);
+
+		if (CurrentPlaylist)
+		{
+			CurrentPlaylist->ApplyModifiersToActor(NewPlayerAsAthena->GetPlayerState()); // We need to move this!
+		}
 
 		/* if (Fortnite_Version >= 18)
 		{

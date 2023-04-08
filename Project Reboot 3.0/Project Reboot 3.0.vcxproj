@@ -186,6 +186,7 @@
     <ClCompile Include="FortGameMode.cpp" />
     <ClCompile Include="FortGameModeAthena.cpp" />
     <ClCompile Include="FortGameModeZone.cpp" />
+    <ClCompile Include="FortGameplayAbilityAthena_PeriodicItemGrant.cpp" />
     <ClCompile Include="FortGameStateAthena.cpp" />
     <ClCompile Include="FortInventory.cpp" />
     <ClCompile Include="FortInventory.h" />
@@ -253,6 +254,8 @@
     <ClInclude Include="CurveTable.h" />
     <ClInclude Include="DataTable.h" />
     <ClInclude Include="DataTableFunctionLibrary.h" />
+    <ClInclude Include="Delegate.h" />
+    <ClInclude Include="DelegateBase.h" />
     <ClInclude Include="die.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="EngineTypes.h" />
@@ -267,6 +270,7 @@
     <ClInclude Include="FortGameModeAthena.h" />
     <ClInclude Include="FortGameModePvPBase.h" />
     <ClInclude Include="FortGameModeZone.h" />
+    <ClInclude Include="FortGameplayAbilityAthena_PeriodicItemGrant.h" />
     <ClInclude Include="FortGameStateAthena.h" />
     <ClInclude Include="FortInventoryInterface.h" />
     <ClInclude Include="FortItem.h" />
@@ -282,6 +286,7 @@
     <ClInclude Include="FortPlayerPawnAthena.h" />
     <ClInclude Include="FortPlayerState.h" />
     <ClInclude Include="FortPlayerStateAthena.h" />
+    <ClInclude Include="FortPlaylist.h" />
     <ClInclude Include="FortPlaysetItemDefinition.h" />
     <ClInclude Include="FortQuickBars.h" />
     <ClInclude Include="FortResourceItemDefinition.h" />
@@ -351,6 +356,7 @@
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="DelegateSignatureImpl.inl" />
     <None Include="UnrealEngine.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

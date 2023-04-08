@@ -352,6 +352,40 @@ void UFortKismetLibrary::K2_GiveItemToPlayerHook(UObject* Context, FFrame& Stack
 	return K2_GiveItemToPlayerOriginal(Context, Stack, Ret);
 }
 
+void UFortKismetLibrary::K2_GiveBuildingResourceHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	LOG_INFO(LogDev, "K2_GiveBuildingResourceHook!");
+
+	AFortPlayerController* Controller;
+	EFortResourceType ResourceType;
+	int ResourceAmount;
+
+	Stack.StepCompiledIn(&Controller);
+	Stack.StepCompiledIn(&ResourceType);
+	Stack.StepCompiledIn(&ResourceAmount);
+
+	if (!Controller)
+		return K2_GiveBuildingResourceOriginal(Context, Stack, Ret);
+
+	auto WorldInventory = Controller->GetWorldInventory();
+
+	if (!WorldInventory)
+		return K2_GiveBuildingResourceOriginal(Context, Stack, Ret);
+
+	auto ItemDefinition = UFortKismetLibrary::K2_GetResourceItemDefinition(ResourceType);
+
+	if (!ItemDefinition)
+		return K2_GiveBuildingResourceOriginal(Context, Stack, Ret);
+
+	bool bShouldUpdate = false;
+	WorldInventory->AddItem(ItemDefinition, &bShouldUpdate, ResourceAmount, 0);
+
+	if (bShouldUpdate)
+		WorldInventory->Update();
+
+	return K2_GiveBuildingResourceOriginal(Context, Stack, Ret);
+}
+
 void UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret)
 {
 	AFortPlayerController* PlayerController = nullptr;                                         // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)

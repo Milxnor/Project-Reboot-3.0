@@ -207,6 +207,66 @@ inline void SetBitfield(void* Addr, uint8_t FieldMask, bool NewVal)
 		*(bool*)Bitfield = NewVal;
 }
 
+inline void* FindPropertyStruct(const std::string& StructName, const std::string& MemberName, bool bWarnIfNotFound = true)
+{
+	UObject* Struct = FindObject(StructName);
+
+	if (!Struct)
+	{
+		if (bWarnIfNotFound)
+			LOG_WARN(LogFinder, "Unable to find struct4 {}", StructName);
+
+		return nullptr;
+	}
+
+	// LOG_INFO(LogFinder, "Struct: {}", Struct->GetFullName());
+
+	auto getFNameOfProp = [](void* Property) -> FName*
+	{
+		FName* NamePrivate = nullptr;
+
+		if (Engine_Version >= 425)
+			NamePrivate = (FName*)(__int64(Property) + 0x28);
+		else
+			NamePrivate = &((UField*)Property)->NamePrivate;
+
+		return NamePrivate;
+	};
+
+	for (auto CurrentClass = Struct; CurrentClass; CurrentClass = *(UObject**)(__int64(CurrentClass) + Offsets::SuperStruct))
+	{
+		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
+
+		if (Property)
+		{
+			std::string PropName = getFNameOfProp(Property)->ToString();
+
+			if (PropName == MemberName)
+			{
+				return Property;
+			}
+
+			while (Property)
+			{
+				// LOG_INFO(LogFinder, "PropName: {}", PropName);
+
+				if (PropName == MemberName)
+				{
+					return Property;
+				}
+
+				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
+				PropName = Property ? getFNameOfProp(Property)->ToString() : "";
+			}
+		}
+	}
+
+	if (bWarnIfNotFound)
+		LOG_WARN(LogFinder, "Unable to find6 {}", MemberName);
+
+	return nullptr;
+}
+
 inline int FindOffsetStruct(const std::string& StructName, const std::string& MemberName, bool bWarnIfNotFound = true)
 {
 	UObject* Struct = FindObject(StructName);
@@ -311,3 +371,6 @@ namespace MemberOffsets
 static inline float GetMaxTickRateHook() { return 30.f; }
 
 #define VALIDATEOFFSET(offset) if (!offset) LOG_WARN(LogDev, "[{}] Invalid offset", __FUNCTIONNAME__);
+
+#define GET_PLAYLIST(GameState) static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false); \
+auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();

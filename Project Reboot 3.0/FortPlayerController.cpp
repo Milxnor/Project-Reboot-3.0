@@ -147,7 +147,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 		LOG_INFO(LogDev, "Equipping Gadget: {}", ItemDefinition->GetFullName());
 	}
 
-	/*
+#if 0
 	if (GadgetItemDefinition)
 	{
 		static auto AbilitySetOffset = GadgetItemDefinition->GetOffset("AbilitySet");
@@ -228,7 +228,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 			Pawn->ServerChoosePart((EFortCustomPartType)i, CharacterParts.at(i));
 		}
 	}
-	*/
+#endif
 
 	if (auto DecoItemDefinition = Cast<UFortDecoItemDefinition>(ItemDefinition))
 	{
@@ -489,8 +489,6 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	// PlayerController->ServerRestartPlayer();
 }
 
-
-
 void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)
 {
 	PlayerController->DropAllItems({ IgnoreItemDef });
@@ -603,6 +601,15 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 		if (bShouldUpdate)
 			WorldInventory->Update();
+	}
+
+	auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)GetWorld()->GetGameMode())->GetGameState());
+
+	GET_PLAYLIST(GameState);
+
+	if (CurrentPlaylist)
+	{
+		// CurrentPlaylist->ApplyModifiersToActor(BuildingActor); // seems automatic
 	}
 
 	return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
@@ -976,6 +983,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 			RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
 		
+			LOG_INFO(LogDev, "Removed!");
+
 			if (Fortnite_Version < 6) // Spectating
 			{
 				LOG_INFO(LogDev, "Starting Spectating!");

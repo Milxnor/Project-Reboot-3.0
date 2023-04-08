@@ -29,6 +29,15 @@ struct FActiveGameplayEffectHandle
 	unsigned char                                      UnknownData00[0x3];                                       // 0x0005(0x0003) MISSED OFFSET
 };
 
+struct FGameplayAbilitySpecContainer : public FFastArraySerializer
+{
+	TArray<FGameplayAbilitySpec>& GetItems()
+	{
+		static auto ItemsOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpecContainer", "Items");
+		return *(TArray<FGameplayAbilitySpec>*)(__int64(this) + ItemsOffset);
+	}
+};
+
 class UAbilitySystemComponent : public UObject
 {
 public:
@@ -50,11 +59,18 @@ public:
 		return Get<TArray<UObject*>>(SpawnedAttributesOffset);
 	}
 
-	FActiveGameplayEffectHandle ApplyGameplayEffectToSelf(UClass* GameplayEffectClass, float Level, const FGameplayEffectContextHandle& EffectContext);
+	FGameplayAbilitySpecContainer* GetActivatableAbilities()
+	{
+		static auto ActivatableAbilitiesOffset = this->GetOffset("ActivatableAbilities");
+		return GetPtr<FGameplayAbilitySpecContainer>(ActivatableAbilitiesOffset);
+	}
+
+	bool HasAbility(UObject* DefaultAbility);
+	FActiveGameplayEffectHandle ApplyGameplayEffectToSelf(UClass* GameplayEffectClass, float Level, const FGameplayEffectContextHandle& EffectContext = FGameplayEffectContextHandle());
 	// FGameplayEffectContextHandle MakeEffectContext();
 	void RemoveActiveGameplayEffectBySourceEffect(UClass* GEClass, int StacksToRemove, UAbilitySystemComponent* Instigator);
 	void ConsumeAllReplicatedData(FGameplayAbilitySpecHandle AbilityHandle, FPredictionKey* AbilityOriginalPredictionKey);
-	FGameplayAbilitySpecHandle GiveAbilityEasy(UClass* AbilityClass, UObject* SourceObject = nullptr);
+	FGameplayAbilitySpecHandle GiveAbilityEasy(UClass* AbilityClass, UObject* SourceObject = nullptr, bool bDoNotRegive = true);
 	FGameplayAbilitySpec* FindAbilitySpecFromHandle(FGameplayAbilitySpecHandle Handle);
 
 	static void InternalServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, const FPredictionKey* PredictionKey, const FGameplayEventData* TriggerEventData);

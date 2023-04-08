@@ -42,6 +42,20 @@ struct FFortItemEntry : FFastArraySerializerItem
 		static auto StructSize = GetStruct()->GetPropertiesSize();
 		return StructSize;
 	}
+
+	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0)
+	{
+		auto Entry = Alloc<FFortItemEntry>(GetStructSize());
+
+		if (!Entry)
+			return nullptr;
+
+		Entry->GetItemDefinition() = ItemDefinition;
+		Entry->GetCount() = Count;
+		Entry->GetLoadedAmmo() = LoadedAmmo;
+
+		return Entry;
+	}
 };
 
 class UFortItem : public UObject

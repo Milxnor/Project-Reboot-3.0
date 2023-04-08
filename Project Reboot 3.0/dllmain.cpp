@@ -29,6 +29,9 @@
 #include "InventoryManagementLibrary.h"
 #include "FortPlayerPawnAthena.h"
 
+#include "FortGameplayAbilityAthena_PeriodicItemGrant.h"
+#include "vendingmachine.h"
+
 enum ENetMode
 {
     NM_Standalone,
@@ -392,8 +395,15 @@ DWORD WINAPI Main(LPVOID)
 
     if (Addresses::FrameStep) // put all non rpc exec hooks in this scope
     {
+        static auto FortGameplayAbilityAthena_PeriodicItemGrantDefault = FindObject<UFortGameplayAbilityAthena_PeriodicItemGrant>("/Script/FortniteGame.Default__FortGameplayAbilityAthena_PeriodicItemGrant");
+        
+        Hooking::MinHook::Hook(FortGameplayAbilityAthena_PeriodicItemGrantDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortGameplayAbilityAthena_PeriodicItemGrant.StartItemAwardTimers"),
+            UFortGameplayAbilityAthena_PeriodicItemGrant::StartItemAwardTimersHook, (PVOID*)&UFortGameplayAbilityAthena_PeriodicItemGrant::StartItemAwardTimersOriginal, false, true);
+
         Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_GiveItemToPlayer"),
            UFortKismetLibrary::K2_GiveItemToPlayerHook, (PVOID*)&UFortKismetLibrary::K2_GiveItemToPlayerOriginal, false, true);
+        Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_GiveBuildingResource"),
+            UFortKismetLibrary::K2_GiveBuildingResourceHook, (PVOID*)&UFortKismetLibrary::K2_GiveBuildingResourceOriginal, false, true);
         Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner"),
             UFortKismetLibrary::GiveItemToInventoryOwnerHook, (PVOID*)&UFortKismetLibrary::GiveItemToInventoryOwnerOriginal, false, true);
         Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayerByGuid"),
@@ -476,7 +486,6 @@ DWORD WINAPI Main(LPVOID)
     static auto PredictionKeyStruct = FindObject<UStruct>("/Script/GameplayAbilities.PredictionKey");
     static auto PredictionKeySize = PredictionKeyStruct->GetPropertiesSize();
 
-    if (Globals::bAbilitiesEnabled)
     {
         int InternalServerTryActivateAbilityIndex = 0;
 
@@ -746,6 +755,11 @@ DWORD WINAPI Main(LPVOID)
                 stream << Current << '\n';
             }
         }
+
+        /* else if (GetAsyncKeyState(VK_F12) & 1)
+        {
+            FillVendingMachines();
+        } */
         
         Sleep(1000 / 30);
     }

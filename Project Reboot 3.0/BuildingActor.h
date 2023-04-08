@@ -56,6 +56,13 @@ public:
 		}
 	}
 
+	bool IsPlayerBuildable()
+	{
+		static auto bIsPlayerBuildableOffset = GetOffset("bIsPlayerBuildable");
+		static auto bIsPlayerBuildableFieldMask = GetFieldMask(GetProperty("bIsPlayerBuildable"));
+		return ReadBitfieldValue(bIsPlayerBuildableOffset, bIsPlayerBuildableFieldMask);
+	}
+
 	static inline void (*OnDamageServerOriginal)(ABuildingActor* BuildingActor, float Damage, FGameplayTagContainer DamageTags,
 		FVector Momentum, /* FHitResult */ __int64  HitInfo, APlayerController* InstigatedBy, AActor* DamageCauser,
 		/* FGameplayEffectContextHandle */ __int64 EffectContext);
