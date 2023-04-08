@@ -100,6 +100,13 @@ float GetTimeSecondsForWorld(UWorld* World)
 	return *(float*)(__int64(World) + TimeSecondsOffset);
 }
 
+template <typename T = __int64>
+T* AllocForReplication(size_t Size)
+{
+	return (T*)FMemory::Realloc(nullptr, Size, 0);
+	return Alloc<T>(Size);
+}
+
 void SetChannelActorForDestroy(UActorChannel* ActorChannel, FActorDestructionInfo* DestructInfo)
 {
 	static auto ConnectionOffset = ActorChannel->GetOffset("Connection");
@@ -115,7 +122,7 @@ void SetChannelActorForDestroy(UActorChannel* ActorChannel, FActorDestructionInf
 	static auto PackageMapOffset = Connection->GetOffset("PackageMap");
 	auto PackageMap = Connection->Get(PackageMapOffset);
 
-	FOutBunch* CloseBunch = Alloc(0x200);
+	FOutBunch* CloseBunch = AllocForReplication(0x200);
 
 	if (!CloseBunch)
 		return;
@@ -124,19 +131,16 @@ void SetChannelActorForDestroy(UActorChannel* ActorChannel, FActorDestructionInf
 	FPacketIdRange Range(0);
 	FPacketIdRange* (*SendBunchOriginal)(UActorChannel * Channel, FPacketIdRange * OutRange, FOutBunch * Bunch, bool Merge) = decltype(SendBunchOriginal)(ActorChannel->VFTable[0x288 / 8]);
 	bool (*UPackageMap_WriteObjectOriginal)(UObject * PackageMap, FOutBunch * Ar, UObject * InOuter, FNetworkGUID NetGUID, FString ObjectName) = decltype(UPackageMap_WriteObjectOriginal)(PackageMap->VFTable[0x238 / 8]);
-	static void (*FArchiveDeconstructor)(FOutBunch * Ar) = decltype(FArchiveDeconstructor)(__int64(GetModuleHandleW(0)) + 0xC36500);
+	static void (*FArchiveDeconstructor)(FOutBunch* Ar) = decltype(FArchiveDeconstructor)(__int64(GetModuleHandleW(0)) + 0xC36500);
 
 	FOutBunchConstructor(CloseBunch, ActorChannel, true);
 
 	// we could set bDormant but it's set by default to 0.
 	SetBitfield((PlaceholderBitfield*)(__int64(CloseBunch) + 0x30), 4, true); // bReliable
 
-	/* LOG_INFO(LogDev, "UPackageMap_WriteObjectOriginal: 0x{:x}", __int64(UPackageMap_WriteObjectOriginal) - __int64(GetModuleHandleW(0)));
+	LOG_INFO(LogDev, "UPackageMap_WriteObjectOriginal: 0x{:x}", __int64(UPackageMap_WriteObjectOriginal) - __int64(GetModuleHandleW(0)));
 	LOG_INFO(LogDev, "DestructInfo->PathName: {} Num: {} Max: {} Data: {}", DestructInfo->PathName.ToString(), DestructInfo->PathName.Data.Num(), DestructInfo->PathName.Data.ArrayMax, __int64(DestructInfo->PathName.Data.Data));
 	// LOG_INFO(LogDev, "DestructInfo->ObjOuter: {}", DestructInfo->ObjOuter.Get()->IsValidLowLevel() ? DestructInfo->ObjOuter.Get()->GetFullName() : "BadRead");
-
-	if (DestructInfo->PathName.ToString() == "???")
-		return; */
 
 	UPackageMap_WriteObjectOriginal(PackageMap, CloseBunch, DestructInfo->ObjOuter.Get(), DestructInfo->NetGUID, DestructInfo->PathName);
 	SendBunchOriginal(ActorChannel, &Range, CloseBunch, false);
@@ -683,7 +687,7 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 
 		// Add in deleted actors
 
-		/* for (auto& CurrentGuid : Connection_DestroyedStartupOrDormantActors)
+		/*for (auto& CurrentGuid : Connection_DestroyedStartupOrDormantActors)
 		{
 			FActorDestructionInfo& DInfo = GetDriverDestroyedStartupOrDormantActors(this).Find(CurrentGuid);
 			OutPriorityList[FinalSortedCount] = FActorPriority(Connection, &DInfo, ConnectionViewers);
@@ -753,6 +757,7 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 
 				SetChannelActorForDestroy(Channel, PriorityActors[j]->DestructionInfo);						   // Send a close bunch on the new channel
 				Connection_DestroyedStartupOrDormantActors.Remove(PriorityActors[j]->DestructionInfo->NetGUID); // Remove from connections to-be-destroyed list (close bunch of reliable, so it will make it there)
+				LOG_INFO(LogDev, "Finished!");
 			}
 
 			continue;

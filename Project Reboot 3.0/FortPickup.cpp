@@ -30,6 +30,15 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 		static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
 		Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = Pawn;
 
+		/* static auto SpecialActorIDOffset = Pickup->GetOffset("SpecialActorID");
+
+		if (auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemDef))
+		{
+			static auto PickupSpecialActorUniqueIDOffset = WorldItemDefinition->GetOffset("PickupSpecialActorUniqueID");
+			auto& PickupSpecialActorUniqueID = WorldItemDefinition->Get<FName>(PickupSpecialActorUniqueIDOffset);
+			Pickup->Get<FName>(SpecialActorIDOffset) = PickupSpecialActorUniqueID;
+		} */
+
 		auto PrimaryPickupItemEntry = Pickup->GetPrimaryPickupItemEntry();
 
 		PrimaryPickupItemEntry->GetCount() = Count;

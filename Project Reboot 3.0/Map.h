@@ -117,7 +117,7 @@ public:
     }
     FORCEINLINE bool Contains(const KeyType& ElementToLookFor) const
     {
-        for (auto Element : *this)
+        for (auto& Element : *this)
         {
             if (Element.Key() == ElementToLookFor)
                 return true;
@@ -126,7 +126,7 @@ public:
     }
     FORCEINLINE ValueType& GetByKey(const KeyType& Key)
     {
-        for (auto Pair : *this)
+        for (auto& Pair : *this)
         {
             if (Pair.Key() == Key)
             {
@@ -142,7 +142,7 @@ public:
     }
     FORCEINLINE ValueType GetByKeyNoRef(const KeyType& Key)
     {
-        for (auto Pair : *this)
+        for (auto& Pair : *this)
         {
             if (Pair.Key() == Key)
             {

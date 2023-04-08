@@ -7,9 +7,12 @@
 #include "FortKismetLibrary.h"
 #include "AthenaMarkerComponent.h"
 
-static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
+static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChoosePart = false)
 {
 	if (!CID)
+		return;
+
+	if (!Pawn && bUseServerChoosePart)
 		return;
 
 	static auto HeroDefinitionOffset = CID->GetOffset("HeroDefinition");
@@ -34,6 +37,18 @@ static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 			static auto Specialization_CharacterPartsOffset = Specialization->GetOffset("CharacterParts");
 			auto& CharacterParts = Specialization->Get<TArray<TSoftObjectPtr<UObject>>>(Specialization_CharacterPartsOffset);
 
+			static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
+
+			/* if (bUseServerChoosePart)
+			{
+				for (int z = 0; z < CharacterParts.Num(); z++)
+				{
+					Pawn->ServerChoosePart((EFortCustomPartType)z, CharacterParts.at(z).Get(CustomCharacterPartClass, true));
+				}
+
+				continue; // hm?
+			} */
+
 			bool aa;
 
 			TArray<UObject*> CharacterPartsaa;
@@ -41,7 +56,6 @@ static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 			for (int z = 0; z < CharacterParts.Num(); z++)
 			{
 				auto& CharacterPartSoft = CharacterParts.at(z);
-				static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
 				auto CharacterPart = CharacterPartSoft.Get(CustomCharacterPartClass, true);
 
 				CharacterPartsaa.Add(CharacterPart);
@@ -53,6 +67,9 @@ static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID)
 			CharacterPartsaa.Free();
 		}
 	}
+
+	static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
+	// PlayerState->Get(HeroTypeOffset) = HeroDefinition;
 }
 
 class AFortPlayerControllerAthena : public AFortPlayerController

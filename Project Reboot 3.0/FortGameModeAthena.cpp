@@ -9,6 +9,7 @@
 #include "FortPlayerPawn.h"
 #include "FortPickup.h"
 
+#include "FortAbilitySet.h"
 #include "NetSerialization.h"
 #include "GameplayStatics.h"
 #include "KismetStringLibrary.h"
@@ -21,6 +22,7 @@
 #include "ai.h"
 #include "Map.h"
 #include "OnlineReplStructs.h"
+#include "BGA.h"
 
 enum class EDynamicFoundationEnabledState : uint8_t
 {
@@ -39,10 +41,13 @@ enum class EDynamicFoundationType : uint8_t
 	EDynamicFoundationType_MAX = 4
 };
 
+std::string PlaylistName = "/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo";
+// "/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground";
+// "/Game/Athena/Playlists/Carmine/Playlist_Carmine.Playlist_Carmine";
+
 static UObject* GetPlaylistToUse()
 {
-	auto Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo");
-	// Playlist = FindObject("/BlueCheese/Playlists/Playlist_ShowdownAlt_BlueCheese_Trios.Playlist_ShowdownAlt_BlueCheese_Trios");
+	auto Playlist = FindObject(PlaylistName);
 
 	if (Globals::bGoingToPlayEvent)
 	{
@@ -64,21 +69,25 @@ static UObject* GetPlaylistToUse()
 
 	// SET OVERRIDE PLAYLIST DOWN HERE
 
-	// Playlist = FindObject("/Game/Athena/Playlists/Playlist_DefaultDuo.Playlist_DefaultDuo");
-
-	// Playlist = FindObject("/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground");
-
-	// Playlist = FindObject("/Game/Athena/Playlists/Carmine/Playlist_Carmine.Playlist_Carmine");
-
-	// Playlist = FindObject("/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame");
-	// Playlist = FindObject("/Game/Athena/Playlists/DADBRO/Playlist_DADBRO_Squads_8.Playlist_DADBRO_Squads_8");
-
-	// Playlist = FindObject("/Game/Athena/Playlists/Low/Playlist_Low_Solo.Playlist_Low_Solo");
-
 	if (Globals::bCreative)
 		Playlist = FindObject("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
 	return Playlist;
+}
+
+enum class EFortAthenaPlaylist : uint8_t
+{
+	AthenaSolo = 0,
+	AthenaDuo = 1,
+	AthenaSquad = 2,
+	EFortAthenaPlaylist_MAX = 3
+};
+
+EFortAthenaPlaylist GetPlaylistForOldVersion()
+{
+	return PlaylistName.contains("Solo") ? EFortAthenaPlaylist::AthenaSolo : PlaylistName.contains("Duo")
+		? EFortAthenaPlaylist::AthenaDuo : PlaylistName.contains("Squad")
+		? EFortAthenaPlaylist::AthenaSquad : EFortAthenaPlaylist::AthenaSolo;
 }
 
 void ShowFoundation(UObject* BuildingFoundation)
@@ -274,8 +283,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		LOG_INFO(LogDev, "Presetup!");
 
 		GameMode->Get<int>("WarmupRequiredPlayerCount") = 1;
-		
-		if (Fortnite_Version >= 3) // idk when they switched off id
+
+		static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
+
+		if (CurrentPlaylistDataOffset != -1 || Fortnite_Version >= 6) // idk when they switched off id
 		{
 			auto PlaylistToUse = GetPlaylistToUse();
 
@@ -293,6 +304,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 					LOG_INFO(LogDev, "Set playlist to {}!", CurrentPlaylist->IsValidLowLevel() ? CurrentPlaylist->GetFullName() : "Invalid");
 				}
 			}
+		}
+		else
+		{
+			auto OldPlaylist = GetPlaylistForOldVersion();
 		}
 
 		// if (false)
@@ -613,7 +628,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
-	auto Playlist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
+	UObject* Playlist = nullptr;
 
 	static int CurrentTeamMembers = 0; // bad
 	static int Current = 3;
@@ -630,13 +645,30 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	// std::cout << "Dru!\n";
 
-	if (!Playlist)
+	int MaxSquadSize = 1;
+
+	if (CurrentPlaylistDataOffset != -1 || Fortnite_Version >= 6)
 	{
-		CurrentTeamMembers = 0;
-		LOG_INFO(LogTeams, "Player is going on team {} with {} members (No Playlist).", Current, CurrentTeamMembers);
-		CurrentTeamMembers++;
-		return Current;
-		return Current++;
+		Playlist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
+
+		if (!Playlist)
+		{
+			CurrentTeamMembers = 0;
+			LOG_INFO(LogTeams, "Player is going on team {} with {} members (No Playlist).", Current, CurrentTeamMembers);
+			CurrentTeamMembers++;
+			return Current++;
+		}
+
+		static auto MaxSquadSizeOffset = Playlist->GetOffset("MaxSquadSize");
+		MaxSquadSize = Playlist->Get<int>(MaxSquadSizeOffset);
+	}
+	else
+	{
+		auto OldPlaylist = GetPlaylistForOldVersion();
+		MaxSquadSize = OldPlaylist == EFortAthenaPlaylist::AthenaSolo ? 1
+			: OldPlaylist == EFortAthenaPlaylist::AthenaDuo ? 2
+			: OldPlaylist == EFortAthenaPlaylist::AthenaSquad ? 4
+			: 1;
 	}
 
 	static int NextTeamIndex = 3; // Playlist->Get<uint8>("DefaultFirstTeam"); // + 1?
@@ -652,9 +684,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	// std::cout << "CurrentTeamMembers: " << CurrentTeamMembers << '\n';
 
-	static auto MaxSquadSizeOffset = Playlist->GetOffset("MaxSquadSize");
-
-	if (CurrentTeamMembers >= Playlist->Get<int>(MaxSquadSizeOffset))
+	if (CurrentTeamMembers >= MaxSquadSize)
 	{
 		// std::cout << "Moving next team!\n";
 
@@ -686,6 +716,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		{
 			LastNum69 = AmountOfRestarts;
 
+			SpawnBGAs();
+
 			auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
 			auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
@@ -699,6 +731,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			EFortPickupSourceTypeFlag SpawnFlag = EFortPickupSourceTypeFlag::Container;
 
+			bool bTest = false;
 			bool bPrintWarmup = false;
 
 			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
@@ -729,7 +762,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 					}
 				}
 
-				CurrentActor->K2_DestroyActor();
+				if (!bTest)
+					CurrentActor->K2_DestroyActor();
 			}
 
 			bool bPrint = false;
@@ -760,7 +794,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 					}
 				}
 
-				CurrentActor->K2_DestroyActor();
+				if (!bTest)
+					CurrentActor->K2_DestroyActor();
 			}
 
 			// SpawnIsland_FloorLoot_Actors.Free();
@@ -850,29 +885,16 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	if (Globals::bAbilitiesEnabled)
 	{
-		static auto FortAbilitySetClass = FindObject<UClass>("/Script/FortniteGame.FortAbilitySet");
-
-		static auto GameplayAbilitySet = Fortnite_Version >= 8.30 ? // LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
-			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer", FortAbilitySetClass) :
-			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer", FortAbilitySetClass);
+		static auto GameplayAbilitySet = (UFortAbilitySet*)(Fortnite_Version >= 8.30 ? // LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
+			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer", UFortAbilitySet::StaticClass()) :
+			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer", UFortAbilitySet::StaticClass()));
 
 		LOG_INFO(LogDev, "GameplayAbilitySet {}", __int64(GameplayAbilitySet));
 
 		if (GameplayAbilitySet)
 		{
 			LOG_INFO(LogDev, "GameplayAbilitySet Name {}", GameplayAbilitySet->GetName());
-			static auto GameplayAbilitiesOffset = GameplayAbilitySet->GetOffset("GameplayAbilities");
-			auto GameplayAbilities = GameplayAbilitySet->GetPtr<TArray<UClass*>>(GameplayAbilitiesOffset);
-
-			for (int i = 0; i < GameplayAbilities->Num(); i++)
-			{
-				UClass* AbilityClass = GameplayAbilities->At(i);
-
-				if (!AbilityClass)
-					continue;
-
-				PlayerStateAthena->GetAbilitySystemComponent()->GiveAbilityEasy(AbilityClass);
-			}
+			GameplayAbilitySet->GiveToAbilitySystem(PlayerStateAthena->GetAbilitySystemComponent());
 		}
 	}
 

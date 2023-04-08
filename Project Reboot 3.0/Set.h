@@ -190,11 +190,13 @@ public:
     }
     FORCEINLINE bool Remove(const SetType& ElementToRemove)
     {
-        return Elements.RemoveAt(Find(ElementToRemove));
+        Elements.RemoveAt(Find(ElementToRemove));
+        return true;
     }
     FORCEINLINE bool Remove(int Index)
     {
-        return Elements.RemoveAt(Index);
+        Elements.RemoveAt(Index);
+        return true;
     }
 };
 

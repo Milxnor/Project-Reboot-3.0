@@ -194,6 +194,47 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
+		else if (Command == "spawnpickup")
+		{
+			if (NumArgs < 1)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a WID!");
+				return;
+			}
+
+			auto Pawn = PlayerController->GetMyFortPawn();
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn!");
+				return;
+			}
+
+			auto& weaponName = Arguments[1];
+			int count = 1;
+
+			try
+			{
+				if (NumArgs >= 2)
+					count = std::stoi(Arguments[2]);
+			}
+			catch (...)
+			{
+			}
+
+			// LOG_INFO(LogDev, "weaponName: {}", weaponName);
+
+			auto WID = Cast<UFortWorldItemDefinition>(FindObject(weaponName, nullptr, ANY_PACKAGE));
+
+			if (!WID)
+			{
+				SendMessageToConsole(PlayerController, L"Invalid WID!");
+				return;
+			}
+
+			auto Location = Pawn->GetActorLocation();
+			AFortPickup::SpawnPickup(WID, Location, count);
+		}
 		else if (Command == "listplayers")
 		{
 			std::string PlayerNames;
@@ -284,7 +325,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			Pawn->SetCanBeDamaged(!Pawn->CanBeDamaged());
 			SendMessageToConsole(PlayerController, std::wstring(L"God set to " + std::to_wstring(!(bool)Pawn->CanBeDamaged())).c_str());
-		}
+		} */
 		else if (Command == "applycid")
 		{
 			auto PlayerState = Cast<AFortPlayerState>(ReceivingController->GetPlayerState());
@@ -309,7 +350,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			ApplyCID(Pawn, CIDDef);
 			SendMessageToConsole(PlayerController, L"Applied CID!");
-		} */
+		}
 		else if (Command == "summon")
 		{
 			if (Arguments.size() <= 1)

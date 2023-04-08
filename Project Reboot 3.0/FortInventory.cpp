@@ -2,6 +2,9 @@
 #include "FortPlayerController.h"
 #include "FortPickup.h"
 #include "FortQuickBars.h"
+#include "FortPlayerPawnAthena.h"
+#include "FortGameStateAthena.h"
+#include "FortGameModeAthena.h"
 
 UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItemDefinition* ItemDefinition, int Count)
 {
@@ -28,6 +31,10 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		else
 			LoadedAmmo = 0;
 	}
+
+	// ShouldForceFocusWhenAdded
+
+	auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemDefinition);
 
 	auto& ItemInstances = GetItemList().GetItemInstances();
 
@@ -158,6 +165,27 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 				QuickBars->ProcessEvent(ServerAddItemInternalFn, &AFortQuickBars_ServerAddItemInternal_Params);
 			}
 		}
+
+		/* if (FortPlayerController && WorldItemDefinition) // Hmm
+		{
+			auto Pawn = Cast<AFortPlayerPawnAthena>(FortPlayerController->GetMyFortPawn());
+			auto GameState = Cast<AFortGameStateAthena>(((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameState());
+
+			if (Pawn)
+			{
+				static auto InventorySpecialActorUniqueIDOffset = WorldItemDefinition->GetOffset("InventorySpecialActorUniqueID");
+				auto& InventorySpecialActorUniqueID = WorldItemDefinition->Get<FName>(InventorySpecialActorUniqueIDOffset);
+
+				static auto ItemSpecialActorIDOffset = Pawn->GetOffset("ItemSpecialActorID");
+				Pawn->Get<FName>(ItemSpecialActorIDOffset) = InventorySpecialActorUniqueID;
+
+				static auto ItemSpecialActorCategoryIDOffset = Pawn->GetOffset("ItemSpecialActorCategoryID");
+				Pawn->Get<FName>(ItemSpecialActorCategoryIDOffset) = InventorySpecialActorUniqueID;
+
+				static auto BecameSpecialActorTimeOffset = Pawn->GetOffset("BecameSpecialActorTime");
+				Pawn->Get<float>(BecameSpecialActorTimeOffset) = GameState->GetServerWorldTimeSeconds();
+			}
+		} */
 
 		if (bShouldUpdate)
 			*bShouldUpdate = true;

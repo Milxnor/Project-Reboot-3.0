@@ -80,6 +80,7 @@ public:
 	}
 
 	bool DoesBuildFree();
+	void DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar = false, bool bRemoveIfNotDroppable = false);
 
 	static void ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid);
 	static void ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret);

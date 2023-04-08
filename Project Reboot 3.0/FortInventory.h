@@ -9,7 +9,6 @@
 
 #include "reboot.h"
 
-
 static bool IsPrimaryQuickbar(UFortItemDefinition* ItemDefinition)
 {
 	/* if (ItemDefinition->IsA(UFortDecoItemDefinition::StaticClass()))

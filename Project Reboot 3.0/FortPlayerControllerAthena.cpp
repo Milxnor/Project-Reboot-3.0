@@ -100,7 +100,7 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 				CopyStruct(PawnAsFort->GetPtr<__int64>(Pawn_CosmeticLoadoutOffset), CosmeticLoadout, FFortAthenaLoadout::GetStructSize());
 			} */
 
-			ApplyCID(PawnAsFort, CosmeticLoadout->GetCharacter());
+			ApplyCID(PawnAsFort, CosmeticLoadout->GetCharacter(), true);
 
 			auto Backpack = CosmeticLoadout->GetBackpack();
 

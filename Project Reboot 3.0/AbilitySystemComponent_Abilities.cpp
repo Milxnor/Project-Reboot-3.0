@@ -25,6 +25,31 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 	}
 }
 
+FActiveGameplayEffectHandle UAbilitySystemComponent::ApplyGameplayEffectToSelf(UClass* GameplayEffectClass, float Level, const FGameplayEffectContextHandle& EffectContext)
+{
+	static auto BP_ApplyGameplayEffectToSelfFn = FindObject<UFunction>("/Script/GameplayAbilities.AbilitySystemComponent.BP_ApplyGameplayEffectToSelf");
+
+	struct
+	{
+		UClass* GameplayEffectClass;                                      // (Parm, ZeroConstructor, IsPlainOldData)
+		float                                              Level;                                                    // (Parm, ZeroConstructor, IsPlainOldData)
+		FGameplayEffectContextHandle                EffectContext;                                            // (Parm)
+		FActiveGameplayEffectHandle                 ReturnValue;                                              // (Parm, OutParm, ReturnParm)
+	}UAbilitySystemComponent_BP_ApplyGameplayEffectToSelf_Params{GameplayEffectClass, Level, EffectContext};
+
+	this->ProcessEvent(BP_ApplyGameplayEffectToSelfFn, &UAbilitySystemComponent_BP_ApplyGameplayEffectToSelf_Params);
+
+	return UAbilitySystemComponent_BP_ApplyGameplayEffectToSelf_Params.ReturnValue;
+}
+
+/* FGameplayEffectContextHandle UAbilitySystemComponent::MakeEffectContext()
+{
+	static auto MakeEffectContextFn = FindObject<UFunction>("/Script/GameplayAbilities.AbilitySystemComponent.MakeEffectContext");
+	FGameplayEffectContextHandle ContextHandle;
+	this->ProcessEvent(MakeEffectContextFn, &ContextHandle);
+	return ContextHandle;
+} */
+
 void UAbilitySystemComponent::RemoveActiveGameplayEffectBySourceEffect(UClass* GEClass, int StacksToRemove, UAbilitySystemComponent* Instigator)
 {
 	static auto RemoveActiveGameplayEffectBySourceEffectFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.RemoveActiveGameplayEffectBySourceEffect");
@@ -98,11 +123,11 @@ void UAbilitySystemComponent::InternalServerTryActivateAbilityHook(UAbilitySyste
 	}
 }
 
-FGameplayAbilitySpecHandle UAbilitySystemComponent::GiveAbilityEasy(UClass* AbilityClass)
+FGameplayAbilitySpecHandle UAbilitySystemComponent::GiveAbilityEasy(UClass* AbilityClass, UObject* SourceObject)
 {
 	// LOG_INFO(LogDev, "Making spec!");
 
-	auto NewSpec = MakeNewSpec(AbilityClass);
+	auto NewSpec = MakeNewSpec(AbilityClass, SourceObject);
 
 	// LOG_INFO(LogDev, "Made spec!");
 

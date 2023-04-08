@@ -236,6 +236,7 @@
     <ClInclude Include="Array.h" />
     <ClInclude Include="AssetPtr.h" />
     <ClInclude Include="AthenaMarkerComponent.h" />
+    <ClInclude Include="BGA.h" />
     <ClInclude Include="BitArray.h" />
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="BuildingContainer.h" />
@@ -257,9 +258,11 @@
     <ClInclude Include="EngineTypes.h" />
     <ClInclude Include="events.h" />
     <ClInclude Include="finder.h" />
+    <ClInclude Include="FortAbilitySet.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
     <ClInclude Include="FortAthenaSupplyDrop.h" />
     <ClInclude Include="FortDecoItemDefinition.h" />
+    <ClInclude Include="FortGadgetItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />
     <ClInclude Include="FortGameModeAthena.h" />
     <ClInclude Include="FortGameModePvPBase.h" />
@@ -342,6 +345,7 @@
     <ClInclude Include="UObjectGlobals.h" />
     <ClInclude Include="Vector.h" />
     <ClInclude Include="vehicles.h" />
+    <ClInclude Include="vendingmachine.h" />
     <ClInclude Include="WeakObjectPtr.h" />
     <ClInclude Include="WeakObjectPtrTemplates.h" />
     <ClInclude Include="World.h" />

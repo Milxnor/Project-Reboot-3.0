@@ -844,6 +844,8 @@ static inline uint64 FindGIsServer()
 		}
 	} */
 
+	if (Fortnite_Version == 4.1)
+		return __int64(GetModuleHandleW(0)) + 0x4BF6F18;
 	if (Fortnite_Version == 10.40)
 		return __int64(GetModuleHandleW(0)) + 0x637925C;
 	if (Fortnite_Version == 12.41)
@@ -1148,7 +1150,7 @@ static inline uint64 FindPickTeam()
 	if (!Addr.Get())
 		Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%s]"); // i don't even know what version this is
 
-	return FindBytes(Addr, Fortnite_Version <= 2.5 ? std::vector<uint8_t>{ 0x48, 0x89, 0x6C } : std::vector<uint8_t>{ 0x40, 0x55 }, 1000, 0, true);
+	return FindBytes(Addr, Fortnite_Version <= 4.1 ? std::vector<uint8_t>{ 0x48, 0x89, 0x6C } : std::vector<uint8_t>{ 0x40, 0x55 }, 1000, 0, true);
 }
 
 static inline uint64 FindInternalTryActivateAbility()

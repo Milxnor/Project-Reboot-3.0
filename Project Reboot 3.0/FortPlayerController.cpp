@@ -17,6 +17,8 @@
 #include "FortPlayerPawn.h"
 #include <memcury.h>
 #include "KismetStringLibrary.h"
+#include "FortGadgetItemDefinition.h"
+#include "FortAbilitySet.h"
 
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
@@ -35,6 +37,72 @@ bool AFortPlayerController::DoesBuildFree()
 	return ReadBitfieldValue(bBuildFreeOffset, bBuildFreeFieldMask);
 }
 
+void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar, bool bRemoveIfNotDroppable)
+{
+	auto Pawn = this->GetMyFortPawn();
+
+	if (!Pawn)
+		return;
+
+	auto WorldInventory = this->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
+	auto Location = Pawn->GetActorLocation();
+
+	std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
+
+	for (int i = 0; i < ItemInstances.Num(); i++)
+	{
+		auto ItemInstance = ItemInstances.at(i);
+
+		if (!ItemInstance)
+			continue;
+
+		auto ItemEntry = ItemInstance->GetItemEntry();
+		auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
+
+		if (!WorldItemDefinition || std::find(IgnoreItemDefs.begin(), IgnoreItemDefs.end(), WorldItemDefinition) != IgnoreItemDefs.end())
+			continue;
+
+		if (bIgnoreSecondaryQuickbar && !IsPrimaryQuickbar(WorldItemDefinition))
+			continue;
+
+		auto ShouldBeDropped = !WorldItemDefinition->CanBeDropped();
+
+		if (!bRemoveIfNotDroppable && ShouldBeDropped)
+			continue;
+
+		GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
+
+		if (!ShouldBeDropped)
+			continue;
+	
+		AFortPickup::SpawnPickup(WorldItemDefinition, Location, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset,
+			ItemEntry->GetLoadedAmmo());
+	}
+
+	for (auto& Pair : GuidAndCountsToRemove)
+	{
+		WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
+	}
+
+	WorldInventory->Update();
+}
+
+class Wtf
+{
+public:
+	AFortPlayerController* Controller;
+
+	virtual AFortPlayerController* GetController()
+	{
+		return Controller;
+	}
+};
+
 void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid)
 {
 	if (Engine_Version <= 420)
@@ -46,7 +114,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	}
 
 	auto ItemInstance = PlayerController->GetWorldInventory()->FindItemInstance(ItemGuid);
-	auto Pawn = Cast<AFortPawn>(PlayerController->GetPawn());
+	auto Pawn = Cast<AFortPlayerPawn>(PlayerController->GetPawn());
 
 	if (!ItemInstance || !Pawn)
 		return;
@@ -56,11 +124,13 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	if (!ItemDefinition)
 		return;
 
-	// LOG_INFO(LogDev, "ItemDefinition: {}", ItemDefinition->GetFullName());
+	// LOG_INFO(LogDev, "Equipping ItemDefinition: {}", ItemDefinition->GetFullName());
 
 	static auto FortGadgetItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortGadgetItemDefinition");
 
-	if (ItemDefinition->IsA(FortGadgetItemDefinitionClass))
+	UFortGadgetItemDefinition* GadgetItemDefinition = nullptr;
+
+	if (GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition))
 	{
 		static auto GetWeaponItemDefinition = FindObject<UFunction>("/Script/FortniteGame.FortGadgetItemDefinition.GetWeaponItemDefinition");
 
@@ -73,11 +143,96 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 			static auto GetDecoItemDefinition = FindObject<UFunction>("/Script/FortniteGame.FortGadgetItemDefinition.GetDecoItemDefinition");
 			ItemDefinition->ProcessEvent(GetDecoItemDefinition, &ItemDefinition);
 		}
+
+		LOG_INFO(LogDev, "Equipping Gadget: {}", ItemDefinition->GetFullName());
 	}
+
+	/*
+	if (GadgetItemDefinition)
+	{
+		static auto AbilitySetOffset = GadgetItemDefinition->GetOffset("AbilitySet");
+		auto& AbilitySetSoft = GadgetItemDefinition->Get<TSoftObjectPtr<UFortAbilitySet>>(AbilitySetOffset);
+
+		auto StrongAbilitySet = AbilitySetSoft.Get(UFortAbilitySet::StaticClass(), true);
+
+		if (StrongAbilitySet)
+		{
+			auto PlayerState = (AFortPlayerStateAthena*)PlayerController->GetPlayerState();
+			StrongAbilitySet->GiveToAbilitySystem(PlayerState->GetAbilitySystemComponent());
+		}
+
+		static auto AttributeSetOffset = GadgetItemDefinition->GetOffset("AttributeSet");
+		auto& AttributeSetSoft = GadgetItemDefinition->Get<TSoftObjectPtr<UObject>>(AttributeSetOffset);
+
+		static auto AttributeClass = FindObject<UClass>("/Script/GameplayAbilities.AttributeSet");
+		auto StrongAttributeSet = AttributeSetSoft.Get(AttributeClass, true);
+		AttributeSetSoft.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+
+		if (StrongAttributeSet)
+		{
+
+		}
+
+		if (GadgetItemDefinition->ShouldDropAllItemsOnEquip())
+		{
+			PlayerController->DropAllItems({ GadgetItemDefinition });
+		}
+
+		static auto AnimBPOverrideOffset = GadgetItemDefinition->GetOffset("AnimBPOverride");
+		UObject* AnimBPOverride = nullptr;
+
+		if (Fortnite_Version >= 6)
+		{
+			auto& AnimBPOverrideSoft = GadgetItemDefinition->Get<TSoftObjectPtr<UObject>>(AnimBPOverrideOffset);
+
+			static auto AnimInstanceClass = FindObject<UClass>("/Script/Engine.AnimInstance");
+			AnimBPOverride = AnimBPOverrideSoft.Get(AnimInstanceClass, true);
+		}
+		else
+		{
+			AnimBPOverride = GadgetItemDefinition->Get(AnimBPOverrideOffset);
+		}
+
+		if (AnimBPOverride)
+		{
+			static auto Pawn_AnimBPOverrideOffset = Pawn->GetOffset("AnimBPOverride");
+			Pawn->Get(Pawn_AnimBPOverrideOffset) = AnimBPOverride;
+		}
+
+		static auto FootstepBankOverrideOffset = GadgetItemDefinition->GetOffset("FootstepBankOverride");
+		UObject* FootstepBankOverride = nullptr;
+
+		if (Fortnite_Version >= 6)
+		{
+			auto& FootstepBankOverrideSoft = GadgetItemDefinition->Get<TSoftObjectPtr<UObject>>(FootstepBankOverrideOffset);
+
+			static auto FortFootstepAudioBankClass = FindObject<UClass>("/Script/FortniteGame.FortFootstepAudioBank");
+			FootstepBankOverride = FootstepBankOverrideSoft.Get(FortFootstepAudioBankClass, true);
+		}
+		else
+		{
+			FootstepBankOverride = GadgetItemDefinition->Get(FootstepBankOverrideOffset);
+		}
+
+		if (FootstepBankOverride)
+		{
+			static auto Pawn_FootstepBankOverrideOffset = Pawn->GetOffset("FootstepBankOverride");
+			Pawn->Get(Pawn_FootstepBankOverrideOffset) = FootstepBankOverride;
+		}
+
+		static auto CharacterPartsOffset = GadgetItemDefinition->GetOffset("CharacterParts");
+		auto& CharacterParts = GadgetItemDefinition->Get<TArray<UObject*>>(CharacterPartsOffset);
+
+		for (int i = 0; i < CharacterParts.Num(); i++)
+		{
+			Pawn->ServerChoosePart((EFortCustomPartType)i, CharacterParts.at(i));
+		}
+	}
+	*/
 
 	if (auto DecoItemDefinition = Cast<UFortDecoItemDefinition>(ItemDefinition))
 	{
-		Pawn->PickUpActor(nullptr, DecoItemDefinition); // todo check ret value?
+		Pawn->PickUpActor(nullptr, DecoItemDefinition); // todo check ret value? // I checked on 1.7.2 and it only returns true if the new weapon is a FortDecoTool
 		Pawn->GetCurrentWeapon()->GetItemEntryGuid() = ItemGuid;
 
 		static auto FortDecoTool_ContextTrapStaticClass = FindObject<UClass>("/Script/FortniteGame.FortDecoTool_ContextTrap");
@@ -220,7 +375,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		auto Vehicle = ReceivingActor;
 		ServerAttemptInteractOriginal(Context, Stack, Ret);
 
-		// return;
+		return;
 
 		auto Pawn = (AFortPlayerPawn*)PlayerController->GetMyFortPawn();
 
@@ -270,18 +425,26 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 			LOG_INFO(LogDev, "Vehicle eaponb name: {}", VehicleWeaponDef->GetFullName());
 
 			auto WorldInventory = PlayerController->GetWorldInventory();
-			auto ahh = WorldInventory->AddItem(VehicleWeaponDef, nullptr);
 
-			auto newitem = ahh.first[0];
+			if (!WorldInventory)
+				continue;
 
-			LOG_INFO(LogDev, "newitem: {}", __int64(newitem));
+			{
+				auto ahh = WorldInventory->AddItem(VehicleWeaponDef, nullptr);
 
-			if (!newitem)
-				return;
+				auto newitem = ahh.first[0];
 
-			PlayerController->ServerExecuteInventoryItemHook(PlayerController, newitem->GetItemEntry()->GetItemGuid());
+				LOG_INFO(LogDev, "newitem: {}", __int64(newitem));
 
-			WorldInventory->Update();
+				if (!newitem)
+					return;
+
+				WorldInventory->Update();
+
+				Pawn->EquipWeaponDefinition(VehicleWeaponDef, newitem->GetItemEntry()->GetItemGuid());
+				// PlayerController->ServerExecuteInventoryItemHook(PlayerController, newitem->GetItemEntry()->GetItemGuid());
+			}
+
 			break;
 		}
 
@@ -326,44 +489,11 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	// PlayerController->ServerRestartPlayer();
 }
 
+
+
 void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)
 {
-	auto Pawn = PlayerController->GetMyFortPawn();
-
-	if (!Pawn)
-		return;
-
-	auto WorldInventory = PlayerController->GetWorldInventory();
-
-	if (!WorldInventory)
-		return;
-
-	auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
-	auto Location = Pawn->GetActorLocation();
-
-	for (int i = 0; i < ItemInstances.Num(); i++)
-	{
-		auto ItemInstance = ItemInstances.at(i);
-
-		if (!ItemInstance)
-			continue;
-
-		auto ItemEntry = ItemInstance->GetItemEntry();
-		auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
-
-		if (!WorldItemDefinition)
-			continue;
-
-		// if (!WorldItemDefinition->ShouldDropOnDeath())
-			// continue;
-
-		AFortPickup::SpawnPickup(WorldItemDefinition, Location, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
-			ItemEntry->GetLoadedAmmo()); // I do playerelimation flag here ik we shouldnt but it makes it go in circle iirc
-
-		WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
-	}
-
-	WorldInventory->Update();
+	PlayerController->DropAllItems({ IgnoreItemDef });
 }
 
 void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFrame* Stack, void* Ret)

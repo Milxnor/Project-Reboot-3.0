@@ -163,6 +163,9 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     static std::vector<UDataTable*> LTDTables;
     static std::vector<UDataTable*> LPTables;
 
+    static auto DataTableClass = FindObject<UClass>("/Script/Engine.DataTable");
+    static auto CompositeDataTableClass = FindObject<UClass>("/Script/Engine.CompositeDataTable");
+
     static bool bHasFoundTables = false;
 
     auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
@@ -172,9 +175,6 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         bHasFoundTables = true;
 
         bool bFoundPlaylistTable = false;
-
-        static auto DataTableClass = FindObject<UClass>("/Script/Engine.DataTable");
-        static auto CompositeDataTableClass = FindObject<UClass>("/Script/Engine.CompositeDataTable");
 
         if (CurrentPlaylist)
         {
@@ -380,6 +380,36 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
         LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
         LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
+
+        bool bFoundPlaylistTable = false;
+
+        if (CurrentPlaylist)
+        {
+            static auto LootTierDataOffset = CurrentPlaylist->GetOffset("LootTierData");
+            auto& LootTierDataSoft = CurrentPlaylist->Get<TSoftObjectPtr<UDataTable>>(LootTierDataOffset);
+
+            static auto LootPackagesOffset = CurrentPlaylist->GetOffset("LootPackages");
+            auto& LootPackagesSoft = CurrentPlaylist->Get<TSoftObjectPtr<UDataTable>>(LootPackagesOffset);
+
+            if (LootTierDataSoft.IsValid() && LootPackagesSoft.IsValid())
+            {
+                auto LootTierDataStr = LootTierDataSoft.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                auto LootPackagesStr = LootPackagesSoft.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                auto LootTierDataTableIsComposite = LootTierDataStr.contains("Composite");
+                auto LootPackageTableIsComposite = LootPackagesStr.contains("Composite");
+
+                auto StrongLootTierData = LootTierDataSoft.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                auto StrongLootPackage = LootPackagesSoft.Get(LootPackageTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+
+                if (StrongLootTierData && StrongLootPackage)
+                {
+                    LTDTables.push_back(StrongLootTierData);
+                    LPTables.push_back(StrongLootPackage);
+
+                    bFoundPlaylistTable = true;
+                }
+            }
+        }
     }
 
     std::vector<FFortLootTierData*> TierGroupLTDs;
@@ -419,11 +449,6 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     {
         LOG_WARN(LogLoot, "Failed to find any LTD for: {}", TierGroupName.ToString());
         return LootDrops;
-    }
-
-    if (bPrint)
-    {
-        std::cout << "TierGroupLTDs.size(): " << TierGroupLTDs.size() << '\n';
     }
 
     FFortLootTierData* ChosenRowLootTierData = GetLootTierData(TierGroupLTDs, bPrint);
@@ -644,7 +669,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
             continue;
         }
 
-        auto ItemDef = LootPackageCall->GetItemDefinition().Get();
+        auto ItemDef = LootPackageCall->GetItemDefinition().Get(UFortItemDefinition::StaticClass(), true);
 
         if (!ItemDef)
         {

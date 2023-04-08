@@ -4,6 +4,8 @@
 #include "BitArray.h"
 #include "log.h"
 
+#define INDEX_NONE -1
+
 template <typename ElementType>
 union TSparseArrayElementOrListLink
 {
@@ -151,6 +153,18 @@ public:
     {
         return Data;
     }
+    FSparseArrayElement& GetData(int32 Index)
+    {
+        return *(FSparseArrayElement*)&Data.at(Index).ElementData;
+        // return ((FSparseArrayElement*)Data.Data)[Index];
+    }
+
+    /** Accessor for the element or free list data. */
+    const FSparseArrayElement& GetData(int32 Index) const
+    {
+        return *(const FSparseArrayElement*)&Data.at(Index).ElementData;
+        // return ((FSparseArrayElement*)Data.Data)[Index];
+    }
     FORCEINLINE const TBitArray& GetAllocationFlags() const
     {
         return AllocationFlags;
@@ -160,6 +174,44 @@ public:
         return AllocationFlags.IsSet(IndexToCheck);
     }
 
+    void RemoveAt(int32 Index, int32 Count = 1)
+    {
+        /* if (!TIsTriviallyDestructible<ElementType>::Value)
+        {
+            for (int32 It = Index, ItCount = Count; ItCount; ++It, --ItCount)
+            {
+                ((ElementType&)GetData(It).ElementData).~ElementType();
+            }
+        } */
+
+        RemoveAtUninitialized(Index, Count);
+    }
+
+    /** Removes Count elements from the array, starting from Index, without destructing them. */
+    void RemoveAtUninitialized(int32 Index, int32 Count = 1)
+    {
+        for (; Count; --Count)
+        {
+            // check(AllocationFlags[Index]);
+
+            // Mark the element as free and add it to the free element list.
+            if (NumFreeIndices)
+            {
+                GetData(FirstFreeIndex).PrevFreeIndex = Index;
+            }
+            auto& IndexData = GetData(Index);
+            IndexData.PrevFreeIndex = -1;
+            IndexData.NextFreeIndex = NumFreeIndices > 0 ? FirstFreeIndex : INDEX_NONE;
+            FirstFreeIndex = Index;
+            ++NumFreeIndices;
+            AllocationFlags.Set(Index, false);
+            // AllocationFlags[Index] = false;
+
+            ++Index;
+        }
+    }
+
+    /*
     FORCEINLINE bool RemoveAt(const int32 IndexToRemove)
     {
         LOG_INFO(LogDev, "IndexToRemove: {}", IndexToRemove);
@@ -173,12 +225,12 @@ public:
 
             LOG_INFO(LogDev, "NumFreeIndices: {}", NumFreeIndices);
 
-            /* if (NumFreeIndices == 0)
+            if (NumFreeIndices == 0)
             {
                 FirstFreeIndex = IndexToRemove;
                 Data.at(IndexToRemove) = { -1, -1 };
             }
-            else */
+            else
             {
                 for (auto It = AllocationFlags.begin(); It != AllocationFlags.end(); ++It)
                 {
@@ -204,4 +256,5 @@ public:
         }
         return false;
     }
+    */
 };

@@ -30,6 +30,17 @@ public:
 		return ReadBitfieldValue(bPersistInInventoryWhenFinalStackEmptyOffset, bPersistInInventoryWhenFinalStackEmptyFieldMask);
 	}
 
+	bool ShouldForceFocusWhenAdded()
+	{
+		static auto bForceFocusWhenAddedOffset = GetOffset("bForceFocusWhenAdded");
+		
+		if (bForceFocusWhenAddedOffset == -1)
+			return false;
+
+		static auto bForceFocusWhenAddedFieldMask = GetFieldMask(GetProperty("bForceFocusWhenAdded"));
+		return ReadBitfieldValue(bForceFocusWhenAddedOffset, bForceFocusWhenAddedFieldMask);
+	}
+
 	static UClass* StaticClass()
 	{
 		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortWorldItemDefinition");
