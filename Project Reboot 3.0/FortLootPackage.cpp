@@ -415,6 +415,12 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
     }
 
+    if (LTDTables.size() <= 0 || LPTables.size() <= 0)
+    {
+        LOG_WARN(LogLoot, "Empty tables! ({} {})", LTDTables.size(), LPTables.size());
+        return LootDrops;
+    }
+
     std::vector<FFortLootTierData*> TierGroupLTDs;
 
     for (int p = 0; p < LTDTables.size(); p++)
@@ -426,7 +432,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
         if (!LTD->IsValidLowLevel())
         {
-            if (bPrint)
+            // if (bPrint)
                 LOG_INFO(LogLoot, "BadRead!");
 
             continue;

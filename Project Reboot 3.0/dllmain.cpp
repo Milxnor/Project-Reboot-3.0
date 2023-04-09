@@ -59,6 +59,8 @@ static __int64 DispatchRequestHook(__int64 a1, __int64* a2, int a3)
     if (Engine_Version >= 423)
         return DispatchRequestOriginal(a1, a2, 3); 
 
+    // LOG_INFO(LogDev, "Dispatch Request!");
+
     static auto Offset = FindMcpIsDedicatedServerOffset();
 
     *(int*)(__int64(a2) + Offset) = 3;
@@ -523,7 +525,7 @@ DWORD WINAPI Main(LPVOID)
             AFortPlayerController::ServerAttemptAircraftJumpHook, nullptr, false);
     }
 
-    if (false)
+    // if (false)
     {
         if (Fortnite_Version >= 8.3) // I can't remember, so ServerAddMapMarker existed on like 8.0 or 8.1 or 8.2 but it didn't have the same params.
         {

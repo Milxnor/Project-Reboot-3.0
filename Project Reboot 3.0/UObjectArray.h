@@ -163,7 +163,7 @@ extern inline FFixedUObjectArray* UnchunkedObjects = 0;
 
 FORCEINLINE UObject* GetObjectByIndex(int32 Index)
 {
-	return ChunkedObjects ? ChunkedObjects->GetObjectByIndex(Index) : UnchunkedObjects->GetObjectByIndex(Index);
+	return ChunkedObjects ? ChunkedObjects->GetObjectByIndex(Index) : UnchunkedObjects ? UnchunkedObjects->GetObjectByIndex(Index) : nullptr;
 }
 
 FORCEINLINE FUObjectItem* GetItemByIndex(int32 Index)

@@ -185,6 +185,9 @@
     <ClCompile Include="FortGameplayAbilityAthena_PeriodicItemGrant.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Abilities</Filter>
     </ClCompile>
+    <ClCompile Include="KismetTextLibrary.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -557,6 +560,15 @@
     <ClInclude Include="DelegateBase.h">
       <Filter>Engine\Source\Runtime\Core\Public\Delegates</Filter>
     </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Internationalization</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedPointerInternals.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="KismetTextLibrary.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Kismet</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -753,6 +765,9 @@
     </Filter>
     <Filter Include="Engine\Source\Runtime\Core\Public\Delegates">
       <UniqueIdentifier>{d01c7b5d-ef89-43ec-b94f-882c419aa74b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\Internationalization">
+      <UniqueIdentifier>{b00f4455-11e7-4fd9-aa6d-2d814788b544}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -581,6 +581,9 @@ static inline uint64 FindNoMCP()
 	if (std::floor(Fortnite_Version) == 4)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 83 A7 ? ? ? ? ? 83 E0 01").RelativeOffset(1).Get();
 
+	if (std::floor(Fortnite_Version) == 5)
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 CE").RelativeOffset(1).Get();
+
 	auto fn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.IsRunningNoMCP");
 	LOG_INFO(LogDev, "fn: {}", __int64(fn));
 
@@ -979,7 +982,7 @@ static inline uint64 FindGIsClient()
 {
 	// if (Fortnite_Version == 2.5)
 		// return __int64(GetModuleHandleW(0)) + 0x46AD734;
-	if (Fortnite_Version == 1.72)
+	/* if (Fortnite_Version == 1.72)
 		return __int64(GetModuleHandleW(0)) + 0x6536B65;
 	if (Fortnite_Version == 1.8) 
 		return __int64(GetModuleHandleW(0)) + 0x66637E5;
@@ -998,15 +1001,15 @@ static inline uint64 FindGIsClient()
 	if (Fortnite_Version == 14.60)
 		return __int64(GetModuleHandleW(0)) + 0x939930D;
 	if (Fortnite_Version == 17.30)
-		return __int64(GetModuleHandleW(0)) + 0x973E49B;
+		return __int64(GetModuleHandleW(0)) + 0x973E49B; */
 
-	return 0;
+	// return 0;
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
 
-	std::vector<std::vector<uint8_t>> BytesArray = { { 0xC6, 0x05 }, { 0x88, 0x1D } };
+	std::vector<std::vector<uint8_t>> BytesArray = {{0xC6, 0x05}, {0x88, 0x1D},  { 0x44, 0x88 } };
 
-	int Skip = 2;
+	int Skip = Engine_Version <= 420 ? 1 : 2;
 
 	uint64 Addy;
 
@@ -1018,6 +1021,8 @@ static inline uint64 FindGIsClient()
 			// std::cout << "CurrentByte: " << std::hex << (int)CurrentByte << '\n';
 
 		bool ShouldBreak = false;
+
+		LOG_INFO(LogDev, "[{}] Byte: 0x{:x}", i, (int)CurrentByte);
 
 		for (auto& Bytes : BytesArray)
 		{
@@ -1034,7 +1039,8 @@ static inline uint64 FindGIsClient()
 				}
 				if (Found)
 				{
-					LOG_INFO(LogDev, "[{}] Skip: 0x{:x}", Skip, Memcury::Scanner(Addr.Get() - i).RelativeOffset(2).Get() - __int64(GetModuleHandleW(0)));
+					int Relative = Bytes[0] == 0x44 ? 3 : 2;
+					LOG_INFO(LogDev, "[{}] No Rel 0x{:x} Rel: 0x{:x}", Skip, Memcury::Scanner(Addr.Get() - i).Get() - __int64(GetModuleHandleW(0)), Memcury::Scanner(Addr.Get() - i).RelativeOffset(Relative).Get() - __int64(GetModuleHandleW(0)));
 
 					if (Skip > 0)
 					{
@@ -1042,7 +1048,7 @@ static inline uint64 FindGIsClient()
 						continue;
 					}
 
-					Addy = Addr.Get() - i;
+					Addy = Memcury::Scanner(Addr.Get() - i).RelativeOffset(Relative).Get();
 					ShouldBreak = true;
 					break;
 				}
@@ -1055,14 +1061,9 @@ static inline uint64 FindGIsClient()
 		// std::cout << std::format("CurrentByte: 0x{:x}\n", (uint8_t)CurrentByte);
 	}
 
-	/* int Skip = 2;
-	auto Addy = FindBytes(Addr, { 0xC6, 0x05 }, 50, 0, true, Skip);
-	Addy = Addy ? Addy : FindBytes(Addr, { 0x44, 0x88 }, 50, 0, true, Skip);
-	Addy = Addy ? Addy : FindBytes(Addr, { 0x88, 0x1D }, 50, 0, true, Skip); */
-
 	LOG_INFO(LogDev, "Addy: 0x{:x}", Addy - __int64(GetModuleHandleW(0)));
 
-	return Memcury::Scanner(Addy).RelativeOffset(2).Get();
+	return Addy; // 0; // Memcury::Scanner(Addy3).RelativeOffset(2).Get();
 
 	/*
 	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");

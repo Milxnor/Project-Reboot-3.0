@@ -42,12 +42,14 @@ enum class EDynamicFoundationType : uint8_t
 	EDynamicFoundationType_MAX = 4
 };
 
-std::string PlaylistName = 
+std::string PlaylistName =
 "/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo";
+// "/Game/Athena/Playlists/Playlist_DefaultDuo.Playlist_DefaultDuo";
 // "/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground";
 // "/Game/Athena/Playlists/Carmine/Playlist_Carmine.Playlist_Carmine";
 // "/Game/Athena/Playlists/Fill/Playlist_Fill_Solo.Playlist_Fill_Solo";
 // "/Game/Athena/Playlists/Low/Playlist_Low_Solo.Playlist_Low_Solo";
+// "/Game/Athena/Playlists/Bling/Playlist_Bling_Solo.Playlist_Bling_Solo";
 
 static UFortPlaylist* GetPlaylistToUse()
 {

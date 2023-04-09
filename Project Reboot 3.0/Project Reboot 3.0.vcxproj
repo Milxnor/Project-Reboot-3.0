@@ -213,6 +213,7 @@
     <ClCompile Include="InventoryManagementLibrary.cpp" />
     <ClCompile Include="KismetMathLibrary.cpp" />
     <ClCompile Include="KismetStringLibrary.cpp" />
+    <ClCompile Include="KismetTextLibrary.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="LevelActor.cpp" />
     <ClCompile Include="NameTypes.cpp" />
@@ -313,6 +314,7 @@
     <ClInclude Include="KismetMathLibrary.h" />
     <ClInclude Include="KismetStringLibrary.h" />
     <ClInclude Include="KismetSystemLibrary.h" />
+    <ClInclude Include="KismetTextLibrary.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="Map.h" />
@@ -337,11 +339,13 @@
     <ClInclude Include="ScriptInterface.h" />
     <ClInclude Include="Set.h" />
     <ClInclude Include="SharedPointer.h" />
+    <ClInclude Include="SharedPointerInternals.h" />
     <ClInclude Include="SoftObjectPath.h" />
     <ClInclude Include="SoftObjectPtr.h" />
     <ClInclude Include="SparseArray.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="StringAssetReference.h" />
+    <ClInclude Include="Text.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Tuple.h" />
     <ClInclude Include="UnrealMathUtility.h" />

@@ -9,6 +9,8 @@ struct FMarkerID { int PlayerID; int InstanceID; };
 
 struct FFortClientMarkerRequest
 {
+	char pad[0x20]; // real
+
 	int& GetInstanceID()
 	{
 		static auto InstanceIDOffset = FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "InstanceID");

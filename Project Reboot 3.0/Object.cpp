@@ -165,6 +165,9 @@ void UObject::AddToRoot()
 
 bool UObject::IsValidLowLevel()
 {
+	if (std::floor(Fortnite_Version) == 5) // real 1:1
+		return true;
+
 	if (this == nullptr)
 	{
 		// UE_LOG(LogUObjectBase, Warning, TEXT("NULL object"));

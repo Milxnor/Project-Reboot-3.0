@@ -32,7 +32,7 @@ public:
 
 	void Set(const wchar_t* NewStr) // by fischsalat
 	{
-		if (!NewStr || std::wcslen(NewStr) == 0) return;
+		if (!NewStr/* || std::wcslen(NewStr) == 0 */) return;
 
 		Data.ArrayMax = Data.ArrayNum = *NewStr ? (int)std::wcslen(NewStr) + 1 : 0;
 

@@ -1,5 +1,7 @@
 #include "AthenaMarkerComponent.h"
 #include "FortPlayerControllerAthena.h"
+#include "Text.h"
+#include "KismetTextLibrary.h"
 
 void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* MarkerComponent, FFortClientMarkerRequest MarkerRequest)
 {
@@ -23,6 +25,7 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 	auto MarkerData = Alloc<FFortWorldMarkerData>(FortWorldMarkerDataSize);
 
 	static auto IconOffset = FindOffsetStruct("/Script/FortniteGame.MarkedActorDisplayInfo", "Icon");
+	static auto DisplayNameOffset = FindOffsetStruct("/Script/FortniteGame.MarkedActorDisplayInfo", "DisplayName");
 	static auto WorldPositionOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "WorldPosition", false);
 	static auto WorldPositionOffsetOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "WorldPositionOffset", false);
 
@@ -39,14 +42,15 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 		MarkerData->GetWorldPositionOffset() = MarkerRequestPtr->GetWorldPositionOffset();
 	MarkerData->GetMarkerID() = MarkerID;
 	MarkerData->GetMarkedActorClass().SoftObjectPtr.WeakPtr.ObjectIndex = -1;
-	MarkerData->GetMarkedActorClass().SoftObjectPtr.TagAtLastTest = -1;
+	MarkerData->GetMarkedActorClass().SoftObjectPtr.TagAtLastTest = 0;
 	MarkerData->GetMarkedActorClass().SoftObjectPtr.WeakPtr.ObjectSerialNumber = 0;
 	MarkerData->GetMarkedActor().SoftObjectPtr.WeakPtr.ObjectIndex = -1;
-	MarkerData->GetMarkedActor().SoftObjectPtr.TagAtLastTest = -1;
+	MarkerData->GetMarkedActor().SoftObjectPtr.TagAtLastTest = 0;
 	MarkerData->GetMarkedActor().SoftObjectPtr.WeakPtr.ObjectSerialNumber = 0;
 	((TSoftObjectPtr<UObject>*)(__int64(MarkerData->GetCustomDisplayInfo()) + IconOffset))->SoftObjectPtr.WeakPtr.ObjectIndex = -1;
-	((TSoftObjectPtr<UObject>*)(__int64(MarkerData->GetCustomDisplayInfo()) + IconOffset))->SoftObjectPtr.TagAtLastTest = -1;
+	((TSoftObjectPtr<UObject>*)(__int64(MarkerData->GetCustomDisplayInfo()) + IconOffset))->SoftObjectPtr.TagAtLastTest = 0;
 	((TSoftObjectPtr<UObject>*)(__int64(MarkerData->GetCustomDisplayInfo()) + IconOffset))->SoftObjectPtr.WeakPtr.ObjectSerialNumber = 0;
+	*(FText*)(__int64(MarkerData->GetCustomDisplayInfo()) + DisplayNameOffset) = UKismetTextLibrary::Conv_StringToText(L"");
 
 	/* if (MarkerRequest.MarkedActor)
 	{

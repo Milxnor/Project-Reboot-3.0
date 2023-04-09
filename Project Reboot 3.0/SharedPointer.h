@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SharedPointerInternals.h"
+
 template< class ObjectType>
 class TSharedPtr
 {
@@ -33,4 +35,12 @@ public:
     {
         return Object;
     }
+};
+
+template< class ObjectType, ESPMode Mode >
+class TSharedRef
+{
+public:
+    ObjectType* Object;
+    FSharedReferencer<Mode> SharedReferenceCount;
 };

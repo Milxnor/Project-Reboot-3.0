@@ -35,7 +35,14 @@ static inline T* LoadObject(const TCHAR* Name, UClass* Class = T::StaticClass(),
 		return FindObject<T>(Name, Class, Outer);
 	}
 
-	return (T*)StaticLoadObjectOriginal(Class, Outer, Name, nullptr, 0, nullptr, false);
+	auto Object = (T*)StaticLoadObjectOriginal(Class, Outer, Name, nullptr, 0, nullptr, false);
+
+	if (!Object)
+	{
+		LOG_WARN(LogDev, "Failed to load object!");
+	}
+
+	return Object;
 }
 
 template <typename T = UObject>
