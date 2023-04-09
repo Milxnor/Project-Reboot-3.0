@@ -198,6 +198,19 @@ public:
 		return -1;
 	};
 
+	void FreeReal()
+	{
+		if (Data && ArrayNum > 0 && sizeof(InElementType) > 0)
+		{
+			// VirtualFree(Data, _msize(Data), MEM_RELEASE);
+			// VirtualFree(Data, sizeof(InElementType) * ArrayNum, MEM_RELEASE); // ik this does nothing
+			VirtualFree(Data, 0, MEM_RELEASE);
+		}
+
+		ArrayNum = 0;
+		ArrayMax = 0;
+	}
+
 	void Free()
 	{
 		if (Data && ArrayNum > 0 && sizeof(InElementType) > 0)

@@ -421,6 +421,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Engine_Version == 421)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 57 48 81 EC ? ? ? ? 48 8B BA ? ? ? ? 48 8B DA 0F 29").Get()); // Pawn Overlap
+		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor({ 0x40, 0x55 }, false).Get()); // Widget class
 	}
 
 	if (Engine_Version == 425)

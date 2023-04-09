@@ -637,7 +637,12 @@ AActor* AFortPlayerController::SpawnToyInstanceHook(UObject* Context, FFrame* St
 	auto NewToy = GetWorld()->SpawnActor<AActor>(ToyClass, SpawnPosition, SpawnParameters);
 
 	static auto ActiveToyInstancesOffset = PlayerController->GetOffset("ActiveToyInstances");
+	auto& ActiveToyInstances = PlayerController->Get<TArray<AActor*>>(ActiveToyInstancesOffset);
+	
+	static auto ToySummonCountsOffset = PlayerController->GetOffset("ToySummonCounts");
+	auto& ToySummonCounts = PlayerController->Get<TMap<UClass*, int>>(ToySummonCountsOffset);
 
+	// ActiveToyInstances.Add(NewToy);
 
 	*Ret = NewToy;
 	return *Ret;

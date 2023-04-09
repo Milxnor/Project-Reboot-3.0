@@ -16,7 +16,7 @@ UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItem
 	return NewItemInstance;
 }
 
-std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count, int LoadedAmmo, bool bShouldAddToStateValues)
+std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count, int LoadedAmmo, bool bShowItemToast)
 {
 	if (!ItemDefinition)
 		return std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>>();
@@ -71,22 +71,21 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 					CurrentEntry->GetCount() += AmountToStack;
 					ReplicatedEntry->GetCount() += AmountToStack;
 
-					// std::cout << std::format("{} : {} : {}\n", CurrentEntry.Count, ReplicatedEntry->Count, OverStack);
-
-					/* if (bAddToStateValues)
+					for (int p = 0; p < CurrentEntry->GetStateValues().Num(); p++)
 					{
-						FFortItemEntryStateValue StateValue;
-						StateValue.IntValue = 1;
-						StateValue.StateType = EFortItemEntryState::ShouldShowItemToast;
-
-						CurrentEntry.StateValues.Add(StateValue);
-						ReplicatedEntry->StateValues.Add(StateValue);
+						if (CurrentEntry->GetStateValues().at(p).GetStateType() == EFortItemEntryState::ShouldShowItemToast)
+						{
+							CurrentEntry->GetStateValues().at(p).GetIntValue() = bShowItemToast;
+						}
 					}
-					else
+
+					for (int p = 0; p < ReplicatedEntry->GetStateValues().Num(); p++)
 					{
-						// CurrentEntry.StateValues.FreeBAD();
-						// ReplicatedEntry->StateValues.FreeBAD();
-					} */
+						if (ReplicatedEntry->GetStateValues().at(p).GetStateType() == EFortItemEntryState::ShouldShowItemToast)
+						{
+							ReplicatedEntry->GetStateValues().at(p).GetIntValue() = bShowItemToast;
+						}
+					}
 
 					ModifiedItemInstances.push_back(CurrentItemInstance);
 
@@ -137,6 +136,11 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 		// LOG_INFO(LogDev, "FortItemEntryStruct {}", __int64(FortItemEntryStruct));
 		// LOG_INFO(LogDev, "FortItemEntrySize {}", __int64(FortItemEntrySize));
+
+		FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize());
+		StateValue->GetIntValue() = bShowItemToast;
+		StateValue->GetStateType() = EFortItemEntryState::ShouldShowItemToast;
+		NewItemInstance->GetItemEntry()->GetStateValues().AddPtr(StateValue, FFortItemEntryStateValue::GetStructSize());
 
 		ItemInstances.Add(NewItemInstance);
 		GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
@@ -263,6 +267,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	{
 		if (ItemInstances.at(i)->GetItemEntry()->GetItemGuid() == ItemGuid)
 		{
+			ItemInstance->GetItemEntry()->GetStateValues().FreeReal();
 			ItemInstances.Remove(i);
 			break;
 		}
@@ -272,6 +277,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	{
 		if (ReplicatedEntries.at(i, FortItemEntrySize).GetItemGuid() == ItemGuid)
 		{
+			ReplicatedEntries.at(i, FortItemEntrySize).GetStateValues().FreeReal();
 			ReplicatedEntries.Remove(i, FortItemEntrySize);
 			break;
 		}
@@ -304,7 +310,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	return true;
 }
 
-void AFortInventory::ModifyCount(UFortItem* ItemInstance, int New, bool bRemove, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries, bool bUpdate)
+void AFortInventory::ModifyCount(UFortItem* ItemInstance, int New, bool bRemove, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries, bool bUpdate, bool bShowItemToast)
 {
 	auto ReplicatedEntry = FindReplicatedEntry(ItemInstance->GetItemEntry()->GetItemGuid());
 
@@ -315,6 +321,22 @@ void AFortInventory::ModifyCount(UFortItem* ItemInstance, int New, bool bRemove,
 	{
 		ItemInstance->GetItemEntry()->GetCount() += New;
 		ReplicatedEntry->GetCount() += New;
+
+		for (int p = 0; p < ItemInstance->GetItemEntry()->GetStateValues().Num(); p++)
+		{
+			if (ItemInstance->GetItemEntry()->GetStateValues().at(p).GetStateType() == EFortItemEntryState::ShouldShowItemToast)
+			{
+				ItemInstance->GetItemEntry()->GetStateValues().at(p).GetIntValue() = bShowItemToast;
+			}
+		}
+
+		for (int p = 0; p < ReplicatedEntry->GetStateValues().Num(); p++)
+		{
+			if (ReplicatedEntry->GetStateValues().at(p).GetStateType() == EFortItemEntryState::ShouldShowItemToast)
+			{
+				ReplicatedEntry->GetStateValues().at(p).GetIntValue() = bShowItemToast;
+			}
+		}
 	}
 	else
 	{

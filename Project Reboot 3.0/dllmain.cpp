@@ -527,7 +527,7 @@ DWORD WINAPI Main(LPVOID)
 
     // if (false)
     {
-        if (Fortnite_Version >= 8.3) // I can't remember, so ServerAddMapMarker existed on like 8.0 or 8.1 or 8.2 but it didn't have the same params.
+        if (Fortnite_Version >= 8.3 && Engine_Version < 424) // I can't remember, so ServerAddMapMarker existed on like 8.0 or 8.1 or 8.2 but it didn't have the same params.
         {
             Hooking::MinHook::Hook(AthenaMarkerComponentDefault, FindObject<UFunction>(L"/Script/FortniteGame.AthenaMarkerComponent.ServerAddMapMarker"),
                 UAthenaMarkerComponent::ServerAddMapMarkerHook, nullptr, false);

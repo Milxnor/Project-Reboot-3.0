@@ -5,6 +5,58 @@
 
 #include "reboot.h"
 
+enum class EFortItemEntryState : uint8_t // idk if this changes
+{
+	NoneState = 0,
+	NewItemCount = 1,
+	ShouldShowItemToast = 2,
+	DurabilityInitialized = 3,
+	DoNotShowSpawnParticles = 4,
+	FromRecoveredBackpack = 5,
+	FromGift = 6,
+	PendingUpgradeCriteriaProgress = 7,
+	OwnerBuildingHandle = 8,
+	FromDroppedPickup = 9,
+	JustCrafted = 10,
+	CraftAndSlotTarget = 11,
+	GenericAttributeValueSet = 12,
+	PickupInstigatorHandle = 13,
+	CreativeUserPrefabHasContent = 14,
+	EFortItemEntryState_MAX = 15
+};
+
+struct FFortItemEntryStateValue
+{
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortItemEntryStateValue");
+		return Struct;
+	}
+
+	static int GetStructSize()
+	{
+		return GetStruct()->GetPropertiesSize();
+	}
+
+	int& GetIntValue()
+	{
+		static auto IntValueOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntryStateValue", "IntValue");
+		return *(int*)(__int64(this) + IntValueOffset);
+	}
+
+	EFortItemEntryState& GetStateType()
+	{
+		static auto StateTypeOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntryStateValue", "StateType");
+		return *(EFortItemEntryState*)(__int64(this) + StateTypeOffset);
+	}
+
+	FName& GetNameValue()
+	{
+		static auto NameValueOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntryStateValue", "NameValue");
+		return *(FName*)(__int64(this) + NameValueOffset);
+	}
+};
+
 struct FFortItemEntry : FFastArraySerializerItem
 {
 	FGuid& GetItemGuid()
@@ -23,6 +75,12 @@ struct FFortItemEntry : FFastArraySerializerItem
 	{
 		static auto CountOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "Count");
 		return *(int*)(__int64(this) + CountOffset);
+	}
+
+	TArray<FFortItemEntryStateValue>& GetStateValues()
+	{
+		static auto StateValuesOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "StateValues");
+		return *(TArray<FFortItemEntryStateValue>*)(__int64(this) + StateValuesOffset);
 	}
 
 	int& GetLoadedAmmo()

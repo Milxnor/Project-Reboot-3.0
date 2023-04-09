@@ -115,9 +115,9 @@ public:
 		}
 	}
 
-	std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count = 1, int LoadedAmmo = -1, bool bShouldAddToStateValues = false);
+	std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count = 1, int LoadedAmmo = -1, bool bShowItemToast = false);
 	bool RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count, bool bForceRemoval = false);
-	void ModifyCount(UFortItem* ItemInstance, int New, bool bRemove = false, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries = nullptr, bool bUpdate = true);
+	void ModifyCount(UFortItem* ItemInstance, int New, bool bRemove = false, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries = nullptr, bool bUpdate = true, bool bShowItemToast = false);
 	
 	UFortItem* GetPickaxeInstance();
 	UFortItem* FindItemInstance(UFortItemDefinition* ItemDefinition);

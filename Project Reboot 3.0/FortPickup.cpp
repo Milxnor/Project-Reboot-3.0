@@ -178,7 +178,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 					cpyCount -= AmountToStack;
 
 					std::pair<FFortItemEntry*, FFortItemEntry*> Pairs;
-					WorldInventory->ModifyCount(ItemInstance, AmountToStack, false, &Pairs, false);
+					WorldInventory->ModifyCount(ItemInstance, AmountToStack, false, &Pairs, false, true);
 					PairsToMarkDirty.push_back(Pairs);
 
 					bEverStacked = true;
