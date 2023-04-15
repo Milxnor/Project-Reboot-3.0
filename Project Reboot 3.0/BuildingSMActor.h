@@ -30,11 +30,6 @@ public:
 		this->SetBitfieldValue(bPlayerPlacedOffset, bPlayerPlacedFieldMask, NewValue);
 	}
 
-	bool IsDestroyed()
-	{
-		return false; // FOR NOW
-	}
-
 	APlayerState*& GetEditingPlayer()
 	{
 		static auto EditingPlayerOffset = GetOffset("EditingPlayer");

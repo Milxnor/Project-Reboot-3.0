@@ -5,6 +5,7 @@
 #include "FortPlayerState.h"
 #include "FortPlayerPawn.h"
 #include "FortPlayerController.h"
+#include <memcury.h>
 
 void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, EFortPickupSourceTypeFlag InPickupSourceTypeFlags, EFortPickupSpawnSource InPickupSpawnSource)
 {
@@ -17,15 +18,18 @@ void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int Ov
 	this->ProcessEvent(fn, &AFortPickup_TossPickup_Params);
 }
 
-AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Location, int Count, EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource, int LoadedAmmo, AFortPawn* Pawn, UClass* OverrideClass)
+AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Location,
+	EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
+	class AFortPawn* Pawn, UClass* OverrideClass, bool bToss)
 {
-	static auto FortPickupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickup");
+	// static auto FortPickupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickup");
+	static auto FortPickupAthenaClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickupAthena");
 	auto PlayerState = Pawn ? Cast<AFortPlayerState>(Pawn->GetPlayerState()) : nullptr;
 
 	FActorSpawnParameters SpawnParameters{};
 	// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	if (auto Pickup = GetWorld()->SpawnActor<AFortPickup>(OverrideClass ? OverrideClass : FortPickupClass, Location, FQuat(), FVector(1, 1, 1), SpawnParameters))
+	if (auto Pickup = GetWorld()->SpawnActor<AFortPickup>(OverrideClass ? OverrideClass : FortPickupAthenaClass, Location, FQuat(), FVector(1, 1, 1), SpawnParameters))
 	{
 		static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
 		Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = Pawn;
@@ -41,14 +45,25 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 
 		auto PrimaryPickupItemEntry = Pickup->GetPrimaryPickupItemEntry();
 
-		PrimaryPickupItemEntry->GetCount() = Count;
-		PrimaryPickupItemEntry->GetItemDefinition() = ItemDef;
-		PrimaryPickupItemEntry->GetLoadedAmmo() = LoadedAmmo;
+		auto OldGuid = PrimaryPickupItemEntry->GetItemGuid();
+
+		if (false)
+		{
+			CopyStruct(PrimaryPickupItemEntry, ItemEntry, FFortItemEntry::GetStructSize(), FFortItemEntry::GetStruct());
+		}
+		else
+		{
+			PrimaryPickupItemEntry->GetItemDefinition() = ItemEntry->GetItemDefinition();
+			PrimaryPickupItemEntry->GetCount() = ItemEntry->GetCount();
+			PrimaryPickupItemEntry->GetLoadedAmmo() = ItemEntry->GetLoadedAmmo();
+		}
+
+		PrimaryPickupItemEntry->GetItemGuid() = OldGuid;
+
+		// Pickup->OnRep_PrimaryPickupItemEntry();
 
 		// static auto OptionalOwnerIDOffset = Pickup->GetOffset("OptionalOwnerID");
 		// Pickup->Get<int>(OptionalOwnerIDOffset) = PlayerState ? PlayerState->GetWorldPlayerId() : -1;
-
-		bool bToss = true;
 
 		if (bToss)
 		{
@@ -57,17 +72,26 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 
 		Pickup->TossPickup(Location, Pawn, 0, bToss, PickupSource, SpawnSource);
 
-		if (PickupSource == EFortPickupSourceTypeFlag::Container)
+		if (PickupSource == EFortPickupSourceTypeFlag::Container) // crashes if we do this then tosspickup
 		{
 			static auto bTossedFromContainerOffset = Pickup->GetOffset("bTossedFromContainer");
 			Pickup->Get<bool>(bTossedFromContainerOffset) = true;
 			// Pickup->OnRep_TossedFromContainer();
-		} // crashes if we do this then tosspickup
+		}
 
 		return Pickup;
 	}
 
 	return nullptr;
+}
+
+AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Location, int Count, EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
+	int LoadedAmmo, AFortPawn* Pawn, UClass* OverrideClass, bool bToss)
+{
+	auto ItemEntry = FFortItemEntry::MakeItemEntry(ItemDef, Count, LoadedAmmo);
+	auto Pickup = SpawnPickup(ItemEntry, Location, PickupSource, SpawnSource, Pawn, OverrideClass, bToss);
+	// VirtualFree(ItemEntry);
+	return Pickup;
 }
 
 char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
@@ -123,6 +147,10 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 	if constexpr (bTestPrinting)
 		LOG_INFO(LogDev, "Start cpyCount: {}", cpyCount);
 
+	bool bWasHoldingSameItemWhenSwap = false;
+
+	FGuid NewSwappedItem = FGuid(-1, -1, -1, -1);
+
 	bool bForceOverflow = false;
 
 	while (cpyCount > 0)
@@ -149,10 +177,12 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 			if (bIsInventoryFull) // probs shouldnt do in loop but alr
 			{
-				if (ItemInstanceToSwap && ItemDefinitionToSwap->CanBeDropped() && !bHasSwapped)
+				if (ItemInstanceToSwap && ItemDefinitionToSwap->CanBeDropped() && !bHasSwapped) // swap
 				{
-					auto SwappedPickup = SpawnPickup(ItemDefinitionToSwap, PawnLoc, ItemEntryToSwap->GetCount(), 
-						EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, ItemEntryToSwap->GetLoadedAmmo(), Pawn);
+					auto SwappedPickup = SpawnPickup(ItemEntryToSwap, PawnLoc,
+						EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn);
+
+					bWasHoldingSameItemWhenSwap = CurrentItemGuid == ItemInstanceToSwap->GetItemEntry()->GetItemGuid();
 
 					WorldInventory->RemoveItem(CurrentItemGuid, nullptr, ItemEntryToSwap->GetCount(), true);
 
@@ -219,14 +249,22 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 			{
 				auto NewItemCount = cpyCount > PickupItemDefinition->GetMaxStackSize() ? PickupItemDefinition->GetMaxStackSize() : cpyCount;
 
-				auto NewItem = WorldInventory->AddItem(PickupItemDefinition, nullptr,
-					NewItemCount, PickupEntry->GetLoadedAmmo(), true);
+				auto NewAndModifiedInstances = WorldInventory->AddItem(PickupEntry, nullptr, true, NewItemCount);
+
+				auto NewVehicleInstance = NewAndModifiedInstances.first[0];
+
+				if (!NewVehicleInstance)
+					continue;
+				else
+					cpyCount -= NewItemCount;
 
 				if constexpr (bTestPrinting)
 					LOG_INFO(LogDev, "Added item with count {} to inventory.", NewItemCount);
 
-				// if (NewItem)
-					cpyCount -= NewItemCount;
+				if (bHasSwapped && NewSwappedItem == FGuid(-1, -1, -1, -1))
+				{
+					NewSwappedItem = NewVehicleInstance->GetItemEntry()->GetItemGuid();
+				}
 			}
 			else
 			{
@@ -250,5 +288,24 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 		WorldInventory->GetItemList().MarkItemDirty(value);
 	}
 
+	if (bWasHoldingSameItemWhenSwap && NewSwappedItem != FGuid(-1, -1, -1, -1))
+	{
+		static auto ClientEquipItemFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ClientEquipItem");
+
+		struct
+		{
+			FGuid                                       ItemGuid;                                                 // (ConstParm, Parm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			bool                                               bForceExecution;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		} AFortPlayerController_ClientEquipItem_Params{ NewSwappedItem, true };
+
+		PlayerController->ProcessEvent(ClientEquipItemFn, &AFortPlayerController_ClientEquipItem_Params);
+	}
+
 	return CompletePickupAnimationOriginal(Pickup);
+}
+
+UClass* AFortPickup::StaticClass()
+{
+	static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPickup");
+	return Class;
 }

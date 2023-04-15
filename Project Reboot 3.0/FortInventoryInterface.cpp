@@ -11,9 +11,11 @@ char UFortInventoryInterface::RemoveInventoryItemHook(__int64 a1, FGuid a2, int 
 	int SuperAdditionalOffset = Engine_Version >= 427 ? 16 : 8;
 	auto ControllerObject = (UObject*)(__int64(a1) - (FortPlayerControllerSuperSize + SuperAdditionalOffset));
 
-	LOG_INFO(LogDev, "bForceRemoval: {}", (bool)bForceRemoval);
+	// LOG_INFO(LogDev, "bForceRemoval: {}", (bool)bForceRemoval);
 	// LOG_INFO(LogDev, "FortPlayerControllerSuperSize: {}", FortPlayerControllerSuperSize);
 	// LOG_INFO(LogDev, "ControllerObject: {}", ControllerObject->GetFullName());
+
+	LOG_INFO(LogDev, __FUNCTION__);
 
 	if (!ControllerObject)
 		return false;

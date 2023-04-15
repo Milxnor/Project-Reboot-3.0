@@ -74,6 +74,31 @@ void AFortPawn::NetMulticast_Athena_BatchedDamageCuesHook(UObject* Context, FFra
 	return NetMulticast_Athena_BatchedDamageCuesOriginal(Context, Stack, Ret);
 }
 
+void AFortPawn::MovingEmoteStoppedHook(UObject* Context, FFrame* Stack, void* Ret)
+{
+	// LOG_INFO(LogDev, "MovingEmoteStoppedHook!");
+
+	auto Pawn = (AFortPawn*)Context;
+
+	static auto bMovingEmoteOffset = Pawn->GetOffset("bMovingEmote", false);
+
+	if (bMovingEmoteOffset != -1)
+	{
+		static auto bMovingEmoteFieldMask = GetFieldMask(Pawn->GetProperty("bMovingEmote"));
+		Pawn->SetBitfieldValue(bMovingEmoteOffset, bMovingEmoteFieldMask, false);
+	}
+
+	static auto bMovingEmoteForwardOnlyOffset = Pawn->GetOffset("bMovingEmoteForwardOnly", false);
+
+	if (bMovingEmoteForwardOnlyOffset != -1)
+	{
+		static auto bMovingEmoteForwardOnlyFieldMask = GetFieldMask(Pawn->GetProperty("bMovingEmoteForwardOnly"));
+		Pawn->SetBitfieldValue(bMovingEmoteOffset, bMovingEmoteForwardOnlyFieldMask, false);
+	}
+
+	return MovingEmoteStoppedOriginal(Context, Stack, Ret);
+}
+
 UClass* AFortPawn::StaticClass()
 {
 	static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPawn");

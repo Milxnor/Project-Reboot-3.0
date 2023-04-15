@@ -191,7 +191,8 @@ static inline std::vector<Event> Events =
 			{
 				{
 					false,
-					"/Game/Athena/Environments/Festivus/Blueprints/BP_FestivusManager.BP_FestivusManager_C.PlayConcert"
+					// "/Game/Athena/Environments/Festivus/Blueprints/BP_FestivusManager.BP_FestivusManager_C.PlayConcert"
+					"/Game/Athena/Environments/Festivus/Blueprints/BP_FestivusManager.BP_FestivusManager_C.ServerPlayFestivus"
 				},
 
 				0
@@ -266,6 +267,24 @@ static inline UFortPlaylist* GetEventPlaylist()
 	}
 
 	return nullptr;
+}
+
+static inline Event GetOurEvent()
+{
+	for (auto& CurrentEvent : Events)
+	{
+		if (CurrentEvent.Version == Fortnite_Version)
+		{
+			return CurrentEvent;
+		}
+	}
+
+	return Event();
+}
+
+static inline bool HasEvent()
+{
+	return GetOurEvent().Version == Fortnite_Version;
 }
 
 static inline UObject* GetEventScripting()

@@ -19,6 +19,11 @@ struct FGuid
 	{
 		return A == other.A && B == other.B && C == other.C && D == other.D;
 	}
+
+	bool operator!=(const FGuid& other)
+	{
+		return !(*this == other);
+	}
 };
 
 class UObject
@@ -46,6 +51,7 @@ public:
 	}
 
 	std::string GetName() { return NamePrivate.ToString(); }
+	std::string GetPathName();
 	std::string GetFullName();
 
 	bool IsA(UClass* Other);
@@ -57,6 +63,8 @@ public:
 
 	template <typename T = UObject*>
 	T& Get(int Offset) const { return *(T*)(__int64(this) + Offset); }
+
+	void* GetInterfaceAddress(UClass* InterfaceClass);
 
 	bool ReadBitfieldValue(int Offset, uint8_t FieldMask);
 	bool ReadBitfieldValue(const std::string& ChildName, uint8_t FieldMask) { return ReadBitfieldValue(GetOffset(ChildName), FieldMask); }

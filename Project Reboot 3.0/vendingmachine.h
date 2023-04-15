@@ -4,14 +4,21 @@
 #include "BuildingGameplayActor.h"
 #include "GameplayStatics.h"
 #include "FortLootPackage.h"
+#include "GameplayAbilityTypes.h"
 
 using ABuildingItemCollectorActor = ABuildingGameplayActor;
 
 struct FCollectorUnitInfo
 {
+	static std::string GetStructName()
+	{
+		static std::string StructName = FindObject<UStruct>("/Script/FortniteGame.CollectorUnitInfo") ? "/Script/FortniteGame.CollectorUnitInfo" : "/Script/FortniteGame.ColletorUnitInfo"; // nice one fortnite
+		return StructName;
+	}
+
 	static UStruct* GetStruct()
 	{
-		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.CollectorUnitInfo");
+		static auto Struct = FindObject<UStruct>(GetStructName());
 		return Struct;
 	}
 
@@ -20,28 +27,78 @@ struct FCollectorUnitInfo
 		return GetStruct()->GetPropertiesSize();
 	}
 
+	FScalableFloat* GetInputCount()
+	{
+		static auto InputCountOffset = FindOffsetStruct(GetStructName(), "InputCount");
+		return (FScalableFloat*)(__int64(this) + InputCountOffset);
+	}
+
 	TArray<FFortItemEntry>* GetOutputItemEntry()
 	{
-		static auto OutputItemEntryOffset = FindOffsetStruct("/Script/FortniteGame.CollectorUnitInfo", "OutputItemEntry");
+		static auto OutputItemEntryOffset = FindOffsetStruct(GetStructName(), "OutputItemEntry");
 		return (TArray<FFortItemEntry>*)(__int64(this) + OutputItemEntryOffset);
+	}
+
+	UFortWorldItemDefinition*& GetInputItem()
+	{
+		static auto InputItemOffset = FindOffsetStruct(GetStructName(), "InputItem");
+		return *(UFortWorldItemDefinition**)(__int64(this) + InputItemOffset);
 	}
 
 	UFortWorldItemDefinition*& GetOutputItem()
 	{
-		static auto OutputItemOffset = FindOffsetStruct("/Script/FortniteGame.CollectorUnitInfo", "OutputItem");
+		static auto OutputItemOffset = FindOffsetStruct(GetStructName(), "OutputItem");
 		return *(UFortWorldItemDefinition**)(__int64(this) + OutputItemOffset);
 	}
 };
 
-static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector, FName& LootTierGroup, bool bUseInstanceLootValueOverrides, int recursive = 0)
+static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector, FName& LootTierGroup, bool bUseInstanceLootValueOverrides, bool bEnsureRarity = false, int recursive = 0)
 {
 	if (recursive >= 10)
 		return;
 
+	auto GameModeAthena = (AFortGameModeAthena*)GetWorld()->GetGameMode();
+	auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
+
 	static auto ItemCollectionsOffset = ItemCollector->GetOffset("ItemCollections");
 	auto& ItemCollections = ItemCollector->Get<TArray<FCollectorUnitInfo>>(ItemCollectionsOffset);
 
-	uint8_t RarityToUse = -1;
+	auto CurrentPlaylist = GameState->GetCurrentPlaylist();
+	UCurveTable* FortGameData = nullptr;
+
+	static auto GameDataOffset = CurrentPlaylist->GetOffset("GameData");
+	FortGameData = CurrentPlaylist ? CurrentPlaylist->Get<TSoftObjectPtr<UCurveTable>>(GameDataOffset).Get() : nullptr;
+
+	if (!FortGameData)
+		FortGameData = FindObject<UCurveTable>("/Game/Athena/Balance/AthenaGameData.AthenaGameData"); // uhm so theres one without athena and on newer versions that has it so idk
+
+	auto WoodName = UKismetStringLibrary::Conv_StringToName(L"Default.VendingMachine.Cost.Wood");
+	auto StoneName = UKismetStringLibrary::Conv_StringToName(L"Default.VendingMachine.Cost.Stone");
+	auto MetalName = UKismetStringLibrary::Conv_StringToName(L"Default.VendingMachine.Cost.Metal");
+
+	static auto StoneItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+	static auto MetalItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+
+	uint8_t RarityToUse = 69;
+
+	// TODO: Pull prices from datatables.
+
+	bool bLowerPrices = Fortnite_Version >= 5.20;
+
+	static int CommonPrice = bLowerPrices ? 75 : 100;
+	static int UncommonPrice = bLowerPrices ? 150 : 200;
+	static int RarePrice = bLowerPrices ? 225 : 300;
+	static int EpicPrice = bLowerPrices ? 300 : 400;
+	static int LegendaryPrice = bLowerPrices ? 375 : 500;
+
+	if (Fortnite_Version >= 8.10)
+	{
+		CommonPrice = 0;
+		UncommonPrice = 0;
+		RarePrice = 0;
+		EpicPrice = 0;
+		LegendaryPrice = 0;
+	}
 
 	for (int ItemCollectorIt = 0; ItemCollectorIt < ItemCollections.Num(); ItemCollectorIt++)
 	{
@@ -71,41 +128,46 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		if (LootDrops.size() == 0)
 			continue;
 
-
 		for (int LootDropIt = 0; LootDropIt < LootDrops.size(); LootDropIt++)
 		{
 			auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(LootDrops[LootDropIt].ItemDefinition);
 
-			if (WorldItemDefinition && IsPrimaryQuickbar(WorldItemDefinition)) // nice
+			if (!WorldItemDefinition)
+				continue;
+
+			if (!IsPrimaryQuickbar(WorldItemDefinition))
+				continue;
+
+			if (bEnsureRarity)
 			{
 				static auto RarityOffset = WorldItemDefinition->GetOffset("Rarity");
 
-				if (RarityToUse == -1)
+				if (RarityToUse == 69)
 					RarityToUse = WorldItemDefinition->Get<uint8_t>(RarityOffset);
 
-				if (WorldItemDefinition->Get<uint8_t>(RarityOffset) == RarityToUse)
-				{
-					bool bItemAlreadyInCollector = false;
-
-					for (int ItemCollectorIt2 = 0; ItemCollectorIt2 < ItemCollections.Num(); ItemCollectorIt2++)
-					{
-						auto ItemCollection2 = ItemCollections.AtPtr(ItemCollectorIt2, FCollectorUnitInfo::GetPropertiesSize());
-
-						if (ItemCollection2->GetOutputItem() == WorldItemDefinition)
-						{
-							bItemAlreadyInCollector = true;
-							break;
-						}
-					}
-
-					if (bItemAlreadyInCollector)
-						break;
-
-					ItemCollection->GetOutputItem() = WorldItemDefinition;
-				}
-
-				break;
+				if (WorldItemDefinition->Get<uint8_t>(RarityOffset) != RarityToUse)
+					continue;
 			}
+
+			bool bItemAlreadyInCollector = false;
+
+			for (int ItemCollectorIt2 = 0; ItemCollectorIt2 < ItemCollections.Num(); ItemCollectorIt2++)
+			{
+				auto ItemCollection2 = ItemCollections.AtPtr(ItemCollectorIt2, FCollectorUnitInfo::GetPropertiesSize());
+
+				if (ItemCollection2->GetOutputItem() == WorldItemDefinition)
+				{
+					bItemAlreadyInCollector = true;
+					break;
+				}
+			}
+
+			if (bItemAlreadyInCollector)
+				break;
+
+			ItemCollection->GetOutputItem() = WorldItemDefinition;
+
+			break;
 		}
 
 		if (!ItemCollection->GetOutputItem())
@@ -117,19 +179,56 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		for (int LootDropIt = 0; LootDropIt < LootDrops.size(); LootDropIt++)
 		{
 			auto ItemEntry = FFortItemEntry::MakeItemEntry(LootDrops[LootDropIt].ItemDefinition, LootDrops[LootDropIt].Count, LootDrops[LootDropIt].LoadedAmmo);
-			ItemCollection->GetOutputItemEntry()->Add(*ItemEntry, FFortItemEntry::GetStructSize());
+
+			if (!ItemEntry)
+				continue;
+
+			ItemCollection->GetOutputItemEntry()->AddPtr(ItemEntry, FFortItemEntry::GetStructSize());
 		}
+
+		// The reason I set the curve to 0 is because it will force it to return value, probably not how we are supposed to do it but whatever.
+		ItemCollection->GetInputCount()->GetCurve().CurveTable = nullptr; // FortGameData; // scuffed idc
+		ItemCollection->GetInputCount()->GetCurve().RowName = FName(0); // WoodName; // Scuffed idc 
+		ItemCollection->GetInputCount()->GetValue() = RarityToUse == 0 ? CommonPrice 
+			: RarityToUse == 1 ? UncommonPrice 
+			: RarityToUse == 2 ? RarePrice 
+			: RarityToUse == 3 ? EpicPrice
+			: RarityToUse == 4 ? LegendaryPrice
+			: -1;
 	}
 
-	static auto bUseInstanceLootValueOverridesOffset = ItemCollector->GetOffset("bUseInstanceLootValueOverrides");
-	ItemCollector->Get<bool>(bUseInstanceLootValueOverridesOffset) = bUseInstanceLootValueOverrides;
+	static auto bUseInstanceLootValueOverridesOffset = ItemCollector->GetOffset("bUseInstanceLootValueOverrides", false);
+
+	if (bUseInstanceLootValueOverridesOffset != -1)
+		ItemCollector->Get<bool>(bUseInstanceLootValueOverridesOffset) = bUseInstanceLootValueOverrides;
+
+	LOG_INFO(LogDev, "RarityToUse: {}", (int)RarityToUse);
+
+	static auto StartingGoalLevelOffset = ItemCollector->GetOffset("StartingGoalLevel");
+
+	if (StartingGoalLevelOffset != -1)
+		ItemCollector->Get<int32>(StartingGoalLevelOffset) = (int)RarityToUse;
 
 	static auto VendingMachineClass = FindObject<UClass>("/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C");
 
 	if (ItemCollector->IsA(VendingMachineClass))
 	{
-		static auto OverrideVendingMachineRarityOffset = ItemCollector->GetOffset("OverrideVendingMachineRarity");
-		ItemCollector->Get<uint8_t>(OverrideVendingMachineRarityOffset) = RarityToUse;
+		static auto OverrideVendingMachineRarityOffset = ItemCollector->GetOffset("OverrideVendingMachineRarity", false);
+
+		if (OverrideVendingMachineRarityOffset != -1)
+			ItemCollector->Get<uint8_t>(OverrideVendingMachineRarityOffset) = RarityToUse;
+
+		static auto OverrideGoalOffset = ItemCollector->GetOffset("OverrideGoal", false);
+		
+		if (OverrideGoalOffset != -1)
+		{
+			ItemCollector->Get<int32>(OverrideGoalOffset) = RarityToUse == 0 ? CommonPrice
+				: RarityToUse == 1 ? UncommonPrice
+				: RarityToUse == 2 ? RarePrice
+				: RarityToUse == 3 ? EpicPrice
+				: RarityToUse == 4 ? LegendaryPrice
+				: -1;
+		}
 	}
 }
 
@@ -147,7 +246,7 @@ static inline void FillVendingMachines()
 		if (!VendingMachine)
 			continue;
 
-		FillItemCollector(VendingMachine, OverrideLootTierGroup, true);
+		FillItemCollector(VendingMachine, OverrideLootTierGroup, true, true);
 	}
 
 	AllVendingMachines.Free();

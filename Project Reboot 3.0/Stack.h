@@ -34,13 +34,13 @@ public:
 		return MostRecentPropertyAddress;
 	}
 
-	void StepExplicitProperty(void* const Result, void* Property)
+	__forceinline void StepExplicitProperty(void* const Result, void* Property)
 	{
 		static void (*StepExplicitPropertyOriginal)(__int64 frame, void* const Result, void* Property) = decltype(StepExplicitPropertyOriginal)(Addresses::FrameStepExplicitProperty);
 		StepExplicitPropertyOriginal(__int64(this), Result, Property);
 	}
 
-	void Step(UObject* Context, RESULT_DECL)
+	__forceinline void Step(UObject* Context, RESULT_DECL)
 	{
 		static void (*StepOriginal)(__int64 frame, UObject* Context, RESULT_DECL) = decltype(StepOriginal)(Addresses::FrameStep);
 		StepOriginal(__int64(this), Context, RESULT_PARAM);
@@ -57,14 +57,14 @@ public:
 		}
 		else
 		{
-			LOG_INFO(LogDev, "UNIMPLENTED!");
+			// LOG_INFO(LogDev, "UNIMPLENTED!");
 			/* checkSlow(ExpectedPropertyType && ExpectedPropertyType->IsChildOf(FProperty::StaticClass()));
 			checkSlow(PropertyChainForCompiledIn && PropertyChainForCompiledIn->IsA(ExpectedPropertyType));
 			FProperty* Property = (FProperty*)PropertyChainForCompiledIn;
 			PropertyChainForCompiledIn = Property->Next;
 			StepExplicitProperty(Result, Property); */
 
-			auto& Property = GetPropertyChainForCompiledIn();
+			void* Property = GetPropertyChainForCompiledIn();
 			GetPropertyChainForCompiledIn() = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
 			StepExplicitProperty(Result, Property);
 		}

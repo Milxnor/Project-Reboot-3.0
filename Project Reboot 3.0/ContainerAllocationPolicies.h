@@ -1,5 +1,7 @@
 #pragma once
 
+#include "NumericLimits.h"
+
 template <int NumElements>
 class TInlineAllocator
 {
@@ -67,5 +69,49 @@ public:
         {
             return SecondaryData[Index];
         }
+        ElementType* GetInlineElements() const
+        {
+            return (ElementType*)InlineData;
+        }
+        FORCEINLINE ElementType* GetAllocation() const
+        {
+            return IfAThenAElseB<ElementType>(SecondaryData, GetInlineElements());
+        }
     };
 };
+
+
+FORCEINLINE /*FMEMORY_INLINE_FUNCTION_DECORATOR*/ size_t /*FMemory::*/QuantizeSize(SIZE_T Count, uint32 Alignment)
+{
+    return Count;
+    /*
+    if (!FMEMORY_INLINE_GMalloc)
+    {
+        return Count;
+    }
+    return FMEMORY_INLINE_GMalloc->QuantizeSize(Count, Alignment); */
+}
+
+enum
+{
+    DEFAULT_ALIGNMENT = 0
+};
+
+template <typename SizeType>
+FORCEINLINE SizeType DefaultCalculateSlackReserve(SizeType NumElements, SIZE_T BytesPerElement, bool bAllowQuantize, uint32 Alignment = DEFAULT_ALIGNMENT)
+{
+    SizeType Retval = NumElements;
+    // checkSlow(NumElements > 0);
+    if (bAllowQuantize)
+    {
+        auto Count = SIZE_T(Retval) * SIZE_T(BytesPerElement);
+        Retval = (SizeType)(QuantizeSize(Count, Alignment) / BytesPerElement);
+        // NumElements and MaxElements are stored in 32 bit signed integers so we must be careful not to overflow here.
+        if (NumElements > Retval)
+        {
+            Retval = TNumericLimits<SizeType>::Max();
+        }
+    }
+
+    return Retval;
+}

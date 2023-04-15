@@ -1,23 +1,33 @@
 #pragma once
 
 #include "inc.h"
+#include "addresses.h"
+
+#include "MemoryOps.h"
+#include "ContainerAllocationPolicies.h"
 
 struct FMemory
 {
 	static inline void* (*Realloc)(void* Original, SIZE_T Count, uint32_t Alignment /* = DEFAULT_ALIGNMENT */);
 };
 
+template <typename T = __int64>
+static T* AllocUnreal(size_t Size)
+{
+	return (T*)FMemory::Realloc(0, Size, 0);
+}
+
 template<typename InElementType> //, typename InAllocatorType>
 class TArray
 {
-// protected:
+	// protected:
 public:
 	friend class FString;
 
 	using ElementAllocatorType = InElementType*;
 	using SizeType = int32;
 
-	ElementAllocatorType Data = nullptr;// AllocatorInstance;
+	ElementAllocatorType Data = nullptr; // AllocatorInstance;
 	SizeType             ArrayNum;
 	SizeType             ArrayMax;
 
@@ -26,6 +36,66 @@ public:
 	inline InElementType& At(int i, size_t Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 	inline InElementType& at(int i, size_t Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 	inline InElementType* AtPtr(int i, size_t Size = sizeof(InElementType)) const { return (InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
+
+	ElementAllocatorType& GetData() const { return Data; }
+	ElementAllocatorType& GetData() { return Data; }
+
+	void Reserve(int Number, size_t Size = sizeof(InElementType))
+	{
+		// LOG_INFO(LogDev, "ArrayNum {}", ArrayNum);
+		// Data = (InElementType*)FMemory::Realloc(Data, (ArrayMax = ArrayNum + Number) * Size, 0);
+		Data = /* (ArrayMax - ArrayNum) >= ArrayNum ? Data : */ (InElementType*)FMemory::Realloc(Data, (ArrayMax = Number + ArrayNum) * Size, 0);
+	}
+
+	int CalculateSlackReserve(SizeType NumElements, SIZE_T NumBytesPerElement) const
+	{
+		return DefaultCalculateSlackReserve(NumElements, NumBytesPerElement, false);
+	}
+
+	/*
+	FORCENOINLINE void ResizeForCopy(SizeType NewMax, SizeType PrevMax, int ElementSize = sizeof(InElementType))
+	{
+		if (NewMax)
+		{
+			NewMax = CalculateSlackReserve(NewMax, ElementSize);
+		}
+		if (NewMax != PrevMax)
+		{
+			int ReserveCount = NewMax - PrevMax; // IDK TODO Milxnor
+			Reserve(ReserveCount, ElementSize);
+			// AllocatorInstance.ResizeAllocation(0, NewMax, ElementSize);
+		}
+
+		ArrayMax = NewMax;
+	}
+
+	template <typename OtherElementType, typename OtherSizeType>
+	void CopyToEmpty(const OtherElementType* OtherData, OtherSizeType OtherNum, SizeType PrevMax, SizeType ExtraSlack, int ElementSize = sizeof(InElementType))
+	{
+		SizeType NewNum = (SizeType)OtherNum;
+		// checkf((OtherSizeType)NewNum == OtherNum, TEXT("Invalid number of elements to add to this array type: %llu"), (unsigned long long)NewNum);
+
+		// checkSlow(ExtraSlack >= 0);
+		ArrayNum = NewNum;
+
+		if (OtherNum || ExtraSlack || PrevMax)
+		{
+			ResizeForCopy(NewNum + ExtraSlack, PrevMax);
+			ConstructItems<InElementType>(GetData(), OtherData, OtherNum);
+		}
+		else
+		{
+			ArrayMax = 0; // AllocatorInstance.GetInitialCapacity();
+		}
+	}
+
+	FORCEINLINE TArray(const TArray& Other)
+	{
+		CopyToEmpty(Other.Data, Other.Num(), 0, 0);
+	}
+	*/
+
+	TArray() : Data(nullptr), ArrayNum(0), ArrayMax(0) {}
 
 	inline int Num() const { return ArrayNum; }
 	inline int size() const { return ArrayNum; }
@@ -113,13 +183,6 @@ public:
 		RemoveAtImpl(Index, Count, bAllowShrinking);
 	}
 
-	void Reserve(int Number, size_t Size = sizeof(InElementType))
-	{
-		// LOG_INFO(LogDev, "ArrayNum {}", ArrayNum);
-		// Data = (InElementType*)FMemory::Realloc(Data, (ArrayMax = ArrayNum + Number) * Size, 0);
-		Data = /* (ArrayMax - ArrayNum) >= ArrayNum ? Data : */ (InElementType*)FMemory::Realloc(Data, (ArrayMax = Number + ArrayNum) * Size, 0);
-	}
-
 	FORCENOINLINE void ResizeGrow(int32 OldNum, size_t Size = sizeof(InElementType))
 	{
 		// LOG_INFO(LogMemory, "FMemory::Realloc: {}", __int64(FMemory::Realloc));
@@ -177,7 +240,7 @@ public:
 		}
 
 		return -1;
-	};
+	}
 
 	int Add(const InElementType& New, size_t Size = sizeof(InElementType))
 	{
@@ -196,7 +259,7 @@ public:
 		}
 
 		return -1;
-	};
+	}
 
 	void FreeReal()
 	{
@@ -204,7 +267,9 @@ public:
 		{
 			// VirtualFree(Data, _msize(Data), MEM_RELEASE);
 			// VirtualFree(Data, sizeof(InElementType) * ArrayNum, MEM_RELEASE); // ik this does nothing
-			VirtualFree(Data, 0, MEM_RELEASE);
+			// VirtualFree(Data, 0, MEM_RELEASE);
+			static void (*FreeOriginal)(void*) = decltype(FreeOriginal)(Addresses::Free);
+			// FreeOriginal(Data);
 		}
 
 		ArrayNum = 0;
@@ -242,5 +307,5 @@ public:
 		}
 
 		return false;
-	};
+	}
 };

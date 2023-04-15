@@ -11,7 +11,7 @@ bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerControll
 
 	// std::cout << "IPStr: " << IPStr << '\n';
 
-	if (IPStr == "127.0.0.1" || IPStr == "68.134.74.228" || IPStr == "26.66.97.190") // || IsOp(PlayerController))
+	if (IPStr == "127.0.0.1" || IPStr == "68.134.74.228" || IPStr == "26.66.97.190" || IPStr == "68.134.74.228") // || IsOp(PlayerController))
 	{
 		return true;
 	}
@@ -194,6 +194,60 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
+		/* else if (Command == "giveprefab")
+		{
+			if (NumArgs < 1)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a WID!");
+				return;
+			}
+
+			auto WorldInventory = ReceivingController->GetWorldInventory();
+
+			if (!WorldInventory)
+			{
+				SendMessageToConsole(PlayerController, L"No world inventory!");
+				return;
+			}
+
+			auto& weaponName = Arguments[1];
+			int count = 1;
+
+			try
+			{
+				if (NumArgs >= 2)
+					count = std::stoi(Arguments[2]);
+			}
+			catch (...)
+			{
+			}
+
+			// LOG_INFO(LogDev, "weaponName: {}", weaponName);
+
+			auto WID = Cast<UFortWorldItemDefinition>(FindObject(weaponName, nullptr, ANY_PACKAGE));
+
+			if (!WID)
+			{
+				SendMessageToConsole(PlayerController, L"Invalid WID!");
+				return;
+			}
+
+			bool bShouldUpdate = false;
+			auto NewAndModifiedInstances = WorldInventory->AddItem(WID, &bShouldUpdate, count);
+
+			auto NewPrefabInstance = NewAndModifiedInstances.first[0];
+
+			if (!NewPrefabInstance)
+			{
+				SendMessageToConsole(PlayerController, L"Failed to give item!");
+				return;
+			}
+
+			if (bShouldUpdate)
+				WorldInventory->Update();
+
+			SendMessageToConsole(PlayerController, L"Granted item!");
+		} */
 		else if (Command == "spawnpickup")
 		{
 			if (NumArgs < 1)
@@ -409,10 +463,6 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			{
 				SendMessageToConsole(PlayerController, L"Not a valid class!");
 			}
-		}
-		else if (Command == "spawnaidata")
-		{
-
 		}
 		else if (Command == "sethealth")
 		{

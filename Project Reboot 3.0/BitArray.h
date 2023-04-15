@@ -18,12 +18,6 @@ static FORCEINLINE uint32 CountLeadingZeros(uint32 Value)
 
 class TBitArray
 {
-private:
-    template <typename ArrayType>
-    friend class TSparseArray;
-    template <typename SetType>
-    friend class TSet;
-
 public:
     TInlineAllocator<4>::ForElementType<unsigned int> Data;
     int NumBits;
@@ -34,7 +28,7 @@ public:
     public:
         FORCEINLINE explicit FRelativeBitReference(int32 BitIndex)
             : DWORDIndex(BitIndex >> NumBitsPerDWORDLogTwo)
-            , Mask(1 << (BitIndex & ((NumBitsPerDWORD)-1)))
+            , Mask(1 << (BitIndex & (NumBitsPerDWORD -1)))
         {
         }
 
@@ -223,10 +217,14 @@ public:
             //InlineData is the first 16-bytes of TBitArray
             const uint32* ArrayData = (IteratedArray.Data.SecondaryData ? IteratedArray.Data.SecondaryData : (uint32*)&IteratedArray.Data.InlineData);
 
+            if (!ArrayData)
+                return;
+
             const int32 ArrayNum = IteratedArray.NumBits;
             const int32 LastDWORDIndex = (ArrayNum - 1) / NumBitsPerDWORD;
 
             uint32 RemainingBitMask = ArrayData[this->DWORDIndex] & UnvisitedBitMask;
+
             while (!RemainingBitMask)
             {
                 ++this->DWORDIndex;

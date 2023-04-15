@@ -9,6 +9,8 @@
 #include "globals.h"
 #include <set>
 
+#include "NetSerialization.h"
+
 /* enum class REBOOT_ERROR : uint8
 {
 	FAILED_STRINGREF = 1,
@@ -214,6 +216,30 @@ inline void SetBitfield(void* Addr, uint8_t FieldMask, bool NewVal)
 		*(bool*)Bitfield = NewVal;
 }
 
+template<typename T = UObject>
+inline std::vector<T*> GetAllObjectsOfClass(UClass* Class)
+{
+	std::vector<T*> Objects;
+
+	if (!Class)
+		return Objects;
+
+	auto ObjectNum = ChunkedObjects ? ChunkedObjects->Num() : UnchunkedObjects ? UnchunkedObjects->Num() : 0;
+
+	for (int i = 0; i < ObjectNum; i++)
+	{
+		auto Object = GetObjectByIndex(i);
+
+		if (!Object)
+			continue;
+
+		if (Object->IsA(Class))
+			Objects.push_back(Object);
+	}
+
+	return Objects;
+}
+
 inline void* FindPropertyStruct(const std::string& StructName, const std::string& MemberName, bool bWarnIfNotFound = true)
 {
 	UObject* Struct = FindObject(StructName);
@@ -334,9 +360,20 @@ inline int FindOffsetStruct(const std::string& StructName, const std::string& Me
 	return -1;
 }
 
-static void CopyStruct(void* Dest, void* Src, size_t Size)
+// template <typename T>
+static void CopyStruct(void* Dest, void* Src, size_t Size, UStruct* Struct = nullptr)
 {
 	memcpy_s(Dest, Size, Src, Size);
+
+	if (Struct)
+	{
+		/* if (std::is_same<T, FFastArraySerializerItem>::value)
+		{
+
+		} */
+
+		// TODO: Loop through all the children, check type, if it is ArrayProperty then we need to properly copy it over.
+	}
 }
 
 template <typename T = __int64>

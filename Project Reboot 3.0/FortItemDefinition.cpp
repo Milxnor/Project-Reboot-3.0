@@ -39,10 +39,8 @@ float UFortItemDefinition::GetMaxStackSize()
 
 	FSimpleCurve* Curve = nullptr;
 
-	for (int i = 0; i < RowMap.Pairs.Elements.Data.Num(); i++)
+	for (auto& Pair : RowMap)
 	{
-		auto& Pair = RowMap.Pairs.Elements.Data.at(i).ElementData.Value;
-
 		if (Pair.Key() == ScalableFloat.Curve.RowName)
 		{
 			Curve = (FSimpleCurve*)Pair.Value();

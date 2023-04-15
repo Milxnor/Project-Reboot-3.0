@@ -368,6 +368,13 @@ static inline uint64 FindGetPlayerViewpoint()
 	return 0;
 }
 
+static inline uint64 FindFree()
+{
+	auto addr = Memcury::Scanner::FindPattern("48 85 C9 74 2E 53 48 83 EC 20 48 8B D9").Get();
+
+	return addr;
+}
+
 static inline uint64 FindStepExplicitProperty()
 {
 	return Memcury::Scanner::FindPattern("41 8B 40 ? 4D 8B C8").Get();
@@ -635,9 +642,18 @@ static inline uint64 FindSetZoneToIndex() // actually StartNewSafeZonePhase
 
 	for (int i = 0; i < 100000; i++)
 	{
-		if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x53) || (*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x55))
+		if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x53) 
+			|| (*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x55))
 		{
 			return Addr - i;
+		}
+
+		if (Fortnite_Version < 8)
+		{
+			if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x5C)
+			{
+				return Addr - i;
+			}
 		}
 
 		if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0xC4)
@@ -647,6 +663,41 @@ static inline uint64 FindSetZoneToIndex() // actually StartNewSafeZonePhase
 	}
 
 	return 0;
+}
+
+static inline uint64 FindRemoveGadgetData()
+{
+	if (Engine_Version <= 423)
+	{
+		auto StringRef = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadget Item [%s]!", false);
+
+		if (!StringRef.Get())
+			StringRef = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadet Item [%s]!");
+
+		return FindBytes(StringRef, { 0x40, 0x55 }, 1000, 0, true);
+	}
+	if (Engine_Version == 426)
+		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 56 41 56 41 57 48 83 EC 30 48 8B 02 48").Get(); // 14.60
+
+	return 0;
+}
+
+static inline uint64 FindApplyGadgetData()
+{
+	if (Engine_Version >= 420 && Engine_Version <= 422)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 41 0F B6 D9 49 8B").Get(); // 4.1 & 6.21 & 7.40
+	if (Engine_Version >= 423 && Engine_Version <= 426)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 7C 24 ? 41 54 41 56 41 57 48 83 EC 20 41 0F").Get(); // 8.51 & 12.41
+
+	return 0;
+}
+
+static inline uint64 FindGetInterfaceAddress()
+{
+	if (Engine_Version <= 420)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 FF 48 8B DA 48 8B F1 48").Get(); // 4.1
+
+	return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 DB 48 8B FA 48 8B F1 48 85 D2 0F 84 ? ? ? ? 8B 82 ? ? ? ? C1 E8").Get();
 }
 
 static inline uint64 FindCollectGarbage()
@@ -1022,7 +1073,7 @@ static inline uint64 FindGIsClient()
 
 		bool ShouldBreak = false;
 
-		LOG_INFO(LogDev, "[{}] Byte: 0x{:x}", i, (int)CurrentByte);
+		// LOG_INFO(LogDev, "[{}] Byte: 0x{:x}", i, (int)CurrentByte);
 
 		for (auto& Bytes : BytesArray)
 		{
@@ -1040,8 +1091,8 @@ static inline uint64 FindGIsClient()
 				if (Found)
 				{
 					int Relative = Bytes[0] == 0x44 ? 3 : 2;
-					LOG_INFO(LogDev, "[{}] No Rel 0x{:x} Rel: 0x{:x}", Skip, Memcury::Scanner(Addr.Get() - i).Get() - __int64(GetModuleHandleW(0)), Memcury::Scanner(Addr.Get() - i).RelativeOffset(Relative).Get() - __int64(GetModuleHandleW(0)));
-
+					// LOG_INFO(LogDev, "[{}] No Rel 0x{:x} Rel: 0x{:x}", Skip, Memcury::Scanner(Addr.Get() - i).Get() - __int64(GetModuleHandleW(0)), Memcury::Scanner(Addr.Get() - i).RelativeOffset(Relative).Get() - __int64(GetModuleHandleW(0)));
+					
 					if (Skip > 0)
 					{
 						Skip--;
@@ -1061,7 +1112,7 @@ static inline uint64 FindGIsClient()
 		// std::cout << std::format("CurrentByte: 0x{:x}\n", (uint8_t)CurrentByte);
 	}
 
-	LOG_INFO(LogDev, "Addy: 0x{:x}", Addy - __int64(GetModuleHandleW(0)));
+	// LOG_INFO(LogDev, "Addy: 0x{:x}", Addy - __int64(GetModuleHandleW(0)));
 
 	return Addy; // 0; // Memcury::Scanner(Addy3).RelativeOffset(2).Get();
 
@@ -1109,6 +1160,31 @@ static inline uint64 FindGetNetMode()
 	// return (uintptr_t)GetModuleHandleW(0) + 0x34d2140;
 }
 
+static inline uint64 FindApplyCharacterCustomization()
+{
+	auto Addrr = Memcury::Scanner::FindStringRef(L"AFortPlayerState::ApplyCharacterCustomization - Failed initialization, using default parts. Player Controller: %s PlayerState: %s, HeroId: %s").Get();
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x53)
+		{
+			return Addrr - i;
+		}
+
+		/* if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		} */
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
+}
+
 static inline uint64 FindRealloc()
 {
 	if (Engine_Version >= 427)
@@ -1137,7 +1213,7 @@ static inline uint64 FindPickTeam()
 
 		if (!testAddr)
 			testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 55 56 41 55 41 56 48 83 EC 70 48 8B", false).Get(); // 15.10
-		
+
 		if (testAddr)
 			return testAddr;
 	}
@@ -1358,6 +1434,30 @@ static inline uint64 FindCallPreReplication()
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 8B C4 55 57 41 54 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C").Get();
 	if (Fortnite_Version == 2.5)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 56 41 56 48 83 EC 38 4C 8B F2").Get();
+
+	return 0;
+}
+
+static inline uint64 FindClearAbility()
+{
+	auto GiveAbilityAndActivateOnce = FindGiveAbilityAndActivateOnce();
+
+	return Memcury::Scanner(GiveAbilityAndActivateOnce).ScanFor({ 0xE8 }, true, 4).RelativeOffset(1).Get();
+
+	if (Engine_Version == 416)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 48 63 81 ? ? ? ? 33").Get();
+	if (Engine_Version == 419)
+		return Memcury::Scanner::FindPattern("").Get();
+	if (Engine_Version == 420)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B F9 C6 81 ? ? ? ? ? 8B").Get();
+	if (Engine_Version == 421)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 56 57 41 57 48 83 EC 20 80 89 ? ? ? ? ? 33").Get();
+	if (Engine_Version == 422)
+		return Memcury::Scanner::FindPattern("").Get();
+	if (Engine_Version == 423)
+		return Memcury::Scanner::FindPattern("40 53 57 41 56 48 83 EC 20 80 89 ? ? ? ? ? 33").Get();
+	if (Engine_Version == 500)
+		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 68 10 48 89 70 18 48 89 78 20 41 56 48 83 EC 20 80 89 ? ? ? ? ? 48 8B F2 44 8B 89 ? ? ? ? 33 D2 48 8B").Get();
 
 	return 0;
 }

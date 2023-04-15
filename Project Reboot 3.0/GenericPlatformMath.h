@@ -32,6 +32,8 @@ public:
 		return (T)(A + Alpha * (B - A));
 	}
 
+	static FORCEINLINE float Loge(float Value) { return logf(Value); }
+
 	template< class T >
 	static constexpr FORCEINLINE T Max(const T A, const T B)
 	{

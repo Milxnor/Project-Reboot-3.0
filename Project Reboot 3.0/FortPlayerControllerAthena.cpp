@@ -7,6 +7,67 @@
 #include "GameplayStatics.h"
 #include "hooking.h"
 
+void AFortPlayerControllerAthena::ServerRequestSeatChangeHook(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex)
+{
+	auto Pawn = Cast<AFortPlayerPawn>(PlayerController->GetPawn());
+	
+	if (!Pawn)
+		return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
+
+	auto Vehicle = Pawn->GetVehicle();
+
+	if (!Vehicle)
+		return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
+
+	auto OldVehicleWeaponDefinition = Pawn->GetVehicleWeaponDefinition(Vehicle);
+	
+	LOG_INFO(LogDev, "OldVehicleWeaponDefinition: {}", OldVehicleWeaponDefinition ? OldVehicleWeaponDefinition->GetFullName() : "BadRead");
+
+	if (!OldVehicleWeaponDefinition)
+		return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
+
+	auto OldVehicleWeaponInstance = WorldInventory->FindItemInstance(OldVehicleWeaponDefinition);
+
+	if (OldVehicleWeaponInstance)
+	{
+		bool bShouldUpdate = false;
+		WorldInventory->RemoveItem(OldVehicleWeaponInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, OldVehicleWeaponInstance->GetItemEntry()->GetCount(), true);
+
+		if (bShouldUpdate)
+			WorldInventory->Update();
+	}
+
+	auto RequestingVehicleWeaponDefinition = Vehicle->GetVehicleWeaponForSeat(TargetSeatIndex);
+
+	if (!RequestingVehicleWeaponDefinition)
+	{
+		auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
+
+		if (!PickaxeInstance)
+			return;
+
+		AFortPlayerController::ServerExecuteInventoryItemHook(PlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid()); // Bad, we should equip the last weapon.
+		return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
+	}
+
+	auto NewAndModifiedInstances = WorldInventory->AddItem(RequestingVehicleWeaponDefinition, nullptr);
+	auto RequestedVehicleInstance = NewAndModifiedInstances.first[0];
+
+	if (!RequestedVehicleInstance)
+		return;
+
+	WorldInventory->Update();
+
+	auto RequestedVehicleWeapon = Pawn->EquipWeaponDefinition(RequestingVehicleWeaponDefinition, RequestedVehicleInstance->GetItemEntry()->GetItemGuid());
+
+	return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
+}
+
 void AFortPlayerControllerAthena::ServerRestartPlayerHook(AFortPlayerControllerAthena* Controller)
 {
 	static auto FortPlayerControllerZoneDefault = FindObject<UClass>(L"/Script/FortniteGame.Default__FortPlayerControllerZone");
@@ -85,58 +146,10 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 		return;
 	}
 
-	static auto UpdatePlayerCustomCharacterPartsVisualizationFn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.UpdatePlayerCustomCharacterPartsVisualization");
-
-	if (!UpdatePlayerCustomCharacterPartsVisualizationFn)
-	{
-		auto CosmeticLoadout = ControllerAsFort->GetCosmeticLoadout();
-
-		if (CosmeticLoadout)
-		{
-			/* static auto Pawn_CosmeticLoadoutOffset = PawnAsFort->GetOffset("CosmeticLoadout");
-			
-			if (Pawn_CosmeticLoadoutOffset != -1)
-			{
-				CopyStruct(PawnAsFort->GetPtr<__int64>(Pawn_CosmeticLoadoutOffset), CosmeticLoadout, FFortAthenaLoadout::GetStructSize());
-			} */
-
-			ApplyCID(PawnAsFort, CosmeticLoadout->GetCharacter(), false);
-
-			auto Backpack = CosmeticLoadout->GetBackpack();
-
-			if (Backpack)
-			{
-				static auto CharacterPartsOffset = Backpack->GetOffset("CharacterParts");
-
-				if (CharacterPartsOffset != -1)
-				{
-					auto& BackpackCharacterParts = Backpack->Get<TArray<UObject*>>(CharacterPartsOffset);
-
-					for (int i = 0; i < BackpackCharacterParts.Num(); i++)
-					{
-						auto BackpackCharacterPart = BackpackCharacterParts.at(i);
-
-						if (!BackpackCharacterPart)
-							continue;
-						
-						PawnAsFort->ServerChoosePart(EFortCustomPartType::Backpack, BackpackCharacterPart);
-					}
-
-					// UFortKismetLibrary::ApplyCharacterCosmetics(GetWorld(), BackpackCharacterParts, PlayerStateAsFort, &aa);
-				}
-			}
-		}
-
-		return;
-	}
-
-	if (!PlayerStateAsFort)
-		return;
-	
-	UFortKismetLibrary::StaticClass()->ProcessEvent(UpdatePlayerCustomCharacterPartsVisualizationFn, &PlayerStateAsFort);
+	ControllerAsFort->ApplyCosmeticLoadout();
 }
 
-void AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessage(AFortPlayerControllerAthena* PlayerController, __int64 ChatEntry, __int64 SenderID)
+void AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessageHook(AFortPlayerControllerAthena* PlayerController, __int64 ChatEntry, __int64 SenderID)
 {
 	using UAthenaEmojiItemDefinition = UFortItemDefinition;
 
@@ -146,6 +159,13 @@ void AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessage(AFortPlayerCon
 
 void AFortPlayerControllerAthena::GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation)
 {
+	// I don't know why but GetActorEyesViewPoint only works on some versions.
+	/* static auto GetActorEyesViewPointFn = FindObject<UFunction>(L"/Script/Engine.Actor.GetActorEyesViewPoint");
+	static auto GetActorEyesViewPointIndex = GetFunctionIdxOrPtr(GetActorEyesViewPointFn) / 8;
+
+	void (*GetActorEyesViewPointOriginal)(AActor* Actor, FVector* OutLocation, FRotator* OutRotation) = decltype(GetActorEyesViewPointOriginal)(PlayerController->VFTable[GetActorEyesViewPointIndex]);
+	return GetActorEyesViewPointOriginal(PlayerController, &Location, &Rotation); */
+
 	if (auto MyFortPawn = PlayerController->GetMyFortPawn())
 	{
 		Location = MyFortPawn->GetActorLocation();

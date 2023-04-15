@@ -144,7 +144,7 @@ bool UFortKismetLibrary::SpawnInstancedPickupInWorldHook(UObject* Context, FFram
 	Stack.StepCompiledIn(&bRandomRotation);
 	Stack.StepCompiledIn(&bBlockedFromAutoPickup);
 
-	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn);
+	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::Unset, -1, nullptr, nullptr, bToss);
 
 	*Ret = Pickup;
 	return *Ret;
@@ -155,6 +155,14 @@ void UFortKismetLibrary::K2_SpawnPickupInWorldWithLootTierHook(UObject* Context,
 	LOG_INFO(LogDev, __FUNCTION__);
 
 	return K2_SpawnPickupInWorldWithLootTierOriginal(Context, Stack, Ret);
+}
+
+void TestFunctionHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	auto PlayerController = (AFortPlayerController*)Context;
+	AFortPawn* Pawn = nullptr;
+
+	Stack.StepCompiledIn(&Pawn);
 }
 
 void UFortKismetLibrary::CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHook(UObject* Context, FFrame& Stack, void* Ret)
@@ -386,6 +394,27 @@ void UFortKismetLibrary::K2_GiveBuildingResourceHook(UObject* Context, FFrame& S
 	return K2_GiveBuildingResourceOriginal(Context, Stack, Ret);
 }
 
+int UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook1(AFortPlayerController* PlayerController, UFortItem* Item, int AmountToRemove, bool bForceRemoval)
+{
+	LOG_INFO(LogDev, "K2_RemoveFortItemFromPlayerHookNative!");
+
+	if (!PlayerController || !Item)
+		return 0;
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return 0;
+
+	bool bShouldUpdate = false;
+	WorldInventory->RemoveItem(Item->GetItemEntry()->GetItemGuid(), &bShouldUpdate, AmountToRemove, bForceRemoval);
+
+	if (bShouldUpdate)
+		WorldInventory->Update();
+
+	return 1; // idk probably how much we removed
+}
+
 void UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret)
 {
 	AFortPlayerController* PlayerController = nullptr;                                         // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
@@ -400,7 +429,7 @@ void UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook(UObject* Context, FFram
 
 	LOG_INFO(LogDev, __FUNCTION__);
 
-	if (!PlayerController)
+	if (!PlayerController || !Item)
 		return;
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
@@ -459,7 +488,7 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 
 	LOG_INFO(LogDev, __FUNCTION__);
 
-	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, nullptr, PickupClass);
+	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, nullptr, PickupClass, bToss);
 
 	K2_SpawnPickupInWorldWithClassOriginal(Context, Stack, Ret);
 
@@ -504,7 +533,7 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 	if (!ItemDefinition)
 		return	K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
 
-	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source);
+	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, nullptr, nullptr, bToss);
 
 	K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
 
@@ -542,12 +571,9 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 
 	for (int i = 0; i < LootDrops.size(); i++)
 	{
-		auto NewEntry = Alloc<FFortItemEntry>(FFortItemEntry::GetStructSize());
 		auto& LootDrop = LootDrops.at(i);
 
-		NewEntry->GetItemDefinition() = LootDrop.ItemDefinition;
-		NewEntry->GetCount() = LootDrop.Count;
-		NewEntry->GetLoadedAmmo() = LootDrop.LoadedAmmo;
+		auto NewEntry = FFortItemEntry::MakeItemEntry(LootDrop.ItemDefinition, LootDrop.Count, LootDrop.LoadedAmmo);
 
 		OutLootToDrop.AddPtr(NewEntry, FFortItemEntry::GetStructSize());
 	}

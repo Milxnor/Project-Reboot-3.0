@@ -89,6 +89,24 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return *(int*)(__int64(this) + LoadedAmmoOffset);
 	}
 
+	void CopyFromAnotherItemEntry(FFortItemEntry* OtherItemEntry, bool bCopyGuid = false)
+	{
+		auto OldGuid = this->GetItemGuid();
+
+		if (false)
+		{
+			CopyStruct(this, OtherItemEntry, FFortItemEntry::GetStructSize(), FFortItemEntry::GetStruct());
+		}
+		else
+		{
+			this->GetItemDefinition() = OtherItemEntry->GetItemDefinition();
+			this->GetCount() = OtherItemEntry->GetCount();
+			this->GetLoadedAmmo() = OtherItemEntry->GetLoadedAmmo();
+		}
+
+		this->GetItemGuid() = OldGuid;
+	}
+
 	static UStruct* GetStruct()
 	{
 		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortItemEntry");
@@ -103,10 +121,15 @@ struct FFortItemEntry : FFastArraySerializerItem
 
 	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0)
 	{
-		auto Entry = Alloc<FFortItemEntry>(GetStructSize());
+		auto Entry = // (FFortItemEntry*)FMemory::Realloc(0, GetStructSize(), 0); 
+			Alloc<FFortItemEntry>(GetStructSize());
 
 		if (!Entry)
 			return nullptr;
+
+		Entry->MostRecentArrayReplicationKey = -1;
+		Entry->ReplicationID = -1;
+		Entry->ReplicationKey = -1;
 
 		Entry->GetItemDefinition() = ItemDefinition;
 		Entry->GetCount() = Count;
@@ -122,7 +145,7 @@ public:
 	FFortItemEntry* GetItemEntry()
 	{
 		static auto ItemEntryOffset = this->GetOffset("ItemEntry");
-		return &Get<FFortItemEntry>(ItemEntryOffset);
+		return GetPtr<FFortItemEntry>(ItemEntryOffset);
 	}
 
 	void SetOwningControllerForTemporaryItem(UObject* Controller);

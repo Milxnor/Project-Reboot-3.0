@@ -242,6 +242,24 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding StepExplicitProperty");
 	Addresses::FrameStepExplicitProperty = FindStepExplicitProperty();
 
+	LOG_INFO(LogDev, "Finding Free");
+	Addresses::Free = FindFree();
+
+	LOG_INFO(LogDev, "Finding ClearAbility");
+	Addresses::ClearAbility = FindClearAbility();
+
+	LOG_INFO(LogDev, "Finding ApplyGadgetData");
+	Addresses::ApplyGadgetData = FindApplyGadgetData();
+
+	LOG_INFO(LogDev, "Finding RemoveGadgetData");
+	Addresses::RemoveGadgetData = FindRemoveGadgetData();
+
+	LOG_INFO(LogDev, "Finding GetInterfaceAddress");
+	Addresses::GetInterfaceAddress = FindGetInterfaceAddress();
+
+	LOG_INFO(LogDev, "Finding ApplyCharacterCustomization");
+	Addresses::ApplyCharacterCustomization = FindApplyCharacterCustomization();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -295,6 +313,12 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "RemoveFromAlivePlayers: 0x{:x}", RemoveFromAlivePlayers - Base);
 	LOG_INFO(LogDev, "ActorChannelClose: 0x{:x}", ActorChannelClose - Base);
 	LOG_INFO(LogDev, "FrameStepExplicitProperty: 0x{:x}", FrameStepExplicitProperty - Base);
+	LOG_INFO(LogDev, "Free: 0x{:x}", Free - Base);
+	LOG_INFO(LogDev, "ClearAbility: 0x{:x}", ClearAbility - Base);
+	LOG_INFO(LogDev, "ApplyGadgetData: 0x{:x}", ApplyGadgetData - Base);
+	LOG_INFO(LogDev, "RemoveGadgetData: 0x{:x}", RemoveGadgetData - Base);
+	LOG_INFO(LogDev, "GetInterfaceAddress: 0x{:x}", GetInterfaceAddress - Base);
+	LOG_INFO(LogDev, "ApplyCharacterCustomization: 0x{:x}", ApplyCharacterCustomization - Base);
 }
 
 void Offsets::FindAll()

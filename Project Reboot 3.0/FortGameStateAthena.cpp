@@ -53,7 +53,54 @@ int AFortGameStateAthena::GetAircraftIndex(AFortPlayerState* PlayerState)
 	return TeamIndex - idfkwhatthisisimguessing;
 }
 
-bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState) // actually in zone
+bool AFortGameStateAthena::IsPlayerBuildableClass(UClass* Class)
+{
+	return true;
+
+	static auto AllPlayerBuildableClassesOffset = GetOffset("AllPlayerBuildableClasses", false);
+
+	if (AllPlayerBuildableClassesOffset == -1) // this is invalid in like s6 and stuff we need to find a better way to do this
+		return true;
+
+	auto& AllPlayerBuildableClasses = Get<TArray<UClass*>>(AllPlayerBuildableClassesOffset);
+
+	for (int j = 0; j < AllPlayerBuildableClasses.Num(); j++)
+	{
+		auto CurrentPlayerBuildableClass = AllPlayerBuildableClasses.at(j);
+
+		// LOG_INFO(LogDev, "CurrentPlayerBuildableClass: {}", CurrentPlayerBuildableClass->GetFullName());
+
+		if (CurrentPlayerBuildableClass == Class)
+			return true;
+	}
+
+	return false;
+
+	// I don't know why but I think these are empty
+
+	auto PlayerBuildableClasses = GetPlayerBuildableClasses();
+
+	int ArraySize = 4 - 1;
+
+	for (int i = 0; i < ArraySize; i++)
+	{
+		auto CurrentPlayerBuildableClassesArray = PlayerBuildableClasses[i].BuildingClasses;
+
+		for (int j = 0; j < CurrentPlayerBuildableClassesArray.Num(); j++)
+		{
+			auto CurrentPlayerBuildableClass = CurrentPlayerBuildableClassesArray.at(j);
+
+			LOG_INFO(LogDev, "CurrentPlayerBuildableClass: {}", CurrentPlayerBuildableClass->GetFullName());
+
+			if (CurrentPlayerBuildableClass == Class)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState)
 {
 	auto GameModeAthena = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 	static auto IsRespawningAllowedFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateZone.IsRespawningAllowed");

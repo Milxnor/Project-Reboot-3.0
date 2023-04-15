@@ -18,7 +18,7 @@ static inline void ServerVehicleUpdate(UObject* Context, FFrame& Stack, void* Re
 
 	FTransform Transform{};
 
-	static std::string StateStructName = FindObject("/Script/FortniteGame.ReplicatedPhysicsPawnState") ? "/Script/FortniteGame.ReplicatedPhysicsPawnState" : "Script/FortniteGame.ReplicatedAthenaVehiclePhysicsState";
+	static std::string StateStructName = FindObject("/Script/FortniteGame.ReplicatedPhysicsPawnState") ? "/Script/FortniteGame.ReplicatedPhysicsPawnState" : "/Script/FortniteGame.ReplicatedAthenaVehiclePhysicsState";
 
 	if (StateStructName.empty())
 		return;
@@ -33,7 +33,7 @@ static inline void ServerVehicleUpdate(UObject* Context, FFrame& Stack, void* Re
 	static auto RotationOffset = FindOffsetStruct(StateStructName, "Rotation");
 	static auto TranslationOffset = FindOffsetStruct(StateStructName, "Translation");
 
-	if (std::floor(Engine_Version) >= 423)
+	if (Engine_Version >= 420) // S4-S12
 	{
 		float v50 = -2.0;
 		float v49 = 2.5;
@@ -127,6 +127,9 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 	SpawnTransform.Rotation = VehicleSpawner->GetActorRotation().Quaternion();
 	SpawnTransform.Scale3D = { 1, 1, 1 };
 
+	FActorSpawnParameters SpawnParameters{};
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
 	static auto VehicleClassOffset = VehicleSpawner->GetOffset("VehicleClass", false);
 	static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
 
@@ -142,7 +145,7 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 			return nullptr;
 		}
 
-		return GetWorld()->SpawnActor<AActor>(StrongVehicleClass, SpawnTransform);
+		return GetWorld()->SpawnActor<AActor>(StrongVehicleClass, SpawnTransform, SpawnParameters);
 	}
 
 	static auto FortVehicleItemDefOffset = VehicleSpawner->GetOffset("FortVehicleItemDef");
@@ -171,7 +174,7 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 		return nullptr;
 	}
 
-	return GetWorld()->SpawnActor<AActor>(StrongVehicleActorClass, SpawnTransform);
+	return GetWorld()->SpawnActor<AActor>(StrongVehicleActorClass, SpawnTransform, SpawnParameters);
 }
 
 static inline void SpawnVehicles2()

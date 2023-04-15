@@ -124,21 +124,27 @@ public:
         }
         return false;
     }
-    FORCEINLINE ValueType& GetByKey(const KeyType& Key)
+    FORCEINLINE ValueType& GetByKey(const KeyType& Key, bool* wasSuccessful = nullptr)
     {
         for (auto& Pair : *this)
         {
             if (Pair.Key() == Key)
             {
+                if (wasSuccessful)
+                    *wasSuccessful = true;
+
                 return Pair.Value();
             }
         }
 
-        LOG_INFO(LogDev, "Failed to find Key!!!");
+        // LOG_INFO(LogDev, "Failed to find Key!!!");
+
+        if (wasSuccessful)
+            *wasSuccessful = false;
     }
-    FORCEINLINE ValueType& Find(const KeyType& Key)
+    FORCEINLINE ValueType& Find(const KeyType& Key, bool* wasSuccessful = nullptr)
     {
-        return GetByKey(Key);
+        return GetByKey(Key, wasSuccessful);
     }
     FORCEINLINE ValueType GetByKeyNoRef(const KeyType& Key)
     {

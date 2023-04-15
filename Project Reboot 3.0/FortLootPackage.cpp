@@ -21,71 +21,8 @@ float GetRandomFloatForLooting(float min, float max)
     return UKismetMathLibrary::RandomFloatInRange(min, max);
 }
 
-static FFortLootTierData* GetLootTierData2(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
+static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootTierData, float TotalWeight)
 {
-    float TotalWeight = 0;
-    FFortLootTierData* SelectedItem = nullptr;
-
-    for (auto Item : LootTierData)
-    {
-        TotalWeight += Item->GetWeight();
-    }
-
-    float RandomNumber = GetRandomFloatForLooting(0, 1);
-    float cumulative_weight = 0.0f;
-
-    for (auto Item : LootTierData)
-    {
-        cumulative_weight += Item->GetWeight() / TotalWeight;
-
-        if (RandomNumber <= Item->GetWeight())
-        {
-            SelectedItem = Item;
-            break;
-        }
-    }
-
-    if (!SelectedItem)
-        return GetLootTierData2(LootTierData, bPrint);
-
-    return SelectedItem;
-}
-
-static FFortLootPackageData* GetLootPackage2(std::vector<FFortLootPackageData*>& LootPackages)
-{
-    float TotalWeight = 0;
-    FFortLootPackageData* SelectedItem = nullptr;
-
-    for (auto Item : LootPackages)
-    {
-        TotalWeight += Item->GetWeight();
-    }
-
-    float RandomNumber = GetRandomFloatForLooting(0, 1);
-    float cumulative_weight = 0.0f;
-
-    for (auto Item : LootPackages)
-    {
-        cumulative_weight += Item->GetWeight() / TotalWeight;
-
-        if (RandomNumber <= Item->GetWeight())
-        {
-            SelectedItem = Item;
-            break;
-        }
-    }
-
-    if (!SelectedItem)
-        return GetLootPackage2(LootPackages);
-
-    return SelectedItem;
-}
-
-static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootTierData, bool bPrint)
-{
-    // return GetLootTierData2(LootTierData, bPrint);
-
-    float TotalWeight = 0;
     FFortLootTierData* SelectedItem = nullptr;
 
     for (auto Item : LootTierData)
@@ -107,22 +44,14 @@ static FFortLootTierData* GetLootTierData(std::vector<FFortLootTierData*>& LootT
     }
 
     if (!SelectedItem)
-        return GetLootTierData(LootTierData, bPrint);
+        return GetLootTierData(LootTierData, TotalWeight);
 
     return SelectedItem;
 }
 
-static FFortLootPackageData* GetLootPackage(std::vector<FFortLootPackageData*>& LootPackages)
+static FFortLootPackageData* GetLootPackage(std::vector<FFortLootPackageData*>& LootPackages, float TotalWeight)
 {
-    // return GetLootPackage2(LootPackages);
-
-    float TotalWeight = 0;
     FFortLootPackageData* SelectedItem = nullptr;
-
-    for (auto Item : LootPackages)
-    {
-        TotalWeight += Item->GetWeight();
-    }
 
     float RandomNumber = GetRandomFloatForLooting(0, TotalWeight); // is -1 needed?
 
@@ -138,7 +67,7 @@ static FFortLootPackageData* GetLootPackage(std::vector<FFortLootPackageData*>& 
     }
 
     if (!SelectedItem)
-        return GetLootPackage(LootPackages);
+        return GetLootPackage(LootPackages, TotalWeight);
 
     return SelectedItem;
 }
@@ -250,9 +179,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                         if (CurrentPlaylist)
                         {
                             static auto PlaylistOverrideLootTableDataOffset = GameFeatureData->GetOffset("PlaylistOverrideLootTableData");
-                            auto PlaylistOverrideLootTableData = GameFeatureData->GetPtr<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
-
-                            auto PlaylistOverrideLootTableData_Data = PlaylistOverrideLootTableData->Pairs.Elements.Data;
+                            auto& PlaylistOverrideLootTableData = GameFeatureData->Get<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
 
                             static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
                             auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
@@ -261,9 +188,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                             {
                                 auto& Tag = GameplayTagContainer->GameplayTags.At(i);
 
-                                for (int j = 0; j < PlaylistOverrideLootTableData_Data.Num(); j++)
+                                for (auto Value : PlaylistOverrideLootTableData)
                                 {
-                                    auto Value = PlaylistOverrideLootTableData_Data.at(j).ElementData.Value;
                                     auto CurrentOverrideTag = Value.First;
 
                                     if (Tag.TagName == CurrentOverrideTag.TagName)
@@ -307,9 +233,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                         if (CurrentPlaylist)
                         {
                             static auto PlaylistOverrideLootTableDataOffset = GameFeatureData->GetOffset("PlaylistOverrideLootTableData");
-                            auto PlaylistOverrideLootTableData = GameFeatureData->GetPtr<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
-
-                            auto PlaylistOverrideLootTableData_Data = PlaylistOverrideLootTableData->Pairs.Elements.Data;
+                            auto& PlaylistOverrideLootTableData = GameFeatureData->Get<TMap<FGameplayTag, FFortGameFeatureLootTableData>>(PlaylistOverrideLootTableDataOffset);
 
                             static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
                             auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
@@ -318,9 +242,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                             {
                                 auto& Tag = GameplayTagContainer->GameplayTags.At(i);
 
-                                for (int j = 0; j < PlaylistOverrideLootTableData_Data.Num(); j++)
+                                for (auto& Value : PlaylistOverrideLootTableData)
                                 {
-                                    auto Value = PlaylistOverrideLootTableData_Data.at(j).ElementData.Value;
                                     auto CurrentOverrideTag = Value.First;
 
                                     if (Tag.TagName == CurrentOverrideTag.TagName)
@@ -373,7 +296,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
     }
 
-    if (Fortnite_Version < 6) // ahhh
+    if (Fortnite_Version <= 6) // ahhh
     {
         LTDTables.clear();
         LPTables.clear();
@@ -422,6 +345,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     }
 
     std::vector<FFortLootTierData*> TierGroupLTDs;
+    
+    float TotalTierGroupLTDsWeight = 0;
 
     for (int p = 0; p < LTDTables.size(); p++)
     {
@@ -449,6 +374,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
             if (TierGroupName == TierData->GetTierGroup() && TierData->GetWeight() != 0)
             {
+                TotalTierGroupLTDsWeight += TierData->GetWeight();
                 TierGroupLTDs.push_back(TierData);
             }
         }
@@ -460,7 +386,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         return LootDrops;
     }
 
-    FFortLootTierData* ChosenRowLootTierData = GetLootTierData(TierGroupLTDs, bPrint);
+    FFortLootTierData* ChosenRowLootTierData = GetLootTierData(TierGroupLTDs, TotalTierGroupLTDsWeight);
 
     if (!ChosenRowLootTierData) // Should NEVER happen
         return LootDrops;
@@ -627,6 +553,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         }
 
         std::vector<FFortLootPackageData*> lootPackageCalls;
+        float lootPackageCallsTotalWeight = 0;
 
         if (bIsWorldList)
         {
@@ -635,7 +562,10 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                 auto& CurrentLP = TierGroupLPs.at(j);
 
                 if (CurrentLP->GetWeight() != 0)
+                {
+                    lootPackageCallsTotalWeight += CurrentLP->GetWeight();
                     lootPackageCalls.push_back(CurrentLP);
+                }
             }
         }
         else
@@ -653,6 +583,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
                     if (LootPackage->GetLootPackageID().ToString() == TierGroupLPStr && LootPackage->GetWeight() != 0 && LootPackage->GetCount() != 0)
                     {
+                        lootPackageCallsTotalWeight += LootPackage->GetWeight();
                         lootPackageCalls.push_back(LootPackage);
                     }
                 }
@@ -669,7 +600,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
             continue;
         }
 
-        FFortLootPackageData* LootPackageCall = GetLootPackage(lootPackageCalls);
+        FFortLootPackageData* LootPackageCall = GetLootPackage(lootPackageCalls, lootPackageCallsTotalWeight);
 
         if (!LootPackageCall) // Should NEVER happen
         {

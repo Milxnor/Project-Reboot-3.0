@@ -22,6 +22,13 @@ public:
 		this->ProcessEvent(fn, &IBAParams);
 	}
 
+	bool IsDestroyed()
+	{
+		static auto bDestroyedOffset = GetOffset("bDestroyed");
+		static auto bDestroyedFieldMask = GetFieldMask(GetProperty("bDestroyed"));
+		return ReadBitfieldValue(bDestroyedOffset, bDestroyedFieldMask);
+	}
+
 	void SilentDie()
 	{
 		static auto SilentDieFn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SilentDie");
@@ -34,6 +41,14 @@ public:
 		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.GetMaxHealth");
 		this->ProcessEvent(fn, &MaxHealth);
 		return MaxHealth;
+	}
+
+	float GetHealthPercent() // aka GetHealth() / GetMaxHealth()
+	{
+		float HealthPercent = 0;
+		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.GetHealthPercent");
+		this->ProcessEvent(fn, &HealthPercent);
+		return HealthPercent;
 	}
 
 	void SetTeam(unsigned char InTeam)

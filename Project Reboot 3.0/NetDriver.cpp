@@ -12,6 +12,8 @@
 #include "KismetSystemLibrary.h"
 #include "UnrealMathUtility.h"
 #include "FortQuickBars.h"
+#include "Sort.h"
+#include "Sorting.h"
 
 void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 {
@@ -68,7 +70,7 @@ static FNetViewer ConstructNetViewer(UNetConnection* NetConnection)
 		static auto GetActorEyesViewPointOffset = 0x5B0;
 		void (*GetActorEyesViewPointOriginal)(AController*, FVector * a2, FRotator * a3) = decltype(GetActorEyesViewPointOriginal)(ViewingController->VFTable[GetActorEyesViewPointOffset / 8]);
 		GetActorEyesViewPointOriginal(ViewingController, &newViewer.ViewLocation, &ViewRotation);
-
+		// AFortPlayerControllerAthena::GetPlayerViewPointHook((AFortPlayerControllerAthena*)ViewingController, newViewer.ViewLocation, ViewRotation);
 		newViewer.ViewDir = ViewRotation.Vector();
 	}
 
@@ -601,8 +603,10 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 
 	if (MaxSortedActors > 0)
 	{
-		OutPriorityList = (FActorPriority*)FMemory::Realloc(nullptr, MaxSortedActors * sizeof(FActorPriority), 0); // Alloc<FActorPriority>(MaxSortedActors * sizeof(FActorPriority));
-		OutPriorityActors = (FActorPriority**)FMemory::Realloc(nullptr, MaxSortedActors * sizeof(FActorPriority*), 0);// Alloc<FActorPriority*>(MaxSortedActors * sizeof(FActorPriority*));
+		OutPriorityList = Alloc<FActorPriority>(MaxSortedActors * sizeof(FActorPriority));
+			// (FActorPriority*)FMemory::Realloc(nullptr, MaxSortedActors * sizeof(FActorPriority), 0);
+		OutPriorityActors = Alloc<FActorPriority*>(MaxSortedActors * sizeof(FActorPriority*));
+			// (FActorPriority**)FMemory::Realloc(nullptr, MaxSortedActors * sizeof(FActorPriority*), 0);
 
 		// check( World == Connection->ViewTarget->GetWorld() );
 
@@ -687,16 +691,22 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 
 		// Add in deleted actors
 
-		/*for (auto& CurrentGuid : Connection_DestroyedStartupOrDormantActors)
+		for (auto& CurrentGuid : Connection_DestroyedStartupOrDormantActors)
 		{
-			FActorDestructionInfo& DInfo = GetDriverDestroyedStartupOrDormantActors(this).Find(CurrentGuid);
+			bool bFound = false;
+
+			FActorDestructionInfo& DInfo = GetDriverDestroyedStartupOrDormantActors(this).Find(CurrentGuid, &bFound);
+
+			if (!bFound)
+				continue;
+
 			OutPriorityList[FinalSortedCount] = FActorPriority(Connection, &DInfo, ConnectionViewers);
 			OutPriorityActors[FinalSortedCount] = OutPriorityList + FinalSortedCount;
 			FinalSortedCount++;
 			DeletedCount++;
-		} */
+		}
 
-		// Sort(OutPriorityActors, FinalSortedCount, FCompareFActorPriority());
+		Sort(OutPriorityActors, FinalSortedCount, FCompareFActorPriority());
 	}
 
 	return FinalSortedCount;
@@ -725,7 +735,9 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 		if (ActorInfo == NULL && PriorityActors[j]->DestructionInfo)
 		{
 			// Make sure client has streaming level loaded
-			if (PriorityActors[j]->DestructionInfo->StreamingLevelName.ComparisonIndex.Value != NAME_None && !Connection->GetClientVisibleLevelNames().Contains(PriorityActors[j]->DestructionInfo->StreamingLevelName))
+			if (PriorityActors[j]->DestructionInfo->StreamingLevelName.ComparisonIndex.Value != NAME_None 
+				&& !Connection->GetClientVisibleLevelNames().Contains(PriorityActors[j]->DestructionInfo->StreamingLevelName)
+				)
 			{
 				// This deletion entry is for an actor in a streaming level the connection doesn't have loaded, so skip it
 				continue;
@@ -733,7 +745,7 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 
 			auto& Connection_DestroyedStartupOrDormantActors = GetConnectionDestroyedStartupOrDormantActors(Connection);
 
-			bool bFound = false;
+			/* bool bFound = false;
 
 			for (auto& aa : Connection_DestroyedStartupOrDormantActors)
 			{
@@ -747,7 +759,7 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 			LOG_INFO(LogDev, "bFound: {}", bFound);
 
 			if (!bFound)
-				continue;
+				continue; */
 
 			UActorChannel* Channel = (UActorChannel*)CreateChannel(Connection, 2, true, -1);
 
@@ -779,29 +791,12 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 			// bTearOff actors should never be checked
 			if (bLevelInitializedForActor)
 			{
-				// if (!Actor->IsTearOff() && (!Channel || GetTime() - Channel->GetRelevantTime() > 1.f))
-				if (!Actor->IsTearOff())
+				if (!Actor->IsTearOff() && (!Channel || GetTime() - Channel->GetRelevantTime() > 1.f))
 				{
-					// Test3(Actor, "Passed first check");
-
-					if ((!Channel || GetTime() - Channel->GetRelevantTime() > 1.f))
+					if (IsActorRelevantToConnection(Actor, ConnectionViewers))
 					{
-						// Test3(Actor, "Passed SECOND check");
-
-						if (IsActorRelevantToConnection(Actor, ConnectionViewers))
-						{
-							// Test3(Actor, "Passed THIRD check");
-							bIsRelevant = true;
-						}
+						bIsRelevant = true;
 					}
-					else
-					{
-						// Test3(Actor, "FAiled second check");
-					}
-				}
-				else
-				{
-					// Test3(Actor, "Failed first check");
 				}
 			}
 

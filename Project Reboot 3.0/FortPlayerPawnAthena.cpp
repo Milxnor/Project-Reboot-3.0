@@ -23,6 +23,9 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 	Stack->StepCompiledIn(&bFromSweep);
 	Stack->StepCompiledIn(&SweepResult);
 
+	// LOG_INFO(LogDev, "OtherActor: {}", __int64(OtherActor));
+	// LOG_INFO(LogDev, "OtherActorName: {}", OtherActor->IsValidLowLevel() ? OtherActor->GetName() : "BadRead")
+
 	if (auto Pickup = Cast<AFortPickup>(OtherActor))
 	{
 		static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
@@ -31,8 +34,26 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 		{
 			auto ItemDefinition = Pickup->GetPrimaryPickupItemEntry()->GetItemDefinition();
 
-			auto  PlayerController = Cast<AFortPlayerControllerAthena>(Pawn->GetController(), false);
-			auto& ItemInstances = PlayerController->GetWorldInventory()->GetItemList().GetItemInstances();
+			if (!ItemDefinition)
+			{
+				return;
+			}
+
+			auto PlayerController = Cast<AFortPlayerControllerAthena>(Pawn->GetController());
+
+			if (!PlayerController)
+			{
+				return;
+			}
+
+			auto WorldInventory = PlayerController->GetWorldInventory();
+
+			if (!WorldInventory)
+			{
+				return;
+			}
+
+			auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
 
 			bool  ItemDefGoingInPrimary = IsPrimaryQuickbar(ItemDefinition);
 			int   PrimarySlotsFilled = 0;
@@ -42,7 +63,14 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 			for (int i = 0; i < ItemInstances.Num(); i++)
 			{
 				auto ItemInstance = ItemInstances.at(i);
+
+				if (!ItemInstance)
+					continue;
+
 				auto CurrentItemDefinition = ItemInstance->GetItemEntry()->GetItemDefinition();
+
+				if (!CurrentItemDefinition)
+					continue;
 
 				if (ItemDefGoingInPrimary && IsPrimaryQuickbar(CurrentItemDefinition))
 					PrimarySlotsFilled++;
@@ -61,7 +89,9 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 				}
 
 				if (bIsInventoryFull)
-					return OnCapsuleBeginOverlapOriginal(Context, Stack, Ret);
+				{
+					return;
+				}
 			}
 
 			// std::cout << "bCanStack: " << bCanStack << '\n';
@@ -72,5 +102,5 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 		}
 	}
 
-	return OnCapsuleBeginOverlapOriginal(Context, Stack, Ret);
+	// return OnCapsuleBeginOverlapOriginal(Context, Stack, Ret);
 }

@@ -1,5 +1,6 @@
 #include "FortPlayerPawn.h"
 #include <memcury.h>
+#include "FortPlayerController.h"
 
 void AFortPlayerPawn::ServerChoosePart(EFortCustomPartType Part, UObject* ChosenCharacterPart)
 {
@@ -48,6 +49,88 @@ void AFortPlayerPawn::ForceLaunchPlayerZipline() // Thanks android
 	ProcessEvent(LaunchCharacterFn, &ACharacter_LaunchCharacter_Params);
 }
 
+AActor* AFortPlayerPawn::ServerOnExitVehicle(ETryExitVehicleBehavior ExitForceBehavior)
+{
+	static auto ServerOnExitVehicleFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerPawn.ServerOnExitVehicle");
+	struct 
+	{
+		ETryExitVehicleBehavior                            ExitForceBehavior;                                        // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		AActor* ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} AFortPlayerPawn_ServerOnExitVehicle_Params{ExitForceBehavior};
+	
+	this->ProcessEvent(ServerOnExitVehicleFn, &AFortPlayerPawn_ServerOnExitVehicle_Params);
+
+	return AFortPlayerPawn_ServerOnExitVehicle_Params.ReturnValue;
+}
+
+AFortAthenaVehicle* AFortPlayerPawn::GetVehicle() // hm should we call the reflecterd function?
+{
+	static auto VehicleStateLocalOffset = this->GetOffset("VehicleStateLocal");
+	static auto VehicleOffset = FindOffsetStruct("/Script/FortniteGame.VehiclePawnState", "Vehicle");
+	return Cast<AFortAthenaVehicle>(*(AActor**)(__int64(this->GetPtr<__int64>(VehicleStateLocalOffset)) + VehicleOffset));
+}
+
+UFortWeaponItemDefinition* AFortPlayerPawn::GetVehicleWeaponDefinition(AFortAthenaVehicle* Vehicle)
+{
+	if (!Vehicle)
+		return nullptr;
+
+	static auto FindSeatIndexFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.FindSeatIndex");
+	/* auto Vehicle = GetVehicle();
+
+	if (!Vehicle)
+		return nullptr; */
+
+	struct { AFortPlayerPawn* PlayerPawn; int ReturnValue; } AFortAthenaVehicle_FindSeatIndex_Params{ this };
+	Vehicle->ProcessEvent(FindSeatIndexFn, &AFortAthenaVehicle_FindSeatIndex_Params);
+
+	auto SeatIndex = AFortAthenaVehicle_FindSeatIndex_Params.ReturnValue;
+	return Vehicle->GetVehicleWeaponForSeat(SeatIndex);
+}
+
+void AFortPlayerPawn::UnEquipVehicleWeaponDefinition(UFortWeaponItemDefinition* VehicleWeaponDefinition)
+{
+	if (!VehicleWeaponDefinition)
+		return;
+
+	auto PlayerController = Cast<AFortPlayerController>(GetController());
+
+	if (!PlayerController)
+		return;
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	auto VehicleInstance = WorldInventory->FindItemInstance(VehicleWeaponDefinition);
+
+	if (!VehicleInstance)
+		return;
+
+	bool bShouldUpdate = false;
+	WorldInventory->RemoveItem(VehicleInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, VehicleInstance->GetItemEntry()->GetCount(), true);
+
+	if (bShouldUpdate)
+		WorldInventory->Update();
+
+	auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
+
+	if (!PickaxeInstance)
+		return;
+
+	AFortPlayerController::ServerExecuteInventoryItemHook(PlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid()); // Bad, we should equip the last weapon.
+}
+
+AActor* AFortPlayerPawn::ServerOnExitVehicleHook(AFortPlayerPawn* PlayerPawn, ETryExitVehicleBehavior ExitForceBehavior)
+{
+	auto VehicleWeaponDefinition = PlayerPawn->GetVehicleWeaponDefinition(PlayerPawn->GetVehicle());
+	LOG_INFO(LogDev, "VehicleWeaponDefinition: {}", VehicleWeaponDefinition ? VehicleWeaponDefinition->GetFullName() : "BadRead");
+	PlayerPawn->UnEquipVehicleWeaponDefinition(VehicleWeaponDefinition);
+
+	return ServerOnExitVehicleOriginal(PlayerPawn, ExitForceBehavior);
+}
+
 void AFortPlayerPawn::ServerSendZiplineStateHook(AFortPlayerPawn* Pawn, FZiplinePawnState InZiplineState)
 {
 	static auto ZiplineStateOffset = Pawn->GetOffset("ZiplineState");
@@ -88,6 +171,8 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 
 	static auto bPickedUpOffset = Pickup->GetOffset("bPickedUp");
 
+	LOG_INFO(LogDev, "InFlyTime: {}", InFlyTime);
+
 	if (Pickup->Get<bool>(bPickedUpOffset))
 	{
 		LOG_INFO(LogDev, "Trying to pickup picked up weapon?");
@@ -102,7 +187,7 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 	PickupLocationData->GetPickupTarget() = Pawn;
 	PickupLocationData->GetFlyTime() = 0.40f;
 	PickupLocationData->GetItemOwner() = Pawn;
-	PickupLocationData->GetStartDirection() = InStartDirection;
+	// PickupLocationData->GetStartDirection() = InStartDirection;
 	PickupLocationData->GetPickupGuid() = Pawn->GetCurrentWeapon() ? Pawn->GetCurrentWeapon()->GetItemEntryGuid() : FGuid();
 
 	static auto OnRep_PickupLocationDataFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPickup.OnRep_PickupLocationData");

@@ -19,6 +19,7 @@
 #include "KismetStringLibrary.h"
 #include "FortGadgetItemDefinition.h"
 #include "FortAbilitySet.h"
+#include "vendingmachine.h"
 
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
@@ -70,14 +71,12 @@ void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>
 		if (bIgnoreSecondaryQuickbar && !IsPrimaryQuickbar(WorldItemDefinition))
 			continue;
 
-		auto ShouldBeDropped = !WorldItemDefinition->CanBeDropped();
-
-		if (!bRemoveIfNotDroppable && ShouldBeDropped)
+		if (!bRemoveIfNotDroppable && !WorldItemDefinition->CanBeDropped())
 			continue;
 
 		GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
 
-		if (!ShouldBeDropped)
+		if (bRemoveIfNotDroppable && !WorldItemDefinition->CanBeDropped())
 			continue;
 	
 		AFortPickup::SpawnPickup(WorldItemDefinition, Location, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset,
@@ -92,33 +91,151 @@ void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>
 	WorldInventory->Update();
 }
 
-class Wtf
+void AFortPlayerController::ApplyCosmeticLoadout()
 {
-public:
-	AFortPlayerController* Controller;
+	auto PlayerStateAsFort = Cast<AFortPlayerStateAthena>(GetPlayerState());
 
-	virtual AFortPlayerController* GetController()
+	if (!PlayerStateAsFort)
+		return;
+
+	auto PawnAsFort = Cast<AFortPlayerPawn>(GetMyFortPawn());
+
+	if (!PawnAsFort)
+		return;
+
+	static auto UpdatePlayerCustomCharacterPartsVisualizationFn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.UpdatePlayerCustomCharacterPartsVisualization");
+
+	if (!UpdatePlayerCustomCharacterPartsVisualizationFn)
 	{
-		return Controller;
+		/* if (Addresses::ApplyCharacterCustomization)
+		{
+			static void* (*ApplyCharacterCustomizationOriginal)(AFortPlayerState* a1, AFortPawn* a3) = decltype(ApplyCharacterCustomizationOriginal)(Addresses::ApplyCharacterCustomization);
+			ApplyCharacterCustomizationOriginal(PlayerStateAsFort, PawnAsFort);
+			return;
+		} */
+
+		auto CosmeticLoadout = this->GetCosmeticLoadout();
+
+		if (CosmeticLoadout)
+		{
+			/* static auto Pawn_CosmeticLoadoutOffset = PawnAsFort->GetOffset("CosmeticLoadout");
+
+			if (Pawn_CosmeticLoadoutOffset != -1)
+			{
+				CopyStruct(PawnAsFort->GetPtr<__int64>(Pawn_CosmeticLoadoutOffset), CosmeticLoadout, FFortAthenaLoadout::GetStructSize());
+			} */
+
+			auto Character = CosmeticLoadout->GetCharacter();
+
+			// LOG_INFO(LogDev, "Character: {}", __int64(Character));
+			// LOG_INFO(LogDev, "Character Name: {}", Character ? Character->GetFullName() : "InvalidObject");
+
+			if (PawnAsFort)
+			{
+				ApplyCID(PawnAsFort, Character, false);
+
+				auto Backpack = CosmeticLoadout->GetBackpack();
+
+				if (Backpack)
+				{
+					static auto CharacterPartsOffset = Backpack->GetOffset("CharacterParts");
+
+					if (CharacterPartsOffset != -1)
+					{
+						auto& BackpackCharacterParts = Backpack->Get<TArray<UObject*>>(CharacterPartsOffset);
+
+						for (int i = 0; i < BackpackCharacterParts.Num(); i++)
+						{
+							auto BackpackCharacterPart = BackpackCharacterParts.at(i);
+
+							if (!BackpackCharacterPart)
+								continue;
+
+							PawnAsFort->ServerChoosePart(EFortCustomPartType::Backpack, BackpackCharacterPart);
+						}
+
+						// UFortKismetLibrary::ApplyCharacterCosmetics(GetWorld(), BackpackCharacterParts, PlayerStateAsFort, &aa);
+					}
+				}
+			}
+		}
+
+		return;
 	}
-};
+
+	UFortKismetLibrary::StaticClass()->ProcessEvent(UpdatePlayerCustomCharacterPartsVisualizationFn, &PlayerStateAsFort);
+}
+
+void AFortPlayerController::ServerRepairBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToRepair)
+{
+	if (!BuildingActorToRepair)
+		return;
+
+	float BuildingHealthPercent = BuildingActorToRepair->GetHealthPercent();
+
+	// todo not hardcode these?
+	float BuildingCost = 10;
+	float RepairCostMultiplier = 0.75;
+
+	float BuildingHealthPercentLost = 1.0 - BuildingHealthPercent;
+	float RepairCostUnrounded = (BuildingCost * BuildingHealthPercentLost) * RepairCostMultiplier;
+	float RepairCost = std::floor(RepairCostUnrounded > 0 ? RepairCostUnrounded < 1 ? 1 : RepairCostUnrounded : 0);
+
+	if (RepairCost < 0)
+		return;
+
+	auto ResourceItemDefinition = UFortKismetLibrary::K2_GetResourceItemDefinition(BuildingActorToRepair->GetResourceType());
+
+	if (!ResourceItemDefinition)
+		return;
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	if (!PlayerController->DoesBuildFree())
+	{
+		auto ResourceInstance = WorldInventory->FindItemInstance(ResourceItemDefinition);
+
+		if (!ResourceInstance)
+			return;
+
+		bool bShouldUpdate = false;
+
+		if (!WorldInventory->RemoveItem(ResourceInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, RepairCost))
+			return;
+
+		if (bShouldUpdate)
+			WorldInventory->Update();
+	}
+
+	struct
+	{
+		AFortPlayerController* RepairingController;                                      // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		int                                                ResourcesSpent;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	}ABuildingSMActor_RepairBuilding_Params{ PlayerController, RepairCost };
+
+	static auto RepairBuildingFn = FindObject<UFunction>("/Script/FortniteGame.BuildingSMActor.RepairBuilding");
+	BuildingActorToRepair->ProcessEvent(RepairBuildingFn, &ABuildingSMActor_RepairBuilding_Params);
+	// PlayerController->FortClientPlaySoundAtLocation(PlayerController->StartRepairSound, BuildingActorToRepair->K2_GetActorLocation(), 0, 0);
+}
 
 void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid)
 {
-	if (Engine_Version <= 420)
-	{
-		static auto OverriddenBackpackSizeOffset = PlayerController->GetOffset("OverriddenBackpackSize");
-		// LOG_INFO(LogDev, "PlayerController->Get<int>(OverriddenBackpackSizeOffset): {}", PlayerController->Get<int>(OverriddenBackpackSizeOffset));
-		// PlayerController->Get<int>(OverriddenBackpackSizeOffset) = 5;
-		// PlayerController->ForceNetUpdate();
-	}
+	auto WorldInventory = PlayerController->GetWorldInventory();
 
-	auto ItemInstance = PlayerController->GetWorldInventory()->FindItemInstance(ItemGuid);
+	if (!WorldInventory)
+		return;
+
+	auto ItemInstance = WorldInventory->FindItemInstance(ItemGuid);
 	auto Pawn = Cast<AFortPlayerPawn>(PlayerController->GetPawn());
 
 	if (!ItemInstance || !Pawn)
 		return;
 
+	FGuid OldGuid = Pawn->GetCurrentWeapon() ? Pawn->GetCurrentWeapon()->GetItemEntryGuid() : FGuid(-1, -1, -1, -1);
+	UFortItem* OldInstance = OldGuid == FGuid(-1, -1, -1, -1) ? nullptr : WorldInventory->FindItemInstance(OldGuid);
 	auto ItemDefinition = ItemInstance->GetItemEntry()->GetItemDefinition();
 
 	if (!ItemDefinition)
@@ -128,9 +245,9 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 
 	static auto FortGadgetItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortGadgetItemDefinition");
 
-	UFortGadgetItemDefinition* GadgetItemDefinition = nullptr;
+	UFortGadgetItemDefinition* GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition);
 
-	if (GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition))
+	if (GadgetItemDefinition)
 	{
 		static auto GetWeaponItemDefinition = FindObject<UFunction>("/Script/FortniteGame.FortGadgetItemDefinition.GetWeaponItemDefinition");
 
@@ -144,91 +261,8 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 			ItemDefinition->ProcessEvent(GetDecoItemDefinition, &ItemDefinition);
 		}
 
-		LOG_INFO(LogDev, "Equipping Gadget: {}", ItemDefinition->GetFullName());
+		// LOG_INFO(LogDev, "Equipping Gadget: {}", ItemDefinition->GetFullName());
 	}
-
-#if 0
-	if (GadgetItemDefinition)
-	{
-		static auto AbilitySetOffset = GadgetItemDefinition->GetOffset("AbilitySet");
-		auto& AbilitySetSoft = GadgetItemDefinition->Get<TSoftObjectPtr<UFortAbilitySet>>(AbilitySetOffset);
-
-		auto StrongAbilitySet = AbilitySetSoft.Get(UFortAbilitySet::StaticClass(), true);
-
-		if (StrongAbilitySet)
-		{
-			auto PlayerState = (AFortPlayerStateAthena*)PlayerController->GetPlayerState();
-			StrongAbilitySet->GiveToAbilitySystem(PlayerState->GetAbilitySystemComponent());
-		}
-
-		static auto AttributeSetOffset = GadgetItemDefinition->GetOffset("AttributeSet");
-		auto& AttributeSetSoft = GadgetItemDefinition->Get<TSoftObjectPtr<UObject>>(AttributeSetOffset);
-
-		static auto AttributeClass = FindObject<UClass>("/Script/GameplayAbilities.AttributeSet");
-		auto StrongAttributeSet = AttributeSetSoft.Get(AttributeClass, true);
-		AttributeSetSoft.SoftObjectPtr.ObjectID.AssetPathName.ToString();
-
-		if (StrongAttributeSet)
-		{
-
-		}
-
-		if (GadgetItemDefinition->ShouldDropAllItemsOnEquip())
-		{
-			PlayerController->DropAllItems({ GadgetItemDefinition });
-		}
-
-		static auto AnimBPOverrideOffset = GadgetItemDefinition->GetOffset("AnimBPOverride");
-		UObject* AnimBPOverride = nullptr;
-
-		if (Fortnite_Version >= 6)
-		{
-			auto& AnimBPOverrideSoft = GadgetItemDefinition->Get<TSoftObjectPtr<UObject>>(AnimBPOverrideOffset);
-
-			static auto AnimInstanceClass = FindObject<UClass>("/Script/Engine.AnimInstance");
-			AnimBPOverride = AnimBPOverrideSoft.Get(AnimInstanceClass, true);
-		}
-		else
-		{
-			AnimBPOverride = GadgetItemDefinition->Get(AnimBPOverrideOffset);
-		}
-
-		if (AnimBPOverride)
-		{
-			static auto Pawn_AnimBPOverrideOffset = Pawn->GetOffset("AnimBPOverride");
-			Pawn->Get(Pawn_AnimBPOverrideOffset) = AnimBPOverride;
-		}
-
-		static auto FootstepBankOverrideOffset = GadgetItemDefinition->GetOffset("FootstepBankOverride");
-		UObject* FootstepBankOverride = nullptr;
-
-		if (Fortnite_Version >= 6)
-		{
-			auto& FootstepBankOverrideSoft = GadgetItemDefinition->Get<TSoftObjectPtr<UObject>>(FootstepBankOverrideOffset);
-
-			static auto FortFootstepAudioBankClass = FindObject<UClass>("/Script/FortniteGame.FortFootstepAudioBank");
-			FootstepBankOverride = FootstepBankOverrideSoft.Get(FortFootstepAudioBankClass, true);
-		}
-		else
-		{
-			FootstepBankOverride = GadgetItemDefinition->Get(FootstepBankOverrideOffset);
-		}
-
-		if (FootstepBankOverride)
-		{
-			static auto Pawn_FootstepBankOverrideOffset = Pawn->GetOffset("FootstepBankOverride");
-			Pawn->Get(Pawn_FootstepBankOverrideOffset) = FootstepBankOverride;
-		}
-
-		static auto CharacterPartsOffset = GadgetItemDefinition->GetOffset("CharacterParts");
-		auto& CharacterParts = GadgetItemDefinition->Get<TArray<UObject*>>(CharacterPartsOffset);
-
-		for (int i = 0; i < CharacterParts.Num(); i++)
-		{
-			Pawn->ServerChoosePart((EFortCustomPartType)i, CharacterParts.at(i));
-		}
-	}
-#endif
 
 	if (auto DecoItemDefinition = Cast<UFortDecoItemDefinition>(ItemDefinition))
 	{
@@ -301,6 +335,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 {
 	// static auto LlamaClass = FindObject<UClass>("/Game/Athena/SupplyDrops/Llama/AthenaSupplyDrop_Llama.AthenaSupplyDrop_Llama_C");
 	static auto FortAthenaSupplyDropClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaSupplyDrop");
+	static auto BuildingItemCollectorActorClass = FindObject<UClass>("/Script/FortniteGame.BuildingItemCollectorActor");
 
 	LOG_INFO(LogInteraction, "ServerAttemptInteract!");
 
@@ -372,83 +407,132 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 	}
 	else if (ReceivingActor->IsA(FortAthenaVehicleClass))
 	{
-		auto Vehicle = ReceivingActor;
+		auto Vehicle = (AFortAthenaVehicle*)ReceivingActor;
 		ServerAttemptInteractOriginal(Context, Stack, Ret);
-
-		return;
+		
+		if (!AreVehicleWeaponsEnabled())
+			return;
 
 		auto Pawn = (AFortPlayerPawn*)PlayerController->GetMyFortPawn();
 
 		if (!Pawn)
 			return;
 
-		static auto FindSeatIndexFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.FindSeatIndex");
-		static auto GetSeatWeaponComponentFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.GetSeatWeaponComponent");
+		auto VehicleWeaponDefinition = Pawn->GetVehicleWeaponDefinition(Vehicle);
 
-		if (!GetSeatWeaponComponentFn)
-			return;
-
-		struct { AFortPlayerPawn* PlayerPawn; int ReturnValue; } AFortAthenaVehicle_FindSeatIndex_Params{Pawn};
-		Vehicle->ProcessEvent(FindSeatIndexFn, &AFortAthenaVehicle_FindSeatIndex_Params);
-
-		auto SeatIndex = AFortAthenaVehicle_FindSeatIndex_Params.ReturnValue;
-
-		struct { int SeatIndex; UObject* ReturnValue; } AFortAthenaVehicle_GetSeatWeaponComponent_Params{};
-
-		Vehicle->ProcessEvent(GetSeatWeaponComponentFn, &AFortAthenaVehicle_GetSeatWeaponComponent_Params);
-
-		auto WeaponComponent = AFortAthenaVehicle_GetSeatWeaponComponent_Params.ReturnValue;
-
-		if (!WeaponComponent)
-			return;
-
-		static auto WeaponSeatDefinitionStructSize = FindObject<UClass>("/Script/FortniteGame.WeaponSeatDefinition")->GetPropertiesSize();
-		static auto VehicleWeaponOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "VehicleWeapon");
-		static auto SeatIndexOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "SeatIndex");
-		static auto WeaponSeatDefinitionsOffset = WeaponComponent->GetOffset("WeaponSeatDefinitions");
-		auto& WeaponSeatDefinitions = WeaponComponent->Get<TArray<__int64>>(WeaponSeatDefinitionsOffset);
-
-		for (int i = 0; i < WeaponSeatDefinitions.Num(); i++)
+		if (!VehicleWeaponDefinition)
 		{
-			auto WeaponSeat = WeaponSeatDefinitions.AtPtr(i, WeaponSeatDefinitionStructSize);
-
-			if (*(int*)(__int64(WeaponSeat) + SeatIndexOffset) != SeatIndex)
-				continue;
-
-			auto VehicleWeaponDef = *(UFortWeaponItemDefinition**)(__int64(WeaponSeat) + VehicleWeaponOffset);
-
-			LOG_INFO(LogDev, "Vehicle eaponb: {}", __int64(VehicleWeaponDef));
-
-			if (!VehicleWeaponDef)
-				continue;
-
-			LOG_INFO(LogDev, "Vehicle eaponb name: {}", VehicleWeaponDef->GetFullName());
-
-			auto WorldInventory = PlayerController->GetWorldInventory();
-
-			if (!WorldInventory)
-				continue;
-
-			{
-				auto ahh = WorldInventory->AddItem(VehicleWeaponDef, nullptr);
-
-				auto newitem = ahh.first[0];
-
-				LOG_INFO(LogDev, "newitem: {}", __int64(newitem));
-
-				if (!newitem)
-					return;
-
-				WorldInventory->Update();
-
-				Pawn->EquipWeaponDefinition(VehicleWeaponDef, newitem->GetItemEntry()->GetItemGuid());
-				// PlayerController->ServerExecuteInventoryItemHook(PlayerController, newitem->GetItemEntry()->GetItemGuid());
-			}
-
-			break;
+			LOG_INFO(LogDev, "Invlaid VehicleWeaponDefinition!");
+			return;
 		}
 
+		LOG_INFO(LogDev, "Equipping {}", VehicleWeaponDefinition->GetFullName());
+
+		auto WorldInventory = PlayerController->GetWorldInventory();
+
+		if (!WorldInventory)
+			return;
+
+		auto NewAndModifiedInstances = WorldInventory->AddItem(VehicleWeaponDefinition, nullptr);
+		auto NewVehicleInstance = NewAndModifiedInstances.first[0];
+
+		if (!NewVehicleInstance)
+			return;
+
+		WorldInventory->Update();
+
+		auto VehicleWeapon = Pawn->EquipWeaponDefinition(VehicleWeaponDefinition, NewVehicleInstance->GetItemEntry()->GetItemGuid());
+		// PlayerController->ServerExecuteInventoryItemHook(PlayerController, newitem->GetItemEntry()->GetItemGuid());
+
+		/* if (WeaponComponent)
+		{
+			static auto bWeaponEquippedOffset = WeaponComponent->GetOffset("bWeaponEquipped");
+			WeaponComponent->Get<bool>(bWeaponEquippedOffset) = true;
+
+			static auto CachedWeaponOffset = WeaponComponent->GetOffset("CachedWeapon");
+			WeaponComponent->Get<AFortWeapon*>(CachedWeaponOffset) = VehicleWeapon;
+
+			static auto CachedWeaponDefOffset = WeaponComponent->GetOffset("CachedWeaponDef");
+			WeaponComponent->Get<UFortWeaponItemDefinition*>(CachedWeaponDefOffset) = VehicleWeaponDefinition;
+		} */
+
 		return;
+	}
+	else if (ReceivingActor->IsA(BuildingItemCollectorActorClass))
+	{
+		auto WorldInventory = PlayerController->GetWorldInventory();
+
+		if (!WorldInventory)
+			return ServerAttemptInteractOriginal(Context, Stack, Ret);
+
+		auto ItemCollector = ReceivingActor;
+		static auto ActiveInputItemOffset = ItemCollector->GetOffset("ActiveInputItem");
+		auto CurrentMaterial = ItemCollector->Get<UFortWorldItemDefinition*>(ActiveInputItemOffset); // InteractType->OptionalObjectData
+
+		if (!CurrentMaterial)
+			return ServerAttemptInteractOriginal(Context, Stack, Ret);
+
+		int Index = 0;
+
+		// this is a weird way of getting the current item collection we are on.
+
+		static auto StoneItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+		static auto MetalItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+
+		if (CurrentMaterial == StoneItemData)
+			Index = 1;
+		else if (CurrentMaterial == MetalItemData)
+			Index = 2;
+
+		static auto ItemCollectionsOffset = ItemCollector->GetOffset("ItemCollections");
+		auto& ItemCollections = ItemCollector->Get<TArray<FCollectorUnitInfo>>(ItemCollectionsOffset);
+
+		auto ItemCollection = ItemCollections.AtPtr(Index, FCollectorUnitInfo::GetPropertiesSize());
+
+		if (Fortnite_Version < 8.10)
+		{
+			auto Cost = ItemCollection->GetInputCount()->GetValue();
+
+			if (!CurrentMaterial)
+				return ServerAttemptInteractOriginal(Context, Stack, Ret);
+
+			auto MatInstance = WorldInventory->FindItemInstance(CurrentMaterial);
+
+			if (!MatInstance)
+				return ServerAttemptInteractOriginal(Context, Stack, Ret);
+
+			bool bShouldUpdate = false;
+
+			if (!WorldInventory->RemoveItem(MatInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, Cost, true))
+				return ServerAttemptInteractOriginal(Context, Stack, Ret);
+
+			if (bShouldUpdate)
+				WorldInventory->Update();
+		}
+
+		for (int z = 0; z < ItemCollection->GetOutputItemEntry()->Num(); z++)
+		{
+			auto Entry = ItemCollection->GetOutputItemEntry()->AtPtr(z, FFortItemEntry::GetStructSize());
+
+			AFortPickup::SpawnPickup(Entry->GetItemDefinition(), LocationToSpawnLoot, Entry->GetCount(), 
+				EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::Unset, Entry->GetLoadedAmmo(), PlayerController->GetMyFortPawn());
+		}
+
+		static auto bCurrentInteractionSuccessOffset = ItemCollector->GetOffset("bCurrentInteractionSuccess", false);
+
+		if (bCurrentInteractionSuccessOffset != -1)
+		{
+			static auto bCurrentInteractionSuccessFieldMask = GetFieldMask(ItemCollector->GetProperty("bCurrentInteractionSuccess"));
+			ItemCollector->SetBitfieldValue(bCurrentInteractionSuccessOffset, bCurrentInteractionSuccessFieldMask, true); // idek if this is needed
+		}
+
+		static auto DoVendDeath = FindObject<UFunction>("/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C.DoVendDeath");
+
+		if (DoVendDeath)
+		{
+			ItemCollector->ProcessEvent(DoVendDeath);
+			ItemCollector->K2_DestroyActor();
+		}
 	}
 
 	return ServerAttemptInteractOriginal(Context, Stack, Ret);
@@ -491,12 +575,13 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 
 void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)
 {
+	LOG_INFO(LogDev, "DropAllItems!");
 	PlayerController->DropAllItems({ IgnoreItemDef });
 }
 
 void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFrame* Stack, void* Ret)
 {
-	auto PlayerController = Cast<AFortPlayerController>(Context);
+	auto PlayerController = (AFortPlayerController*)Context;
 
 	if (!PlayerController) // ??
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
@@ -543,6 +628,25 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	if (!BuildingClass)
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+
+	auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)GetWorld()->GetGameMode())->GetGameState());
+
+	auto StructuralSupportSystem = GameState->GetStructuralSupportSystem();
+
+	if (StructuralSupportSystem)
+	{
+		if (!StructuralSupportSystem->IsWorldLocValid(BuildLocation))
+		{
+			return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+		}
+	}
+
+	if (!GameState->IsPlayerBuildableClass(BuildingClass))
+	{
+		LOG_INFO(LogDev, "Cheater most likely.");
+		// PlayerController->GetAnticheatComponent().AddAndCheck(Severity::HIGH);
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+	}
 
 	TArray<ABuildingSMActor*> ExistingBuildings;
 	char idk;
@@ -603,14 +707,14 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 			WorldInventory->Update();
 	}
 
-	auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)GetWorld()->GetGameMode())->GetGameState());
+	/*
 
 	GET_PLAYLIST(GameState);
 
 	if (CurrentPlaylist)
 	{
 		// CurrentPlaylist->ApplyModifiersToActor(BuildingActor); // seems automatic
-	}
+	} */
 
 	return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 }
@@ -697,11 +801,14 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 	if (!ItemDefinition || !ItemDefinition->CanBeDropped())
 		return;
 
-	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Pawn->GetActorLocation(), Count,
-		EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, ReplicatedEntry->GetLoadedAmmo(), Pawn);
+	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop())
+	{
+		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(),
+			EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn);
 
-	if (!Pickup)
-		return;
+		if (!Pickup)
+			return;
+	}
 
 	bool bShouldUpdate = false;
 
@@ -754,6 +861,39 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 
 	if (!AbilityToUse)
 		return;
+
+	static auto AthenaDanceItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.AthenaDanceItemDefinition");
+
+	if (EmoteAsset->IsA(AthenaDanceItemDefinitionClass))
+	{
+		static auto EmoteAsset_bMovingEmoteOffset = EmoteAsset->GetOffset("bMovingEmote", false);
+		static auto bMovingEmoteOffset = Pawn->GetOffset("bMovingEmote", false);
+
+		if (bMovingEmoteOffset != -1 && EmoteAsset_bMovingEmoteOffset != -1)
+		{
+			static auto bMovingEmoteFieldMask = GetFieldMask(Pawn->GetProperty("bMovingEmote"));
+			static auto EmoteAsset_bMovingEmoteFieldMask = GetFieldMask(EmoteAsset->GetProperty("bMovingEmote"));
+			Pawn->SetBitfieldValue(bMovingEmoteOffset, bMovingEmoteFieldMask, EmoteAsset->ReadBitfieldValue(EmoteAsset_bMovingEmoteOffset, EmoteAsset_bMovingEmoteFieldMask));
+		}
+
+		static auto bMoveForwardOnlyOffset = EmoteAsset->GetOffset("bMoveForwardOnly", false);
+		static auto bMovingEmoteForwardOnlyOffset = Pawn->GetOffset("bMovingEmoteForwardOnly", false);
+
+		if (bMovingEmoteForwardOnlyOffset != -1 && bMoveForwardOnlyOffset != -1)
+		{
+			static auto bMovingEmoteForwardOnlyFieldMask = GetFieldMask(Pawn->GetProperty("bMovingEmoteForwardOnly"));
+			static auto bMoveForwardOnlyFieldMask = GetFieldMask(EmoteAsset->GetProperty("bMoveForwardOnly"));
+			Pawn->SetBitfieldValue(bMovingEmoteOffset, bMovingEmoteForwardOnlyFieldMask, EmoteAsset->ReadBitfieldValue(bMoveForwardOnlyOffset, bMoveForwardOnlyFieldMask));
+		}
+
+		static auto WalkForwardSpeedOffset = EmoteAsset->GetOffset("WalkForwardSpeed", false);
+		static auto EmoteWalkSpeedOffset = Pawn->GetOffset("EmoteWalkSpeed", false);
+
+		if (EmoteWalkSpeedOffset != -1 && WalkForwardSpeedOffset != -1)
+		{
+			Pawn->Get<float>(EmoteWalkSpeedOffset) = EmoteAsset->Get<float>(WalkForwardSpeedOffset);
+		}
+	}
 
 	int outHandle = 0;
 
@@ -819,6 +959,29 @@ uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = fa
 
 	static uint8 (*sub_7FF7AB499410)(FGameplayTagContainer TagContainer, char bWasDBNOIg) = decltype(sub_7FF7AB499410)(Addr);
 	return sub_7FF7AB499410(TagContainer, bWasDBNO);
+}
+
+std::vector<APlayerController*> PlayerControllersDead; // make atomic?
+// std::array<std::atomic<APlayerController*>, 100> PlayerControllersDead;
+std::atomic<int> numValidElements(0);
+
+DWORD WINAPI SpectateThread(LPVOID)
+{
+	while (1)
+	{
+		for (auto PC : PlayerControllersDead)
+		// for (int i = 0; i < PlayerControllersDead.size(); i++)
+		{
+			// auto PC = PlayerControllersDead.at(i).load();
+
+			static auto SpectateOnDeathFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.SpectateOnDeath");
+			PC->ProcessEvent(SpectateOnDeathFn);
+		}
+
+		Sleep(4000);
+	}
+
+	return 0;
 }
 
 void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerController, void* DeathReport)
@@ -992,13 +1155,36 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 			if (Fortnite_Version < 6) // Spectating
 			{
-				LOG_INFO(LogDev, "Starting Spectating!");
+				static auto bAllowSpectateAfterDeathOffset = GameMode->GetOffset("bAllowSpectateAfterDeath");
 
-				static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
-				PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
+				bool bAllowSpectate = GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
 
-				static auto SpectateOnDeathFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.SpectateOnDeath");
-				PlayerController->ProcessEvent(SpectateOnDeathFn);
+				LOG_INFO(LogDev, "bAllowSpectate: {}", bAllowSpectate);
+
+				if (bAllowSpectate)
+				{
+					LOG_INFO(LogDev, "Starting Spectating!");
+
+					static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
+					PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
+
+					PlayerControllersDead.push_back(PlayerController);
+
+					/* if (numValidElements < PlayerControllersDead.size())
+					{
+						PlayerControllersDead[numValidElements].store(PlayerController);
+						numValidElements.fetch_add(1);
+					} */
+
+					static bool bCreatedThread = false;
+
+					if (!bCreatedThread)
+					{
+						bCreatedThread = true;
+
+						CreateThread(0, 0, SpectateThread, 0, 0, 0);
+					}
+				}
 			}
 		}
 	}
@@ -1069,7 +1255,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	int RotationIterations = Fortnite_Version < 8.30 ? *(int*)(__int64(Params) + RotationIterationsOffset) : (int)(*(uint8*)(__int64(Params) + RotationIterationsOffset));
 	auto bMirrored = *(char*)(__int64(Params) + bMirroredOffset);
 
-	LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
+	// LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
 
 	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
 	{

@@ -42,15 +42,6 @@ enum class EDynamicFoundationType : uint8_t
 	EDynamicFoundationType_MAX = 4
 };
 
-std::string PlaylistName =
-"/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo";
-// "/Game/Athena/Playlists/Playlist_DefaultDuo.Playlist_DefaultDuo";
-// "/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground";
-// "/Game/Athena/Playlists/Carmine/Playlist_Carmine.Playlist_Carmine";
-// "/Game/Athena/Playlists/Fill/Playlist_Fill_Solo.Playlist_Fill_Solo";
-// "/Game/Athena/Playlists/Low/Playlist_Low_Solo.Playlist_Low_Solo";
-// "/Game/Athena/Playlists/Bling/Playlist_Bling_Solo.Playlist_Bling_Solo";
-
 static UFortPlaylist* GetPlaylistToUse()
 {
 	auto Playlist = FindObject<UFortPlaylist>(PlaylistName);
@@ -196,10 +187,8 @@ FName AFortGameModeAthena::RedirectLootTier(const FName& LootTier)
 
 	auto& RedirectAthenaLootTierGroups = Get<TMap<FName, FName>>(RedirectAthenaLootTierGroupsOffset);
 
-	for (int i = 0; i < RedirectAthenaLootTierGroups.Pairs.Elements.Num(); i++)
+	for (auto& Pair : RedirectAthenaLootTierGroups)
 	{
-		auto& Pair = RedirectAthenaLootTierGroups.Pairs.Elements.Data.at(i).ElementData.Value;
-
 		auto& Key = Pair.Key();
 		auto& Value = Pair.Value();
 
@@ -228,6 +217,8 @@ UClass* AFortGameModeAthena::GetVehicleClassOverride(UClass* DefaultClass)
 
 bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode)
 {
+	Globals::bHitReadyToStartMatch = true;
+
 	auto GameState = GameMode->GetGameStateAthena();
 
 	auto SetPlaylist = [&GameState, &GameMode](UObject* Playlist, bool bOnRep) -> void {
@@ -476,6 +467,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 
 		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>("bWorldIsReady"), 1, true);
+		Globals::bInitializedPlaylist = true;
 	}
 
 	static int LastNum6 = 1;
@@ -546,7 +538,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	{
 		LastNum = AmountOfRestarts;
 
-		float Duration = 1000.f;
+		float Duration = 10000.f;
 		float EarlyDuration = Duration;
 
 		float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
@@ -600,6 +592,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		// GameState->OnRep_CurrentPlaylistInfo();
 
 		// return false;
+
+		Globals::bStartedListening = true;
 	}
 
 	if (Engine_Version >= 424) // returning true is stripped on c2+
@@ -723,7 +717,30 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		{
 			LastNum69 = AmountOfRestarts;
 
-			// FillVendingMachines();
+			bool bShouldDestroyVendingMachines = Fortnite_Version < 3.4 || Engine_Version >= 424; // This is not how it works, we need to add the spawn percentage.
+
+			if (!bShouldDestroyVendingMachines) // idk how to set the mat count sooooo problem for later me
+			{
+				FillVendingMachines();
+			}
+			else
+			{
+				static auto VendingMachineClass = FindObject<UClass>("/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C");
+				auto AllVendingMachines = UGameplayStatics::GetAllActorsOfClass(GetWorld(), VendingMachineClass);
+
+				for (int i = 0; i < AllVendingMachines.Num(); i++)
+				{
+					auto VendingMachine = (ABuildingItemCollectorActor*)AllVendingMachines.at(i);
+
+					if (!VendingMachine)
+						continue;
+
+					VendingMachine->K2_DestroyActor();
+				}
+
+				AllVendingMachines.Free();
+			}
+
 			SpawnBGAs();
 
 			auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
@@ -919,6 +936,18 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		unsigned char ahh[0x0028];
 	};
 
+	static auto PlayerCameraManagerOffset = NewPlayer->GetOffset("PlayerCameraManager");
+	auto PlayerCameraManager = NewPlayer->Get(PlayerCameraManagerOffset);
+
+	if (PlayerCameraManager)
+	{
+		static auto ViewRollMinOffset = PlayerCameraManager->GetOffset("ViewRollMin");
+		PlayerCameraManager->Get<float>(ViewRollMinOffset) = 0;
+
+		static auto ViewRollMaxOffset = PlayerCameraManager->GetOffset("ViewRollMax");
+		PlayerCameraManager->Get<float>(ViewRollMaxOffset) = 0;
+	}
+
 	/* FUniqueNetIdReplExperimental Bugha{}; */
 	static auto UniqueIdOffset = PlayerStateAthena->GetOffset("UniqueId");
 	auto PlayerStateUniqueId = PlayerStateAthena->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset);
@@ -928,8 +957,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
 
 		// if (false)
-		// if (GameMemberInfoArrayOffset != -1)
-		if (Engine_Version >= 423)
+		if (GameMemberInfoArrayOffset != -1)
+		// if (Engine_Version >= 423)
 		{
 			struct FGameMemberInfo : public FFastArraySerializerItem
 			{

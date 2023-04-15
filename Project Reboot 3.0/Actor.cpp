@@ -4,6 +4,12 @@
 
 #include "reboot.h"
 
+bool AActor::HasAuthority()
+{
+	static auto RoleOffset = GetOffset("Role");
+	return Get<uint8_t>(RoleOffset) == 3;
+}
+
 bool AActor::IsTearOff()
 {
 	static auto bTearOffOffset = GetOffset("bTearOff");

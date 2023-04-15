@@ -114,6 +114,12 @@ int UObject::GetOffset(const std::string& ChildName, bool bWarnIfNotFound) const
 	return  *(int*)(__int64(Property) + Offsets::Offset_Internal);
 }
 
+void* UObject::GetInterfaceAddress(UClass* InterfaceClass)
+{
+	static void* (*GetInterfaceAddressOriginal)(UObject* a1, UClass* a2) = decltype(GetInterfaceAddressOriginal)(Addresses::GetInterfaceAddress);
+	return GetInterfaceAddressOriginal(this, InterfaceClass);
+}
+
 bool UObject::ReadBitfieldValue(int Offset, uint8_t FieldMask)
 {
 	return ReadBitfield(this->GetPtr<PlaceholderBitfield>(Offset), FieldMask);
@@ -122,6 +128,11 @@ bool UObject::ReadBitfieldValue(int Offset, uint8_t FieldMask)
 void UObject::SetBitfieldValue(int Offset, uint8_t FieldMask, bool NewValue)
 {
 	SetBitfield(this->GetPtr<PlaceholderBitfield>(Offset), FieldMask, NewValue);
+}
+
+std::string UObject::GetPathName()
+{
+	return UKismetSystemLibrary::GetPathName(this).ToString();
 }
 
 std::string UObject::GetFullName()

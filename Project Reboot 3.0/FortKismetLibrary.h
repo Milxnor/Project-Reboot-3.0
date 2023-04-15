@@ -95,6 +95,7 @@ public:
 	static void K2_RemoveItemFromPlayerByGuidHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void K2_GiveItemToPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void K2_GiveBuildingResourceHook(UObject* Context, FFrame& Stack, void* Ret);
+	static int K2_RemoveFortItemFromPlayerHook1(AFortPlayerController* PlayerController, UFortItem* Item, int AmountToRemove, bool bForceRemoval);
 	static void K2_RemoveFortItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
 	static AFortPickup* K2_SpawnPickupInWorldHook(UObject* Context, FFrame& Stack, AFortPickup** Ret);
 	static AFortPickup* K2_SpawnPickupInWorldWithClassHook(UObject* Context, FFrame& Stack, AFortPickup** Ret);

@@ -19,6 +19,17 @@ public:
 		return ReadBitfieldValue(bDropOnDeathOffset, bDropOnDeathFieldMask);
 	}
 
+	bool ShouldIgnoreRespawningOnDrop()
+	{
+		static auto bIgnoreRespawningForDroppingAsPickupOffset = GetOffset("bIgnoreRespawningForDroppingAsPickup", false);
+
+		if (bIgnoreRespawningForDroppingAsPickupOffset == -1)
+			return false;
+
+		static auto bIgnoreRespawningForDroppingAsPickupFieldMask = GetFieldMask(GetProperty("bIgnoreRespawningForDroppingAsPickup"));
+		return ReadBitfieldValue(bIgnoreRespawningForDroppingAsPickupOffset, bIgnoreRespawningForDroppingAsPickupFieldMask);
+	}
+
 	bool ShouldPersistWhenFinalStackEmpty()
 	{
 		static auto bPersistInInventoryWhenFinalStackEmptyOffset = GetOffset("bPersistInInventoryWhenFinalStackEmpty", false);
@@ -28,6 +39,17 @@ public:
 
 		static auto bPersistInInventoryWhenFinalStackEmptyFieldMask = GetFieldMask(GetProperty("bPersistInInventoryWhenFinalStackEmpty"));
 		return ReadBitfieldValue(bPersistInInventoryWhenFinalStackEmptyOffset, bPersistInInventoryWhenFinalStackEmptyFieldMask);
+	}
+
+	bool ShouldFocusWhenAdded()
+	{
+		static auto bForceFocusWhenAddedOffset = GetOffset("bForceFocusWhenAdded", false);
+		
+		if (bForceFocusWhenAddedOffset == -1)
+			return false;
+
+		static auto bForceFocusWhenAddedFieldMask = GetFieldMask(GetProperty("bForceFocusWhenAdded"));
+		return ReadBitfieldValue(bForceFocusWhenAddedOffset, bForceFocusWhenAddedFieldMask);
 	}
 
 	bool ShouldForceFocusWhenAdded()

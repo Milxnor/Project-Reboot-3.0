@@ -77,6 +77,7 @@ class AFortPlayerControllerAthena : public AFortPlayerController
 public:
 	static inline void (*GetPlayerViewPointOriginal)(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
 	static inline void (*ServerReadyToStartMatchOriginal)(AFortPlayerControllerAthena* PlayerController);
+	static inline void (*ServerRequestSeatChangeOriginal)(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex);
 
 	AFortPlayerStateAthena* GetPlayerStateAthena()
 	{
@@ -89,11 +90,12 @@ public:
 		return Get<UAthenaMarkerComponent*>(MarkerComponentOffset);
 	}
 
+	static void ServerRequestSeatChangeHook(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex); // actually in zone
 	static void ServerRestartPlayerHook(AFortPlayerControllerAthena* Controller);
 	static void ServerGiveCreativeItemHook(AFortPlayerControllerAthena* Controller, FFortItemEntry CreativeItem);
 	static void ServerTeleportToPlaygroundLobbyIslandHook(AFortPlayerControllerAthena* Controller);
 	static void ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn);
-	static void ServerPlaySquadQuickChatMessage(AFortPlayerControllerAthena* PlayerController, __int64 ChatEntry, __int64 SenderID);
+	static void ServerPlaySquadQuickChatMessageHook(AFortPlayerControllerAthena* PlayerController, __int64 ChatEntry, __int64 SenderID);
 	static void GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
 	static void ServerReadyToStartMatchHook(AFortPlayerControllerAthena* PlayerController);
 

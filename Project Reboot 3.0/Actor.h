@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Object.h"
+#include "anticheat.h"
 
 enum class ENetDormancy : uint8_t
 {
@@ -18,6 +19,7 @@ class AActor : public UObject
 public:
 	struct FTransform GetTransform();
 
+	bool HasAuthority();
 	bool IsTearOff();
 	/* FORCEINLINE */ ENetDormancy& GetNetDormancy();
 	int32& GetNetTag();
@@ -45,7 +47,7 @@ public:
 	float& GetMinNetUpdateFrequency();
 	const AActor* GetNetOwner() const;
 	void GetActorEyesViewPoint(FVector* OutLocation, FRotator* OutRotation) const;
-
+	
 	bool IsRelevancyOwnerFor(const AActor* ReplicatedActor, const AActor* ActorOwner, const AActor* ConnectionActor) const
 	{
 		// we should call virtual function but eh

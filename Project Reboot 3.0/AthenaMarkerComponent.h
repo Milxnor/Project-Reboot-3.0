@@ -13,7 +13,9 @@ struct FFortClientMarkerRequest
 
 	int& GetInstanceID()
 	{
-		static auto InstanceIDOffset = FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "InstanceID");
+		static auto InstanceIDOffset = FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "InstanceID", false) == -1 ?
+			FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "InstanceId") : FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "InstanceID");
+
 		return *(int*)(__int64(this) + InstanceIDOffset);
 	}
 

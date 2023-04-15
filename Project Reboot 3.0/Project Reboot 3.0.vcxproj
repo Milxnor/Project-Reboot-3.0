@@ -133,7 +133,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>../vendor</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Onecore.lib;MinHook/minhook.x64.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Oleaut32.lib;Onecore.lib;MinHook/minhook.x64.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -160,10 +160,18 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>../vendor</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Onecore.lib;MinHook/minhook.x64.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Oleaut32.lib;Onecore.lib;MinHook/minhook.x64.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\vendor\ImGui\imgui.cpp" />
+    <ClCompile Include="..\vendor\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="..\vendor\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="..\vendor\ImGui\imgui_impl_dx9.cpp" />
+    <ClCompile Include="..\vendor\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\vendor\ImGui\imgui_stdlib.cpp" />
+    <ClCompile Include="..\vendor\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="..\vendor\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="AbilitySystemComponent_Abilities.cpp" />
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ActorComponent.cpp" />
@@ -171,6 +179,7 @@
     <ClCompile Include="AthenaMarkerComponent.cpp" />
     <ClCompile Include="BuildingActor.cpp" />
     <ClCompile Include="BuildingSMActor.cpp" />
+    <ClCompile Include="BuildingStructuralSupportSystem.cpp" />
     <ClCompile Include="BuildingTrap.cpp" />
     <ClCompile Include="BuildingWeapons.cpp" />
     <ClCompile Include="Class.cpp" />
@@ -182,7 +191,9 @@
     <ClCompile Include="events.cpp" />
     <ClCompile Include="FortAthenaCreativePortal.cpp" />
     <ClCompile Include="FortAthenaSupplyDrop.cpp" />
+    <ClCompile Include="FortAthenaVehicle.cpp" />
     <ClCompile Include="FortDecoItemDefinition.cpp" />
+    <ClCompile Include="FortGadgetItemDefinition.cpp" />
     <ClCompile Include="FortGameMode.cpp" />
     <ClCompile Include="FortGameModeAthena.cpp" />
     <ClCompile Include="FortGameModeZone.cpp" />
@@ -196,6 +207,7 @@
     <ClCompile Include="FortKismetLibrary.cpp" />
     <ClCompile Include="FortLootPackage.cpp" />
     <ClCompile Include="FortMinigame.cpp" />
+    <ClCompile Include="FortOctopusVehicle.cpp" />
     <ClCompile Include="FortPawn.cpp" />
     <ClCompile Include="FortPickup.cpp" />
     <ClCompile Include="FortPlayerController.cpp" />
@@ -206,6 +218,7 @@
     <ClCompile Include="FortPlaysetItemDefinition.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
     <ClCompile Include="FortWeaponItemDefinition.cpp" />
+    <ClCompile Include="FortWeaponRangedMountedCannon.cpp" />
     <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
@@ -235,18 +248,23 @@
     <ClInclude Include="ActorComponent.h" />
     <ClInclude Include="addresses.h" />
     <ClInclude Include="ai.h" />
+    <ClInclude Include="AndOrNot.h" />
+    <ClInclude Include="anticheat.h" />
     <ClInclude Include="Array.h" />
+    <ClInclude Include="AssertionMacros.h" />
     <ClInclude Include="AssetPtr.h" />
     <ClInclude Include="AthenaMarkerComponent.h" />
+    <ClInclude Include="AttributeSet.h" />
     <ClInclude Include="BGA.h" />
+    <ClInclude Include="BinaryHeap.h" />
     <ClInclude Include="BitArray.h" />
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="BuildingContainer.h" />
     <ClInclude Include="BuildingGameplayActor.h" />
     <ClInclude Include="BuildingGameplayActorSpawnMachine.h" />
     <ClInclude Include="BuildingSMActor.h" />
+    <ClInclude Include="BuildingStructuralSupportSystem.h" />
     <ClInclude Include="BuildingTrap.h" />
-    <ClInclude Include="calendar.h" />
     <ClInclude Include="Channel.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="commands.h" />
@@ -255,16 +273,20 @@
     <ClInclude Include="CurveTable.h" />
     <ClInclude Include="DataTable.h" />
     <ClInclude Include="DataTableFunctionLibrary.h" />
+    <ClInclude Include="Decay.h" />
     <ClInclude Include="Delegate.h" />
     <ClInclude Include="DelegateBase.h" />
     <ClInclude Include="die.h" />
+    <ClInclude Include="EnableIf.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="EngineTypes.h" />
     <ClInclude Include="events.h" />
     <ClInclude Include="finder.h" />
     <ClInclude Include="FortAbilitySet.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
+    <ClInclude Include="FortAthenaSKPushCannon.h" />
     <ClInclude Include="FortAthenaSupplyDrop.h" />
+    <ClInclude Include="FortAthenaVehicle.h" />
     <ClInclude Include="FortDecoItemDefinition.h" />
     <ClInclude Include="FortGadgetItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />
@@ -279,6 +301,8 @@
     <ClInclude Include="FortKismetLibrary.h" />
     <ClInclude Include="FortLootPackage.h" />
     <ClInclude Include="FortMinigame.h" />
+    <ClInclude Include="FortMountedCannon.h" />
+    <ClInclude Include="FortOctopusVehicle.h" />
     <ClInclude Include="FortPawn.h" />
     <ClInclude Include="FortPickup.h" />
     <ClInclude Include="FortPlayerController.h" />
@@ -296,6 +320,7 @@
     <ClInclude Include="FortWeaponItemDefinition.h" />
     <ClInclude Include="BuildingWeapons.h" />
     <ClInclude Include="FortWeaponMeleeItemDefinition.h" />
+    <ClInclude Include="FortWeaponRangedMountedCannon.h" />
     <ClInclude Include="FortWorldItemDefinition.h" />
     <ClInclude Include="GameMode.h" />
     <ClInclude Include="GameModeBase.h" />
@@ -308,9 +333,18 @@
     <ClInclude Include="GenericPlatformMath.h" />
     <ClInclude Include="GenericPlatformTime.h" />
     <ClInclude Include="globals.h" />
+    <ClInclude Include="gui.h" />
     <ClInclude Include="hooking.h" />
+    <ClInclude Include="IdentityFunctor.h" />
     <ClInclude Include="inc.h" />
+    <ClInclude Include="IntroSort.h" />
     <ClInclude Include="InventoryManagementLibrary.h" />
+    <ClInclude Include="Invoke.h" />
+    <ClInclude Include="IsArithmetic.h" />
+    <ClInclude Include="IsEnum.h" />
+    <ClInclude Include="IsPODType.h" />
+    <ClInclude Include="IsPointer.h" />
+    <ClInclude Include="IsTriviallyCopyConstructible.h" />
     <ClInclude Include="KismetMathLibrary.h" />
     <ClInclude Include="KismetStringLibrary.h" />
     <ClInclude Include="KismetSystemLibrary.h" />
@@ -319,10 +353,12 @@
     <ClInclude Include="log.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MegaStormManager.h" />
+    <ClInclude Include="MemoryOps.h" />
     <ClInclude Include="NameTypes.h" />
     <ClInclude Include="NetDriver.h" />
     <ClInclude Include="NetSerialization.h" />
     <ClInclude Include="NetworkGuid.h" />
+    <ClInclude Include="NumericLimits.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="ObjectMacros.h" />
     <ClInclude Include="OnlineReplStructs.h" />
@@ -332,9 +368,13 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerController.h" />
     <ClInclude Include="PlayerState.h" />
+    <ClInclude Include="PointerIsConvertibleFromTo.h" />
     <ClInclude Include="Quat.h" />
     <ClInclude Include="RandomStream.h" />
     <ClInclude Include="reboot.h" />
+    <ClInclude Include="RemoveCV.h" />
+    <ClInclude Include="RemoveReference.h" />
+    <ClInclude Include="ReversePredicate.h" />
     <ClInclude Include="Rotator.h" />
     <ClInclude Include="ScriptInterface.h" />
     <ClInclude Include="Set.h" />
@@ -342,14 +382,19 @@
     <ClInclude Include="SharedPointerInternals.h" />
     <ClInclude Include="SoftObjectPath.h" />
     <ClInclude Include="SoftObjectPtr.h" />
+    <ClInclude Include="Sort.h" />
+    <ClInclude Include="Sorting.h" />
     <ClInclude Include="SparseArray.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="StringAssetReference.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Tuple.h" />
+    <ClInclude Include="TypeCompatibleBytes.h" />
     <ClInclude Include="UnrealMathUtility.h" />
     <ClInclude Include="UnrealString.h" />
+    <ClInclude Include="UnrealTemplate.h" />
+    <ClInclude Include="UnrealTypeTraits.h" />
     <ClInclude Include="UObjectArray.h" />
     <ClInclude Include="UObjectGlobals.h" />
     <ClInclude Include="Vector.h" />

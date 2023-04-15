@@ -7,6 +7,17 @@
 struct FGameplayEffectApplicationInfoHard
 {
 public:
+	static UStruct* GetStruct()
+	{
+		static auto GameplayEffectApplicationInfoHardStruct = FindObject<UStruct>("/Script/FortniteGame.GameplayEffectApplicationInfoHard");
+		return GameplayEffectApplicationInfoHardStruct;
+	}
+
+	static int GetStructSize()
+	{
+		return GetStruct()->GetPropertiesSize();
+	}
+
 	UClass*           GameplayEffect;                                    // 0x0(0x8)(Edit, ZeroConstructor, DisableEditOnInstance, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	float                                        Level;
 };
@@ -21,10 +32,25 @@ struct FGameplayEffectApplicationInfo
 class UFortAbilitySet : public UObject
 {
 public:
-	void GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent, UObject* SourceObject = nullptr)
+	TArray<UClass*>* GetGameplayAbilities()
 	{
 		static auto GameplayAbilitiesOffset = this->GetOffset("GameplayAbilities");
-		auto GameplayAbilities = this->GetPtr<TArray<UClass*>>(GameplayAbilitiesOffset);
+		return this->GetPtr<TArray<UClass*>>(GameplayAbilitiesOffset);
+	}
+
+	TArray<FGameplayEffectApplicationInfoHard>* GetGrantedGameplayEffects()
+	{
+		static auto GrantedGameplayEffectsOffset = this->GetOffset("GrantedGameplayEffects", false);
+
+		if (GrantedGameplayEffectsOffset == -1)
+			return nullptr;
+
+		return this->GetPtr<TArray<FGameplayEffectApplicationInfoHard>>(GrantedGameplayEffectsOffset);
+	}
+
+	void GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent, UObject* SourceObject = nullptr)
+	{
+		auto GameplayAbilities = GetGameplayAbilities();
 
 		for (int i = 0; i < GameplayAbilities->Num(); i++)
 		{
@@ -38,18 +64,14 @@ public:
 			AbilitySystemComponent->GiveAbilityEasy(AbilityClass, SourceObject);
 		}
 
-		static auto GameplayEffectApplicationInfoHardStruct = FindObject<UStruct>("/Script/FortniteGame.GameplayEffectApplicationInfoHard");
-
-		if (!GameplayEffectApplicationInfoHardStruct)
+		if (!FGameplayEffectApplicationInfoHard::GetStruct())
 			return;
 
-		static auto GameplayEffectApplicationInfoHardSize = GameplayEffectApplicationInfoHardStruct->GetPropertiesSize();
-		static auto GrantedGameplayEffectsOffset = this->GetOffset("GrantedGameplayEffects");
-		auto GrantedGameplayEffects = this->GetPtr<TArray<FGameplayEffectApplicationInfoHard>>(GrantedGameplayEffectsOffset);
+		auto GrantedGameplayEffects = GetGrantedGameplayEffects();
 
 		for (int i = 0; i < GrantedGameplayEffects->Num(); i++)
 		{
-			auto& EffectToGrant = GrantedGameplayEffects->at(i, GameplayEffectApplicationInfoHardSize);
+			auto& EffectToGrant = GrantedGameplayEffects->at(i, FGameplayEffectApplicationInfoHard::GetStructSize());
 
 			if (!EffectToGrant.GameplayEffect)
 			{

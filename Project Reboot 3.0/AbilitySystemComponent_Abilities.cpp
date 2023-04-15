@@ -180,3 +180,29 @@ FGameplayAbilitySpec* UAbilitySystemComponent::FindAbilitySpecFromHandle(FGamepl
 
 	return SpecToReturn;
 }
+
+void UAbilitySystemComponent::RemoveActiveGameplayEffectBySourceEffect(UClass* GameplayEffect, UAbilitySystemComponent* InstigatorAbilitySystemComponent, int StacksToRemove)
+{
+	static auto RemoveActiveGameplayEffectBySourceEffectFn = FindObject<UFunction>("/Script/GameplayAbilities.AbilitySystemComponent.RemoveActiveGameplayEffectBySourceEffect");
+
+	struct
+	{
+		UClass* GameplayEffect;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		UAbilitySystemComponent* InstigatorAbilitySystemComponent;                         // (Parm, ZeroConstructor, InstancedReference, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		int                                                StacksToRemove;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} UAbilitySystemComponent_RemoveActiveGameplayEffectBySourceEffect_Params{GameplayEffect, InstigatorAbilitySystemComponent, StacksToRemove};
+
+	this->ProcessEvent(RemoveActiveGameplayEffectBySourceEffectFn, &UAbilitySystemComponent_RemoveActiveGameplayEffectBySourceEffect_Params);
+}
+
+void UAbilitySystemComponent::ClearAbility(const FGameplayAbilitySpecHandle& Handle)
+{
+	if (!Addresses::ClearAbility)
+	{
+		LOG_INFO(LogDev, "Invalid clear ability!");
+		return;
+	}
+
+	static void (*ClearAbilityOriginal)(UAbilitySystemComponent * AbilitySystemComponent, const FGameplayAbilitySpecHandle& Handle) = decltype(ClearAbilityOriginal)(Addresses::ClearAbility);
+	ClearAbilityOriginal(this, Handle);
+}

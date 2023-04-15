@@ -5,6 +5,8 @@
 #include "FortPlayerPawnAthena.h"
 #include "FortGameStateAthena.h"
 #include "FortGameModeAthena.h"
+#include "FortGadgetItemDefinition.h"
+#include "FortPlayerStateAthena.h"
 
 UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItemDefinition* ItemDefinition, int Count)
 {
@@ -16,25 +18,18 @@ UFortItem* CreateItemInstance(AFortPlayerController* PlayerController, UFortItem
 	return NewItemInstance;
 }
 
-std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count, int LoadedAmmo, bool bShowItemToast)
+std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddItem(FFortItemEntry* ItemEntry, bool* bShouldUpdate, bool bShowItemToast, int OverrideCount)
 {
-	if (!ItemDefinition)
+	if (!ItemEntry || !ItemEntry->GetItemDefinition())
 		return std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>>();
 
 	if (bShouldUpdate)
 		*bShouldUpdate = false;
 
-	if (LoadedAmmo == -1)
-	{
-		if (auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDefinition)) // bPreventDefaultPreload ?
-			LoadedAmmo = WeaponDef->GetClipSize();
-		else
-			LoadedAmmo = 0;
-	}
-
-	// ShouldForceFocusWhenAdded
+	auto ItemDefinition = ItemEntry->GetItemDefinition();
 
 	auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemDefinition);
+	auto& Count = ItemEntry->GetCount();
 
 	auto& ItemInstances = GetItemList().GetItemInstances();
 
@@ -124,18 +119,32 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 	if (NewItemInstance)
 	{
-		// if (LoadedAmmo != -1)
-		NewItemInstance->GetItemEntry()->GetLoadedAmmo() = LoadedAmmo;
+		auto OldItemGuid = NewItemInstance->GetItemEntry()->GetItemGuid();
+
+		if (false)
+		{
+			CopyStruct(NewItemInstance->GetItemEntry(), ItemEntry, FFortItemEntry::GetStructSize(), FFortItemEntry::GetStruct());
+		}
+		else
+		{
+			NewItemInstance->GetItemEntry()->GetItemDefinition() = ItemEntry->GetItemDefinition();
+			NewItemInstance->GetItemEntry()->GetCount() = ItemEntry->GetCount();
+			NewItemInstance->GetItemEntry()->GetLoadedAmmo() = ItemEntry->GetLoadedAmmo();
+		}		
+
+		NewItemInstance->GetItemEntry()->GetItemGuid() = OldItemGuid;
+
+		NewItemInstance->GetItemEntry()->MostRecentArrayReplicationKey = -1;
+		NewItemInstance->GetItemEntry()->ReplicationID = -1;
+		NewItemInstance->GetItemEntry()->ReplicationKey = -1;
+
+		if (OverrideCount != -1)
+			NewItemInstance->GetItemEntry()->GetCount() = OverrideCount;
 
 		NewItemInstances.push_back(NewItemInstance);
 
-		// NewItemInstance->GetItemEntry()->GetItemDefinition() = ItemDefinition;
-
 		static auto FortItemEntryStruct = FindObject(L"/Script/FortniteGame.FortItemEntry");
 		static auto FortItemEntrySize = *(int*)(__int64(FortItemEntryStruct) + Offsets::PropertiesSize);
-
-		// LOG_INFO(LogDev, "FortItemEntryStruct {}", __int64(FortItemEntryStruct));
-		// LOG_INFO(LogDev, "FortItemEntrySize {}", __int64(FortItemEntrySize));
 
 		FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize());
 		StateValue->GetIntValue() = bShowItemToast;
@@ -144,6 +153,26 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 		ItemInstances.Add(NewItemInstance);
 		GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
+
+		if (WorldItemDefinition->IsValidLowLevel())
+		{
+			if (WorldItemDefinition->ShouldFocusWhenAdded()) // Should we also do this for stacking?
+			{
+				FortPlayerController->ServerExecuteInventoryItemHook(FortPlayerController, NewItemInstance->GetItemEntry()->GetItemGuid());
+			}
+
+			bool AreGadgetsEnabled = Addresses::ApplyGadgetData && Addresses::RemoveGadgetData && Globals::bEnableAGIDs;
+
+			if (AreGadgetsEnabled)
+			{
+				if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(WorldItemDefinition))
+				{
+					char (*ApplyGadgetData)(UFortGadgetItemDefinition * a1, __int64 a2, UFortItem* a3, unsigned __int8 a4) = decltype(ApplyGadgetData)(Addresses::ApplyGadgetData);
+					static auto FortInventoryOwnerInterfaceClass = FindObject<UClass>("/Script/FortniteGame.FortInventoryOwnerInterface");
+					ApplyGadgetData((UFortGadgetItemDefinition*)ItemDefinition, __int64(PlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass)), NewItemInstance, true);
+				}
+			}
+		}
 
 		if (FortPlayerController && Engine_Version < 420)
 		{
@@ -196,6 +225,22 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 	}
 
 	return std::make_pair(NewItemInstances, ModifiedItemInstances);
+}
+
+std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count, int LoadedAmmo, bool bShowItemToast)
+{
+	if (LoadedAmmo == -1)
+	{
+		if (auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDefinition)) // bPreventDefaultPreload ?
+			LoadedAmmo = WeaponDef->GetClipSize();
+		else
+			LoadedAmmo = 0;
+	}
+
+	auto ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, Count, LoadedAmmo);
+	auto Ret = AddItem(ItemEntry, bShouldUpdate, bShowItemToast);
+	// VirtualFree(ItemEntry);
+	return Ret;
 }
 
 bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count, bool bForceRemoval)
@@ -260,13 +305,28 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 		return true;
 	}
 
+	if (NewCount < 0) // Hm
+		return false;
+
 	static auto FortItemEntryStruct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntry");
 	static auto FortItemEntrySize = FortItemEntryStruct->GetPropertiesSize();
+
+	auto FortPlayerController = Cast<AFortPlayerController>(GetOwner());
 
 	for (int i = 0; i < ItemInstances.Num(); i++)
 	{
 		if (ItemInstances.at(i)->GetItemEntry()->GetItemGuid() == ItemGuid)
 		{
+			bool AreGadgetsEnabled = Addresses::ApplyGadgetData && Addresses::RemoveGadgetData && Globals::bEnableAGIDs;
+
+			if (AreGadgetsEnabled)
+			{
+				if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition))
+				{
+					GadgetItemDefinition->UnequipGadgetData(FortPlayerController, ItemInstances.at(i));
+				}
+			}
+
 			ItemInstance->GetItemEntry()->GetStateValues().FreeReal();
 			ItemInstances.Remove(i);
 			break;
@@ -282,8 +342,6 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 			break;
 		}
 	}
-
-	auto FortPlayerController = Cast<AFortPlayerController>(GetOwner());
 
 	if (FortPlayerController && Engine_Version < 420)
 	{

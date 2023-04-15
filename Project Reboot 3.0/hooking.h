@@ -109,7 +109,7 @@ inline __int64 GetIndexFromVirtualFunctionCall(__int64 NativeAddr)
     return HexToDec(wtf);
 }
 
-inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
+inline __int64 GetFunctionIdxOrPtr(UFunction* Function, bool bBreakWhenHitRet = false)
 {
     if (!Function)
         return 0;
@@ -195,7 +195,9 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function)
         if (!RetAddr && *(uint8_t*)(NativeAddr + i) == 0xC3)
         {
             RetAddr = NativeAddr + i;
-            // break;
+
+            if (bBreakWhenHitRet)
+                break;
         }
     }
 

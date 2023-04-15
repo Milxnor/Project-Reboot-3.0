@@ -84,7 +84,10 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			if (!WorldInventory->GetPickaxeInstance())
 			{
 				auto CosmeticLoadout = NewPlayerAsAthena->GetCosmeticLoadout();
+				// LOG_INFO(LogDev, "CosmeticLoadout: {}", __int64(CosmeticLoadout));
 				auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
+				// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe: {}", __int64(CosmeticLoadoutPickaxe));
+				// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe Name: {}", CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->GetFullName() : "InvalidObject");
 				static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition");
 
 				auto PickaxeDefinition = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)

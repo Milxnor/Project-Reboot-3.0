@@ -188,6 +188,45 @@
     <ClCompile Include="KismetTextLibrary.cpp">
       <Filter>Engine\Source\Runtime\Engine\Private</Filter>
     </ClCompile>
+    <ClCompile Include="FortOctopusVehicle.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+    </ClCompile>
+    <ClCompile Include="BuildingStructuralSupportSystem.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortGadgetItemDefinition.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGui\imgui.cpp">
+      <Filter>Libaries\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGui\imgui_demo.cpp">
+      <Filter>Libaries\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGui\imgui_draw.cpp">
+      <Filter>Libaries\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGui\imgui_impl_dx9.cpp">
+      <Filter>Libaries\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGui\imgui_impl_win32.cpp">
+      <Filter>Libaries\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGui\imgui_stdlib.cpp">
+      <Filter>Libaries\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGui\imgui_tables.cpp">
+      <Filter>Libaries\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGui\imgui_widgets.cpp">
+      <Filter>Libaries\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="FortWeaponRangedMountedCannon.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+    </ClCompile>
+    <ClCompile Include="FortAthenaVehicle.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -419,9 +458,6 @@
     <ClInclude Include="FortPlayerPawn.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Pawns</Filter>
     </ClInclude>
-    <ClInclude Include="calendar.h">
-      <Filter>Reboot\Public\Gameplay</Filter>
-    </ClInclude>
     <ClInclude Include="addresses.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
@@ -568,6 +604,105 @@
     </ClInclude>
     <ClInclude Include="KismetTextLibrary.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Kismet</Filter>
+    </ClInclude>
+    <ClInclude Include="FortOctopusVehicle.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+    </ClInclude>
+    <ClInclude Include="IntroSort.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Algo</Filter>
+    </ClInclude>
+    <ClInclude Include="Sorting.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="Sort.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Algo</Filter>
+    </ClInclude>
+    <ClInclude Include="UnrealTemplate.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="RemoveReference.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="IdentityFunctor.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryHeap.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Algo\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="Invoke.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="Decay.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="RemoveCV.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerIsConvertibleFromTo.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="EnableIf.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="IsPointer.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="IsArithmetic.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="AndOrNot.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeCompatibleBytes.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="ReversePredicate.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="UnrealTypeTraits.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="IsEnum.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="AssertionMacros.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="IsPODType.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingStructuralSupportSystem.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="anticheat.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="AttributeSet.h">
+      <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="gui.h">
+      <Filter>Reboot\Public\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="FortWeaponRangedMountedCannon.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+    </ClInclude>
+    <ClInclude Include="FortMountedCannon.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaSKPushCannon.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaVehicle.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryOps.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="NumericLimits.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="IsTriviallyCopyConstructible.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -768,6 +903,27 @@
     </Filter>
     <Filter Include="Engine\Source\Runtime\Core\Public\Internationalization">
       <UniqueIdentifier>{b00f4455-11e7-4fd9-aa6d-2d814788b544}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Vehicles">
+      <UniqueIdentifier>{b1cc2ad4-6196-455c-bda7-d0a2e7be2e70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Vehicles">
+      <UniqueIdentifier>{702a4ab1-e5e1-46e1-b8cd-2fab1c4fb48c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\Algo">
+      <UniqueIdentifier>{98f1bd0d-3eea-4d54-8bff-65ecf4ab1e73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Public\Algo\Impl">
+      <UniqueIdentifier>{74e42db4-bdac-4e42-bb7e-58f1ab17b738}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Reboot\Public\GUI">
+      <UniqueIdentifier>{15a7e32e-0505-49cc-9f6a-89d3e5c865b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libaries">
+      <UniqueIdentifier>{c0586029-3b4a-48f9-8de9-5b48a972cb5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libaries\ImGUI">
+      <UniqueIdentifier>{2eee3380-ea4b-4137-b058-b57a7b66005e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

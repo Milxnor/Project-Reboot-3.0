@@ -8,8 +8,6 @@ void AFortWeapon::OnPlayImpactFXHook(AFortWeapon* Weapon, __int64 HitResult, uin
 {
 	// grappler
 
-	LOG_INFO(LogDev, "AAA!");
-
 	auto Pawn = Cast<AFortPawn>(Weapon->GetOwner());
 
 	if (!Pawn)

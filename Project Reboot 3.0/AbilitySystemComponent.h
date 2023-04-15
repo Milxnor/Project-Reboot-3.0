@@ -2,6 +2,7 @@
 
 #include "Object.h"
 #include "GameplayAbilitySpec.h"
+#include "AttributeSet.h"
 
 struct PadHex10 { char Pad[0x10]; };
 struct PadHex18 { char Pad[0x18]; };
@@ -65,6 +66,12 @@ public:
 		return GetPtr<FGameplayAbilitySpecContainer>(ActivatableAbilitiesOffset);
 	}
 
+	UAttributeSet* AddDefaultSubobjectSet(UAttributeSet* Subobject)
+	{
+		GetSpawnedAttributes().Add(Subobject);
+		return Subobject;
+	}
+
 	bool HasAbility(UObject* DefaultAbility);
 	FActiveGameplayEffectHandle ApplyGameplayEffectToSelf(UClass* GameplayEffectClass, float Level, const FGameplayEffectContextHandle& EffectContext = FGameplayEffectContextHandle());
 	// FGameplayEffectContextHandle MakeEffectContext();
@@ -72,6 +79,8 @@ public:
 	void ConsumeAllReplicatedData(FGameplayAbilitySpecHandle AbilityHandle, FPredictionKey* AbilityOriginalPredictionKey);
 	FGameplayAbilitySpecHandle GiveAbilityEasy(UClass* AbilityClass, UObject* SourceObject = nullptr, bool bDoNotRegive = true);
 	FGameplayAbilitySpec* FindAbilitySpecFromHandle(FGameplayAbilitySpecHandle Handle);
+	void RemoveActiveGameplayEffectBySourceEffect(UClass* GameplayEffect, UAbilitySystemComponent* InstigatorAbilitySystemComponent, int StacksToRemove);
+	void ClearAbility(const FGameplayAbilitySpecHandle& Handle);
 
 	static void InternalServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, const FPredictionKey* PredictionKey, const FGameplayEventData* TriggerEventData);
 };
