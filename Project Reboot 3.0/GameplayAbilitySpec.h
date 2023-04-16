@@ -49,7 +49,7 @@ struct FGameplayAbilitySpec : FFastArraySerializerItem
 
 static FGameplayAbilitySpec* MakeNewSpec(UClass* GameplayAbilityClass, UObject* SourceObject = nullptr, bool bAlreadyIsDefault = false)
 {
-	auto NewSpec = Alloc<FGameplayAbilitySpec>(FGameplayAbilitySpec::GetStructSize());
+	auto NewSpec = Alloc<FGameplayAbilitySpec>(FGameplayAbilitySpec::GetStructSize(), true);
 
 	if (!NewSpec)
 		return nullptr;

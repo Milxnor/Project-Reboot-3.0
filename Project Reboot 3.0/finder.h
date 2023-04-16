@@ -669,12 +669,35 @@ static inline uint64 FindRemoveGadgetData()
 {
 	if (Engine_Version <= 423)
 	{
-		auto StringRef = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadget Item [%s]!", false);
+		auto Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadget Item [%s]!", false).Get();
 
-		if (!StringRef.Get())
-			StringRef = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadet Item [%s]!");
+		if (!Addr)
+			Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadet Item [%s]!").Get();
 
-		return FindBytes(StringRef, { 0x40, 0x55 }, 1000, 0, true);
+		if (!Addr)
+			return 0;
+
+		for (int i = 0; i < 1000; i++)
+		{
+			if (/* (*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x53)
+				|| */ (*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x55))
+			{
+				return Addr - i;
+			}
+
+			if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x5C)
+			{
+				return Addr - i;
+			}
+
+			/* if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0xC4)
+			{
+				return Addr - i;
+			} */
+		}
+
+		return 0;
+		// return FindBytes(StringRef, { 0x40, 0x55 }, 1000, 0, true);
 	}
 	if (Engine_Version == 426)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 56 41 56 41 57 48 83 EC 30 48 8B 02 48").Get(); // 14.60
@@ -1164,7 +1187,7 @@ static inline uint64 FindApplyCharacterCustomization()
 {
 	auto Addrr = Memcury::Scanner::FindStringRef(L"AFortPlayerState::ApplyCharacterCustomization - Failed initialization, using default parts. Player Controller: %s PlayerState: %s, HeroId: %s").Get();
 
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < 7000; i++)
 	{
 		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x53)
 		{
@@ -1182,7 +1205,9 @@ static inline uint64 FindApplyCharacterCustomization()
 		}
 	}
 
-	return 0;
+	uint64 Addr = Memcury::Scanner::FindPattern("48 8B C4 48 89 50 10 55 57 48 8D 68 A1 48 81 EC ? ? ? ? 80 B9").Get();
+
+	return Addr;
 }
 
 static inline uint64 FindRealloc()

@@ -182,7 +182,12 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 					auto SwappedPickup = SpawnPickup(ItemEntryToSwap, PawnLoc,
 						EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn);
 
-					bWasHoldingSameItemWhenSwap = CurrentItemGuid == ItemInstanceToSwap->GetItemEntry()->GetItemGuid();
+					auto CurrentWeapon = Pawn->GetCurrentWeapon();
+
+					if (CurrentWeapon)
+					{
+						bWasHoldingSameItemWhenSwap = CurrentWeapon->GetItemEntryGuid()  == ItemInstanceToSwap->GetItemEntry()->GetItemGuid();
+					}
 
 					WorldInventory->RemoveItem(CurrentItemGuid, nullptr, ItemEntryToSwap->GetCount(), true);
 
@@ -292,13 +297,16 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 	{
 		static auto ClientEquipItemFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ClientEquipItem");
 
-		struct
+		if (ClientEquipItemFn)
 		{
-			FGuid                                       ItemGuid;                                                 // (ConstParm, Parm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-			bool                                               bForceExecution;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-		} AFortPlayerController_ClientEquipItem_Params{ NewSwappedItem, true };
+			struct
+			{
+				FGuid                                       ItemGuid;                                                 // (ConstParm, Parm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+				bool                                               bForceExecution;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			} AFortPlayerController_ClientEquipItem_Params{ NewSwappedItem, true };
 
-		PlayerController->ProcessEvent(ClientEquipItemFn, &AFortPlayerController_ClientEquipItem_Params);
+			PlayerController->ProcessEvent(ClientEquipItemFn, &AFortPlayerController_ClientEquipItem_Params);
+		}
 	}
 
 	return CompletePickupAnimationOriginal(Pickup);

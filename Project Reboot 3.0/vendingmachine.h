@@ -187,8 +187,8 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		}
 
 		// The reason I set the curve to 0 is because it will force it to return value, probably not how we are supposed to do it but whatever.
-		ItemCollection->GetInputCount()->GetCurve().CurveTable = nullptr; // FortGameData; // scuffed idc
-		ItemCollection->GetInputCount()->GetCurve().RowName = FName(0); // WoodName; // Scuffed idc 
+		ItemCollection->GetInputCount()->GetCurve().CurveTable = Fortnite_Version < 5 ? nullptr : FortGameData; // scuffed idc
+		ItemCollection->GetInputCount()->GetCurve().RowName = Fortnite_Version < 5 ? FName(0) : WoodName; // Scuffed idc 
 		ItemCollection->GetInputCount()->GetValue() = RarityToUse == 0 ? CommonPrice 
 			: RarityToUse == 1 ? UncommonPrice 
 			: RarityToUse == 2 ? RarePrice 
@@ -234,7 +234,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 static inline void FillVendingMachines()
 {
-	static auto VendingMachineClass = FindObject<UClass>("/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C");
+	auto VendingMachineClass = FindObject<UClass>("/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C");
 	auto AllVendingMachines = UGameplayStatics::GetAllActorsOfClass(GetWorld(), VendingMachineClass);
 
 	auto OverrideLootTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaVending"); // ItemCollector->GetLootTierGroupOverride();

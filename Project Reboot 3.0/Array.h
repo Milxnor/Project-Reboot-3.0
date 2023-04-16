@@ -267,11 +267,13 @@ public:
 		{
 			// VirtualFree(Data, _msize(Data), MEM_RELEASE);
 			// VirtualFree(Data, sizeof(InElementType) * ArrayNum, MEM_RELEASE); // ik this does nothing
-			// VirtualFree(Data, 0, MEM_RELEASE);
+			// auto res = VirtualFree(Data, 0, MEM_RELEASE);
+			// LOG_INFO(LogDev, "Free: {} aa: 0x{:x}", res, res ? 0 : GetLastError());
 			static void (*FreeOriginal)(void*) = decltype(FreeOriginal)(Addresses::Free);
 			// FreeOriginal(Data);
 		}
 
+		Data = nullptr;
 		ArrayNum = 0;
 		ArrayMax = 0;
 	}

@@ -53,6 +53,8 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
+static inline int SecondsUntilTravel = 5;
+
 // THE BASE CODE IS FROM IMGUI GITHUB
 
 static LPDIRECT3D9              g_pD3D = NULL;
@@ -211,6 +213,16 @@ static bool bIsEditingInventory = false;
 static bool bInformationTab = false;
 static int playerTabTab = MAIN_PLAYERTAB;
 
+void StaticUI()
+{
+	ImGui::Checkbox("No MCP (Don't change unless you know what this is)", &Globals::bNoMCP);
+
+	if (Addresses::ApplyGadgetData && Addresses::RemoveGadgetData)
+	{
+		ImGui::Checkbox("Enable AGIDs (Don't change unless you know what this is)", &Globals::bEnableAGIDs);
+	}
+}
+
 void MainTabs()
 {
 	// std::ofstream bannedStream(Moderation::Banning::GetFilePath());
@@ -346,10 +358,10 @@ void MainUI()
 		{
 			if (bLoaded)
 			{
+				StaticUI();
 #ifndef PROD
 				ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
 #endif
-				ImGui::Checkbox("Enable AGIDs", &Globals::bEnableAGIDs);
 				ImGui::Text(std::format("Listening {}", Globals::bStartedListening).c_str());
 
 				static std::string ConsoleCommand;
@@ -406,7 +418,55 @@ void MainUI()
 
 				if (ImGui::Button("Start Bus Countdown"))
 				{
-					auto GameState = ((AGameMode*)GetWorld()->GetGameMode())->GetGameState();
+					auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+					auto GameState = GameMode->GetGameState();
+
+					if (Fortnite_Version == 1.11)
+					{
+						static auto OverrideBattleBusSkin = FindObject("/Game/Athena/Items/Cosmetics/BattleBuses/BBID_WinterBus.BBID_WinterBus");
+						LOG_INFO(LogDev, "OverrideBattleBusSkin: {}", __int64(OverrideBattleBusSkin));
+
+						if (OverrideBattleBusSkin)
+						{
+							static auto AssetManagerOffset = GetEngine()->GetOffset("AssetManager");
+							auto AssetManager = GetEngine()->Get(AssetManagerOffset);
+
+							if (AssetManager)
+							{
+								static auto AthenaGameDataOffset = AssetManager->GetOffset("AthenaGameData");
+								auto AthenaGameData = AssetManager->Get(AthenaGameDataOffset);
+
+								if (AthenaGameData)
+								{
+									static auto DefaultBattleBusSkinOffset = AthenaGameData->GetOffset("DefaultBattleBusSkin");
+									AthenaGameData->Get(DefaultBattleBusSkinOffset) = OverrideBattleBusSkin;
+								}
+							}
+
+							static auto DefaultBattleBusOffset = GameState->GetOffset("DefaultBattleBus");
+							GameState->Get(DefaultBattleBusOffset) = OverrideBattleBusSkin;
+
+							static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
+							auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
+
+							for (int i = 0; i < AllAircrafts.Num(); i++)
+							{
+								auto Aircraft = AllAircrafts.at(i);
+
+								static auto DefaultBusSkinOffset = Aircraft->GetOffset("DefaultBusSkin");
+								Aircraft->Get(DefaultBusSkinOffset) = OverrideBattleBusSkin;
+
+								static auto SpawnedCosmeticActorOffset = Aircraft->GetOffset("SpawnedCosmeticActor");
+								auto SpawnedCosmeticActor = Aircraft->Get<AActor*>(SpawnedCosmeticActorOffset);
+
+								if (SpawnedCosmeticActor)
+								{
+									static auto ActiveSkinOffset = SpawnedCosmeticActor->GetOffset("ActiveSkin");
+									SpawnedCosmeticActor->Get(ActiveSkinOffset) = OverrideBattleBusSkin;
+								}
+							}
+						}
+					}
 
 					GameState->Get<float>("WarmupCountdownEndTime") = UGameplayStatics::GetTimeSeconds(GetWorld()) + 10;
 				}
@@ -560,31 +620,22 @@ void MainUI()
 
 void PregameUI()
 {
-	// ImGui::NewLine();
+	StaticUI();
 
-	ImGui::Checkbox("No MCP (Don't change unless you know what this is)", &Globals::bNoMCP);
-
-	if (Addresses::ClearAbility)
+	if (Engine_Version >= 422 && Engine_Version < 424)
 	{
-		ImGui::Checkbox("Enable AGIDs (Don't change unless you know what this is)", &Globals::bEnableAGIDs);
+		ImGui::Checkbox("Creative", &Globals::bCreative);
 	}
 
-	if (!Globals::bInitializedPlaylist)
+	ImGui::Checkbox("Lategame", &Globals::bLateGame);
+
+	if (HasEvent())
 	{
-		if (Engine_Version >= 422 && Engine_Version < 424)
-		{
-			ImGui::Checkbox("Creative", &Globals::bCreative);
-		}
-
-		ImGui::Checkbox("Lategame", &Globals::bLateGame);
-
-		if (HasEvent())
-		{
-			ImGui::Checkbox("Play Event", &Globals::bGoingToPlayEvent);
-		}
-
-		ImGui::InputText("Playlist", &PlaylistName);
+		ImGui::Checkbox("Play Event", &Globals::bGoingToPlayEvent);
 	}
+
+	ImGui::SliderInt("Seconds until load into map", &SecondsUntilTravel, 1, 100);
+	ImGui::InputText("Playlist", &PlaylistName);
 }
 
 DWORD WINAPI GuiThread(LPVOID)

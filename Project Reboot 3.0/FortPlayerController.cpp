@@ -107,12 +107,17 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 
 	if (!UpdatePlayerCustomCharacterPartsVisualizationFn)
 	{
-		/* if (Addresses::ApplyCharacterCustomization)
+		if (Addresses::ApplyCharacterCustomization)
 		{
 			static void* (*ApplyCharacterCustomizationOriginal)(AFortPlayerState* a1, AFortPawn* a3) = decltype(ApplyCharacterCustomizationOriginal)(Addresses::ApplyCharacterCustomization);
 			ApplyCharacterCustomizationOriginal(PlayerStateAsFort, PawnAsFort);
+
+			PlayerStateAsFort->ForceNetUpdate();
+			PawnAsFort->ForceNetUpdate();
+			this->ForceNetUpdate();
+
 			return;
-		} */
+		}
 
 		auto CosmeticLoadout = this->GetCosmeticLoadout();
 
@@ -160,10 +165,23 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 			}
 		}
 
+		PlayerStateAsFort->ForceNetUpdate();
+		PawnAsFort->ForceNetUpdate();
+		this->ForceNetUpdate();
+
 		return;
 	}
 
 	UFortKismetLibrary::StaticClass()->ProcessEvent(UpdatePlayerCustomCharacterPartsVisualizationFn, &PlayerStateAsFort);
+}
+
+void AFortPlayerController::ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret)
+{
+	auto PlayerController = (AFortPlayerController*)Context;
+
+	PlayerController->ApplyCosmeticLoadout();
+
+	return ServerLoadingScreenDroppedOriginal(Context, Stack, Ret);
 }
 
 void AFortPlayerController::ServerRepairBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToRepair)
@@ -422,7 +440,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 		if (!VehicleWeaponDefinition)
 		{
-			LOG_INFO(LogDev, "Invlaid VehicleWeaponDefinition!");
+			LOG_INFO(LogDev, "Invalid VehicleWeaponDefinition!");
 			return;
 		}
 

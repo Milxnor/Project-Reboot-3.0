@@ -49,6 +49,7 @@ public:
 	static inline void (*ServerEditBuildingActorOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline void (*DropSpecificItemOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline AActor* (*SpawnToyInstanceOriginal)(UObject* Context, FFrame* Stack, AActor** Ret);
+	static inline void (*ServerLoadingScreenDroppedOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 
 	void ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot);
 
@@ -83,6 +84,7 @@ public:
 	void DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar = false, bool bRemoveIfNotDroppable = false);
 	void ApplyCosmeticLoadout();
 
+	static void ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret);
 	static void ServerRepairBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToRepair);
 	static void ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid);
 	static void ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret);

@@ -691,7 +691,7 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 
 		// Add in deleted actors
 
-		for (auto& CurrentGuid : Connection_DestroyedStartupOrDormantActors)
+		/* for (auto& CurrentGuid : Connection_DestroyedStartupOrDormantActors)
 		{
 			bool bFound = false;
 
@@ -704,7 +704,7 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 			OutPriorityActors[FinalSortedCount] = OutPriorityList + FinalSortedCount;
 			FinalSortedCount++;
 			DeletedCount++;
-		}
+		} */
 
 		Sort(OutPriorityActors, FinalSortedCount, FCompareFActorPriority());
 	}

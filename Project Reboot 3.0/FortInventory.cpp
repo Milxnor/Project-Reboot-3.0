@@ -146,10 +146,16 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		static auto FortItemEntryStruct = FindObject(L"/Script/FortniteGame.FortItemEntry");
 		static auto FortItemEntrySize = *(int*)(__int64(FortItemEntryStruct) + Offsets::PropertiesSize);
 
-		FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize());
-		StateValue->GetIntValue() = bShowItemToast;
-		StateValue->GetStateType() = EFortItemEntryState::ShouldShowItemToast;
-		NewItemInstance->GetItemEntry()->GetStateValues().AddPtr(StateValue, FFortItemEntryStateValue::GetStructSize());
+		bool bEnableStateValues = false;
+
+		if (bEnableStateValues)
+		{
+			FFortItemEntryStateValue* StateValue = (FFortItemEntryStateValue*)FMemory::Realloc(0, FFortItemEntryStateValue::GetStructSize(), 0); 
+				// Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize());
+			StateValue->GetIntValue() = bShowItemToast;
+			StateValue->GetStateType() = EFortItemEntryState::ShouldShowItemToast;
+			NewItemInstance->GetItemEntry()->GetStateValues().AddPtr(StateValue, FFortItemEntryStateValue::GetStructSize());
+		}
 
 		ItemInstances.Add(NewItemInstance);
 		GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
@@ -167,9 +173,14 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 			{
 				if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(WorldItemDefinition))
 				{
-					char (*ApplyGadgetData)(UFortGadgetItemDefinition * a1, __int64 a2, UFortItem* a3, unsigned __int8 a4) = decltype(ApplyGadgetData)(Addresses::ApplyGadgetData);
+					if (GadgetItemDefinition->ShouldDropAllItemsOnEquip()) // idk shouldnt this be auto?
+					{
+						FortPlayerController->DropAllItems({ GadgetItemDefinition });
+					}
+
+					bool (*ApplyGadgetData)(UFortGadgetItemDefinition * a1, __int64 a2, UFortItem* a3, unsigned __int8 a4) = decltype(ApplyGadgetData)(Addresses::ApplyGadgetData);
 					static auto FortInventoryOwnerInterfaceClass = FindObject<UClass>("/Script/FortniteGame.FortInventoryOwnerInterface");
-					ApplyGadgetData((UFortGadgetItemDefinition*)ItemDefinition, __int64(PlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass)), NewItemInstance, true);
+					LOG_INFO(LogDev, "Res: {}", ApplyGadgetData(GadgetItemDefinition, __int64(PlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass)), NewItemInstance, true));
 				}
 			}
 		}

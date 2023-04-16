@@ -12,7 +12,7 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 	UPrimitiveComponent* OtherComp;
 	int OtherBodyIndex;
 	bool bFromSweep;
-	FHitResult SweepResult = *Alloc<FHitResult>(FHitResult::GetStructSize());
+	auto SweepResultPtr = (FHitResult*)std::realloc(0, FHitResult::GetStructSize());
 
 	LOG_INFO(LogDev, "OnCapsuleBeginOverlapHook!");
 
@@ -21,7 +21,9 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 	Stack->StepCompiledIn(&OtherComp);
 	Stack->StepCompiledIn(&OtherBodyIndex);
 	Stack->StepCompiledIn(&bFromSweep);
-	Stack->StepCompiledIn(&SweepResult);
+	Stack->StepCompiledIn(SweepResultPtr);
+
+	std::free(SweepResultPtr);
 
 	// LOG_INFO(LogDev, "OtherActor: {}", __int64(OtherActor));
 	// LOG_INFO(LogDev, "OtherActorName: {}", OtherActor->IsValidLowLevel() ? OtherActor->GetName() : "BadRead")

@@ -448,6 +448,11 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor({ 0x40, 0x55 }, false).Get()); // Widget class
 	}
 
+	if (Engine_Version == 422)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 30 48 8B 41 28 48 8B DA 48 8B F9 48 85 C0 74 34 48 8B 4B 08 48 8D").Get()); // widget class
+	}
+
 	if (Engine_Version == 425)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("40 57 41 56 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F1 74 3A 80 3D ? ? ? ? ? 0F 82").Get()); // collect garbage

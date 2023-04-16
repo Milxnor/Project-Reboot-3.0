@@ -135,6 +135,13 @@ DWORD WINAPI Main(LPVOID)
 
     CreateThread(0, 0, GuiThread, 0, 0, 0);
 
+    while (SecondsUntilTravel > 0)
+    {
+        SecondsUntilTravel -= 1;
+
+        Sleep(1000);
+    }
+
     static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
     static auto FortPlayerControllerZoneDefault = FindObject<AFortPlayerController>(L"/Script/FortniteGame.Default__FortPlayerControllerZone");
     static auto FortPlayerControllerAthenaDefault = FindObject<AFortPlayerControllerAthena>(L"/Script/FortniteGame.Default__FortPlayerControllerAthena"); // FindObject<UClass>(L"/Game/Athena/Athena_PlayerController.Default__Athena_PlayerController_C");
@@ -430,6 +437,8 @@ DWORD WINAPI Main(LPVOID)
         AFortPlayerController::ServerEditBuildingActorHook, (PVOID*)&AFortPlayerController::ServerEditBuildingActorOriginal, false, true);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerEndEditingBuildingActor"),
         AFortPlayerController::ServerEndEditingBuildingActorHook, nullptr, false);
+    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerLoadingScreenDropped"),
+        AFortPlayerController::ServerLoadingScreenDroppedHook, (PVOID*)&AFortPlayerController::ServerLoadingScreenDroppedOriginal, false, true);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerReadyToStartMatch"),
         AFortPlayerControllerAthena::ServerReadyToStartMatchHook, (PVOID*)&AFortPlayerControllerAthena::ServerReadyToStartMatchOriginal, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.ServerRequestSeatChange"),
@@ -720,137 +729,7 @@ DWORD WINAPI Main(LPVOID)
 
     while (true)
     {
-        if (GetAsyncKeyState(VK_F7) & 1)
-        {
-            LOG_INFO(LogEvent, "Starting {} event!", GetEventName());
-            StartEvent();
-        }
-
-        else if (GetAsyncKeyState(VK_F8) & 1)
-        {
-            auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
-            auto GameState = GameMode->GetGameState();
-
-            if (Fortnite_Version == 1.11)
-            {
-                static auto OverrideBattleBusSkin = FindObject("/Game/Athena/Items/Cosmetics/BattleBuses/BBID_WinterBus.BBID_WinterBus");
-                LOG_INFO(LogDev, "OverrideBattleBusSkin: {}", __int64(OverrideBattleBusSkin));
-
-                if (OverrideBattleBusSkin)
-                {
-                    static auto AssetManagerOffset = GetEngine()->GetOffset("AssetManager");
-                    auto AssetManager = GetEngine()->Get(AssetManagerOffset);
-
-                    if (AssetManager)
-                    {
-                        static auto AthenaGameDataOffset = AssetManager->GetOffset("AthenaGameData");
-                        auto AthenaGameData = AssetManager->Get(AthenaGameDataOffset);
-
-                        if (AthenaGameData)
-                        {
-                            static auto DefaultBattleBusSkinOffset = AthenaGameData->GetOffset("DefaultBattleBusSkin");
-                            AthenaGameData->Get(DefaultBattleBusSkinOffset) = OverrideBattleBusSkin;
-                        }
-                    }
-
-                    static auto DefaultBattleBusOffset = GameState->GetOffset("DefaultBattleBus");
-                    GameState->Get(DefaultBattleBusOffset) = OverrideBattleBusSkin;
-
-                    static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
-                    auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
-
-                    for (int i = 0; i < AllAircrafts.Num(); i++)
-                    {
-                        auto Aircraft = AllAircrafts.at(i);
-
-                        static auto DefaultBusSkinOffset = Aircraft->GetOffset("DefaultBusSkin");
-                        Aircraft->Get(DefaultBusSkinOffset) = OverrideBattleBusSkin;
-
-                        static auto SpawnedCosmeticActorOffset = Aircraft->GetOffset("SpawnedCosmeticActor");
-                        auto SpawnedCosmeticActor = Aircraft->Get<AActor*>(SpawnedCosmeticActorOffset);
-
-                        if (SpawnedCosmeticActor)
-                        {
-                            static auto ActiveSkinOffset = SpawnedCosmeticActor->GetOffset("ActiveSkin");
-                            SpawnedCosmeticActor->Get(ActiveSkinOffset) = OverrideBattleBusSkin;
-                        }
-                    }
-                }
-            }
-
-            float Duration = 0;
-            float EarlyDuration = Duration;
-
-            float TimeSeconds = 0; // UGameplayStatics::GetTimeSeconds(GetWorld());
-
-            LOG_INFO(LogDev, "Starting bus!");
-
-            GameState->Get<float>("WarmupCountdownEndTime") = 0;
-            GameMode->Get<float>("WarmupCountdownDuration") = 0;
-
-            GameState->Get<float>("WarmupCountdownStartTime") = 0;
-            GameMode->Get<float>("WarmupEarlyCountdownDuration") = 0;
-
-            // FString cmd = L"startaircraft";
-            // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
-        }
-
-        else if (GetAsyncKeyState(VK_F9) & 1)
-        {
-            Globals::bLogProcessEvent = !Globals::bLogProcessEvent;
-        }
-
-        else if (GetAsyncKeyState(VK_F10) & 1)
-        {
-            if (Engine_Version < 424)
-            {
-                FString LevelA = Engine_Version < 424
-                    ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
-                    ? L"open Asteria_Terrain"
-                    : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-                    : L"open Artemis_Terrain"
-                    : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-                    : L"open Apollo_Terrain";
-
-                static auto BeaconClass = FindObject<UClass>(L"/Script/FortniteGame.FortOnlineBeaconHost");
-                auto AllFortBeacons = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BeaconClass);
-
-                for (int i = 0; i < AllFortBeacons.Num(); i++)
-                {
-                    AllFortBeacons.at(i)->K2_DestroyActor();
-                }
-
-                AllFortBeacons.Free();
-
-                LOG_INFO(LogDev, "Switching!");
-                ((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
-                // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
-                // UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
-                LOG_INFO(LogGame, "Restarting!");
-                AmountOfRestarts++;
-            }
-            else
-            {
-                LOG_ERROR(LogGame, "Restarting is not supported on chapter 2 and above!");
-            }
-        }
-
-        else if (GetAsyncKeyState(VK_F11) & 1)
-        {
-            std::ofstream stream("Test.log");
-
-            for (auto& Current : ReplicatedActors)
-            {
-                stream << Current << '\n';
-            }
-        }
-
-        /* else if (GetAsyncKeyState(VK_F12) & 1)
-        {
-            FillVendingMachines();
-        } */
-        
-        Sleep(1000 / 30);
+        Sleep(10000);
     }
 
     return 0;
