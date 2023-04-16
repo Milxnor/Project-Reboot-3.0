@@ -150,15 +150,15 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 		if (bEnableStateValues)
 		{
-			FFortItemEntryStateValue* StateValue = (FFortItemEntryStateValue*)FMemory::Realloc(0, FFortItemEntryStateValue::GetStructSize(), 0); 
-				// Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize());
+			FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize());
 			StateValue->GetIntValue() = bShowItemToast;
 			StateValue->GetStateType() = EFortItemEntryState::ShouldShowItemToast;
 			NewItemInstance->GetItemEntry()->GetStateValues().AddPtr(StateValue, FFortItemEntryStateValue::GetStructSize());
 		}
 
 		ItemInstances.Add(NewItemInstance);
-		GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
+		auto ReplicatedEntryIdx = GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
+		// GetItemList().GetReplicatedEntries().AtPtr(ReplicatedEntryIdx, FFortItemEntry::GetStructSize())->GetIsReplicatedCopy() = true;
 
 		if (WorldItemDefinition->IsValidLowLevel())
 		{

@@ -261,16 +261,32 @@ public:
 		return -1;
 	}
 
-	void FreeReal()
+	void FreeReal(SizeType Size = sizeof(InElementType))
 	{
-		if (Data && ArrayNum > 0 && sizeof(InElementType) > 0)
+		if (!IsBadReadPtr(Data, 8) && ArrayNum > 0 && sizeof(InElementType) > 0)
 		{
+			for (int i = 0; i < ArrayNum; i++)
+			{
+				auto current = AtPtr(i, Size);
+
+				RtlSecureZeroMemory(current, Size);
+			}
+
 			// VirtualFree(Data, _msize(Data), MEM_RELEASE);
 			// VirtualFree(Data, sizeof(InElementType) * ArrayNum, MEM_RELEASE); // ik this does nothing
-			// auto res = VirtualFree(Data, 0, MEM_RELEASE);
-			// LOG_INFO(LogDev, "Free: {} aa: 0x{:x}", res, res ? 0 : GetLastError());
-			static void (*FreeOriginal)(void*) = decltype(FreeOriginal)(Addresses::Free);
-			// FreeOriginal(Data);
+
+			/* static void (*FreeOriginal)(void*) = decltype(FreeOriginal)(Addresses::Free);
+
+			if (FreeOriginal)
+			{
+				FreeOriginal(Data);
+			}
+			else */
+			{
+				auto res = VirtualFree(Data, 0, MEM_RELEASE);
+				// auto res = VirtualFree(Data, sizeof(InElementType) * ArrayNum, MEM_RELEASE);
+				LOG_INFO(LogDev, "Free: {} aa: 0x{:x}", res, res ? 0 : GetLastError());
+			}
 		}
 
 		Data = nullptr;

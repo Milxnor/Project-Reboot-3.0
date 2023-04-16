@@ -417,7 +417,9 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerDropAllItems"),
         AFortPlayerController::ServerDropAllItemsHook, nullptr, false);
-    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, 
+    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerSetInventoryStateValue"),
+        AFortPlayerController::ServerSetInventoryStateValueHook, nullptr, false);
+    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault,
         FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ServerSpawnInventoryDrop") 
         ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ServerSpawnInventoryDrop") : FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerAttemptInventoryDrop"),
         AFortPlayerController::ServerAttemptInventoryDropHook, nullptr, false);

@@ -95,13 +95,13 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     static auto DataTableClass = FindObject<UClass>("/Script/Engine.DataTable");
     static auto CompositeDataTableClass = FindObject<UClass>("/Script/Engine.CompositeDataTable");
 
-    static bool bHasFoundTables = false;
+    static int LastNum1 = 14915;
 
     auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
 
-    if (!bHasFoundTables)
+    if (LastNum1 != AmountOfRestarts)
     {
-        bHasFoundTables = true;
+        LastNum1 = AmountOfRestarts;
 
         bool bFoundPlaylistTable = false;
 

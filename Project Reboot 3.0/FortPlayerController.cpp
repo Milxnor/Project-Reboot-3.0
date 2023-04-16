@@ -175,6 +175,11 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 	UFortKismetLibrary::StaticClass()->ProcessEvent(UpdatePlayerCustomCharacterPartsVisualizationFn, &PlayerStateAsFort);
 }
 
+void AFortPlayerController::ServerSetInventoryStateValueHook(AFortPlayerController* PlayerController, FGuid a2, __int64 StateValue)
+{
+	LOG_INFO(LogDev, "ServerSetInventoryStateValueHook! Please tell Milxnor if this gets logged.");
+}
+
 void AFortPlayerController::ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret)
 {
 	auto PlayerController = (AFortPlayerController*)Context;
@@ -704,7 +709,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	auto MatInstance = WorldInventory->FindItemInstance(MatDefinition);
 
-	bool bShouldDestroy = MatInstance ? (PlayerController->DoesBuildFree() ? false : MatInstance->GetItemEntry()->GetCount() < 10) : true;
+	bool bShouldDestroy = MatInstance && MatInstance->GetItemEntry() ? (PlayerController->DoesBuildFree() ? false : MatInstance->GetItemEntry()->GetCount() < 10) : true;
 
 	if (bShouldDestroy)
 	{

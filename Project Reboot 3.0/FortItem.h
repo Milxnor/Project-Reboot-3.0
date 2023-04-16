@@ -65,6 +65,12 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return *(FGuid*)(__int64(this) + ItemGuidOffset);
 	}
 
+	bool& GetIsReplicatedCopy()
+	{
+		static auto bIsReplicatedCopyOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "bIsReplicatedCopy");
+		return *(bool*)(__int64(this) + bIsReplicatedCopyOffset);
+	}
+
 	class UFortItemDefinition*& GetItemDefinition()
 	{
 		static auto ItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "ItemDefinition");
