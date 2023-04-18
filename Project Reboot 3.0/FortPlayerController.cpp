@@ -33,6 +33,9 @@ void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor
 
 bool AFortPlayerController::DoesBuildFree()
 {
+	if (Globals::bInfiniteMaterials)
+		return true;
+
 	static auto bBuildFreeOffset = GetOffset("bBuildFree");
 	static auto bBuildFreeFieldMask = GetFieldMask(GetProperty("bBuildFree"));
 	return ReadBitfieldValue(bBuildFreeOffset, bBuildFreeFieldMask);
@@ -173,11 +176,6 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 	}
 
 	UFortKismetLibrary::StaticClass()->ProcessEvent(UpdatePlayerCustomCharacterPartsVisualizationFn, &PlayerStateAsFort);
-}
-
-void AFortPlayerController::ServerSetInventoryStateValueHook(AFortPlayerController* PlayerController, FGuid a2, __int64 StateValue)
-{
-	LOG_INFO(LogDev, "ServerSetInventoryStateValueHook! Please tell Milxnor if this gets logged.");
 }
 
 void AFortPlayerController::ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret)
@@ -709,9 +707,11 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	auto MatInstance = WorldInventory->FindItemInstance(MatDefinition);
 
-	bool bShouldDestroy = MatInstance && MatInstance->GetItemEntry() ? (PlayerController->DoesBuildFree() ? false : MatInstance->GetItemEntry()->GetCount() < 10) : true;
+	bool bBuildFree = PlayerController->DoesBuildFree();
 
-	if (bShouldDestroy)
+	bool bShouldDestroy = MatInstance && MatInstance->GetItemEntry() ? MatInstance->GetItemEntry()->GetCount() < 10 : true;
+
+	if (bShouldDestroy && !bBuildFree)
 	{
 		BuildingActor->SilentDie();
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
@@ -721,7 +721,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
 	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex()); // required?
 
-	if (!PlayerController->DoesBuildFree())
+	if (!bBuildFree)
 	{
 		bool bShouldUpdate = false;
 		WorldInventory->RemoveItem(MatInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, 10);

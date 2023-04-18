@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="UnrealNames.cpp">
@@ -108,7 +108,7 @@
       <Filter>FortniteGame\Source\FortniteGame\Private\Pawns</Filter>
     </ClCompile>
     <ClCompile Include="events.cpp">
-      <Filter>Reboot\Private\Gameplay</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Public\Private\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="FortPlayerControllerAthena.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
@@ -141,7 +141,7 @@
       <Filter>Engine\Source\Runtime\Engine\Private</Filter>
     </ClCompile>
     <ClCompile Include="addresses.cpp">
-      <Filter>Reboot\Private</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Public\Private</Filter>
     </ClCompile>
     <ClCompile Include="NetConnection.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
@@ -226,6 +226,9 @@
     </ClCompile>
     <ClCompile Include="FortAthenaVehicle.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+    </ClCompile>
+    <ClCompile Include="CheatManager.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -704,6 +707,9 @@
     <ClInclude Include="IsTriviallyCopyConstructible.h">
       <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
     </ClInclude>
+    <ClInclude Include="CheatManager.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -853,14 +859,8 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Weapons">
       <UniqueIdentifier>{bcb0d983-0b85-4ca6-9fac-6567c7d79921}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Reboot\Private">
-      <UniqueIdentifier>{563ca89b-be74-42a6-a995-f87ac7a532e4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Reboot\Public">
       <UniqueIdentifier>{ad1c6299-9a6d-4eba-a1f8-66642a8afd21}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Reboot\Private\Gameplay">
-      <UniqueIdentifier>{52d438db-beaf-44be-bddd-9aeb07c2459f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Reboot\Public\Gameplay">
       <UniqueIdentifier>{9923af6f-0a65-43f7-ad58-8a66e83814ba}</UniqueIdentifier>
@@ -924,6 +924,12 @@
     </Filter>
     <Filter Include="Libaries\ImGUI">
       <UniqueIdentifier>{2eee3380-ea4b-4137-b058-b57a7b66005e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Private">
+      <UniqueIdentifier>{563ca89b-be74-42a6-a995-f87ac7a532e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Private\Gameplay">
+      <UniqueIdentifier>{52d438db-beaf-44be-bddd-9aeb07c2459f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

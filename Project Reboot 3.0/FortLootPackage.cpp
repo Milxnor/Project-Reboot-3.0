@@ -103,6 +103,9 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     {
         LastNum1 = AmountOfRestarts;
 
+        LTDTables.clear();
+        LPTables.clear();
+
         bool bFoundPlaylistTable = false;
 
         if (CurrentPlaylist)
@@ -285,15 +288,29 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
         for (int i = 0; i < LTDTables.size(); i++)
         {
-            LTDTables.at(i)->AddToRoot();
-            LOG_INFO(LogDev, "[{}] LTD {}", i, LTDTables.at(i)->GetFullName());
+            auto& Table = LTDTables.at(i);
+
+            if (!Table->IsValidLowLevel())
+            {
+                continue;
+            }
+
+            Table->AddToRoot();
+            LOG_INFO(LogDev, "[{}] LTD {}", i, Table->GetFullName());
         }
 
         for (int i = 0; i < LPTables.size(); i++)
         {
-            LPTables.at(i)->AddToRoot();
-            LOG_INFO(LogDev, "[{}] LP {}", i, LPTables.at(i)->GetFullName());
-        }
+            auto& Table = LPTables.at(i);
+
+            if (!Table->IsValidLowLevel())
+            {
+                continue;
+            }
+
+            Table->AddToRoot();
+            LOG_INFO(LogDev, "[{}] LP {}", i, Table->GetFullName());
+        } 
     }
 
     if (Fortnite_Version <= 6) // ahhh

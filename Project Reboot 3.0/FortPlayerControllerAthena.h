@@ -6,6 +6,7 @@
 #include "SoftObjectPtr.h"
 #include "FortKismetLibrary.h"
 #include "AthenaMarkerComponent.h"
+#include "FortVolume.h"
 
 static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChoosePart = false)
 {

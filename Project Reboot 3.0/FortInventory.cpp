@@ -180,9 +180,14 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 					bool (*ApplyGadgetData)(UFortGadgetItemDefinition * a1, __int64 a2, UFortItem* a3, unsigned __int8 a4) = decltype(ApplyGadgetData)(Addresses::ApplyGadgetData);
 					static auto FortInventoryOwnerInterfaceClass = FindObject<UClass>("/Script/FortniteGame.FortInventoryOwnerInterface");
-					LOG_INFO(LogDev, "Res: {}", ApplyGadgetData(GadgetItemDefinition, __int64(PlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass)), NewItemInstance, true));
+					auto Interface = __int64(PlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass));
+					LOG_INFO(LogDev, "Res: {}", ApplyGadgetData(GadgetItemDefinition, Interface, NewItemInstance, true));
 				}
 			}
+		}
+		else
+		{
+			LOG_INFO(LogDev, "Not Valid!");
 		}
 
 		if (FortPlayerController && Engine_Version < 420)

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -182,6 +182,7 @@
     <ClCompile Include="BuildingStructuralSupportSystem.cpp" />
     <ClCompile Include="BuildingTrap.cpp" />
     <ClCompile Include="BuildingWeapons.cpp" />
+    <ClCompile Include="CheatManager.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="DataChannel.cpp" />
@@ -266,6 +267,7 @@
     <ClInclude Include="BuildingStructuralSupportSystem.h" />
     <ClInclude Include="BuildingTrap.h" />
     <ClInclude Include="Channel.h" />
+    <ClInclude Include="CheatManager.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />

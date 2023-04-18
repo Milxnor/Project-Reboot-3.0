@@ -30,13 +30,16 @@ char UFortInventoryInterface::RemoveInventoryItemHook(__int64 a1, FGuid a2, int 
 	if (!WorldInventory)
 		return false;
 
-	bool bShouldUpdate = false;
-	WorldInventory->RemoveItem(a2, &bShouldUpdate, Count, bForceRemoval);
+	if (!Globals::bInfiniteAmmo)
+	{
+		bool bShouldUpdate = false;
+		WorldInventory->RemoveItem(a2, &bShouldUpdate, Count, bForceRemoval);
 
-	if (bShouldUpdate)
-		WorldInventory->Update();
+		if (bShouldUpdate)
+			WorldInventory->Update();
+	}
 
-	if (Engine_Version < 424)
+	if (Engine_Version < 424) // doesnt work on c2+ idk why
 	{
 		auto Pawn = PlayerController->GetMyFortPawn();
 

@@ -11,6 +11,9 @@ namespace Globals
 	extern inline bool bLogProcessEvent = false;
 	extern inline bool bLateGame = false;
 
+	extern inline bool bInfiniteMaterials = false;
+	extern inline bool bInfiniteAmmo = false;
+
 	extern inline bool bHitReadyToStartMatch = false;
 	extern inline bool bInitializedPlaylist = false;
 	extern inline bool bStartedListening = false;
@@ -25,3 +28,4 @@ extern inline std::string PlaylistName =
 // "/Game/Athena/Playlists/Fill/Playlist_Fill_Solo.Playlist_Fill_Solo";
 // "/Game/Athena/Playlists/Low/Playlist_Low_Solo.Playlist_Low_Solo";
 // "/Game/Athena/Playlists/Bling/Playlist_Bling_Solo.Playlist_Bling_Solo";
+// "/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2";

@@ -143,6 +143,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 	// std::cout << "NumArgs: " << NumArgs << '\n';
 
+	bool bSendHelpMessage = false;
+
 	if (Arguments.size() >= 1)
 	{
 		auto& Command = Arguments[0];
@@ -194,60 +196,6 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
-		/* else if (Command == "giveprefab")
-		{
-			if (NumArgs < 1)
-			{
-				SendMessageToConsole(PlayerController, L"Please provide a WID!");
-				return;
-			}
-
-			auto WorldInventory = ReceivingController->GetWorldInventory();
-
-			if (!WorldInventory)
-			{
-				SendMessageToConsole(PlayerController, L"No world inventory!");
-				return;
-			}
-
-			auto& weaponName = Arguments[1];
-			int count = 1;
-
-			try
-			{
-				if (NumArgs >= 2)
-					count = std::stoi(Arguments[2]);
-			}
-			catch (...)
-			{
-			}
-
-			// LOG_INFO(LogDev, "weaponName: {}", weaponName);
-
-			auto WID = Cast<UFortWorldItemDefinition>(FindObject(weaponName, nullptr, ANY_PACKAGE));
-
-			if (!WID)
-			{
-				SendMessageToConsole(PlayerController, L"Invalid WID!");
-				return;
-			}
-
-			bool bShouldUpdate = false;
-			auto NewAndModifiedInstances = WorldInventory->AddItem(WID, &bShouldUpdate, count);
-
-			auto NewPrefabInstance = NewAndModifiedInstances.first[0];
-
-			if (!NewPrefabInstance)
-			{
-				SendMessageToConsole(PlayerController, L"Failed to give item!");
-				return;
-			}
-
-			if (bShouldUpdate)
-				WorldInventory->Update();
-
-			SendMessageToConsole(PlayerController, L"Granted item!");
-		} */
 		else if (Command == "spawnpickup")
 		{
 			if (NumArgs < 1)
@@ -256,7 +204,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				return;
 			}
 
-			auto Pawn = PlayerController->GetMyFortPawn();
+			auto Pawn = ReceivingController->GetMyFortPawn();
 
 			if (!Pawn)
 			{
@@ -344,6 +292,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				bool                                               bZOverride;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 			} ACharacter_LaunchCharacter_Params{ FVector(X, Y, Z), false, false};
 			Pawn->ProcessEvent(LaunchCharacterFn, &ACharacter_LaunchCharacter_Params);
+
 			SendMessageToConsole(PlayerController, L"Launched character!");
 		}
 		else if (Command == "setshield")
@@ -486,28 +435,18 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		{
 			UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
 		}
-		else if (Command == "testspawn")
+		else if (Command == "teleport")
 		{
-			auto Pawn = Cast<APawn>(ReceivingController->GetPawn());
+			auto CheatManager = ReceivingController->SpawnCheatManager(UCheatManager::StaticClass());
 
-			if (!Pawn)
+			if (!CheatManager)
 			{
-				SendMessageToConsole(PlayerController, L"No pawn to teleport!");
+				SendMessageToConsole(PlayerController, L"Failed to spawn player's cheat manager!");
 				return;
 			}
 
-			auto Class = FindObject<UClass>("/Game/Athena/Items/Gameplay/MinigameSettingsControl/MinigameSettingsMachine.MinigameSettingsMachine_C");
-
-			if (!Class)
-			{
-				SendMessageToConsole(PlayerController, L"Failed to find Class!");
-				return;
-			}
-
-			auto PawnLocation = Pawn->GetActorLocation();
-			PawnLocation.Z += 250;
-			GetWorld()->SpawnActor<AActor>(Class, PawnLocation);
-			SendMessageToConsole(PlayerController, L"Spawned!");
+			CheatManager->Teleport();
+			CheatManager = nullptr;
 		}
 		else if (Command == "bugitgo")
 		{
@@ -537,5 +476,28 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			Pawn->TeleportTo(FVector(X, Y, Z), Pawn->GetActorRotation());
 			SendMessageToConsole(PlayerController, L"Teleported!");
 		}
+		else { bSendHelpMessage = true; };
+	}
+	else { bSendHelpMessage = true; };
+
+	if (bSendHelpMessage)
+	{
+		FString HelpMessage = LR"(
+cheat giveitem <ShortWID> <Count=1> - Gives a weapon to the executing player, if inventory is full drops a pickup on the player.
+cheat summon <BlueprintClassPathName> <Count=1> - Summons the specified blueprint class at the executing player's location. Note: There is a limit on the count.
+cheat bugitgo <X> <Y> <Z> - Teleport to a location.
+cheat launch <X> <Y> <Z> - Launches a player.
+cheat listplayers - Gives you all players names.
+cheat pausesafezone - Pauses the zone.
+cheat sethealth <Health=100.f> - Sets executing player's health.
+cheat setshield <Shield=0.f> - Sets executing player's shield.
+cheat applycid <CIDShortName> - Sets a player's character.
+cheat spawnpickup <ShortWID> - Spawns a pickup at specified player.
+cheat teleport - Teleports to what the player is looking at.
+
+If you want to execute a command on a certain player, surround their name (case sensitive) with \, and put the param anywhere. Example: cheat sethealth \Milxnor\ 100
+)";
+		
+		SendMessageToConsole(PlayerController, HelpMessage);
 	}
 }

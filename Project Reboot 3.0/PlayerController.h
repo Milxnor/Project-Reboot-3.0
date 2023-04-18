@@ -2,6 +2,7 @@
 
 #include "Class.h"
 #include "Controller.h"
+#include "CheatManager.h"
 
 #include "Rotator.h"
 
@@ -32,6 +33,13 @@ public:
 		return this->Get<class APawn*>(PawnOffset);
 	}
 
+	UCheatManager*& GetCheatManager()
+	{
+		static auto CheatManagerOffset = this->GetOffset("CheatManager");
+		return this->Get<UCheatManager*>(CheatManagerOffset);
+	}
+
+	UCheatManager*& SpawnCheatManager(UClass* CheatManagerClass);
 	FRotator GetControlRotation();
 	void Possess(class APawn* Pawn);
 	void ServerRestartPlayer();

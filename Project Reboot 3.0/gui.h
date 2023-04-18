@@ -54,6 +54,7 @@
 #define FUN_PLAYERTAB 5
 
 static inline int SecondsUntilTravel = 5;
+static bool bSwitchedInitialLevel = false;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -215,6 +216,9 @@ static int playerTabTab = MAIN_PLAYERTAB;
 
 void StaticUI()
 {
+	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);
+	ImGui::Checkbox("Infinite Materials", &Globals::bInfiniteMaterials);
+
 	ImGui::Checkbox("No MCP (Don't change unless you know what this is)", &Globals::bNoMCP);
 
 	if (Addresses::ApplyGadgetData && Addresses::RemoveGadgetData)
@@ -634,7 +638,9 @@ void PregameUI()
 		ImGui::Checkbox("Play Event", &Globals::bGoingToPlayEvent);
 	}
 
-	ImGui::SliderInt("Seconds until load into map", &SecondsUntilTravel, 1, 100);
+	if (!bSwitchedInitialLevel)
+		ImGui::SliderInt("Seconds until load into map", &SecondsUntilTravel, 1, 100);
+
 	ImGui::InputText("Playlist", &PlaylistName);
 }
 

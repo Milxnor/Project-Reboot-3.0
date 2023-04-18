@@ -1,6 +1,13 @@
 #include "PlayerController.h"
+#include "GameplayStatics.h"
 
 #include "reboot.h"
+
+UCheatManager*& APlayerController::SpawnCheatManager(UClass* CheatManagerClass)
+{
+	GetCheatManager() = UGameplayStatics::SpawnObject<UCheatManager>(CheatManagerClass, this, true);
+	return GetCheatManager();
+}
 
 FRotator APlayerController::GetControlRotation()
 {

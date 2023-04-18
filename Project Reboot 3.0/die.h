@@ -4,8 +4,9 @@
 #include "FortGameModeAthena.h"
 #include "GameplayStatics.h"
 #include "CurveTable.h"
-#include "KismetStringLibrary.h"s
+#include "KismetStringLibrary.h"
 #include "DataTableFunctionLibrary.h"
+#include "FortPlaysetItemDefinition.h"
 
 static inline void (*SetZoneToIndexOriginal)(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK);
 
@@ -259,7 +260,8 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 			!strstr(ObjectName.c_str(), "FlopperSpawn") &&
 			!strstr(FunctionFullName.c_str(), "GCNL_EnvCampFire_Fire_C") &&
 			!strstr(FunctionName.c_str(), "BlueprintGetAllHighlightableComponents") &&
-			!strstr(FunctionFullName.c_str(), "Primitive_Structure_AmbAudioComponent"))
+			!strstr(FunctionFullName.c_str(), "Primitive_Structure_AmbAudioComponent") &&
+			!strstr(FunctionName.c_str(), "ServerTriggerCombatEvent"))
 		{
 			LOG_INFO(LogDev, "Function called: {} with {}", FunctionFullName, ObjectName);
 		}
