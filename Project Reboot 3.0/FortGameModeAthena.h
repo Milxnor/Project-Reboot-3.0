@@ -24,6 +24,38 @@ enum class EDynamicFoundationType : uint8_t
 	EDynamicFoundationType_MAX = 4
 };
 
+struct FAircraftFlightInfo
+{
+	float& GetTimeTillDropStart()
+	{
+		static auto TimeTillDropStartOffset = FindOffsetStruct("/Script/FortniteGame.AircraftFlightInfo", "TimeTillDropStart");
+		return *(float*)(__int64(this) + TimeTillDropStartOffset);
+	}
+
+	FVector& GetFlightStartLocation()
+	{
+		static auto FlightStartLocationOffset = FindOffsetStruct("/Script/FortniteGame.AircraftFlightInfo", "FlightStartLocation");
+		return *(FVector*)(__int64(this) + FlightStartLocationOffset);
+	}
+
+	float& GetFlightSpeed()
+	{
+		static auto FlightSpeedOffset = FindOffsetStruct("/Script/FortniteGame.AircraftFlightInfo", "FlightSpeed");
+		return *(float*)(__int64(this) + FlightSpeedOffset);
+	}
+
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.AircraftFlightInfo");
+		return Struct;
+	}
+
+	static int GetStructSize()
+	{
+		return GetStruct()->GetPropertiesSize();
+	}
+};
+
 static void ShowFoundation(UObject* BuildingFoundation)
 {
 	if (!BuildingFoundation)

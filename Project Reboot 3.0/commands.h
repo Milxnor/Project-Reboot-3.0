@@ -448,6 +448,23 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CheatManager->Teleport();
 			CheatManager = nullptr;
 		}
+		else if (Command == "setsafezonephase")
+		{
+			int NewSafeZonePhase = 1;
+
+			try { NewSafeZonePhase = std::stof(Arguments[1]); }
+			catch (...) {}
+
+			auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+			auto GameState = GameMode->GetGameState();
+
+			static auto GameMode_SafeZonePhaseOffset = GameMode->GetOffset("SafeZonePhase");
+			static auto GameState_SafeZonePhaseOffset = GameState->GetOffset("SafeZonePhase");
+
+			GameMode->Get<int>(GameMode_SafeZonePhaseOffset) = NewSafeZonePhase;
+			GameState->Get<int>(GameState_SafeZonePhaseOffset) = NewSafeZonePhase;
+			SendMessageToConsole(PlayerController, L"Set safe zone phase!");
+		}
 		else if (Command == "bugitgo")
 		{
 			if (Arguments.size() <= 3)

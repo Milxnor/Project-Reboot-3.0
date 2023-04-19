@@ -12,10 +12,51 @@ static inline void (*SetZoneToIndexOriginal)(AFortGameModeAthena* GameModeAthena
 
 static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK)
 {
+	static auto ZoneDurationsOffset = Fortnite_Version >= 15 && Fortnite_Version < 18 ? 0x258
+		: std::floor(Fortnite_Version) >= 18 ? 0x248
+		: 0x1F8; // S13-S14
+
+	LOG_INFO(LogDev, "SetZoneToIndexHook!");
+
+	bool bIsFirstZone = false;
+
 	auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
 
-	if (!GameState)
+	if (Globals::bLateGame)
+	{
+		static auto GameMode_SafeZonePhaseOffset = GameModeAthena->GetOffset("SafeZonePhase");
+		static auto GameState_SafeZonePhaseOffset = GameState->GetOffset("SafeZonePhase");
+
+		int NewSafeZonePhase = GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
+
+		if (NewSafeZonePhase < 4)
+		{
+			NewSafeZonePhase = 4;
+			bIsFirstZone = true;
+		}
+
+		LOG_INFO(LogDev, "Setting zone to: {}", NewSafeZonePhase);
+
+		GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset) = NewSafeZonePhase;
+		GameState->Get<int>(GameState_SafeZonePhaseOffset) = NewSafeZonePhase;
+	}
+
+	if (Fortnite_Version < 13)
+	{
+		SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
+
+		if (Globals::bLateGame && bIsFirstZone)
+		{
+			// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
+			// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
+			// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
+		}
+
 		return;
+	}
+
+	if (!GameState)
+		return SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
 
 	static auto SafeZoneIndicatorOffset = GameModeAthena->GetOffset("SafeZoneIndicator");
 	auto SafeZoneIndicator = GameModeAthena->Get<AActor*>(SafeZoneIndicatorOffset);
@@ -34,8 +75,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 
 	LOG_INFO(LogDev, "SafeZoneDefinitionOffset: 0x{:x}", SafeZoneDefinitionOffset);
 
-	static auto ZoneDurationsOffset = Fortnite_Version >= 15 && Fortnite_Version < 18 ? 0x258 : std::floor(Fortnite_Version) >= 18 ? 0x248 : 0x1F8;
-	static auto ZoneHoldDurationsOffset = ZoneDurationsOffset - 0x10;
+	static auto ZoneHoldDurationsOffset = ZoneDurationsOffset - 0x10; // fr
 
 	auto& ZoneDurations = *(TArray<float>*)(__int64(SafeZoneDefinition) + ZoneDurationsOffset);
 	auto& ZoneHoldDurations = *(TArray<float>*)(__int64(SafeZoneDefinition) + ZoneHoldDurationsOffset);

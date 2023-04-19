@@ -37,6 +37,12 @@ FTransform AActor::GetTransform()
 	return Ret;
 }
 
+void AActor::SetNetDormancy(ENetDormancy Dormancy)
+{
+	static auto SetNetDormancyFn = FindObject<UFunction>("/Script/Engine.Actor.SetNetDormancy");
+	this->ProcessEvent(SetNetDormancyFn, &Dormancy);
+}
+
 AActor* AActor::GetOwner()
 {
 	static auto GetOwnerFunction = FindObject<UFunction>("/Script/Engine.Actor.GetOwner");

@@ -420,59 +420,145 @@ void MainUI()
 					}
 				}
 
-				if (ImGui::Button("Start Bus Countdown"))
+				if (Globals::bLateGame)
 				{
-					auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
-					auto GameState = GameMode->GetGameState();
-
-					if (Fortnite_Version == 1.11)
+					if (ImGui::Button("Start Bus"))
 					{
-						static auto OverrideBattleBusSkin = FindObject("/Game/Athena/Items/Cosmetics/BattleBuses/BBID_WinterBus.BBID_WinterBus");
-						LOG_INFO(LogDev, "OverrideBattleBusSkin: {}", __int64(OverrideBattleBusSkin));
+						auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+						auto GameState = GameMode->GetGameState();
 
-						if (OverrideBattleBusSkin)
+						static auto AircraftsOffset = GameState->GetOffset("Aircrafts");
+
+						UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
+
+						while (GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->Num() <= 0) // hmm
 						{
-							static auto AssetManagerOffset = GetEngine()->GetOffset("AssetManager");
-							auto AssetManager = GetEngine()->Get(AssetManagerOffset);
+							Sleep(500);
+						}
 
-							if (AssetManager)
+						UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startsafezone", nullptr);
+
+						static auto SafeZoneLocationsOffset = GameMode->GetOffset("SafeZoneLocations");
+						auto& SafeZoneLocations = GameMode->Get<TArray<FVector>>(SafeZoneLocationsOffset);
+
+						LOG_INFO(LogDev, "SafeZoneLocations.Num(): {}", SafeZoneLocations.Num());
+
+						static auto SafeZoneIndicatorOffset = GameState->GetOffset("SafeZoneIndicator");
+
+						static auto SafeZonesStartTimeOffset = GameState->GetOffset("SafeZonesStartTime");
+						GameState->Get<float>(SafeZonesStartTimeOffset) = 0;
+
+						while (!GameState->Get(SafeZoneIndicatorOffset))
+						{
+							Sleep(500);
+						}
+
+						auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
+
+						while (Aircrafts->Num() <= 0)
+						{
+							Sleep(500);
+						}
+
+						static auto NextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextCenter");
+						FVector LocationToStartAircraft = GameState->Get(SafeZoneIndicatorOffset)->Get<FVector>(NextCenterOffset); // SafeZoneLocations.at(4);
+						LocationToStartAircraft.Z += 10000;
+
+						for (int i = 0; i < Aircrafts->Num(); i++)
+						{
+							Aircrafts->at(i)->TeleportTo(LocationToStartAircraft, FRotator());
+
+							static auto FlightInfoOffset = Aircrafts->at(i)->GetOffset("FlightInfo");
+							auto FlightInfo = Aircrafts->at(i)->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
+
+							FlightInfo->GetFlightSpeed() = 0;
+							FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
+							FlightInfo->GetTimeTillDropStart() = 0.0f;
+						}
+
+						static auto MapInfoOffset = GameState->GetOffset("MapInfo");
+						auto MapInfo = GameState->Get(MapInfoOffset);
+
+						if (MapInfo)
+						{
+							static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
+							auto& FlightInfos = MapInfo->Get<TArray<FAircraftFlightInfo>>(FlightInfosOffset);
+
+							LOG_INFO(LogDev, "FlightInfos.Num(): {}", FlightInfos.Num());
+
+							for (int i = 0; i < FlightInfos.Num(); i++)
 							{
-								static auto AthenaGameDataOffset = AssetManager->GetOffset("AthenaGameData");
-								auto AthenaGameData = AssetManager->Get(AthenaGameDataOffset);
+								auto FlightInfo = FlightInfos.AtPtr(i, FAircraftFlightInfo::GetStructSize());
 
-								if (AthenaGameData)
-								{
-									static auto DefaultBattleBusSkinOffset = AthenaGameData->GetOffset("DefaultBattleBusSkin");
-									AthenaGameData->Get(DefaultBattleBusSkinOffset) = OverrideBattleBusSkin;
-								}
+								FlightInfo->GetFlightSpeed() = 0;
+								FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
+								FlightInfo->GetTimeTillDropStart() = 0.0f;
 							}
+						}
 
-							static auto DefaultBattleBusOffset = GameState->GetOffset("DefaultBattleBus");
-							GameState->Get(DefaultBattleBusOffset) = OverrideBattleBusSkin;
+						static auto bAircraftIsLockedOffset = GameState->GetOffset("bAircraftIsLocked");
+						static auto bAircraftIsLockedFieldMask = GetFieldMask(GameState->GetProperty("bAircraftIsLocked"));
+						GameState->SetBitfieldValue(bAircraftIsLockedOffset, bAircraftIsLockedFieldMask, false);
 
-							static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
-							auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
+						UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
+					}
+				}
+				else
+				{
+					if (ImGui::Button("Start Bus Countdown"))
+					{
+						auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+						auto GameState = GameMode->GetGameState();
 
-							for (int i = 0; i < AllAircrafts.Num(); i++)
+						if (Fortnite_Version == 1.11)
+						{
+							static auto OverrideBattleBusSkin = FindObject("/Game/Athena/Items/Cosmetics/BattleBuses/BBID_WinterBus.BBID_WinterBus");
+							LOG_INFO(LogDev, "OverrideBattleBusSkin: {}", __int64(OverrideBattleBusSkin));
+
+							if (OverrideBattleBusSkin)
 							{
-								auto Aircraft = AllAircrafts.at(i);
+								static auto AssetManagerOffset = GetEngine()->GetOffset("AssetManager");
+								auto AssetManager = GetEngine()->Get(AssetManagerOffset);
 
-								static auto DefaultBusSkinOffset = Aircraft->GetOffset("DefaultBusSkin");
-								Aircraft->Get(DefaultBusSkinOffset) = OverrideBattleBusSkin;
-
-								static auto SpawnedCosmeticActorOffset = Aircraft->GetOffset("SpawnedCosmeticActor");
-								auto SpawnedCosmeticActor = Aircraft->Get<AActor*>(SpawnedCosmeticActorOffset);
-
-								if (SpawnedCosmeticActor)
+								if (AssetManager)
 								{
-									static auto ActiveSkinOffset = SpawnedCosmeticActor->GetOffset("ActiveSkin");
-									SpawnedCosmeticActor->Get(ActiveSkinOffset) = OverrideBattleBusSkin;
+									static auto AthenaGameDataOffset = AssetManager->GetOffset("AthenaGameData");
+									auto AthenaGameData = AssetManager->Get(AthenaGameDataOffset);
+
+									if (AthenaGameData)
+									{
+										static auto DefaultBattleBusSkinOffset = AthenaGameData->GetOffset("DefaultBattleBusSkin");
+										AthenaGameData->Get(DefaultBattleBusSkinOffset) = OverrideBattleBusSkin;
+									}
+								}
+
+								static auto DefaultBattleBusOffset = GameState->GetOffset("DefaultBattleBus");
+								GameState->Get(DefaultBattleBusOffset) = OverrideBattleBusSkin;
+
+								static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
+								auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
+
+								for (int i = 0; i < AllAircrafts.Num(); i++)
+								{
+									auto Aircraft = AllAircrafts.at(i);
+
+									static auto DefaultBusSkinOffset = Aircraft->GetOffset("DefaultBusSkin");
+									Aircraft->Get(DefaultBusSkinOffset) = OverrideBattleBusSkin;
+
+									static auto SpawnedCosmeticActorOffset = Aircraft->GetOffset("SpawnedCosmeticActor");
+									auto SpawnedCosmeticActor = Aircraft->Get<AActor*>(SpawnedCosmeticActorOffset);
+
+									if (SpawnedCosmeticActor)
+									{
+										static auto ActiveSkinOffset = SpawnedCosmeticActor->GetOffset("ActiveSkin");
+										SpawnedCosmeticActor->Get(ActiveSkinOffset) = OverrideBattleBusSkin;
+									}
 								}
 							}
 						}
-					}
 
-					GameState->Get<float>("WarmupCountdownEndTime") = UGameplayStatics::GetTimeSeconds(GetWorld()) + 10;
+						GameState->Get<float>("WarmupCountdownEndTime") = UGameplayStatics::GetTimeSeconds(GetWorld()) + 10;
+					}
 				}
 			}
 		}

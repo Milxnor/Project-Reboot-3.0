@@ -3,6 +3,7 @@
 #include "reboot.h"
 #include "FortPlayerControllerAthena.h"
 #include "FortGameModeAthena.h"
+#include "FortLootPackage.h"
 
 UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InController)
 {
@@ -81,6 +82,9 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		{
 			auto WorldInventory = NewPlayerAsAthena->GetWorldInventory();
 
+			if (!WorldInventory)
+				return NewPawn;
+
 			if (!WorldInventory->GetPickaxeInstance())
 			{
 				auto CosmeticLoadout = NewPlayerAsAthena->GetCosmeticLoadout();
@@ -101,18 +105,33 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 				static UFortItemDefinition* WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
 				static UFortItemDefinition* DamageTrap = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Traps/TID_ContextTrap_Athena.TID_ContextTrap_Athena");
 
+				WorldInventory->AddItem(PickaxeDefinition, nullptr);
 				WorldInventory->AddItem(EditToolItemDefinition, nullptr);
 				WorldInventory->AddItem(BuildingItemData_Wall, nullptr);
 				WorldInventory->AddItem(BuildingItemData_Floor, nullptr);
 				WorldInventory->AddItem(BuildingItemData_Stair_W, nullptr);
 				WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
-				WorldInventory->AddItem(PickaxeDefinition, nullptr);
 				// WorldInventory->AddItem(WoodItemData, nullptr, 100);
 				// WorldInventory->AddItem(DamageTrap, nullptr);
 				// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel.WID_WestSausage_Parallel"), nullptr, 1, 1000);
 				// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/HappyGhost/WID_Athena_HappyGhost.WID_Athena_HappyGhost"), nullptr);
 
-				WorldInventory->Update(true);
+				/* if (Globals::bLateGame)
+				{
+					auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
+
+					for (int i = 0; i < 5; i++)
+					{
+						auto LootDrops = PickLootDrops(SpawnIslandTierGroup);
+
+						for (auto& LootDrop : LootDrops)
+						{
+							WorldInventory->AddItem(LootDrop.ItemDefinition, nullptr, LootDrop.Count, LootDrop.LoadedAmmo);
+						}
+					}
+				} */
+
+				WorldInventory->Update();
 			}
 		}
 	}

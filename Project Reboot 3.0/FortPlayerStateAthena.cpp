@@ -4,11 +4,14 @@
 
 void AFortPlayerStateAthena::ServerSetInAircraftHook(UObject* Context, FFrame& Stack, void* Ret)
 {
+	if (Globals::bLateGame)
+		return ServerSetInAircraftOriginal(Context, Stack, Ret);
+
 	auto PlayerState = (AFortPlayerStateAthena*)Context;
 	auto PlayerController = Cast<AFortPlayerControllerAthena>(PlayerState->GetOwner());
 
 	if (!PlayerController)
-		return;
+		return ServerSetInAircraftOriginal(Context, Stack, Ret);
 
 	// std::cout << "bNewInAircraft: " << bNewInAircraft << '\n';
 	// std::cout << "PlayerController->IsInAircraft(): " << PlayerController->IsInAircraft() << '\n';

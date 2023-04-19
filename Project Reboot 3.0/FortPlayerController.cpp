@@ -326,6 +326,9 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 			static auto WallPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall");
 			static auto StairPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
 
+			UBuildingEditModeMetadata* OldMetadata = nullptr; // Newer versions
+			OldMetadata = BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset);
+
 			if (ItemDefinition == RoofPiece)
 			{
 				static auto RoofMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Roof/EMP_Roof_RoofC.EMP_Roof_RoofC");
@@ -347,7 +350,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = FloorMetadata;
 			}
 
-			BuildingTool->ProcessEvent(OnRep_DefaultMetadataFn);
+			BuildingTool->ProcessEvent(OnRep_DefaultMetadataFn, &OldMetadata);
 		}
 	}
 }
@@ -561,15 +564,18 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation)
 {
-	if (Fortnite_Version == 17.30 && Globals::bGoingToPlayEvent)
-		return; // We want to be teleported back to the UFO but we dont use chooseplayerstart
+	auto PlayerController = Cast<AFortPlayerController>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
 
-	auto PlayerController = Cast<APlayerController>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
+	if (Engine_Version < 424 && !Globals::bLateGame)
+		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
+
+	if (Fortnite_Version == 17.30 && Globals::bGoingToPlayEvent)
+		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation); // We want to be teleported back to the UFO but we dont use chooseplayerstart
 
 	LOG_INFO(LogDev, "PlayerController: {}", __int64(PlayerController));
 
 	if (!PlayerController)
-		return;
+		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 
 	// if (!PlayerController->bInAircraft) 
 		// return;
@@ -581,7 +587,7 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
 
 	if (Aircrafts->Num() <= 0)
-		return;
+		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 
 	auto NewPawn = GameMode->SpawnDefaultPawnForHook(GameMode, (AController*)PlayerController, Aircrafts->at(0));
 	PlayerController->Possess(NewPawn);
@@ -592,6 +598,43 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 		NewPawnAsFort->SetHealth(100);
 
 	// PlayerController->ServerRestartPlayer();
+
+	if (Globals::bLateGame)
+	{
+		static auto WoodItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
+		static auto StoneItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+		static auto MetalItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+
+		static auto Rifle = FindObject<UFortItemDefinition>("/Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03.WID_Assault_AutoHigh_Athena_SR_Ore_T03");
+		static auto Shotgun = FindObject<UFortItemDefinition>("/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03");
+		static auto SMG = FindObject<UFortItemDefinition>("/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03");
+
+		static auto MiniShields = FindObject<UFortItemDefinition>("/Game/Athena/Items/Consumables/ShieldSmall/Athena_ShieldSmall.Athena_ShieldSmall");
+
+		static auto Shells = FindObject<UFortItemDefinition>("/Game/Athena/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells");
+		static auto Medium = FindObject<UFortItemDefinition>("/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsMedium.AthenaAmmoDataBulletsMedium");
+		static auto Light = FindObject<UFortItemDefinition>("/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsLight.AthenaAmmoDataBulletsLight");
+		static auto Heavy = FindObject<UFortItemDefinition>("/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsHeavy.AthenaAmmoDataBulletsHeavy");
+
+		auto WorldInventory = PlayerController->GetWorldInventory();
+
+		if (!WorldInventory)
+			return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
+
+		WorldInventory->AddItem(WoodItemData, nullptr, 500);
+		WorldInventory->AddItem(StoneItemData, nullptr, 500);
+		WorldInventory->AddItem(MetalItemData, nullptr, 500);
+		WorldInventory->AddItem(Rifle, nullptr, 1);
+		WorldInventory->AddItem(Shotgun, nullptr, 1);
+		WorldInventory->AddItem(SMG, nullptr, 1);
+		WorldInventory->AddItem(MiniShields, nullptr, 6);
+		WorldInventory->AddItem(Shells, nullptr, 999);
+		WorldInventory->AddItem(Medium, nullptr, 999);
+		WorldInventory->AddItem(Light, nullptr, 999);
+		WorldInventory->AddItem(Heavy, nullptr, 999);
+
+		WorldInventory->Update();
+	}
 }
 
 void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)
@@ -1217,42 +1260,42 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)
 {
-	// LOG_INFO(LogDev, "ServerBeginEditingBuildingActorHook!");
-
-	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced())
+	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced()) // We need more checks.
 		return;
 
 	auto Pawn = PlayerController->GetMyFortPawn();
 
-	// LOG_INFO(LogDev, "ServerBeginEditingBuildingAc1341torHook!");
-
 	if (!Pawn)
 		return;
 
-	// LOG_INFO(LogDev, "ServerBeginEditingBuildingActorHook134!");
+	auto PlayerState = PlayerController->GetPlayerState();
 
-	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>("/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
+	if (!PlayerState)
+		return;
 
-	/* auto WorldInventory = PlayerController->GetWorldInventory();
+	// if (!BuildingActorToEdit->GetEditingPlayer() || !PlayerController->GetPlayerState())
+	// SetNetDormancy(BuildingActorToEdit, 1);
+	BuildingActorToEdit->SetNetDormancy(ENetDormancy::DORM_Awake);
+	BuildingActorToEdit->GetEditingPlayer() = PlayerState;
+	// Onrep?
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
 
 	if (!WorldInventory)
 		return;
+
+	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>("/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
 
 	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
 
 	if (!EditToolInstance)
 		return;
 
-	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid()))) */
-	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, FGuid{})))
+	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid())))
+	// if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, FGuid{})))
 	{
-		// LOG_INFO(LogDev, "ServerBeginEditingBuild135415ingActorHook!");
-
-		BuildingActorToEdit->GetEditingPlayer() = PlayerController->GetPlayerState();
-		// Onrep?
-
 		EditTool->GetEditActor() = BuildingActorToEdit;
-		// Onrep?
+		EditTool->OnRep_EditActor();
 	}
 	else
 	{
@@ -1299,10 +1342,9 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 		BuildingActorToEdit->GetCurrentBuildingLevel(), RotationIterations, bMirrored, PlayerController))
 	{
 		BuildingActor->SetPlayerPlaced(true);
-
-		// if (auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState()))
-			// BuildingActor->SetTeam(PlayerState->GetTeamIndex());
 	}
+
+	// we should do more things here
 
 	return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 }
@@ -1324,6 +1366,6 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (EditTool)
 	{
 		EditTool->GetEditActor() = nullptr;
-		// EditTool->OnRep_EditActor();
+		EditTool->OnRep_EditActor();
 	}
 }

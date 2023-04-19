@@ -23,6 +23,7 @@ public:
 	bool IsTearOff();
 	/* FORCEINLINE */ ENetDormancy& GetNetDormancy();
 	int32& GetNetTag();
+	void SetNetDormancy(ENetDormancy Dormancy);
 	AActor* GetOwner();
 	struct FVector GetActorLocation();
 	struct FVector GetActorRightVector();

@@ -14,7 +14,7 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 	bool bFromSweep;
 	auto SweepResultPtr = (FHitResult*)std::realloc(0, FHitResult::GetStructSize());
 
-	LOG_INFO(LogDev, "OnCapsuleBeginOverlapHook!");
+	// LOG_INFO(LogDev, "OnCapsuleBeginOverlapHook!");
 
 	Stack->StepCompiledIn(&OverlappedComp);
 	Stack->StepCompiledIn(&OtherActor);

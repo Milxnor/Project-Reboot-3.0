@@ -49,7 +49,7 @@ void AFortPlayerControllerAthena::ServerRequestSeatChangeHook(AFortPlayerControl
 		auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
 
 		if (!PickaxeInstance)
-			return;
+			return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
 
 		AFortPlayerController::ServerExecuteInventoryItemHook(PlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid()); // Bad, we should equip the last weapon.
 		return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
@@ -59,7 +59,7 @@ void AFortPlayerControllerAthena::ServerRequestSeatChangeHook(AFortPlayerControl
 	auto RequestedVehicleInstance = NewAndModifiedInstances.first[0];
 
 	if (!RequestedVehicleInstance)
-		return;
+		return ServerRequestSeatChangeOriginal(PlayerController, TargetSeatIndex);
 
 	WorldInventory->Update();
 

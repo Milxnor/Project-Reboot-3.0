@@ -20,5 +20,7 @@ public:
 		return Get<ABuildingSMActor*>(EditActorOffset);
 	}
 
+	void OnRep_EditActor();
+
 	static UClass* StaticClass();
 };
