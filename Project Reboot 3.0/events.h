@@ -287,6 +287,11 @@ static inline bool HasEvent()
 	return GetOurEvent().Version == Fortnite_Version;
 }
 
+static inline bool RequiresEventPlaylist()
+{
+	return false; // todo
+}
+
 static inline UObject* GetEventScripting()
 {
 	Event OurEvent;

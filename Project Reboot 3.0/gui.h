@@ -384,7 +384,7 @@ void MainUI()
 
 				if (ImGui::Button("Restart"))
 				{
-					if (Engine_Version < 424)
+					if (true) // Engine_Version < 424)
 					{
 						FString LevelA = Engine_Version < 424
 							? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
@@ -453,23 +453,22 @@ void MainUI()
 							Sleep(500);
 						}
 
-						auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
-
-						while (Aircrafts->Num() <= 0)
+						while (GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->Num() <= 0) // hmm
 						{
 							Sleep(500);
 						}
 
+						static auto NextNextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextNextCenter");
 						static auto NextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextCenter");
-						FVector LocationToStartAircraft = GameState->Get(SafeZoneIndicatorOffset)->Get<FVector>(NextCenterOffset); // SafeZoneLocations.at(4);
+						FVector LocationToStartAircraft = GameState->Get(SafeZoneIndicatorOffset)->Get<FVector>(NextNextCenterOffset); // SafeZoneLocations.at(4);
 						LocationToStartAircraft.Z += 10000;
 
-						for (int i = 0; i < Aircrafts->Num(); i++)
+						for (int i = 0; i < GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->Num(); i++)
 						{
-							Aircrafts->at(i)->TeleportTo(LocationToStartAircraft, FRotator());
+							GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->at(i)->TeleportTo(LocationToStartAircraft, FRotator());
 
-							static auto FlightInfoOffset = Aircrafts->at(i)->GetOffset("FlightInfo");
-							auto FlightInfo = Aircrafts->at(i)->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
+							static auto FlightInfoOffset = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->at(i)->GetOffset("FlightInfo");
+							auto FlightInfo = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->at(i)->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
 
 							FlightInfo->GetFlightSpeed() = 0;
 							FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
@@ -499,8 +498,6 @@ void MainUI()
 						static auto bAircraftIsLockedOffset = GameState->GetOffset("bAircraftIsLocked");
 						static auto bAircraftIsLockedFieldMask = GetFieldMask(GameState->GetProperty("bAircraftIsLocked"));
 						GameState->SetBitfieldValue(bAircraftIsLockedOffset, bAircraftIsLockedFieldMask, false);
-
-						UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
 					}
 				}
 				else

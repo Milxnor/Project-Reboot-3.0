@@ -89,7 +89,7 @@ public:
 
 	static AFortPickup* SpawnPickup(FFortItemEntry* ItemEntry, FVector Location, 
 		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset,
-		class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true);
+		class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true, int OverrideCount = -1);
 
 	static AFortPickup* SpawnPickup(class UFortItemDefinition* ItemDef, FVector Location, int Count, 
 		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset, 

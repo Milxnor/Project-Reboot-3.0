@@ -4,8 +4,10 @@
 
 void AFortPlayerStateAthena::ServerSetInAircraftHook(UObject* Context, FFrame& Stack, void* Ret)
 {
+	/* LOG_INFO(LogDev, "bLateGame: {}", Globals::bLateGame)
+
 	if (Globals::bLateGame)
-		return ServerSetInAircraftOriginal(Context, Stack, Ret);
+		return ServerSetInAircraftOriginal(Context, Stack, Ret); */
 
 	auto PlayerState = (AFortPlayerStateAthena*)Context;
 	auto PlayerController = Cast<AFortPlayerControllerAthena>(PlayerState->GetOwner());
@@ -24,7 +26,7 @@ void AFortPlayerStateAthena::ServerSetInAircraftHook(UObject* Context, FFrame& S
 
 	auto& ItemInstances = InventoryList.GetItemInstances();
 
-	if (/* (bNewInAircraft && !PlayerController->IsInAircraft()) || */ /* (Globals::bLateGame ? bNewInAircraft : true)) && */ ItemInstances.Num())
+	if (/* (bNewInAircraft && !PlayerController->IsInAircraft()) || */ /* (Globals::bLateGame ? bNewInAircraft : true)) && */ !Globals::bLateGame && ItemInstances.Num())
 	{
 		// std::cout << "InventoryList.ItemInstances.Num(): " << InventoryList.ItemInstances.Num() << '\n';
 

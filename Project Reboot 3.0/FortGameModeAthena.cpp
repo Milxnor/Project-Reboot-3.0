@@ -496,6 +496,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		// return false;
 
+		Globals::AmountOfListens++;
 		Globals::bStartedListening = true;
 	}
 

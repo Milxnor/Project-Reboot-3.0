@@ -609,7 +609,7 @@
       <Filter>Engine\Source\Runtime\Engine\Classes\Kismet</Filter>
     </ClInclude>
     <ClInclude Include="FortOctopusVehicle.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
     <ClInclude Include="IntroSort.h">
       <Filter>Engine\Source\Runtime\Core\Public\Algo</Filter>
@@ -687,16 +687,16 @@
       <Filter>Reboot\Public\GUI</Filter>
     </ClInclude>
     <ClInclude Include="FortWeaponRangedMountedCannon.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
     <ClInclude Include="FortMountedCannon.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
     <ClInclude Include="FortAthenaSKPushCannon.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
     <ClInclude Include="FortAthenaVehicle.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
     <ClInclude Include="MemoryOps.h">
       <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
@@ -904,9 +904,6 @@
     <Filter Include="Engine\Source\Runtime\Core\Public\Internationalization">
       <UniqueIdentifier>{b00f4455-11e7-4fd9-aa6d-2d814788b544}</UniqueIdentifier>
     </Filter>
-    <Filter Include="FortniteGame\Source\FortniteGame\Public\Vehicles">
-      <UniqueIdentifier>{b1cc2ad4-6196-455c-bda7-d0a2e7be2e70}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Vehicles">
       <UniqueIdentifier>{702a4ab1-e5e1-46e1-b8cd-2fab1c4fb48c}</UniqueIdentifier>
     </Filter>
@@ -930,6 +927,12 @@
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Private\Gameplay">
       <UniqueIdentifier>{52d438db-beaf-44be-bddd-9aeb07c2459f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena">
+      <UniqueIdentifier>{af212a31-57d1-4345-a73f-cd28dc4ebd2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena\Vehicle">
+      <UniqueIdentifier>{b1cc2ad4-6196-455c-bda7-d0a2e7be2e70}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

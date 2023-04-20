@@ -20,6 +20,7 @@
 #include "FortGadgetItemDefinition.h"
 #include "FortAbilitySet.h"
 #include "vendingmachine.h"
+#include "KismetSystemLibrary.h"
 
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
@@ -634,6 +635,16 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 		WorldInventory->AddItem(Heavy, nullptr, 999);
 
 		WorldInventory->Update();
+	}
+
+	static int LastNum1 = 124;
+
+	if (LastNum1 != AmountOfRestarts)
+	{
+		LastNum1 = AmountOfRestarts;
+
+		UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
+		UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
 	}
 }
 

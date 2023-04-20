@@ -20,7 +20,7 @@ void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int Ov
 
 AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Location,
 	EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
-	class AFortPawn* Pawn, UClass* OverrideClass, bool bToss)
+	class AFortPawn* Pawn, UClass* OverrideClass, bool bToss, int OverrideCount)
 {
 	// static auto FortPickupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickup");
 	static auto FortPickupAthenaClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickupAthena");
@@ -54,9 +54,10 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 		else
 		{
 			PrimaryPickupItemEntry->GetItemDefinition() = ItemEntry->GetItemDefinition();
-			PrimaryPickupItemEntry->GetCount() = ItemEntry->GetCount();
 			PrimaryPickupItemEntry->GetLoadedAmmo() = ItemEntry->GetLoadedAmmo();
 		}
+
+		PrimaryPickupItemEntry->GetCount() = OverrideCount == -1 ? ItemEntry->GetCount() : OverrideCount;
 
 		PrimaryPickupItemEntry->GetItemGuid() = OldGuid;
 
@@ -88,6 +89,14 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Location, int Count, EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
 	int LoadedAmmo, AFortPawn* Pawn, UClass* OverrideClass, bool bToss)
 {
+	if (LoadedAmmo == -1)
+	{
+		if (auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDef)) // bPreventDefaultPreload ?
+			LoadedAmmo = WeaponDef->GetClipSize();
+		else
+			LoadedAmmo = 0;
+	}
+
 	auto ItemEntry = FFortItemEntry::MakeItemEntry(ItemDef, Count, LoadedAmmo);
 	auto Pickup = SpawnPickup(ItemEntry, Location, PickupSource, SpawnSource, Pawn, OverrideClass, bToss);
 	// VirtualFree(ItemEntry);
@@ -236,7 +245,10 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 				UFortWorldItemDefinition* ItemDefinitionToSpawn = PickupItemDefinition;
 				int AmountToSpawn = cpyCount > PickupItemDefinition->GetMaxStackSize() ? PickupItemDefinition->GetMaxStackSize() : cpyCount;
 
-				SpawnPickup(ItemDefinitionToSpawn, PawnLoc, AmountToSpawn, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, Pawn);
+				int LoadedAmmo = 0;
+
+				// SpawnPickup(ItemDefinitionToSpawn, PawnLoc, AmountToSpawn, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, Pawn);
+				SpawnPickup(PickupEntry, PawnLoc, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn, nullptr, true, AmountToSpawn);
 				cpyCount -= AmountToSpawn;
 				bForceOverflow = false;
 			}
