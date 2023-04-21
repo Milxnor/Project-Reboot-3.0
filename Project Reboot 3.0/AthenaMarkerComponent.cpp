@@ -19,14 +19,13 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 
 	auto MarkerRequestPtr = &MarkerRequest;
 
-	static auto FortWorldMarkerDataStruct = FindObject<UStruct>("/Script/FortniteGame.FortWorldMarkerData");
-	static auto FortWorldMarkerDataSize = FortWorldMarkerDataStruct->GetPropertiesSize();
-
-	auto MarkerData = Alloc<FFortWorldMarkerData>(FortWorldMarkerDataSize);
+	bool useRealloc = true;
+	auto MarkerData = Alloc<FFortWorldMarkerData>(FFortWorldMarkerData::GetStructSize(), useRealloc);
 
 	static auto IconOffset = FindOffsetStruct("/Script/FortniteGame.MarkedActorDisplayInfo", "Icon");
 	static auto DisplayNameOffset = FindOffsetStruct("/Script/FortniteGame.MarkedActorDisplayInfo", "DisplayName");
 	static auto WorldPositionOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "WorldPosition", false);
+	static auto bIncludeSquadOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "bIncludeSquad", false);
 	static auto WorldPositionOffsetOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "WorldPositionOffset", false);
 
 	FMarkerID MarkerID{};
@@ -40,6 +39,9 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 		MarkerData->GetWorldPosition() = MarkerRequestPtr->GetWorldPosition();
 	if (WorldPositionOffset != -1)
 		MarkerData->GetWorldPositionOffset() = MarkerRequestPtr->GetWorldPositionOffset();
+	if (bIncludeSquadOffset != -1)
+		MarkerData->DoesIncludeSquad() = MarkerRequestPtr->DoesIncludeSquad();
+
 	MarkerData->GetMarkerID() = MarkerID;
 	MarkerData->GetMarkedActorClass().SoftObjectPtr.WeakPtr.ObjectIndex = -1;
 	MarkerData->GetMarkedActorClass().SoftObjectPtr.TagAtLastTest = 0;
@@ -101,7 +103,32 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 			continue;
 
 		static auto ClientAddMarkerFn = FindObject<UFunction>("/Script/FortniteGame.AthenaMarkerComponent.ClientAddMarker");
-		CurrentTeamMemberMarkerComponent->ProcessEvent(ClientAddMarkerFn, MarkerData);
+
+		if (ClientAddMarkerFn)
+		{
+			CurrentTeamMemberMarkerComponent->ProcessEvent(ClientAddMarkerFn, MarkerData);
+		}
+		else
+		{
+			// We are assuming it is not the TArray and it is FFortWorldMarkerContainer
+			
+			static auto MarkerStreamOffset = CurrentTeamMemberMarkerComponent->GetOffset("MarkerStream");
+			auto MarkerStream = CurrentTeamMemberMarkerComponent->GetPtr<FFastArraySerializer>(MarkerStreamOffset);
+
+			static auto MarkersOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerContainer", "Markers");
+
+			if (MarkersOffset != -1)
+			{
+				// We are assuming it is a FFastArraySerializerItem
+				((FFastArraySerializerItem*)MarkerData)->MostRecentArrayReplicationKey = -1;
+				((FFastArraySerializerItem*)MarkerData)->ReplicationID = -1;
+				((FFastArraySerializerItem*)MarkerData)->ReplicationKey = -1;
+
+				auto& Markers = *(TArray<FFortWorldMarkerData>*)(__int64(MarkerStream) + MarkersOffset);
+				Markers.AddPtr(MarkerData, FFortWorldMarkerData::GetStructSize());
+				MarkerStream->MarkArrayDirty();
+			}
+		}
 	}
 }
 
@@ -144,6 +171,14 @@ void UAthenaMarkerComponent::ServerRemoveMapMarkerHook(UAthenaMarkerComponent* M
 			continue;
 
 		static auto ClientCancelMarkerFn = FindObject<UFunction>("/Script/FortniteGame.AthenaMarkerComponent.ClientCancelMarker");
-		CurrentTeamMemberMarkerComponent->ProcessEvent(ClientCancelMarkerFn, &MarkerID);
+
+		if (ClientCancelMarkerFn)
+		{
+			CurrentTeamMemberMarkerComponent->ProcessEvent(ClientCancelMarkerFn, &MarkerID);
+		}
+		else
+		{
+			// UnmarkActorOnClient ?
+		}
 	}
 }

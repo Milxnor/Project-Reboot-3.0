@@ -6,6 +6,7 @@
 #include "KismetStringLibrary.h"
 #include "reboot.h"
 #include "BuildingSMActor.h"
+#include "FortSafeZoneIndicator.h"
 #include "GameplayStatics.h"
 
 struct FAircraftFlightInfo
@@ -47,6 +48,8 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 		LOG_WARN(LogGame, "Attempting to show invalid building foundation.");
 		return;
 	}
+
+	LOG_INFO(LogDev, "{} {}", bShow ? "Showing" : "Hiding", BuildingFoundation->GetName());
 
 	bool bServerStreamedInLevelValue = bShow; // ??
 
@@ -172,6 +175,12 @@ public:
 	static inline bool (*Athena_ReadyToStartMatchOriginal)(AFortGameModeAthena* GameMode);
 	static inline void (*Athena_HandleStartingNewPlayerOriginal)(AFortGameModeAthena* GameMode, AActor* NewPlayer);
 	static inline void (*SetZoneToIndexOriginal)(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK);
+
+	AFortSafeZoneIndicator*& GetSafeZoneIndicator()
+	{
+		static auto SafeZoneIndicatorOffset = GetOffset("SafeZoneIndicator");
+		return Get<AFortSafeZoneIndicator*>(SafeZoneIndicatorOffset);
+	}
 
 	AFortGameStateAthena* GetGameStateAthena()
 	{

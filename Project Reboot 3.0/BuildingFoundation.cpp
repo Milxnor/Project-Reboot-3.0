@@ -1,6 +1,21 @@
 #include "BuildingFoundation.h"
 #include "FortGameModeAthena.h"
 
+void ABuildingFoundation::SetDynamicFoundationTransformHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	FTransform NewTransform;
+	Stack.StepCompiledIn(&NewTransform);
+
+	auto BuildingFoundation = (ABuildingFoundation*)Context;
+
+	LOG_INFO(LogDev, "Bruh: {}", BuildingFoundation->GetName());
+
+	static auto DynamicFoundationTransformOffset = BuildingFoundation->GetOffset("DynamicFoundationTransform");
+	BuildingFoundation->Get<FTransform>(DynamicFoundationTransformOffset) = NewTransform;
+
+	return SetDynamicFoundationTransformOriginal(Context, Stack, Ret);
+}
+
 void ABuildingFoundation::SetDynamicFoundationEnabledHook(UObject* Context, FFrame& Stack, void* Ret)
 {
 	bool bEnabled;

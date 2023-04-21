@@ -641,11 +641,18 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 
 	if (LastNum1 != AmountOfRestarts)
 	{
-		LastNum1 = AmountOfRestarts;
+		auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
 
-		UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
-		UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
+		if (SafeZoneIndicator)
+		{
+			LastNum1 = AmountOfRestarts;
+
+			SafeZoneIndicator->SkipShrinkSafeZone();
+			SafeZoneIndicator->SkipShrinkSafeZone();
+		}
 	}
+
+	// return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 }
 
 void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)
@@ -1284,11 +1291,7 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (!PlayerState)
 		return;
 
-	// if (!BuildingActorToEdit->GetEditingPlayer() || !PlayerController->GetPlayerState())
-	// SetNetDormancy(BuildingActorToEdit, 1);
-	BuildingActorToEdit->SetNetDormancy(ENetDormancy::DORM_Awake);
-	BuildingActorToEdit->GetEditingPlayer() = PlayerState;
-	// Onrep?
+	BuildingActorToEdit->SetEditingPlayer(PlayerState);
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 
@@ -1302,16 +1305,15 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (!EditToolInstance)
 		return;
 
-	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid())))
-	// if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, FGuid{})))
-	{
-		EditTool->GetEditActor() = BuildingActorToEdit;
-		EditTool->OnRep_EditActor();
-	}
-	else
-	{
-		LOG_INFO(LogDev, "Failed to equip editing tool!");
-	}
+	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
+
+	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+
+	if (!EditTool)
+		return;
+
+	EditTool->GetEditActor() = BuildingActorToEdit;
+	EditTool->OnRep_EditActor();
 }
 
 void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret)
@@ -1344,7 +1346,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
 		//return ServerEditBuildingActorOriginal(Context, Frame, Ret);
 
-	BuildingActorToEdit->GetEditingPlayer() = nullptr;
+	BuildingActorToEdit->SetEditingPlayer(nullptr);
 
 	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
 		decltype(BuildingSMActorReplaceBuildingActor)(Addresses::ReplaceBuildingActor);
@@ -1368,6 +1370,22 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 		|| BuildingActorToStopEditing->GetEditingPlayer() != PlayerController->GetPlayerState()
 		|| BuildingActorToStopEditing->IsDestroyed())
 		return;
+
+	BuildingActorToStopEditing->SetEditingPlayer(nullptr);
+
+	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>("/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
+
+	if (!EditToolInstance)
+		return;
+
+	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
 
 	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
 

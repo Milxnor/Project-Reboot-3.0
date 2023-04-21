@@ -9,7 +9,7 @@ struct FMarkerID { int PlayerID; int InstanceID; };
 
 struct FFortClientMarkerRequest
 {
-	char pad[0x20]; // real
+	char pad[0x20]; // real idk 
 
 	int& GetInstanceID()
 	{
@@ -17,6 +17,18 @@ struct FFortClientMarkerRequest
 			FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "InstanceId") : FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "InstanceID");
 
 		return *(int*)(__int64(this) + InstanceIDOffset);
+	}
+
+	bool& DoesIncludeSquad()
+	{
+		static auto bIncludeSquadOffset = FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "bIncludeSquad");
+		return *(bool*)(__int64(this) + bIncludeSquadOffset);
+	}
+
+	bool& UsesHoveredMarkerDetail()
+	{
+		static auto bUseHoveredMarkerDetailOffset = FindOffsetStruct("/Script/FortniteGame.FortClientMarkerRequest", "bUseHoveredMarkerDetail");
+		return *(bool*)(__int64(this) + bUseHoveredMarkerDetailOffset);
 	}
 
 	FVector& GetWorldPosition()
@@ -46,16 +58,36 @@ struct FFortClientMarkerRequest
 
 struct FFortWorldMarkerData
 {
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortWorldMarkerData");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
+
 	FMarkerID& GetMarkerID()
 	{
 		static auto MarkerIDOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "MarkerID");
 		return *(FMarkerID*)(__int64(this) + MarkerIDOffset);
 	}
 
+	UObject*& GetMarkerInstance()
+	{
+		static auto MarkerInstanceOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "MarkerInstance");
+		return *(UObject**)(__int64(this) + MarkerInstanceOffset);
+	}
+
 	FVector& GetWorldPosition()
 	{
 		static auto WorldPositionOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "WorldPosition");
 		return *(FVector*)(__int64(this) + WorldPositionOffset);
+	}
+
+	bool& DoesIncludeSquad()
+	{
+		static auto bIncludeSquadOffset = FindOffsetStruct("/Script/FortniteGame.FortWorldMarkerData", "bIncludeSquad");
+		return *(bool*)(__int64(this) + bIncludeSquadOffset);
 	}
 
 	FVector& GetWorldPositionOffset()

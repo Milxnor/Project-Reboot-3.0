@@ -48,5 +48,17 @@ public:
 		return Get<EFortResourceType>(ResourceTypeOffset);
 	}
 
+	void SetEditingPlayer(APlayerState* NewEditingPlayer) // actually AFortPlayerStateZone
+	{
+		if (// AActor::HasAuthority() &&
+			(!GetEditingPlayer() || !NewEditingPlayer)
+			)
+		{
+			SetNetDormancy((ENetDormancy)(2 - (NewEditingPlayer != 0)));
+			// they do something here
+			GetEditingPlayer() = NewEditingPlayer;
+		}
+	}
+
 	static UClass* StaticClass();
 };

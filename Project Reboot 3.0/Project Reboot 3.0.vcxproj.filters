@@ -233,6 +233,9 @@
     <ClCompile Include="BuildingFoundation.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
     </ClCompile>
+    <ClCompile Include="FortSafeZoneIndicator.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -718,6 +721,9 @@
     </ClInclude>
     <ClInclude Include="LatentActionManager.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="FortSafeZoneIndicator.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

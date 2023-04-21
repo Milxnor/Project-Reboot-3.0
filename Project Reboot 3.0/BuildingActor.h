@@ -32,7 +32,8 @@ public:
 	void SilentDie()
 	{
 		static auto SilentDieFn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SilentDie");
-		this->ProcessEvent(SilentDieFn);
+		bool bPropagateSilentDeath = false; // idfk
+		this->ProcessEvent(SilentDieFn, &bPropagateSilentDeath);
 	}
 
 	float GetMaxHealth()

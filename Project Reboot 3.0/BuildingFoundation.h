@@ -33,7 +33,8 @@ class ABuildingFoundation : public ABuildingSMActor
 {
 public:
 	static inline void (*SetDynamicFoundationEnabledOriginal)(UObject* Context, FFrame& Stack, void* Ret);
+	static inline void (*SetDynamicFoundationTransformOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 
+	static void SetDynamicFoundationTransformHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void SetDynamicFoundationEnabledHook(UObject* Context, FFrame& Stack, void* Ret);
-
 };

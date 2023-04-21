@@ -193,6 +193,9 @@ DWORD WINAPI Main(LPVOID)
     bool bUseRemovePlayer = false;
     bool bUseSwitchLevel = false;
 
+    Hooking::MinHook::Hook(FindObject<ABuildingFoundation>("/Script/FortniteGame.Default__BuildingFoundation"),
+        FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationTransform"),
+        ABuildingFoundation::SetDynamicFoundationTransformHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationTransformOriginal, false, true);
 
     Hooking::MinHook::Hook(FindObject<ABuildingFoundation>("/Script/FortniteGame.Default__BuildingFoundation"),
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationEnabled"),

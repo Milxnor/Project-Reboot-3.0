@@ -61,6 +61,12 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 	static auto SafeZoneIndicatorOffset = GameModeAthena->GetOffset("SafeZoneIndicator");
 	auto SafeZoneIndicator = GameModeAthena->Get<AActor*>(SafeZoneIndicatorOffset);
 
+	if (!SafeZoneIndicator)
+	{
+		LOG_WARN(LogZone, "Invalid SafeZoneIndicator!");
+		return SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
+	}
+
 	static auto SafeZoneFinishShrinkTimeOffset = SafeZoneIndicator->GetOffset("SafeZoneFinishShrinkTime");
 	static auto SafeZoneStartShrinkTimeOffset = SafeZoneIndicator->GetOffset("SafeZoneStartShrinkTime");
 	static auto RadiusOffset = SafeZoneIndicator->GetOffset("Radius");
@@ -69,6 +75,12 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 
 	static auto MapInfoOffset = GameState->GetOffset("MapInfo");
 	auto MapInfo = GameState->Get<AActor*>(MapInfoOffset);
+
+	if (!MapInfo)
+	{
+		LOG_WARN(LogZone, "Invalid MapInfo!")
+		return SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
+	}
 
 	static auto SafeZoneDefinitionOffset = MapInfo->GetOffset("SafeZoneDefinition");
 	auto SafeZoneDefinition = MapInfo->GetPtr<__int64>(SafeZoneDefinitionOffset);
@@ -158,7 +170,6 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 
 	SafeZoneIndicator->Get<float>(SafeZoneFinishShrinkTimeOffset) = SafeZoneIndicator->Get<float>(SafeZoneStartShrinkTimeOffset) + ZoneDuration;
 }
-
 
 void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 {
