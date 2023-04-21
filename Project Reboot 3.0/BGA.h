@@ -14,7 +14,7 @@ void SpawnBGAs()
 
 	auto AllBGAConsumableSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BGAConsumableSpawnerClass);
 
-	LOG_INFO(LogDev, "AllBGAConsumableSpawners.Num(): ", (int)AllBGAConsumableSpawners.Num());
+	LOG_INFO(LogDev, "AllBGAConsumableSpawners.Num(): {}", (int)AllBGAConsumableSpawners.Num());
 
 	for (int i = 0; i < AllBGAConsumableSpawners.Num(); i++)
 	{
@@ -25,7 +25,7 @@ void SpawnBGAs()
 		static auto SpawnLootTierGroupOffset = BGAConsumableSpawner->GetOffset("SpawnLootTierGroup");
 		auto& SpawnLootTierGroup = BGAConsumableSpawner->Get<FName>(SpawnLootTierGroupOffset);
 
-		auto LootDrops = PickLootDrops(SpawnLootTierGroup, true);
+		auto LootDrops = PickLootDrops(SpawnLootTierGroup, false);
 
 		for (auto& LootDrop : LootDrops)
 		{

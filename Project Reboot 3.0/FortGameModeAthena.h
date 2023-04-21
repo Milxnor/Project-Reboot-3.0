@@ -6,23 +6,7 @@
 #include "KismetStringLibrary.h"
 #include "reboot.h"
 #include "BuildingSMActor.h"
-
-enum class EDynamicFoundationEnabledState : uint8_t
-{
-	Unknown = 0,
-	Enabled = 1,
-	Disabled = 2,
-	EDynamicFoundationEnabledState_MAX = 3
-};
-
-enum class EDynamicFoundationType : uint8_t
-{
-	Static = 0,
-	StartEnabled_Stationary = 1,
-	StartEnabled_Dynamic = 2,
-	StartDisabled = 3,
-	EDynamicFoundationType_MAX = 4
-};
+#include "GameplayStatics.h"
 
 struct FAircraftFlightInfo
 {
@@ -56,7 +40,7 @@ struct FAircraftFlightInfo
 	}
 };
 
-static void ShowFoundation(UObject* BuildingFoundation)
+static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 {
 	if (!BuildingFoundation)
 	{
@@ -64,12 +48,28 @@ static void ShowFoundation(UObject* BuildingFoundation)
 		return;
 	}
 
+	bool bServerStreamedInLevelValue = bShow; // ??
+
 	static auto bServerStreamedInLevelFieldMask = GetFieldMask(BuildingFoundation->GetProperty("bServerStreamedInLevel"));
 	static auto bServerStreamedInLevelOffset = BuildingFoundation->GetOffset("bServerStreamedInLevel");
-	BuildingFoundation->SetBitfieldValue(bServerStreamedInLevelOffset, bServerStreamedInLevelFieldMask, true);
+	BuildingFoundation->SetBitfieldValue(bServerStreamedInLevelOffset, bServerStreamedInLevelFieldMask, bServerStreamedInLevelValue);
+
+	static auto bFoundationEnabledOffset = BuildingFoundation->GetOffset("bFoundationEnabled", false);
+
+	if (bFoundationEnabledOffset != -1)
+	{
+		static auto bFoundationEnabledFieldMask = GetFieldMask(BuildingFoundation->GetProperty("bFoundationEnabled"));
+		BuildingFoundation->SetBitfieldValue(bFoundationEnabledOffset, bFoundationEnabledFieldMask, bShow);
+
+		// theres a onrep too
+	}
+
+	static auto StartDisabled = 3;
+	static auto StartEnabled_Dynamic = 2;
+	static auto Static = 0;
 
 	static auto DynamicFoundationTypeOffset = BuildingFoundation->GetOffset("DynamicFoundationType");
-	BuildingFoundation->Get<uint8_t>(DynamicFoundationTypeOffset) = true ? 0 : 3;
+	BuildingFoundation->Get<uint8_t>(DynamicFoundationTypeOffset) = bShow ? Static : StartDisabled;
 
 	static auto bShowHLODWhenDisabledOffset = BuildingFoundation->GetOffset("bShowHLODWhenDisabled", false);
 
@@ -84,13 +84,33 @@ static void ShowFoundation(UObject* BuildingFoundation)
 
 	static auto DynamicFoundationRepDataOffset = BuildingFoundation->GetOffset("DynamicFoundationRepData", false);
 
+	static auto Enabled = 1;
+	static auto Disabled = 2;
+
+	static auto DynamicFoundationTransformOffset = BuildingFoundation->GetOffset("DynamicFoundationTransform", false);
+
+	if (DynamicFoundationTransformOffset != -1) // needed check?
+	{
+		auto DynamicFoundationTransform = BuildingFoundation->GetPtr<FTransform>(DynamicFoundationTransformOffset);
+
+		DynamicFoundationTransform->Rotation = BuildingFoundation->GetActorRotation().Quaternion();
+		DynamicFoundationTransform->Translation = BuildingFoundation->GetActorLocation();
+		DynamicFoundationTransform->Scale3D = BuildingFoundation->GetActorScale3D();
+	}
+
 	if (DynamicFoundationRepDataOffset != -1)
 	{
 		auto DynamicFoundationRepData = BuildingFoundation->GetPtr<void>(DynamicFoundationRepDataOffset);
 
+		static auto RotationOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "Rotation");
+		static auto TranslationOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "Translation");
 		static auto EnabledStateOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "EnabledState");
 
-		*(EDynamicFoundationEnabledState*)(__int64(DynamicFoundationRepData) + EnabledStateOffset) = EDynamicFoundationEnabledState::Enabled;
+		*(uint8_t*)(__int64(DynamicFoundationRepData) + EnabledStateOffset) = bShow ? Enabled : Disabled;
+		
+		// hmm
+		*(FRotator*)(__int64(DynamicFoundationRepData) + RotationOffset) = BuildingFoundation->GetActorRotation();
+		*(FVector*)(__int64(DynamicFoundationRepData) + TranslationOffset) = BuildingFoundation->GetActorLocation();
 
 		static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
 		BuildingFoundation->ProcessEvent(OnRep_DynamicFoundationRepDataFn);
@@ -99,7 +119,19 @@ static void ShowFoundation(UObject* BuildingFoundation)
 	static auto FoundationEnabledStateOffset = BuildingFoundation->GetOffset("FoundationEnabledState", false);
 
 	if (FoundationEnabledStateOffset != -1)
-		BuildingFoundation->Get<EDynamicFoundationEnabledState>(FoundationEnabledStateOffset) = EDynamicFoundationEnabledState::Enabled;
+		BuildingFoundation->Get<uint8_t>(FoundationEnabledStateOffset) = bShow ? Enabled : Disabled;
+
+	static auto LevelToStreamOffset = BuildingFoundation->GetOffset("LevelToStream");
+	auto& LevelToStream = BuildingFoundation->Get<FName>(LevelToStreamOffset);
+
+	/* if (bShow)
+	{
+		UGameplayStatics::LoadStreamLevel(GetWorld(), LevelToStream, true, false, FLatentActionInfo());
+	}
+	else
+	{
+		UGameplayStatics::UnloadStreamLevel(GetWorld(), LevelToStream, FLatentActionInfo(), false);
+	} */
 }
 
 static void StreamLevel(const std::string& LevelName, FVector Location = {})

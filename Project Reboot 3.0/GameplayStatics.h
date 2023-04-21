@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "Array.h"
 #include "Actor.h"
+#include "LatentActionManager.h"
 
 class UGameplayStatics : public UObject
 {
@@ -21,6 +22,8 @@ public:
 
 	// static void OpenLevel(UObject* WorldContextObject, FName LevelName, bool bAbsolute, const FString& Options);
 	static void RemovePlayer(class APlayerController* Player, bool bDestroyPawn);
+	static void LoadStreamLevel(UObject* WorldContextObject, FName LevelName, bool bMakeVisibleAfterLoad, bool bShouldBlockOnLoad, const FLatentActionInfo& LatentInfo);
+	static void UnloadStreamLevel(UObject* WorldContextObject, FName LevelName, const FLatentActionInfo& LatentInfo, bool bShouldBlockOnUnload);
 
 	static UClass* StaticClass();
 };

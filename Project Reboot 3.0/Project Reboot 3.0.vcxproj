@@ -178,6 +178,7 @@
     <ClCompile Include="addresses.cpp" />
     <ClCompile Include="AthenaMarkerComponent.cpp" />
     <ClCompile Include="BuildingActor.cpp" />
+    <ClCompile Include="BuildingFoundation.cpp" />
     <ClCompile Include="BuildingSMActor.cpp" />
     <ClCompile Include="BuildingStructuralSupportSystem.cpp" />
     <ClCompile Include="BuildingTrap.cpp" />
@@ -261,6 +262,7 @@
     <ClInclude Include="BitArray.h" />
     <ClInclude Include="BuildingActor.h" />
     <ClInclude Include="BuildingContainer.h" />
+    <ClInclude Include="BuildingFoundation.h" />
     <ClInclude Include="BuildingGameplayActor.h" />
     <ClInclude Include="BuildingGameplayActorSpawnMachine.h" />
     <ClInclude Include="BuildingSMActor.h" />
@@ -351,6 +353,7 @@
     <ClInclude Include="KismetStringLibrary.h" />
     <ClInclude Include="KismetSystemLibrary.h" />
     <ClInclude Include="KismetTextLibrary.h" />
+    <ClInclude Include="LatentActionManager.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="Map.h" />

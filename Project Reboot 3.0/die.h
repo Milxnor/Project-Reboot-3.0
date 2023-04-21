@@ -301,7 +301,8 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 			!strstr(FunctionFullName.c_str(), "GCNL_EnvCampFire_Fire_C") &&
 			!strstr(FunctionName.c_str(), "BlueprintGetAllHighlightableComponents") &&
 			!strstr(FunctionFullName.c_str(), "Primitive_Structure_AmbAudioComponent") &&
-			!strstr(FunctionName.c_str(), "ServerTriggerCombatEvent"))
+			!strstr(FunctionName.c_str(), "ServerTriggerCombatEvent") &&
+			!strstr(FunctionName.c_str(), "SpinCubeTimeline__UpdateFunc"))
 		{
 			LOG_INFO(LogDev, "Function called: {} with {}", FunctionFullName, ObjectName);
 		}

@@ -533,7 +533,9 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 	if (!ItemDefinition)
 		return	K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
 
-	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, nullptr, nullptr, bToss);
+	auto Pawn = OptionalOwnerPC ? OptionalOwnerPC->GetMyFortPawn() : nullptr;
+
+	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, Pawn, nullptr, bToss);
 
 	K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
 

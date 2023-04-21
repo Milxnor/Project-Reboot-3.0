@@ -1,0 +1,21 @@
+#include "BuildingFoundation.h"
+#include "FortGameModeAthena.h"
+
+void ABuildingFoundation::SetDynamicFoundationEnabledHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	bool bEnabled;
+	Stack.StepCompiledIn(&bEnabled);
+
+	// LOG_INFO(LogDev, "{} TELL MILXNOR IF THIS PRINTS: {}", Context->GetFullName(), bEnabled);
+
+	auto BuildingFoundation = (ABuildingFoundation*)Context;
+
+	ShowFoundation(BuildingFoundation, bEnabled);
+
+	// idk lol
+
+	BuildingFoundation->ForceNetUpdate();
+	BuildingFoundation->FlushNetDormancy();
+
+	return SetDynamicFoundationEnabledOriginal(Context, Stack, Ret);
+}

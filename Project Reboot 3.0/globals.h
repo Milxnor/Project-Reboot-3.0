@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "inc.h"
 
 namespace Globals
@@ -9,7 +11,8 @@ namespace Globals
 	extern inline bool bEnableAGIDs = false;
 	extern inline bool bNoMCP = true;
 	extern inline bool bLogProcessEvent = false;
-	extern inline bool bLateGame = false;
+	// extern inline bool bLateGame = false;
+	extern inline std::atomic<bool> bLateGame(false);
 
 	extern inline bool bInfiniteMaterials = false;
 	extern inline bool bInfiniteAmmo = false;

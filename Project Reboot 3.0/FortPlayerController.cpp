@@ -567,7 +567,7 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 {
 	auto PlayerController = Cast<AFortPlayerController>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
 
-	if (Engine_Version < 424 && !Globals::bLateGame)
+	if (Engine_Version < 424 && !Globals::bLateGame.load())
 		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 
 	if (Fortnite_Version == 17.30 && Globals::bGoingToPlayEvent)
@@ -1139,11 +1139,11 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	LOG_INFO(LogDev, "Reported kill.");
 
-	if (KillerPawn && KillerPawn != DeadPawn)
+	/* if (KillerPawn && KillerPawn != DeadPawn)
 	{
 		KillerPawn->SetHealth(100);
 		KillerPawn->SetShield(100);
-	}
+	} */
 
 	bool bIsRespawningAllowed = GameState->IsRespawningAllowed(DeadPlayerState);
 

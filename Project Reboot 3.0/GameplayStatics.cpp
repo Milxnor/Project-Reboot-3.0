@@ -74,6 +74,38 @@ void UGameplayStatics::RemovePlayer(APlayerController* Player, bool bDestroyPawn
 	defaultObj->ProcessEvent(fn, &UGameplayStatics_RemovePlayer_Params);
 }
 
+void UGameplayStatics::LoadStreamLevel(UObject* WorldContextObject, FName LevelName, bool bMakeVisibleAfterLoad, bool bShouldBlockOnLoad, const FLatentActionInfo& LatentInfo)
+{
+	static auto LoadStreamLevelFn = FindObject<UFunction>("/Script/Engine.GameplayStatics.LoadStreamLevel");
+
+	struct
+	{
+		UObject* WorldContextObject;                                       // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FName                                       LevelName;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		bool                                               bMakeVisibleAfterLoad;                                    // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		bool                                               bShouldBlockOnLoad;                                       // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FLatentActionInfo                           LatentInfo;                                               // (Parm, NoDestructor, NativeAccessSpecifierPublic)
+	} UGameplayStatics_LoadStreamLevel_Params{WorldContextObject, LevelName, bMakeVisibleAfterLoad, bShouldBlockOnLoad, LatentInfo};
+
+	static auto defaultObj = StaticClass();
+	defaultObj->ProcessEvent(LoadStreamLevelFn, &UGameplayStatics_LoadStreamLevel_Params);
+}
+
+void UGameplayStatics::UnloadStreamLevel(UObject* WorldContextObject, FName LevelName, const FLatentActionInfo& LatentInfo, bool bShouldBlockOnUnload)
+{
+	static auto UnloadStreamLevelFn = FindObject<UFunction>("/Script/Engine.GameplayStatics.UnloadStreamLevel");
+	struct
+	{
+		UObject* WorldContextObject;                                       // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FName                                       LevelName;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FLatentActionInfo                           LatentInfo;                                               // (Parm, NoDestructor, NativeAccessSpecifierPublic)
+		bool                                               bShouldBlockOnUnload;                                     // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} UGameplayStatics_UnloadStreamLevel_Params{WorldContextObject, LevelName, LatentInfo, bShouldBlockOnUnload};
+
+	static auto defaultObj = StaticClass();
+	defaultObj->ProcessEvent(UnloadStreamLevelFn, &UGameplayStatics_UnloadStreamLevel_Params);
+}
+
 UClass* UGameplayStatics::StaticClass()
 {
 	static auto Class = FindObject<UClass>(L"/Script/Engine.GameplayStatics");

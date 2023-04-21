@@ -25,6 +25,7 @@ public:
 	int32& GetNetTag();
 	void SetNetDormancy(ENetDormancy Dormancy);
 	AActor* GetOwner();
+	struct FVector GetActorScale3D();
 	struct FVector GetActorLocation();
 	struct FVector GetActorRightVector();
 	void K2_DestroyActor();

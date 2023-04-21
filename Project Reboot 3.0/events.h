@@ -18,6 +18,7 @@ struct Event
 	std::string ScriptingClass;
 	std::string PlaylistName;
 	double Version;
+	bool RequiredPlaylist = true;
 };
 
 static inline std::vector<Event> Events = 
@@ -34,7 +35,7 @@ static inline std::vector<Event> Events =
 			{
 				{
 					true,
-					"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C.ButterflySequence"
+					"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C.ButterflySequence" // StartButterflyOnPlaylistLoaded calls this
 				},
 
 				0
@@ -43,7 +44,61 @@ static inline std::vector<Event> Events =
 
 		"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C",
 		"/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo",
-		6.21
+		6.21,
+		false
+	),
+	Event
+	(
+		"The Showdown",
+		"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C",
+		"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C.LoadCattusLevel", 
+		1,
+		{
+			{
+				true,
+				"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C.OnReady_C11CA7624A74FBAEC54753A3C2BD4506"
+			}
+		},
+		{
+			{
+				{
+					true,
+					"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C.startevent"
+				},
+
+				0
+			}
+		},
+
+		"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C",
+		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High",
+		9.40, // also 9.41
+		false
+	),
+	Event
+	(
+		"The Unvaulting",
+		"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C",
+		"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.LoadSnowLevel",
+		1,
+		{
+			// todo?
+		},
+		{
+			{
+				{
+					true,
+					"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.FinalSequence"
+				},
+
+				0
+			}
+		},
+
+		"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C",
+		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High",
+		8.51
+		// Probably requires playlist
 	),
 	Event
 	(
@@ -136,7 +191,8 @@ static inline std::vector<Event> Events =
 
 		"/Game/Athena/Prototype/Blueprints/NightNight/BP_NightNight_Scripting.BP_NightNight_Scripting_C",
 		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High",
-		10.40
+		10.40,
+		false
 	),
 	Event
 	(
@@ -202,7 +258,9 @@ static inline std::vector<Event> Events =
 		"/Game/Athena/Environments/Festivus/Blueprints/BP_FestivusManager.BP_FestivusManager_C",
 		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High",
 		7.30
+		// Not sure if this requires playlist.
 	),
+
 	Event
 	(
 		"Rift Tour",
@@ -290,6 +348,7 @@ static inline bool HasEvent()
 static inline bool RequiresEventPlaylist()
 {
 	return false; // todo
+	// return GetOurEvent().PlaylistName != "/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo";
 }
 
 static inline UObject* GetEventScripting()

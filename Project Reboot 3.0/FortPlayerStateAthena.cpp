@@ -15,18 +15,18 @@ void AFortPlayerStateAthena::ServerSetInAircraftHook(UObject* Context, FFrame& S
 	if (!PlayerController)
 		return ServerSetInAircraftOriginal(Context, Stack, Ret);
 
-	// std::cout << "bNewInAircraft: " << bNewInAircraft << '\n';
 	// std::cout << "PlayerController->IsInAircraft(): " << PlayerController->IsInAircraft() << '\n';
 
 	struct aaa { bool wtf; };
 
 	auto bNewInAircraft = ((aaa*)Stack.Locals)->wtf;// *(bool*)Stack.Locals;
+	LOG_INFO(LogDev, "bNewInAircraft: {}", bNewInAircraft);
 	auto WorldInventory = PlayerController->GetWorldInventory();
 	auto& InventoryList = WorldInventory->GetItemList();
 
 	auto& ItemInstances = InventoryList.GetItemInstances();
 
-	if (/* (bNewInAircraft && !PlayerController->IsInAircraft()) || */ /* (Globals::bLateGame ? bNewInAircraft : true)) && */ !Globals::bLateGame && ItemInstances.Num())
+	if (/* (bNewInAircraft && !PlayerController->IsInAircraft()) || */ /* (Globals::bLateGame ? bNewInAircraft : true)) && */ /* !Globals::bLateGame.load() && */ ItemInstances.Num())
 	{
 		// std::cout << "InventoryList.ItemInstances.Num(): " << InventoryList.ItemInstances.Num() << '\n';
 
