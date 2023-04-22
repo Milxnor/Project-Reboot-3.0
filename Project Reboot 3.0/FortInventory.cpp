@@ -275,7 +275,9 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	if (!ItemDefinition)
 		return false;
 
-	if (Count < 0)
+	int OldCount = Count;
+
+	if (Count < 0) // idk why i have this
 	{
 		Count = 0;
 		bForceRemoval = true;
@@ -310,7 +312,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 		}
 	}
 
-	if (NewCount > 0 || bOverrideChangeStackSize)
+	if (OldCount != -1 && (NewCount > 0 || bOverrideChangeStackSize))
 	{
 		ItemInstance->GetItemEntry()->GetCount() = NewCount;
 		ReplicatedEntry->GetCount() = NewCount;
@@ -339,6 +341,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 			{
 				if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition))
 				{
+					LOG_INFO(LogDev, "Unequipping Gadget!");
 					GadgetItemDefinition->UnequipGadgetData(FortPlayerController, ItemInstances.at(i));
 				}
 			}

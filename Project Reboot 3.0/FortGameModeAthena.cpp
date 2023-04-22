@@ -327,6 +327,15 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			}
 		}
 
+		if (Fortnite_Version == 7.30)
+		{
+			auto PleasantParkIdk = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkFestivus"));
+			ShowFoundation(PleasantParkIdk);
+
+			auto PleasantParkGround = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkDefault");
+			ShowFoundation(PleasantParkGround);
+		}
+
 		if (Fortnite_Season == 6)
 		{
 			if (Fortnite_Version != 6.10)
@@ -374,7 +383,24 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		if (TheBlock)
 			ShowFoundation(TheBlock);
 
-		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>("bWorldIsReady"), 1, true);
+		static auto GameState_AirCraftBehaviorOffset = GameState->GetOffset("AirCraftBehavior", false);
+
+		if (GameState_AirCraftBehaviorOffset != -1)
+		{
+			GET_PLAYLIST(GameState);
+
+			if (CurrentPlaylist)
+			{
+				static auto Playlist_AirCraftBehaviorOffset = CurrentPlaylist->GetOffset("AirCraftBehavior", false);
+
+				if (Playlist_AirCraftBehaviorOffset != -1)
+				{
+					GameState->Get<uint8_t>(GameState_AirCraftBehaviorOffset) = CurrentPlaylist->Get<uint8_t>(Playlist_AirCraftBehaviorOffset);
+				}
+			}
+		}
+
+		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>("bWorldIsReady"), 1, true); // idk when we actually set this
 		Globals::bInitializedPlaylist = true;
 	}
 
@@ -478,6 +504,23 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		static auto bAlwaysDBNOOffset = GameMode->GetOffset("bAlwaysDBNO");
 		// GameMode->Get<bool>(bAlwaysDBNOOffset) = true;
 		
+		static auto GameState_AirCraftBehaviorOffset = GameState->GetOffset("AirCraftBehavior", false);
+
+		if (GameState_AirCraftBehaviorOffset != -1)
+		{
+			GET_PLAYLIST(GameState);
+
+			if (CurrentPlaylist)
+			{
+				static auto Playlist_AirCraftBehaviorOffset = CurrentPlaylist->GetOffset("AirCraftBehavior", false);
+
+				if (Playlist_AirCraftBehaviorOffset != -1)
+				{
+					GameState->Get<uint8_t>(GameState_AirCraftBehaviorOffset) = CurrentPlaylist->Get<uint8_t>(Playlist_AirCraftBehaviorOffset);
+				}
+			}
+		}
+
 		LOG_INFO(LogDev, "Initialized!");
 	}
 
@@ -529,6 +572,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller)
 {
+	// VERY BASIC IMPLEMENTATION
+
 	LOG_INFO(LogTeams, "PickTeam called!");
 
 	auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
@@ -537,6 +582,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	UObject* Playlist = nullptr;
 
+	static int DefaultFirstTeam = 3;
 	static int CurrentTeamMembers = 0; // bad
 	static int Current = 3;
 
@@ -553,6 +599,9 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	// std::cout << "Dru!\n";
 
 	int MaxSquadSize = 1;
+	int TeamsNum = 0;
+
+	bool bShouldSpreadTeams = false;
 
 	if (CurrentPlaylistDataOffset != -1 || Fortnite_Version >= 6)
 	{
@@ -568,6 +617,16 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 		static auto MaxSquadSizeOffset = Playlist->GetOffset("MaxSquadSize");
 		MaxSquadSize = Playlist->Get<int>(MaxSquadSizeOffset);
+
+		static auto bShouldSpreadTeamsOffset = Playlist->GetOffset("bShouldSpreadTeams", false);
+
+		if (bShouldSpreadTeamsOffset != -1)
+			bShouldSpreadTeams = Playlist->Get<bool>(bShouldSpreadTeamsOffset);
+
+		static auto MaxTeamCountOffset = Playlist->GetOffset("MaxTeamCount", false);
+
+		if (MaxTeamCountOffset != -1)
+			TeamsNum = Playlist->Get<int>(MaxTeamCountOffset);
 	}
 	else
 	{
@@ -576,9 +635,12 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 			: OldPlaylist == EFortAthenaPlaylist::AthenaDuo ? 2
 			: OldPlaylist == EFortAthenaPlaylist::AthenaSquad ? 4
 			: 1;
+
+		TeamsNum = 100;
 	}
 
-	static int NextTeamIndex = 3; // Playlist->Get<uint8>("DefaultFirstTeam"); // + 1?
+	static int NextTeamIndex = DefaultFirstTeam;
+	static int LastTeamIndex = NextTeamIndex;
 
 	static int LastNum1 = 1;
 
@@ -586,17 +648,34 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	{
 		LastNum1 = AmountOfRestarts;
 
-		NextTeamIndex = 3; // Playlist->Get<uint8>("DefaultFirstTeam"); // + 1?
+		NextTeamIndex = DefaultFirstTeam;
 	}
 
-	// std::cout << "CurrentTeamMembers: " << CurrentTeamMembers << '\n';
+	LastTeamIndex = NextTeamIndex;
 
-	if (CurrentTeamMembers >= MaxSquadSize)
+	if (!bShouldSpreadTeams)
 	{
-		// std::cout << "Moving next team!\n";
+		if (CurrentTeamMembers >= MaxSquadSize)
+		{
+			NextTeamIndex++;
+			CurrentTeamMembers = 0;
+		}
+	}
+	else
+	{
+		// Basically, this goes through all the teams, and whenever we hit the last team, we go back to the first.
 
-		NextTeamIndex++;
-		CurrentTeamMembers = 0;
+		auto Idx = NextTeamIndex - 2; // 1-100
+
+		if (CurrentTeamMembers >= 1) // We spread every player.
+		{
+			if (Idx > TeamsNum)
+				NextTeamIndex = DefaultFirstTeam;
+			else
+				NextTeamIndex++;
+
+			CurrentTeamMembers = 0;
+		}
 	}
 
 	LOG_INFO(LogTeams, "Player is going on team {} with {} members.", NextTeamIndex, CurrentTeamMembers);

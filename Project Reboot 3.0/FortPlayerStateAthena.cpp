@@ -26,33 +26,11 @@ void AFortPlayerStateAthena::ServerSetInAircraftHook(UObject* Context, FFrame& S
 
 	auto& ItemInstances = InventoryList.GetItemInstances();
 
-	if (/* (bNewInAircraft && !PlayerController->IsInAircraft()) || */ /* (Globals::bLateGame ? bNewInAircraft : true)) && */ !Globals::bLateGame.load() && ItemInstances.Num())
+	bool bOverrideDontClearInventory = false;
+
+	if (/* (bNewInAircraft && !PlayerController->IsInAircraft()) || */ /* (Globals::bLateGame ? bNewInAircraft : true)) && */
+		!Globals::bLateGame.load() && ItemInstances.Num() && !bOverrideDontClearInventory)
 	{
-		// std::cout << "InventoryList.ItemInstances.Num(): " << InventoryList.ItemInstances.Num() << '\n';
-
-		std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
-
-		for (int i = 0; i < ItemInstances.Num(); i++)
-		{
-			auto ItemEntry = ItemInstances.at(i)->GetItemEntry();
-			auto ItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
-			
-			if (!ItemDefinition)
-				continue;
-
-			if (!ItemDefinition->CanBeDropped())
-				continue;
-
-			GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
-		}
-
-		for (auto& Pair : GuidAndCountsToRemove)
-		{
-			WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
-		}
-
-		WorldInventory->Update();
-
 		static auto CurrentShieldOffset = PlayerState->GetOffset("CurrentShield");
 
 		if (CurrentShieldOffset != -1)

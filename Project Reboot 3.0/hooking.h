@@ -248,8 +248,11 @@ namespace Hooking
             // *(int32_t*)(instrAddr + 1) = static_cast<int32_t>(delta);
         }
 
-        static bool Hook(UObject* DefaultClass, UFunction* Function, void* Detour, void** Original = nullptr, bool bUseSecondMethod = true, bool bHookExec = false) // Native hook
+        static bool Hook(UObject* DefaultClass, UFunction* Function, void* Detour, void** Original = nullptr, bool bUseSecondMethod = true, bool bHookExec = false, bool bOverride = true) // Native hook
 		{
+            if (!bOverride)
+                return false;
+
             if (!Function)
                 return false;
 
@@ -263,7 +266,7 @@ namespace Hooking
 
             if (bHookExec)
             {
-                LOG_INFO(LogDev, "Hooking Exec {}", Function->GetName());
+                LOG_INFO(LogDev, "Hooking Exec {} at 0x{:x}", Function->GetName(), __int64(Exec) - __int64(GetModuleHandleW(0)));
 
                 if (Original)
                     *Original = Exec;

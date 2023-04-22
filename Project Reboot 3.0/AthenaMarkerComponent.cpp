@@ -19,7 +19,7 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 
 	auto MarkerRequestPtr = &MarkerRequest;
 
-	bool useRealloc = true;
+	bool useRealloc = false;
 	auto MarkerData = Alloc<FFortWorldMarkerData>(FFortWorldMarkerData::GetStructSize(), useRealloc);
 
 	static auto IconOffset = FindOffsetStruct("/Script/FortniteGame.MarkedActorDisplayInfo", "Icon");

@@ -60,6 +60,7 @@ namespace Addresses
 	extern inline uint64 RemoveGadgetData = 0;
 	extern inline uint64 ApplyCharacterCustomization = 0;
 	extern inline uint64 GetInterfaceAddress = 0;
+	extern inline uint64 EnterAircraft = 0;
 	
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();

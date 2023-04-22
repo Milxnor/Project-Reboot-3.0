@@ -11,8 +11,6 @@ struct FMegaStormCircle
 		static auto MegaStormCircleStruct = FindObject<UStruct>("/Script/FortniteGame.MegaStormCircle");
 		return MegaStormCircleStruct->GetPropertiesSize();
 	}
-
-
 };
 
 class AMegaStormManager : public AActor

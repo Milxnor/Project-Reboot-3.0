@@ -6,6 +6,103 @@
 #include "globals.h"
 #include "GameplayStatics.h"
 #include "hooking.h"
+#include "FortAthenaMutator_GiveItemsAtGamePhaseStep.h"
+#include "DataTableFunctionLibrary.h"
+
+void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraft)
+{
+	auto PlayerController = Cast<AFortPlayerController>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
+	
+	if (!PlayerController)
+		return;
+
+	LOG_INFO(LogDev, "EnterAircraftHook");
+
+	EnterAircraftOriginal(PC, Aircraft);
+
+	// TODO Check if the player successfully got in the aircraft.
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
+
+	auto& InventoryList = WorldInventory->GetItemList();
+
+	auto& ItemInstances = InventoryList.GetItemInstances();
+
+	for (int i = 0; i < ItemInstances.Num(); i++)
+	{
+		auto ItemEntry = ItemInstances.at(i)->GetItemEntry();
+		auto ItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
+
+		if (!ItemDefinition)
+			continue;
+
+		if (!ItemDefinition->CanBeDropped())
+			continue;
+
+		GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
+	}
+
+	for (auto& Pair : GuidAndCountsToRemove)
+	{
+		WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
+	}
+
+	static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
+	auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
+
+	for (int i = 0; i < AllMutators.Num(); i++)
+	{
+		auto Mutator = AllMutators.at(i);
+
+		LOG_INFO(LogDev, "[{}] Mutator: {}", i, Mutator->GetFullName());
+
+		if (auto GiveItemsAtGamePhaseStepMutator = Cast<AFortAthenaMutator_GiveItemsAtGamePhaseStep>(Mutator))
+		{
+			auto PhaseToGive = GiveItemsAtGamePhaseStepMutator->GetPhaseToGiveItems();
+
+			LOG_INFO(LogDev, "[{}] PhaseToGiveItems: {}", i, (int)PhaseToGive);
+
+			auto& ItemsToGive = GiveItemsAtGamePhaseStepMutator->GetItemsToGive();
+
+			LOG_INFO(LogDev, "[{}] ItemsToGive.Num(): {}", i, ItemsToGive.Num());
+
+			if (PhaseToGive <= 5) // Flying or lower
+			{
+				for (int j = 0; j < ItemsToGive.Num(); j++)
+				{
+					auto& ItemToGive = ItemsToGive.at(j);
+
+					float Out = 1;
+					FString ContextString;
+					EEvaluateCurveTableResult result;
+					// UDataTableFunctionLibrary::EvaluateCurveTableRow(ItemToGive.NumberToGive.GetCurve().CurveTable, ItemToGive.NumberToGive.GetCurve().RowName, 0.f, ContextString, &result, &Out);
+
+					LOG_INFO(LogDev, "Out: {}", Out);
+
+					WorldInventory->AddItem(ItemToGive.ItemToDrop, nullptr, Out);
+				}
+			}
+		}
+		/* else if (auto GGMutator = Cast<AFortAthenaMutator_GG>(Mutator))
+		{
+			auto& WeaponEntries = GGMutator->GetWeaponEntries();
+
+			LOG_INFO(LogDev, "[{}] WeaponEntries.Num(): {}", i, WeaponEntries.Num());
+
+			for (int j = 0; j < WeaponEntries.Num(); j++)
+			{
+				WorldInventory->AddItem(WeaponEntries.at(j).Weapon, nullptr, 1);
+			}
+		} */
+	}
+
+	WorldInventory->Update();
+}
 
 void AFortPlayerControllerAthena::ServerRequestSeatChangeHook(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex)
 {
@@ -103,6 +200,8 @@ void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFor
 
 	if (!Pawn)
 		return;
+
+	// TODO IsTeleportToCreativeHubAllowed
 
 	static auto FortPlayerStartCreativeClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartCreative");
 	auto AllCreativePlayerStarts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartCreativeClass);

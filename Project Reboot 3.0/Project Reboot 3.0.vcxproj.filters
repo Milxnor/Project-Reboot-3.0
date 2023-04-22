@@ -236,6 +236,9 @@
     <ClCompile Include="FortSafeZoneIndicator.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
+    <ClCompile Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Mutators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -725,6 +728,24 @@
     <ClInclude Include="FortSafeZoneIndicator.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
+    <ClInclude Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_GG.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_InventoryOverride_Bucket.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_InventoryOverride.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_ItemDropOnDeath.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -948,6 +969,12 @@
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena\Vehicle">
       <UniqueIdentifier>{b1cc2ad4-6196-455c-bda7-d0a2e7be2e70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Mutators">
+      <UniqueIdentifier>{bfeeff9b-a86e-47a9-973c-47f6d0dfe5d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Mutators">
+      <UniqueIdentifier>{6efc7bff-2d7b-4fdb-bae8-3d2e736cc82e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

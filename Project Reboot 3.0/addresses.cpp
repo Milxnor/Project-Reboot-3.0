@@ -260,6 +260,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding ApplyCharacterCustomization");
 	Addresses::ApplyCharacterCustomization = FindApplyCharacterCustomization();
 
+	LOG_INFO(LogDev, "Finding EnterAircraft");
+	Addresses::EnterAircraft = FindEnterAircraft();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -319,6 +322,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "RemoveGadgetData: 0x{:x}", RemoveGadgetData - Base);
 	LOG_INFO(LogDev, "GetInterfaceAddress: 0x{:x}", GetInterfaceAddress - Base);
 	LOG_INFO(LogDev, "ApplyCharacterCustomization: 0x{:x}", ApplyCharacterCustomization - Base);
+	LOG_INFO(LogDev, "EnterAircraft: 0x{:x}", EnterAircraft - Base);
 }
 
 void Offsets::FindAll()

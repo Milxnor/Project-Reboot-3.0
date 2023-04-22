@@ -221,7 +221,7 @@ void StaticUI()
 
 	ImGui::Checkbox("No MCP (Don't change unless you know what this is)", &Globals::bNoMCP);
 
-	if (Addresses::ApplyGadgetData && Addresses::RemoveGadgetData)
+	if (Addresses::ApplyGadgetData && Addresses::RemoveGadgetData && Engine_Version < 424)
 	{
 		ImGui::Checkbox("Enable AGIDs (Don't change unless you know what this is)", &Globals::bEnableAGIDs);
 	}
@@ -368,6 +368,13 @@ void MainUI()
 #ifndef PROD
 				ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
 #endif
+				if (!bStartedBus)
+				{
+					bool bWillBeLategame = Globals::bLateGame.load();
+					ImGui::Checkbox("Lategame", &bWillBeLategame);
+					Globals::bLateGame.store(bWillBeLategame);
+				}
+
 				ImGui::Text(std::format("Joinable {}", Globals::bStartedListening).c_str());
 
 				static std::string ConsoleCommand;
@@ -384,9 +391,9 @@ void MainUI()
 					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
 				}
 
-				if (ImGui::Button("Restart"))
+				if (Engine_Version < 424 && ImGui::Button("Restart"))
 				{
-					if (true) // Engine_Version < 424)
+					if (Engine_Version < 424)
 					{
 						FString LevelA = Engine_Version < 424
 							? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
@@ -409,6 +416,17 @@ void MainUI()
 						LOG_INFO(LogDev, "Switching!");
 						((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
 						// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
+
+						/*
+
+						auto& LevelCollections = GetWorld()->Get<TArray<__int64>>("LevelCollections");
+						int LevelCollectionSize = FindObject<UStruct>("/Script/Engine.LevelCollection")->GetPropertiesSize();
+
+						*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = nullptr;
+						*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = nullptr;
+
+						*/
+
 						// UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
 						LOG_INFO(LogGame, "Restarting!");
 						Globals::bInitializedPlaylist = false;
@@ -591,7 +609,6 @@ void MainUI()
 
 					if (EventScripting)
 					{
-
 						FName Name = UKismetStringLibrary::Conv_StringToName(L"DrumGun");
 						EventScripting->ProcessEvent(SetUnvaultItemNameFn, &Name);
 

@@ -192,6 +192,7 @@
     <ClCompile Include="EngineTypes.cpp" />
     <ClCompile Include="events.cpp" />
     <ClCompile Include="FortAthenaCreativePortal.cpp" />
+    <ClCompile Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.cpp" />
     <ClCompile Include="FortAthenaSupplyDrop.cpp" />
     <ClCompile Include="FortAthenaVehicle.cpp" />
     <ClCompile Include="FortDecoItemDefinition.cpp" />
@@ -289,6 +290,12 @@
     <ClInclude Include="finder.h" />
     <ClInclude Include="FortAbilitySet.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
+    <ClInclude Include="FortAthenaMutator.h" />
+    <ClInclude Include="FortAthenaMutator_GG.h" />
+    <ClInclude Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.h" />
+    <ClInclude Include="FortAthenaMutator_InventoryOverride.h" />
+    <ClInclude Include="FortAthenaMutator_InventoryOverride_Bucket.h" />
+    <ClInclude Include="FortAthenaMutator_ItemDropOnDeath.h" />
     <ClInclude Include="FortAthenaSKPushCannon.h" />
     <ClInclude Include="FortAthenaSupplyDrop.h" />
     <ClInclude Include="FortAthenaVehicle.h" />

@@ -4,6 +4,9 @@
 #include "FortPlayerControllerAthena.h"
 #include "FortGameModeAthena.h"
 #include "FortLootPackage.h"
+#include "FortAthenaMutator_GiveItemsAtGamePhaseStep.h"
+#include "DataTableFunctionLibrary.h"
+#include "FortAthenaMutator_GG.h"
 
 UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InController)
 {
@@ -41,16 +44,16 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 	if constexpr (bUseSpawnActor)
 	{
-		NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParameters);
+NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParameters);
 	}
 	else
 	{
-		struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
-		AGameModeBase_SpawnDefaultPawnAtTransform_Params{ NewPlayer, SpawnTransform };
+	struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
+	AGameModeBase_SpawnDefaultPawnAtTransform_Params{ NewPlayer, SpawnTransform };
 
-		GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+	GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
 
-		NewPawn = AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
+	NewPawn = AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
 	}
 
 	if (!NewPawn)
@@ -77,7 +80,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			auto PlayerState = NewPlayerAsAthena->GetPlayerStateAthena();
 			PlayerState->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(StormEffectClass, 1, PlayerState->GetAbilitySystemComponent());
 		} */
-	
+
 		if (NewPlayerAsAthena)
 		{
 			auto WorldInventory = NewPlayerAsAthena->GetWorldInventory();

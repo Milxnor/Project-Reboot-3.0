@@ -177,7 +177,8 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 			if (ItemDefGoingInPrimary && IsPrimaryQuickbar(CurrentItemEntry->GetItemDefinition()))
 			{
-				PrimarySlotsFilled++;
+				int AmountOfSlotsTakenUp = 1; // TODO
+				PrimarySlotsFilled += AmountOfSlotsTakenUp;
 			}
 
 			// LOG_INFO(LogDev, "[{}] PrimarySlotsFilled: {}", i, PrimarySlotsFilled);

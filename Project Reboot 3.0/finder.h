@@ -659,6 +659,27 @@ static inline uint64 FindSetZoneToIndex() // actually StartNewSafeZonePhase
 	return 0;
 }
 
+static inline uint64 FindEnterAircraft()
+{
+	auto Addr = Memcury::Scanner::FindStringRef(L"EnterAircraft: [%s] is attempting to enter aircraft after having already exited.", true, 0, Engine_Version >= 500).Get();
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x53)
+			|| (*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x55))
+		{
+			return Addr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x5C && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x24)
+		{
+			return Addr - i;
+		}
+	}
+
+	return 0;
+}
+
 static inline uint64 FindRemoveGadgetData()
 {
 	if (Engine_Version <= 423)
@@ -666,15 +687,27 @@ static inline uint64 FindRemoveGadgetData()
 		auto Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadget Item [%s]!", false).Get();
 
 		if (!Addr)
-			Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadet Item [%s]!").Get();
+			Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadet Item [%s]!", false).Get();
+
+		if (!Addr)
+		{
+			Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Failed to get the Player Controller to cleanup Gadget Item [%s]!").Get();
+		}
 
 		if (!Addr)
 			return 0;
 
 		for (int i = 0; i < 1000; i++)
 		{
-			if (/* (*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x53)
-				|| */ (*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x55))
+			if (Fortnite_Version >= 10)
+			{
+				if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x53))
+				{
+					return Addr - i;
+				}
+			}
+
+			if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x55))
 			{
 				return Addr - i;
 			}

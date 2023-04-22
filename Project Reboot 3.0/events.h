@@ -248,7 +248,7 @@ static inline std::vector<Event> Events =
 				{
 					false,
 					// "/Game/Athena/Environments/Festivus/Blueprints/BP_FestivusManager.BP_FestivusManager_C.PlayConcert"
-					"/Game/Athena/Environments/Festivus/Blueprints/BP_FestivusManager.BP_FestivusManager_C.ServerPlayFestivus"
+					"/Game/Athena/Environments/Festivus/Blueprints/BP_FestivusManager.BP_FestivusManager_C.ServerPlayFestivus" // StartEventFromCalendarAsBackup calls this
 				},
 
 				0
@@ -260,7 +260,6 @@ static inline std::vector<Event> Events =
 		7.30
 		// Not sure if this requires playlist.
 	),
-
 	Event
 	(
 		"Rift Tour",

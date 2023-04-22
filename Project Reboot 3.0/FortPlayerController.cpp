@@ -596,12 +596,32 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	auto NewPawnAsFort = Cast<AFortPawn>(NewPawn);
 
 	if (NewPawnAsFort)
+	{
 		NewPawnAsFort->SetHealth(100);
+		
+		if (Globals::bLateGame)
+			NewPawnAsFort->SetShield(100);
+	}
 
 	// PlayerController->ServerRestartPlayer();
 
 	if (Globals::bLateGame)
 	{
+		static int LastNum1 = 124;
+
+		if (LastNum1 != AmountOfRestarts)
+		{
+			auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
+
+			if (SafeZoneIndicator)
+			{
+				LastNum1 = AmountOfRestarts;
+
+				SafeZoneIndicator->SkipShrinkSafeZone();
+				SafeZoneIndicator->SkipShrinkSafeZone();
+			}
+		}
+
 		static auto WoodItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
 		static auto StoneItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
 		static auto MetalItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
@@ -635,21 +655,6 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 		WorldInventory->AddItem(Heavy, nullptr, 999);
 
 		WorldInventory->Update();
-	}
-
-	static int LastNum1 = 124;
-
-	if (LastNum1 != AmountOfRestarts)
-	{
-		auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
-
-		if (SafeZoneIndicator)
-		{
-			LastNum1 = AmountOfRestarts;
-
-			SafeZoneIndicator->SkipShrinkSafeZone();
-			SafeZoneIndicator->SkipShrinkSafeZone();
-		}
 	}
 
 	// return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
@@ -1019,7 +1024,6 @@ uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = fa
 			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 41 0F B6 F8 48 8B DA 48 8B F1 E8 ? ? ? ? 33 ED").Get();
 		if (Engine_Version == 420)
 			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 0F B6 FA 48 8B D9 E8 ? ? ? ? 33 F6 48 89 74 24").Get();
-
 		if (Engine_Version == 421) // 5.1
 			Addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 0F B6 FA 48 8B D9 E8 ? ? ? ? 33").Get();
 
@@ -1222,7 +1226,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 				if (DamageCauser->IsA(FortProjectileBaseClass))
 				{
 					LOG_INFO(LogDev, "From a projectile!");
-					KillerWeaponDef = ((AFortWeapon*)DamageCauser->GetOwner())->GetWeaponData();
+					auto Owner = Cast<AFortWeapon>(DamageCauser->GetOwner());
+					KillerWeaponDef = Owner->IsValidLowLevel() ? Owner->GetWeaponData() : nullptr; // I just added the IsValidLowLevel check because what if the weapon destroys?
 				}
 				if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
 				{

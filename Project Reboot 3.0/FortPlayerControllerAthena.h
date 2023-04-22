@@ -79,6 +79,7 @@ public:
 	static inline void (*GetPlayerViewPointOriginal)(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
 	static inline void (*ServerReadyToStartMatchOriginal)(AFortPlayerControllerAthena* PlayerController);
 	static inline void (*ServerRequestSeatChangeOriginal)(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex);
+	static inline void (*EnterAircraftOriginal)(UObject* PC, AActor* Aircraft);
 
 	AFortPlayerStateAthena* GetPlayerStateAthena()
 	{
@@ -91,6 +92,7 @@ public:
 		return Get<UAthenaMarkerComponent*>(MarkerComponentOffset);
 	}
 
+	static void EnterAircraftHook(UObject* PC, AActor* Aircraft);
 	static void ServerRequestSeatChangeHook(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex); // actually in zone
 	static void ServerRestartPlayerHook(AFortPlayerControllerAthena* Controller);
 	static void ServerGiveCreativeItemHook(AFortPlayerControllerAthena* Controller, FFortItemEntry CreativeItem);
