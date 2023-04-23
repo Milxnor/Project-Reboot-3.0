@@ -245,6 +245,12 @@
     <ClCompile Include="FortAthenaMutator_Barrier.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Mutators</Filter>
     </ClCompile>
+    <ClCompile Include="GenericPlatformMath.cpp">
+      <Filter>Engine\Source\Runtime\Core\Private\GenericPlatform</Filter>
+    </ClCompile>
+    <ClCompile Include="calendar.h">
+      <Filter>Reboot\Public</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -1032,6 +1038,9 @@
     </Filter>
     <Filter Include="Engine\Source\Runtime\Engine\Public">
       <UniqueIdentifier>{3d909143-220c-44b3-819f-79d282c3fc0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Private\GenericPlatform">
+      <UniqueIdentifier>{c04eb59f-e186-49a3-a145-1fd3dc1dcd3d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

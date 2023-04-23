@@ -10,8 +10,7 @@ void ABuildingFoundation::SetDynamicFoundationTransformHook(UObject* Context, FF
 
 	LOG_INFO(LogDev, "Bruh: {}", BuildingFoundation->GetName());
 
-	static auto DynamicFoundationTransformOffset = BuildingFoundation->GetOffset("DynamicFoundationTransform");
-	BuildingFoundation->Get<FTransform>(DynamicFoundationTransformOffset) = NewTransform;
+	SetFoundationTransform(BuildingFoundation, NewTransform);
 
 	return SetDynamicFoundationTransformOriginal(Context, Stack, Ret);
 }

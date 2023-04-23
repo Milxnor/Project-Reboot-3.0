@@ -1313,7 +1313,7 @@ static inline uint64 FindPickTeam()
 	else if (Engine_Version >= 427) // different start
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 88 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 4C 8B A1").Get();
 
-	if (Fortnite_Version == 7.20)
+	if (Fortnite_Version == 7.20 || Fortnite_Version == 7.30)
 		return Memcury::Scanner::FindPattern("89 54 24 10 53 56 41 54 41 55 41 56 48 81 EC").Get();
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"PickTeam for [%s] used beacon value [%d]", false, 0, Engine_Version >= 427); // todo check if its just s18+ but this doesn't matter for now cuz we hardcode sig

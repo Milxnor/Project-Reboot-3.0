@@ -565,7 +565,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation)
 {
-	auto PlayerController = Cast<AFortPlayerController>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
+	auto PlayerController = Cast<AFortPlayerControllerAthena>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
 
 	if (Engine_Version < 424 && !Globals::bLateGame.load())
 		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
@@ -594,6 +594,13 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	PlayerController->Possess(NewPawn);
 
 	auto NewPawnAsFort = Cast<AFortPawn>(NewPawn);
+
+	if (Fortnite_Version >= 18)
+	{
+		static auto StormEffectClass = FindObject<UClass>("/Game/Athena/SafeZone/GE_OutsideSafeZoneDamage.GE_OutsideSafeZoneDamage_C");
+		auto PlayerState = PlayerController->GetPlayerStateAthena();
+		PlayerState->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(StormEffectClass, 1, PlayerState->GetAbilitySystemComponent());
+	}
 
 	if (NewPawnAsFort)
 	{

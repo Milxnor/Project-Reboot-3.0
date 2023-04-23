@@ -183,6 +183,7 @@
     <ClCompile Include="BuildingStructuralSupportSystem.cpp" />
     <ClCompile Include="BuildingTrap.cpp" />
     <ClCompile Include="BuildingWeapons.cpp" />
+    <ClCompile Include="calendar.h" />
     <ClCompile Include="CheatManager.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Controller.cpp" />
@@ -229,6 +230,7 @@
     <ClCompile Include="GameModeBase.cpp" />
     <ClCompile Include="GameplayStatics.cpp" />
     <ClCompile Include="GameState.cpp" />
+    <ClCompile Include="GenericPlatformMath.cpp" />
     <ClCompile Include="InventoryManagementLibrary.cpp" />
     <ClCompile Include="KismetMathLibrary.cpp" />
     <ClCompile Include="KismetStringLibrary.cpp" />

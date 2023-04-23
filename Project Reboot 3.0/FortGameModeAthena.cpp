@@ -25,6 +25,7 @@
 #include "BGA.h"
 #include "vendingmachine.h"
 #include "FortAthenaMutator.h"
+#include "calendar.h"
 
 static UFortPlaylist* GetPlaylistToUse()
 {
@@ -221,11 +222,18 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				{
 					if (Fortnite_Version == 7.30)
 					{
-						auto PleasantParkIdk = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkFestivus"));
-						ShowFoundation(PleasantParkIdk);
-
-						auto PleasantParkGround = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkDefault");
-						ShowFoundation(PleasantParkGround);
+						// should be automatic..
+						
+						if (true)
+						{
+							auto PleasantParkIdk = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkFestivus"));
+							ShowFoundation(PleasantParkIdk);
+						}
+						else
+						{
+							auto PleasantParkGround = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkDefault");
+							ShowFoundation(PleasantParkGround);
+						}
 					}
 
 					ShowFoundation(FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_25x36")); // Polar Peak
@@ -246,9 +254,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 						ShowFoundation(Island);
 					}
 				}
-
-				auto TheBlock = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.SLAB_2"); // SLAB_3 is blank
-				ShowFoundation(TheBlock);
 			}
 
 			if (Fortnite_Version == 17.50) {
@@ -402,6 +407,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 
 		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>("bWorldIsReady"), 1, true); // idk when we actually set this
+
+		// Calendar::SetSnow(1000);
+
 		Globals::bInitializedPlaylist = true;
 	}
 
@@ -649,10 +657,13 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	static int DefaultFirstTeam = 3;
 
+	bool bShouldSpreadTeams = false;
+
 	if (Playlist)
 	{
 		static auto bIsLargeTeamGameOffset = Playlist->GetOffset("bIsLargeTeamGame");
 		bool bIsLargeTeamGame = Playlist->Get<bool>(bIsLargeTeamGameOffset);
+		bShouldSpreadTeams = bIsLargeTeamGame;
 	}
 
 	static int CurrentTeamMembers = 0; // bad
@@ -673,8 +684,6 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	int MaxSquadSize = 1;
 	int TeamsNum = 0;
 
-	bool bShouldSpreadTeams = false;
-
 	if (bVersionHasPlaylist)
 	{
 		if (!Playlist)
@@ -691,7 +700,9 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		static auto bShouldSpreadTeamsOffset = Playlist->GetOffset("bShouldSpreadTeams", false);
 
 		if (bShouldSpreadTeamsOffset != -1)
-			bShouldSpreadTeams = Playlist->Get<bool>(bShouldSpreadTeamsOffset);
+		{
+			// bShouldSpreadTeams = Playlist->Get<bool>(bShouldSpreadTeamsOffset);
+		}
 
 		static auto MaxTeamCountOffset = Playlist->GetOffset("MaxTeamCount", false);
 
@@ -710,18 +721,6 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	}
 
 	static int NextTeamIndex = DefaultFirstTeam;
-	static int LastTeamIndex = NextTeamIndex;
-
-	static int LastNum1 = 1;
-
-	if (AmountOfRestarts != LastNum1)
-	{
-		LastNum1 = AmountOfRestarts;
-
-		NextTeamIndex = DefaultFirstTeam;
-	}
-
-	LastTeamIndex = NextTeamIndex;
 
 	if (!bShouldSpreadTeams)
 	{
@@ -748,7 +747,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		}
 	}
 
-	LOG_INFO(LogTeams, "Player is going on team {} with {} members.", NextTeamIndex, CurrentTeamMembers);
+	LOG_INFO(LogTeams, "Spreading Teams {} Player is going on team {} with {} members.", bShouldSpreadTeams, NextTeamIndex, CurrentTeamMembers);
 
 	CurrentTeamMembers++;
 
@@ -888,7 +887,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		}
 	}
 
-	if (Engine_Version >= 423 && Fortnite_Version <= 12.41) // 423+ we need to spawn manually and vehicle sync doesn't work on >S13.
+	if (Engine_Version >= 423 && Fortnite_Version <= 12.61) // 423+ we need to spawn manually and vehicle sync doesn't work on >S13.
 	{
 		static int LastNum420 = 1;
 

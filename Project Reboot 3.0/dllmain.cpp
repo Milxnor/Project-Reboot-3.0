@@ -482,10 +482,9 @@ DWORD WINAPI Main(LPVOID)
     // Hooking::MinHook::Hook(FortPlayerStateAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.ServerSetInAircraft"),
         // AFortPlayerStateAthena::ServerSetInAircraftHook, (PVOID*)&AFortPlayerStateAthena::ServerSetInAircraftOriginal, false, true); // We could use second method but eh
 
-    if (FortOctopusVehicleDefault)
+    if (false && FortOctopusVehicleDefault) // hooking broken on 19.10 i cant figure it out for the life of me
     {
         static auto ServerUpdateTowhookFn = FindObject<UFunction>("/Script/FortniteGame.FortOctopusVehicle.ServerUpdateTowhook");
-
         Hooking::MinHook::Hook(FortOctopusVehicleDefault, ServerUpdateTowhookFn, AFortOctopusVehicle::ServerUpdateTowhookHook, nullptr, false);
     }
 

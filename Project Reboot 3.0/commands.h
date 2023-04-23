@@ -4,6 +4,7 @@
 #include "FortPlayerControllerAthena.h"
 #include "KismetSystemLibrary.h"
 #include "AthenaBarrierObjective.h"
+#include "FortAthenaMutator_Barrier.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
@@ -477,6 +478,24 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			Pawn->TeleportTo(FVector(X, Y, Z), Pawn->GetActorRotation());
 			SendMessageToConsole(PlayerController, L"Teleported!");
+		}
+		else if (Command == "test")
+		{
+			auto SpawnBigWall = [&](AFortAthenaMutator* Mutator) {
+				if (auto BarrierMutator = Cast<AFortAthenaMutator_Barrier>(Mutator))
+				{
+					auto BigBaseWallClass = BarrierMutator->GetBigBaseWallClass();
+
+					LOG_INFO(LogDev, "BigBaseWallClass: {}", BigBaseWallClass->IsValidLowLevel() ? BigBaseWallClass->GetFullName() : "BadRead");
+
+					if (BigBaseWallClass->IsValidLowLevel())
+					{
+						BarrierMutator->GetBigBaseWall() = GetWorld()->SpawnActor<AAthenaBigBaseWall>(BigBaseWallClass, FVector(0, 0, 0));
+					}
+				}
+			};
+
+			LoopMutators(SpawnBigWall);
 		}
 		else { bSendHelpMessage = true; };
 	}

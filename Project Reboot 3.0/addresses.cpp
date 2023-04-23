@@ -98,6 +98,8 @@ void Addresses::SetupVersion()
 		Fortnite_Version = 1.8;
 	if (Fortnite_CL == 3870737)
 		Fortnite_Version = 2.42;
+
+	toFree.Free();
 }
 
 void Addresses::FindAll()

@@ -24,7 +24,9 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 
 	// if (!Controller->HasAuthority) return StartGhostModeOriginal(Context, Stack, Ret);
 
-	// if (Controller->GhostModeRepData.bInGhostMode) return StartGhostModeOriginal(Context, Stack, Ret);
+	auto GhostModeRepData = Controller->GetGhostModeRepData();
+
+	if (GhostModeRepData->IsInGhostMode()) return StartGhostModeOriginal(Context, Stack, Ret);
 
 	auto WorldInventory = Controller->GetWorldInventory();
 	
@@ -217,6 +219,16 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 	WorldInventory->Update();
 	
 	// Should we equip the pickaxe for older builds here?
+
+	if (Fortnite_Version < 2.5) // idk
+	{
+		/* auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
+
+		if (!PickaxeInstance)
+			return;
+				
+		AFortPlayerController::ServerExecuteInventoryItemHook(PlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid()); */
+	}
 }
 
 void AFortPlayerControllerAthena::ServerRequestSeatChangeHook(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex)

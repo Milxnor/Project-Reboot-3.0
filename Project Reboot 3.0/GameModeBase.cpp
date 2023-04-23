@@ -79,13 +79,6 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			CurrentPlaylist->ApplyModifiersToActor(PlayerStateAthena); // We need to move this!
 		}
 
-		/* if (Fortnite_Version >= 18)
-		{
-			static auto StormEffectClass = FindObject<UClass>("/Game/Athena/SafeZone/GE_OutsideSafeZoneDamage.GE_OutsideSafeZoneDamage_C");
-			auto PlayerState = NewPlayerAsAthena->GetPlayerStateAthena();
-			PlayerState->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(StormEffectClass, 1, PlayerState->GetAbilitySystemComponent());
-		} */
-
 		if (NewPlayerAsAthena)
 		{
 			auto WorldInventory = NewPlayerAsAthena->GetWorldInventory();

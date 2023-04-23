@@ -22,16 +22,19 @@ void UNetDriver::RemoveNetworkActor(AActor* Actor)
 
 void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 {
-	static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver", false);
+	if (Globals::bStartedListening)
+	{
+		static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver", false);
 
-	if (ReplicationDriverOffset == -1)
-	{
-		NetDriver->ServerReplicateActors();
-	}
-	else
-	{
-		if (auto ReplicationDriver = NetDriver->Get(ReplicationDriverOffset))
-			reinterpret_cast<void(*)(UObject*)>(ReplicationDriver->VFTable[Offsets::ServerReplicateActors])(ReplicationDriver);
+		if (ReplicationDriverOffset == -1)
+		{
+			NetDriver->ServerReplicateActors();
+		}
+		else
+		{
+			if (auto ReplicationDriver = NetDriver->Get(ReplicationDriverOffset))
+				reinterpret_cast<void(*)(UObject*)>(ReplicationDriver->VFTable[Offsets::ServerReplicateActors])(ReplicationDriver);
+		}
 	}
 
 	return TickFlushOriginal(NetDriver);
@@ -300,7 +303,7 @@ static bool IsActorRelevantToConnection(AActor * Actor, std::vector<FNetViewer>&
 	return false;
 }
 
-static FNetViewer ConstructNetViewer(UNetConnection * NetConnection)
+static FNetViewer ConstructNetViewer(UNetConnection* NetConnection)
 {
 	FNetViewer newViewer{};
 	newViewer.Connection = NetConnection;

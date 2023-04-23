@@ -428,9 +428,22 @@ void MainUI()
 
 						AllFortBeacons.Free();
 
+						Globals::bInitializedPlaylist = false;
+						Globals::bStartedListening = false;
+						Globals::bHitReadyToStartMatch = false;
+						bStartedBus = false;
+						AmountOfRestarts++;
+
 						LOG_INFO(LogDev, "Switching!");
-						((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
-						// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
+
+						if (Fortnite_Version >= 3) // idk what ver
+						{
+							((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
+						}
+						else
+						{
+							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
+						}
 
 						/*
 
@@ -444,18 +457,13 @@ void MainUI()
 
 						// UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
 						LOG_INFO(LogGame, "Restarting!");
-						Globals::bInitializedPlaylist = false;
-						Globals::bStartedListening = false;
-						Globals::bHitReadyToStartMatch = false;
-						bStartedBus = false;
-						AmountOfRestarts++;
 					}
 					else
 					{
 						LOG_ERROR(LogGame, "Restarting is not supported on chapter 2 and above!");
 					}
 				}
-
+				/*
 				if (ImGui::Button("TEST"))
 				{
 					auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
@@ -493,6 +501,7 @@ void MainUI()
 						}
 					}
 				}
+				*/
 
 				if (!bStartedBus)
 				{
@@ -805,13 +814,46 @@ void MainUI()
 
 			if (ImGui::Button("Print Class VFT"))
 			{
-				auto ClassToDump = FindObject<UClass>(ClassNameToDump)->CreateDefaultObject();
+				auto Class = FindObject<UClass>(ClassNameToDump);
 
-				if (ClassToDump)
+				if (Class)
 				{
-					LOG_INFO(LogDev, "{} VFT: 0x{:x}", ClassToDump->GetName(), __int64(ClassToDump->VFTable) - __int64(GetModuleHandleW(0)));
+					auto ClassToDump = Class->CreateDefaultObject();
+
+					if (ClassToDump)
+					{
+						LOG_INFO(LogDev, "{} VFT: 0x{:x}", ClassToDump->GetName(), __int64(ClassToDump->VFTable) - __int64(GetModuleHandleW(0)));
+					}
 				}
 			}
+
+			/* 
+			ImGui::Text(std::format("Amount of hooks {}", AllFunctionHooks.size()).c_str());
+
+			for (auto& FunctionHook : AllFunctionHooks)
+			{
+				if (ImGui::Button(std::format("{} {} (0x{:x})", (FunctionHook.IsHooked ? "Unhook" : "Hook"), FunctionHook.Name, (__int64(FunctionHook.Original) - __int64(GetModuleHandleW(0)))).c_str()))
+				{
+					if (FunctionHook.IsHooked)
+					{
+						if (!FunctionHook.VFT || FunctionHook.Index == -1)
+						{
+							Hooking::MinHook::Unhook(FunctionHook.Original);
+						}
+						else
+						{
+							VirtualSwap(FunctionHook.VFT, FunctionHook.Index, FunctionHook.Original);
+						}
+					}
+					else
+					{
+						Hooking::MinHook::Hook(FunctionHook.Original, FunctionHook.Detour, nullptr, FunctionHook.Name);
+					}
+
+					FunctionHook.IsHooked = !FunctionHook.IsHooked;
+				}
+			} 
+			*/
 		}
 		else if (Tab == SETTINGS_TAB)
 		{

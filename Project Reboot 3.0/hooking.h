@@ -6,6 +6,18 @@
 #include "memcury.h"
 #include "Class.h"
 
+struct FunctionHooks
+{
+    void* Original;
+    void* Detour;
+    bool IsHooked;
+    std::string Name;
+    int Index = -1;
+    void** VFT = nullptr;
+};
+
+static inline std::vector<FunctionHooks> AllFunctionHooks;
+
 inline __int64 GetFunctionIdxOrPtr2(UFunction* Function)
 {
     auto NativeAddr = __int64(Function->GetFunc());
@@ -131,7 +143,7 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function, bool bBreakWhenHitRet = 
 
     for (int i = 0; i < 2000; i++)
     {
-        // LOG_INFO(LogDev, "0x{:x}", *(uint8_t*)(NativeAddr + i));
+        // LOG_INFO(LogDev, "0x{:x} {}", *(uint8_t*)(NativeAddr + i), bFoundValidate);
 
         if (Fortnite_Version >= 19) // We should NOT do this, instead, if we expect a validate and we don't find before C3, then search for 0x41 0xFF.
         {
@@ -205,6 +217,8 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function, bool bBreakWhenHitRet = 
 
     __int64 functionAddy = 0;
 
+    // LOG_INFO(LogDev, "not virtgual");
+
     if (RetAddr)
     {
         // LOG_INFO(LogDev, "RetAddr 0x{:x}", RetAddr - __int64(GetModuleHandleW(0)));
@@ -233,17 +247,26 @@ namespace Hooking
 {
 	namespace MinHook
 	{
-		static bool Hook(void* Addr, void* Detour, void** Original = nullptr)
+		static bool Hook(void* Addr, void* Detour, void** Original = nullptr, std::string OptionalName = "Undefined")
 		{
             LOG_INFO(LogDev, "Hooking 0x{:x}", __int64(Addr) - __int64(GetModuleHandleW(0)));
-			auto ret1 = MH_CreateHook(Addr, Detour, Original);
+            void* Og;
+			auto ret1 = MH_CreateHook(Addr, Detour, &Og);
 			auto ret2 = MH_EnableHook(Addr);
-			return ret1 == MH_OK && ret2 == MH_OK;
+
+            if (Original)
+                *Original = Og;
+
+            bool wasHookSuccessful = ret1 == MH_OK && ret2 == MH_OK;
+
+            if (wasHookSuccessful)
+                AllFunctionHooks.push_back(FunctionHooks(Og, Detour, true, OptionalName));
+
+			return wasHookSuccessful;
 		}
 
         static bool PatchCall(void* Addr, void* Detour/*, void** Original = nullptr*/)
         {
-
             // int64_t delta = targetAddr - (instrAddr + 5);
             // *(int32_t*)(instrAddr + 1) = static_cast<int32_t>(delta);
         }
@@ -256,9 +279,11 @@ namespace Hooking
             if (!Function)
                 return false;
 
+            auto FunctionName = Function->GetName();
+
             if (!DefaultClass || !DefaultClass->VFTable)
             {
-                LOG_WARN(LogHook, "DefaultClass or the vtable for function {} is null! ({})", Function->GetName(), __int64(DefaultClass));
+                LOG_WARN(LogHook, "DefaultClass or the vtable for function {} is null! ({})", FunctionName, __int64(DefaultClass));
                 return false;
             }
 
@@ -266,7 +291,7 @@ namespace Hooking
 
             if (bHookExec)
             {
-                LOG_INFO(LogDev, "Hooking Exec {} at 0x{:x}", Function->GetName(), __int64(Exec) - __int64(GetModuleHandleW(0)));
+                LOG_INFO(LogDev, "Hooking Exec {} at 0x{:x}", FunctionName, __int64(Exec) - __int64(GetModuleHandleW(0)));
 
                 if (Original)
                     *Original = Exec;
@@ -279,7 +304,7 @@ namespace Hooking
 
             if (AddrOrIdx == -1)
             {
-                LOG_ERROR(LogInit, "Failed to find anything for {}.", Function->GetName());
+                LOG_ERROR(LogInit, "Failed to find anything for {}.", FunctionName);
                 return false;
             }
 
@@ -287,22 +312,30 @@ namespace Hooking
             {
                 auto Idx = AddrOrIdx / 8;
 
+                AllFunctionHooks.push_back(FunctionHooks(DefaultClass->VFTable[Idx], Detour, true, FunctionName, Idx, DefaultClass->VFTable));
+
                 if (Original)
                     *Original = DefaultClass->VFTable[Idx];
 
-                LOG_INFO(LogDev, "Hooking {} with Idx 0x{:x}", Function->GetName(), AddrOrIdx);
+                LOG_INFO(LogDev, "Hooking {} with Idx 0x{:x}", FunctionName, AddrOrIdx);
 
                 VirtualSwap(DefaultClass->VFTable, Idx, Detour);
 
                 return true;
             }
 
-			return Hook((PVOID)AddrOrIdx, Detour, Original);
+			return Hook((PVOID)AddrOrIdx, Detour, Original, FunctionName);
 		}
 
         static bool Unhook(void* Addr)
 		{
 			return MH_DisableHook((PVOID)Addr) == MH_OK;
 		}
+
+        /* static bool Unhook(void** Addr, void* Original) // I got brain damaged
+        {
+            Unhook(Addr);
+            *Addr = Original;
+        } */
 	}
 }

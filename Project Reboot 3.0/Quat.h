@@ -17,4 +17,6 @@ public:
 
 	/** The quaternion's W-component. */
 	float W;
+
+	struct FRotator Rotator() const;
 };

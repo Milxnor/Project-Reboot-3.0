@@ -44,19 +44,26 @@ public:
 		return Get<TArray<FItemLoadoutContainer>>(InventoryLoadoutsOffset);
 	}
 
-	TArray<FItemLoadoutTeamMap>& GetTeamLoadouts()
+	TArray<FItemLoadoutTeamMap>* GetTeamLoadouts()
 	{
-		static auto TeamLoadoutsOffset = GetOffset("TeamLoadouts");
-		return Get<TArray<FItemLoadoutTeamMap>>(TeamLoadoutsOffset);
+		static auto TeamLoadoutsOffset = GetOffset("TeamLoadouts", false);
+
+		if (TeamLoadoutsOffset == -1)
+			return nullptr;
+
+		return GetPtr<TArray<FItemLoadoutTeamMap>>(TeamLoadoutsOffset);
 	}
 
 	FItemLoadoutTeamMap GetLoadoutTeamForTeamIndex(uint8_t TeamIndex)
 	{
-		auto& TeamLoadouts = GetTeamLoadouts();
+		auto TeamLoadouts = GetTeamLoadouts();
 
-		for (int i = 0; i < TeamLoadouts.Num(); i++)
+		if (!TeamLoadouts)
+			return FItemLoadoutTeamMap();
+
+		for (int i = 0; i < TeamLoadouts->Num(); i++)
 		{
-			auto& TeamLoadout = TeamLoadouts.at(i);
+			auto& TeamLoadout = TeamLoadouts->at(i);
 
 			if (TeamLoadout.TeamIndex == TeamIndex)
 				return TeamLoadout;
