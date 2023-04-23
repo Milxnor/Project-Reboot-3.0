@@ -7,6 +7,14 @@ UObject* UClass::CreateDefaultObject()
 {
     static std::unordered_map<std::string, UObject*> defaultAbilities; // normal class name, default ability.
 
+    static int LastNum1 = 151;
+
+    if (LastNum1 != Globals::AmountOfListens)
+    {
+        LastNum1 = Globals::AmountOfListens;
+        defaultAbilities.clear();
+    }
+
     auto name = this->GetFullName();
 
     if (name.contains("Default__"))

@@ -62,6 +62,7 @@ namespace Addresses
 	extern inline uint64 GetInterfaceAddress = 0;
 	extern inline uint64 EnterAircraft = 0;
 	extern inline uint64 SetTimer = 0;
+	extern inline uint64 PickupInitialize = 0;
 	
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();

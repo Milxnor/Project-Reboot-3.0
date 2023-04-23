@@ -34,3 +34,4 @@ extern inline std::string PlaylistName =
 // "/Game/Athena/Playlists/Low/Playlist_Low_Solo.Playlist_Low_Solo";
 // "/Game/Athena/Playlists/Bling/Playlist_Bling_Solo.Playlist_Bling_Solo";
 // "/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2";
+// "/Game/Athena/Playlists/Ashton/Playlist_Ashton_Sm.Playlist_Ashton_Sm";

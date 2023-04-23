@@ -497,6 +497,18 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			LoopMutators(SpawnBigWall);
 		}
+		else if (Command == "printpawn")
+		{
+			auto Pawn = Cast<APawn>(ReceivingController->GetPawn());
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to print!");
+				return;
+			}
+			
+			LOG_INFO(LogDev, "Pawn: 0x{:x}", __int64(Pawn));
+		 }
 		else { bSendHelpMessage = true; };
 	}
 	else { bSendHelpMessage = true; };

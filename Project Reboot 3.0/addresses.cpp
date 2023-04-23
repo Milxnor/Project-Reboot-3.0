@@ -268,6 +268,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding SetTimer");
 	Addresses::SetTimer = FindSetTimer();
 
+	LOG_INFO(LogDev, "Finding PickupInitialize");
+	Addresses::PickupInitialize = FindPickupInitialize();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -329,6 +332,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "ApplyCharacterCustomization: 0x{:x}", ApplyCharacterCustomization - Base);
 	LOG_INFO(LogDev, "EnterAircraft: 0x{:x}", EnterAircraft - Base);
 	LOG_INFO(LogDev, "SetTimer: 0x{:x}", SetTimer - Base);
+	LOG_INFO(LogDev, "PickupInitialize: 0x{:x}", PickupInitialize - Base);
 }
 
 void Offsets::FindAll()

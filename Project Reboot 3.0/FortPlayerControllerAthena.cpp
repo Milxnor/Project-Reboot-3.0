@@ -20,13 +20,22 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 	Stack->StepCompiledIn(&ItemProvidingGhostMode);
 
 	if (!ItemProvidingGhostMode)
+	{
+		LOG_INFO(LogDev, "Null item!");
 		return StartGhostModeOriginal(Context, Stack, Ret);
+	}
 
-	// if (!Controller->HasAuthority) return StartGhostModeOriginal(Context, Stack, Ret);
+	// if (!Controller->HasAuthority()) return StartGhostModeOriginal(Context, Stack, Ret);
+	
+	LOG_INFO(LogDev, "Attempting to give item {}", ItemProvidingGhostMode->IsValidLowLevel() ? ItemProvidingGhostMode->GetFullName() : "BadRead");
 
 	auto GhostModeRepData = Controller->GetGhostModeRepData();
 
-	if (GhostModeRepData->IsInGhostMode()) return StartGhostModeOriginal(Context, Stack, Ret);
+	if (GhostModeRepData->IsInGhostMode())
+	{
+		LOG_INFO(LogDev, "Player is already in ghost mode!");
+		return StartGhostModeOriginal(Context, Stack, Ret);
+	}
 
 	auto WorldInventory = Controller->GetWorldInventory();
 	
@@ -44,6 +53,7 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 		WorldInventory->Update();
 
 	Controller->ServerExecuteInventoryItemHook(Controller, GhostModeItemInstance->GetItemEntry()->GetItemGuid());
+	LOG_INFO(LogDev, "Finished!");
 
 	return StartGhostModeOriginal(Context, Stack, Ret);
 }

@@ -203,7 +203,7 @@ public:
 				auto& CurrentAbilitySetSoft = CurrentAbilitySets.at(j);
 				auto CurrentAbilitySet = CurrentAbilitySetSoft.Get(UFortAbilitySet::StaticClass(), true);
 
-				if (!CurrentAbilitySet)
+				if (!CurrentAbilitySet->IsValidLowLevel())
 					continue;
 
 				CurrentAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);

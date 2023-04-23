@@ -192,6 +192,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 			if (WorldItemDefinition->ShouldFocusWhenAdded()) // Should we also do this for stacking?
 			{
+				LOG_INFO(LogDev, "Force focus {}", ItemDefinition->GetFullName());
 				FortPlayerController->ServerExecuteInventoryItemHook(FortPlayerController, NewItemInstance->GetItemEntry()->GetItemGuid());
 			}
 		}

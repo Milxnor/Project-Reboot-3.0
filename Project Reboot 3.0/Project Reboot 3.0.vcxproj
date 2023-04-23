@@ -315,6 +315,7 @@
     <ClInclude Include="FortGadgetItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />
     <ClInclude Include="FortGameModeAthena.h" />
+    <ClInclude Include="FortGameModePickup.h" />
     <ClInclude Include="FortGameModePvPBase.h" />
     <ClInclude Include="FortGameModeZone.h" />
     <ClInclude Include="FortGameplayAbilityAthena_PeriodicItemGrant.h" />

@@ -810,7 +810,7 @@ void MainUI()
 		{
 			static std::string ClassNameToDump;
 
-			ImGui::InputText("Class Name to get VFT", &ClassNameToDump);
+			ImGui::InputText("Class Name to mess with", &ClassNameToDump);
 
 			if (ImGui::Button("Print Class VFT"))
 			{
@@ -826,6 +826,17 @@ void MainUI()
 					}
 				}
 			}
+
+			/* if (ImGui::Button("Load BGA Class (and spawn so no GC)"))
+			{
+				static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
+				auto Class = LoadObject<UClass>(ClassNameToDump, BGAClass);
+
+				if (Class)
+				{
+					GetWorld()->SpawnActor<AActor>(Class, FVector());
+				}
+			} */
 
 			/* 
 			ImGui::Text(std::format("Amount of hooks {}", AllFunctionHooks.size()).c_str());

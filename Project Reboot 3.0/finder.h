@@ -142,6 +142,16 @@ static inline uint64 FindObjectArray()
 	return addr;
 }
 
+static inline uint64 FindPickupInitialize()
+{
+	if (Engine_Version == 423)
+	{
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 41 56 41 57 48 83 EC 30 80 B9 ? ? ? ? ? 45 0F B6 F1 4D").Get();
+	}
+
+	return 0;
+}
+
 static inline uint64 FindCreateNetDriver()
 {
 	return 0;

@@ -27,6 +27,8 @@ AFortPickup* AFortAthenaSupplyDrop::SpawnGameModePickupHook(UObject* Context, FF
 	if (!ItemDefinition || !PickupClass)
 		return nullptr;
 
+	LOG_INFO(LogDev, "Spawning GameModePickup with ItemDefinition: {}", ItemDefinition->GetFullName());
+
 	*Ret = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::SupplyDrop, -1, TriggeringPawn, PickupClass);
 	return *Ret;
 }

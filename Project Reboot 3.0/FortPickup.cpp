@@ -4,6 +4,7 @@
 #include "FortItemDefinition.h"
 #include "FortPlayerState.h"
 #include "FortPlayerPawn.h"
+#include "FortGameModePickup.h"
 #include "FortPlayerController.h"
 #include <memcury.h>
 
@@ -34,32 +35,33 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 		static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
 		Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = Pawn;
 
-		/* static auto SpecialActorIDOffset = Pickup->GetOffset("SpecialActorID");
-
-		if (auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemDef))
-		{
-			static auto PickupSpecialActorUniqueIDOffset = WorldItemDefinition->GetOffset("PickupSpecialActorUniqueID");
-			auto& PickupSpecialActorUniqueID = WorldItemDefinition->Get<FName>(PickupSpecialActorUniqueIDOffset);
-			Pickup->Get<FName>(SpecialActorIDOffset) = PickupSpecialActorUniqueID;
-		} */
-
 		auto PrimaryPickupItemEntry = Pickup->GetPrimaryPickupItemEntry();
 
-		auto OldGuid = PrimaryPickupItemEntry->GetItemGuid();
-
-		if (false)
+		if (Addresses::PickupInitialize)
 		{
-			CopyStruct(PrimaryPickupItemEntry, ItemEntry, FFortItemEntry::GetStructSize(), FFortItemEntry::GetStruct());
+			static void (*SetupPickup)(AFortPickup * Pickup, __int64 ItemEntry, TArray<__int64> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
+				= decltype(SetupPickup)(Addresses::PickupInitialize); // Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 41 56 48 83 EC 20 80 B9 ? ? ? ? ? 45 0F B6 F1 49 8B E8").Get());
+			TArray<__int64> MultiItemPickupEntriesIGuess{};
+			SetupPickup(Pickup, __int64(ItemEntry), MultiItemPickupEntriesIGuess, false);
 		}
 		else
 		{
-			PrimaryPickupItemEntry->GetItemDefinition() = ItemEntry->GetItemDefinition();
-			PrimaryPickupItemEntry->GetLoadedAmmo() = ItemEntry->GetLoadedAmmo();
+			auto OldGuid = PrimaryPickupItemEntry->GetItemGuid();
+
+			if (false)
+			{
+				CopyStruct(PrimaryPickupItemEntry, ItemEntry, FFortItemEntry::GetStructSize(), FFortItemEntry::GetStruct());
+			}
+			else
+			{
+				PrimaryPickupItemEntry->GetItemDefinition() = ItemEntry->GetItemDefinition();
+				PrimaryPickupItemEntry->GetLoadedAmmo() = ItemEntry->GetLoadedAmmo();
+			}
 		}
 
 		PrimaryPickupItemEntry->GetCount() = OverrideCount == -1 ? ItemEntry->GetCount() : OverrideCount;
 
-		PrimaryPickupItemEntry->GetItemGuid() = OldGuid;
+		// PrimaryPickupItemEntry->GetItemGuid() = OldGuid;
 
 		// Pickup->OnRep_PrimaryPickupItemEntry();
 
@@ -132,6 +134,12 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 	if (!PickupItemDefinition)
 		return CompletePickupAnimationOriginal(Pickup);
+
+	if (auto GameModePickup = Cast<AFortGameModePickup>(Pickup))
+	{
+		LOG_INFO(LogDev, "GameModePickup!");
+		return CompletePickupAnimationOriginal(Pickup);
+	}
 
 	auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
 

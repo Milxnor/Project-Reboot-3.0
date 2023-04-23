@@ -722,6 +722,8 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	static int NextTeamIndex = DefaultFirstTeam;
 
+	LOG_INFO(LogTeams, "Before team assigning NextTeamIndex: {} CurrentTeamMembers: {}", NextTeamIndex, CurrentTeamMembers);
+
 	if (!bShouldSpreadTeams)
 	{
 		if (CurrentTeamMembers >= MaxSquadSize)
@@ -738,7 +740,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 		if (CurrentTeamMembers >= 1) // We spread every player.
 		{
-			if (Idx > TeamsNum)
+			if (Idx >= TeamsNum)
 				NextTeamIndex = DefaultFirstTeam;
 			else
 				NextTeamIndex++;
@@ -747,7 +749,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		}
 	}
 
-	LOG_INFO(LogTeams, "Spreading Teams {} Player is going on team {} with {} members.", bShouldSpreadTeams, NextTeamIndex, CurrentTeamMembers);
+	LOG_INFO(LogTeams, "Spreading Teams {} [{}] Player is going on team {} with {} members.", bShouldSpreadTeams, TeamsNum, NextTeamIndex, CurrentTeamMembers);
 
 	CurrentTeamMembers++;
 
