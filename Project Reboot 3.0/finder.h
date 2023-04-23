@@ -722,7 +722,7 @@ static inline uint64 FindEnterAircraft()
 			return Addr - i;
 		} */
 
-		if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x5C && *(uint8_t*)(uint8_t*)(Addr - i + 3) == 0x74) // 4.1
+		if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x74) // 4.1
 		{
 			return Addr - i;
 		}

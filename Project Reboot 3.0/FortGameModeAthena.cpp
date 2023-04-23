@@ -553,6 +553,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		// return false;
 
+		LoopMutators([&](AFortAthenaMutator* Mutator) { LOG_INFO(LogGame, "Mutator {}", Mutator->GetPathName()); });
+
 		Globals::AmountOfListens++;
 		Globals::bStartedListening = true;
 	}

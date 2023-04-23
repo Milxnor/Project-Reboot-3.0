@@ -140,6 +140,7 @@ struct FFortItemEntry : FFastArraySerializerItem
 		Entry->GetItemDefinition() = ItemDefinition;
 		Entry->GetCount() = Count;
 		Entry->GetLoadedAmmo() = LoadedAmmo;
+		// Entry->bUpdateStatsOnCollection = true; // Idk what this does but fortnite does it soo
 
 		return Entry;
 	}

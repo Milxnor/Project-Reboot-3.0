@@ -79,6 +79,7 @@ inline void InitLogger()
     MakeLogger("LogCreative");
     MakeLogger("LogZone");
     MakeLogger("LogReplication");
+    MakeLogger("LogMutator");
     MakeLogger("LogVehicles");
 }
 

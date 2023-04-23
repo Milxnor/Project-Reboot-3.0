@@ -68,6 +68,7 @@ public:
 	static inline char (*CompletePickupAnimationOriginal)(AFortPickup* Pickup);
 
 	void TossPickup(FVector FinalLocation, class AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, EFortPickupSourceTypeFlag InPickupSourceTypeFlags, EFortPickupSpawnSource InPickupSpawnSource);
+	void SpawnMovementComponent(); // BAD You probably don't wanna use unless absolutely necessary
 
 	void OnRep_PrimaryPickupItemEntry()
 	{

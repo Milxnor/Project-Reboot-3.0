@@ -124,13 +124,13 @@ FRotator AActor::GetActorRotation()
 
 void AActor::FlushNetDormancy()
 {
-	static auto fn = FindObject<UFunction>("/Script/Engine.Actor.FlushNetDormancy");
+	static auto fn = FindObject<UFunction>(L"/Script/Engine.Actor.FlushNetDormancy");
 	this->ProcessEvent(fn);
 }
 
 bool AActor::TeleportTo(const FVector& DestLocation, const FRotator& DestRotation)
 {
-	static auto fn = FindObject<UFunction>("/Script/Engine.Actor.K2_TeleportTo");
+	static auto fn = FindObject<UFunction>(L"/Script/Engine.Actor.K2_TeleportTo");
 	struct
 	{
 		struct FVector                                     DestLocation;                                             // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
@@ -157,13 +157,13 @@ bool AActor::IsNetStartup()
 
 void AActor::SetOwner(AActor* Owner)
 {
-	static auto SetOwnerFn = FindObject<UFunction>("/Script/Engine.Actor.SetOwner");
+	static auto SetOwnerFn = FindObject<UFunction>(L"/Script/Engine.Actor.SetOwner");
 	this->ProcessEvent(SetOwnerFn, &Owner);
 }
 
 void AActor::ForceNetUpdate()
 {
-	static auto ForceNetUpdateFn = FindObject<UFunction>("/Script/Engine.Actor.ForceNetUpdate");
+	static auto ForceNetUpdateFn = FindObject<UFunction>(L"/Script/Engine.Actor.ForceNetUpdate");
 	this->ProcessEvent(ForceNetUpdateFn);
 }
 
@@ -198,7 +198,7 @@ const AActor* AActor::GetNetOwner() const
 
 void AActor::GetActorEyesViewPoint(FVector* OutLocation, FRotator* OutRotation) const
 {
-	static auto GetActorEyesViewPointFn = FindObject<UFunction>("/Script/Engine.Actor.GetActorEyesViewPoint");
+	static auto GetActorEyesViewPointFn = FindObject<UFunction>(L"/Script/Engine.Actor.GetActorEyesViewPoint");
 	struct
 	{
 		struct FVector                                     OutLocation;                                              // (Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)

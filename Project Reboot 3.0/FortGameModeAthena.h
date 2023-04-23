@@ -145,7 +145,7 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 	if (FoundationEnabledStateOffset != -1)
 		BuildingFoundation->Get<uint8_t>(FoundationEnabledStateOffset) = bShow ? Enabled : Disabled;
 
-	SetFoundationTransform(BuildingFoundation, BuildingFoundation->GetTransform()); // idk
+	// SetFoundationTransform(BuildingFoundation, BuildingFoundation->GetTransform()); // idk
 
 	static auto LevelToStreamOffset = BuildingFoundation->GetOffset("LevelToStream");
 	auto& LevelToStream = BuildingFoundation->Get<FName>(LevelToStreamOffset);

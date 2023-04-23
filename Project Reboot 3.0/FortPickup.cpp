@@ -7,6 +7,7 @@
 #include "FortGameModePickup.h"
 #include "FortPlayerController.h"
 #include <memcury.h>
+#include "GameplayStatics.h"
 
 void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, EFortPickupSourceTypeFlag InPickupSourceTypeFlags, EFortPickupSpawnSource InPickupSpawnSource)
 {
@@ -19,10 +20,23 @@ void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int Ov
 	this->ProcessEvent(fn, &AFortPickup_TossPickup_Params);
 }
 
+void AFortPickup::SpawnMovementComponent()
+{
+	static auto ProjectileMovementComponentClass = FindObject<UClass>("/Script/Engine.ProjectileMovementComponent"); // UFortProjectileMovementComponent
+
+	static auto MovementComponentOffset = this->GetOffset("MovementComponent");
+	this->Get(MovementComponentOffset) = UGameplayStatics::SpawnObject(ProjectileMovementComponentClass, this);
+}
+
 AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Location,
 	EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
 	class AFortPawn* Pawn, UClass* OverrideClass, bool bToss, int OverrideCount)
 {
+	if (bToss)
+	{
+		PickupSource |= EFortPickupSourceTypeFlag::Tossed;
+	}
+
 	// static auto FortPickupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickup");
 	static auto FortPickupAthenaClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickupAthena");
 	auto PlayerState = Pawn ? Cast<AFortPlayerState>(Pawn->GetPlayerState()) : nullptr;
@@ -39,11 +53,12 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 
 		if (Addresses::PickupInitialize)
 		{
-			static void (*SetupPickup)(AFortPickup * Pickup, __int64 ItemEntry, TArray<__int64> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
+			static void (*SetupPickup)(AFortPickup* Pickup, __int64 ItemEntry, TArray<__int64> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
 				= decltype(SetupPickup)(Addresses::PickupInitialize);
 
 			TArray<__int64> MultiItemPickupEntriesIGuess{};
 			SetupPickup(Pickup, __int64(ItemEntry), MultiItemPickupEntriesIGuess, false);
+			MultiItemPickupEntriesIGuess.Free();
 		}
 		else
 		{
@@ -59,6 +74,11 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 				PrimaryPickupItemEntry->GetLoadedAmmo() = ItemEntry->GetLoadedAmmo();
 			}
 		}
+		
+		static auto PickupSourceTypeFlagsOffset = Pickup->GetOffset("PickupSourceTypeFlags", false);
+
+		if (PickupSourceTypeFlagsOffset != -1)
+			Pickup->Get<int32>(PickupSourceTypeFlagsOffset) |= (int)PickupSource;
 
 		PrimaryPickupItemEntry->GetCount() = OverrideCount == -1 ? ItemEntry->GetCount() : OverrideCount;
 
@@ -69,11 +89,6 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 		// static auto OptionalOwnerIDOffset = Pickup->GetOffset("OptionalOwnerID");
 		// Pickup->Get<int>(OptionalOwnerIDOffset) = PlayerState ? PlayerState->GetWorldPlayerId() : -1;
 
-		if (bToss)
-		{
-			PickupSource |= EFortPickupSourceTypeFlag::Tossed;
-		}
-
 		Pickup->TossPickup(Location, Pawn, 0, bToss, PickupSource, SpawnSource);
 
 		if (PickupSource == EFortPickupSourceTypeFlag::Container) // crashes if we do this then tosspickup
@@ -81,6 +96,11 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 			static auto bTossedFromContainerOffset = Pickup->GetOffset("bTossedFromContainer");
 			Pickup->Get<bool>(bTossedFromContainerOffset) = true;
 			// Pickup->OnRep_TossedFromContainer();
+		}
+
+		if (Fortnite_Version < 6)
+		{
+			Pickup->SpawnMovementComponent();
 		}
 
 		return Pickup;
