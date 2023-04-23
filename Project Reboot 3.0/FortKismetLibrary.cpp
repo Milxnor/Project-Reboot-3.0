@@ -528,14 +528,14 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 	Stack.StepCompiledIn(&OptionalOwnerPC);
 	Stack.StepCompiledIn(&bPickupOnlyRelevantToOwner);
 
-	LOG_INFO(LogDev, "[{}] ItemDefinition: {}", __FUNCTION__, ItemDefinition ? ItemDefinition->GetFullName() : "");
+	LOG_INFO(LogDev, "[{}] ItemDefinition: {}", __FUNCTION__, ItemDefinition->IsValidLowLevel() ? ItemDefinition->GetFullName() : "InvalidObject");
 
-	if (!ItemDefinition)
-		return	K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
+	if (!ItemDefinition->IsValidLowLevel())
+		return K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
 
 	auto Pawn = OptionalOwnerPC ? OptionalOwnerPC->GetMyFortPawn() : nullptr;
 
-	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, Pawn, nullptr, bToss);
+	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, Pawn, AFortPickup::StaticClass(), bToss);
 
 	K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
 
