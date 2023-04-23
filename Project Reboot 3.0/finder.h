@@ -144,10 +144,14 @@ static inline uint64 FindObjectArray()
 
 static inline uint64 FindPickupInitialize()
 {
+	if (Engine_Version == 420)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 41 56 48 83 EC 20 80 B9 ? ? ? ? ? 45 0F B6 F1 49 8B E8").Get(); // 4.1
+	if (Engine_Version == 421)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 57 41 57 48 83 EC 30 80 B9 ? ? ? ? ? 41 0F B6").Get(); // 6.21
+	if (Engine_Version == 422)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 41 56 41 57 48 83 EC 30 80 B9 ? ? ? ? ? 45 0F B6 F1").Get(); // 7.30
 	if (Engine_Version == 423)
-	{
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 41 56 41 57 48 83 EC 30 80 B9 ? ? ? ? ? 45 0F B6 F1 4D").Get();
-	}
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 41 56 41 57 48 83 EC 30 80 B9 ? ? ? ? ? 45 0F B6 F1 4D").Get(); // 8.51 & 10.40
 
 	return 0;
 }

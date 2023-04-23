@@ -40,7 +40,8 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 		if (Addresses::PickupInitialize)
 		{
 			static void (*SetupPickup)(AFortPickup * Pickup, __int64 ItemEntry, TArray<__int64> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
-				= decltype(SetupPickup)(Addresses::PickupInitialize); // Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 41 56 48 83 EC 20 80 B9 ? ? ? ? ? 45 0F B6 F1 49 8B E8").Get());
+				= decltype(SetupPickup)(Addresses::PickupInitialize);
+
 			TArray<__int64> MultiItemPickupEntriesIGuess{};
 			SetupPickup(Pickup, __int64(ItemEntry), MultiItemPickupEntriesIGuess, false);
 		}
