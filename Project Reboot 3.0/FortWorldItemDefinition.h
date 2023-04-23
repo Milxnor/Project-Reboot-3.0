@@ -2,6 +2,14 @@
 
 #include "FortItemDefinition.h"
 
+enum class EWorldItemDropBehavior : uint8_t
+{
+	DropAsPickup = 0,
+	DestroyOnDrop = 1,
+	DropAsPickupDestroyOnEmpty = 2,
+	EWorldItemDropBehavior_MAX = 3
+};
+
 class UFortWorldItemDefinition : public UFortItemDefinition
 {
 public:
@@ -10,6 +18,12 @@ public:
 		static auto bCanBeDroppedOffset = GetOffset("bCanBeDropped");
 		static auto bCanBeDroppedFieldMask = GetFieldMask(GetProperty("bCanBeDropped"));
 		return ReadBitfieldValue(bCanBeDroppedOffset, bCanBeDroppedFieldMask);
+	}
+
+	EWorldItemDropBehavior& GetDropBehavior()
+	{
+		static auto DropBehaviorOffset = GetOffset("DropBehavior");
+		return Get<EWorldItemDropBehavior>(DropBehaviorOffset);
 	}
 
 	bool ShouldDropOnDeath()

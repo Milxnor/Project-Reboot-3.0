@@ -1,6 +1,7 @@
 #include "FortPlayerPawn.h"
 #include <memcury.h>
 #include "FortPlayerController.h"
+#include "FortGadgetItemDefinition.h"
 
 void AFortPlayerPawn::ServerChoosePart(EFortCustomPartType Part, UObject* ChosenCharacterPart)
 {
@@ -120,6 +121,36 @@ void AFortPlayerPawn::UnEquipVehicleWeaponDefinition(UFortWeaponItemDefinition* 
 		return;
 
 	AFortPlayerController::ServerExecuteInventoryItemHook(PlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid()); // Bad, we should equip the last weapon.
+}
+
+void AFortPlayerPawn::StartGhostModeExitHook(UObject* Context, FFrame* Stack, void* Ret)
+{
+	LOG_INFO(LogDev, __FUNCTION__);
+
+	auto Pawn = (AFortPlayerPawn*)Context;
+
+	auto Controller = Cast<AFortPlayerController>(Pawn->GetController());
+
+	if (!Controller)
+		return;
+
+	auto WorldInventory = Controller->GetWorldInventory();
+
+	auto SpookyMistItemDefinition = FindObject<UFortGadgetItemDefinition>("/Game/Athena/Items/Gameplay/SpookyMist/AGID_SpookyMist.AGID_SpookyMist");
+	auto SpookyMistInstance = WorldInventory->FindItemInstance(SpookyMistItemDefinition);
+
+	if (SpookyMistInstance)
+	{
+		bool bShouldUpdate = false;
+		WorldInventory->RemoveItem(SpookyMistInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, 1, true);
+
+		if (bShouldUpdate)
+			WorldInventory->Update();
+
+		Controller->ApplyCosmeticLoadout();
+	}
+
+	return StartGhostModeExitOriginal(Context, Stack, Ret);
 }
 
 AActor* AFortPlayerPawn::ServerOnExitVehicleHook(AFortPlayerPawn* PlayerPawn, ETryExitVehicleBehavior ExitForceBehavior)

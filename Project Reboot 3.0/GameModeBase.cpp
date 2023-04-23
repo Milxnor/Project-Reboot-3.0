@@ -7,6 +7,7 @@
 #include "FortAthenaMutator_GiveItemsAtGamePhaseStep.h"
 #include "DataTableFunctionLibrary.h"
 #include "FortAthenaMutator_GG.h"
+#include "FortAthenaMutator_InventoryOverride.h"
 
 UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InController)
 {
@@ -44,16 +45,16 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 	if constexpr (bUseSpawnActor)
 	{
-NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParameters);
+		NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParameters);
 	}
 	else
 	{
-	struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
-	AGameModeBase_SpawnDefaultPawnAtTransform_Params{ NewPlayer, SpawnTransform };
+		struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
+		AGameModeBase_SpawnDefaultPawnAtTransform_Params{ NewPlayer, SpawnTransform };
 
-	GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+		GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
 
-	NewPawn = AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
+		NewPawn = AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
 	}
 
 	if (!NewPawn)
@@ -66,12 +67,16 @@ NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParamete
 		auto NewPlayerAsAthena = Cast<AFortPlayerControllerAthena>(NewPlayer);
 
 		auto GameState = ((AFortGameModeAthena*)GameMode)->GetGameStateAthena();
+		auto PlayerStateAthena = NewPlayerAsAthena->GetPlayerStateAthena();
+		
+		if (!PlayerStateAthena)
+			return nullptr;
 
 		GET_PLAYLIST(GameState);
 
 		if (CurrentPlaylist)
 		{
-			CurrentPlaylist->ApplyModifiersToActor(NewPlayerAsAthena->GetPlayerState()); // We need to move this!
+			CurrentPlaylist->ApplyModifiersToActor(PlayerStateAthena); // We need to move this!
 		}
 
 		/* if (Fortnite_Version >= 18)
@@ -90,6 +95,8 @@ NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParamete
 
 			if (!WorldInventory->GetPickaxeInstance())
 			{
+				// TODO Check Playlist->bRequirePickaxeInStartingInventory
+
 				auto CosmeticLoadout = NewPlayerAsAthena->GetCosmeticLoadout();
 				// LOG_INFO(LogDev, "CosmeticLoadout: {}", __int64(CosmeticLoadout));
 				auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
@@ -133,6 +140,23 @@ NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnParamete
 						}
 					}
 				} */
+
+				auto AddInventoryOverrideTeamLoadouts = [&](AFortAthenaMutator* Mutator)
+				{
+					if (auto InventoryOverride = Cast<AFortAthenaMutator_InventoryOverride>(Mutator))
+					{
+						auto TeamIndex = PlayerStateAthena->GetTeamIndex();
+						auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
+
+						for (int i = 0; i < LoadoutContainer.Loadout.Num(); i++)
+						{
+							auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
+							WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());
+						}
+					}
+				};
+
+				LoopMutators(AddInventoryOverrideTeamLoadouts);
 
 				WorldInventory->Update();
 			}

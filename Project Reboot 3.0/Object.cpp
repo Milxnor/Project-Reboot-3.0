@@ -155,6 +155,23 @@ bool UObject::IsA(UClass* otherClass)
 	return false;
 }
 
+UFunction* UObject::FindFunction(const std::string& ShortFunctionName)
+{
+	// We could also loop through children.
+	
+	UClass* super = ClassPrivate;
+
+	while (super)
+	{
+		if (auto Func = FindObject<UFunction>(super->GetPathName() + "." + ShortFunctionName))
+			return Func;
+
+		super = super->GetSuperStruct();
+	}
+
+	return nullptr;
+}
+
 /* class UClass* UObject::StaticClass()
 {
 	static auto Class = FindObject<UClass>("/Script/CoreUObject.Object");

@@ -73,6 +73,21 @@ static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChooseP
 	// PlayerState->Get(HeroTypeOffset) = HeroDefinition;
 }
 
+struct FGhostModeRepData
+{
+	bool& IsInGhostMode()
+	{
+		static auto bInGhostModeOffset = FindOffsetStruct("/Script/FortniteGame.GhostModeRepData", "bInGhostMode");
+		return *(bool*)(__int64(this) + bInGhostModeOffset);
+	}
+
+	UFortWorldItemDefinition*& GetGhostModeItemDef()
+	{
+		static auto GhostModeItemDefOffset = FindOffsetStruct("/Script/FortniteGame.GhostModeRepData", "GhostModeItemDef");
+		return *(UFortWorldItemDefinition**)(__int64(this) + GhostModeItemDefOffset);
+	}
+};
+
 class AFortPlayerControllerAthena : public AFortPlayerController
 {
 public:
@@ -80,10 +95,18 @@ public:
 	static inline void (*ServerReadyToStartMatchOriginal)(AFortPlayerControllerAthena* PlayerController);
 	static inline void (*ServerRequestSeatChangeOriginal)(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex);
 	static inline void (*EnterAircraftOriginal)(UObject* PC, AActor* Aircraft);
+	static inline void (*StartGhostModeOriginal)(UObject* Context, FFrame* Stack, void* Ret);
+	static inline void (*EndGhostModeOriginal)(AFortPlayerControllerAthena* PlayerController);
 
 	AFortPlayerStateAthena* GetPlayerStateAthena()
 	{
 		return (AFortPlayerStateAthena*)GetPlayerState();
+	}
+
+	FGhostModeRepData* GetGhostModeRepData()
+	{
+		static auto GhostModeRepDataOffset = GetOffset("GhostModeRepData");
+		return GetPtr<FGhostModeRepData>(GhostModeRepDataOffset);
 	}
 
 	UAthenaMarkerComponent* GetMarkerComponent()
@@ -92,6 +115,8 @@ public:
 		return Get<UAthenaMarkerComponent*>(MarkerComponentOffset);
 	}
 
+	static void StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret); // we could native hook this but eh
+	static void EndGhostModeHook(AFortPlayerControllerAthena* PlayerController);
 	static void EnterAircraftHook(UObject* PC, AActor* Aircraft);
 	static void ServerRequestSeatChangeHook(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex); // actually in zone
 	static void ServerRestartPlayerHook(AFortPlayerControllerAthena* Controller);

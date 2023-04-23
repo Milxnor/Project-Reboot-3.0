@@ -160,13 +160,8 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		auto ReplicatedEntryIdx = GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
 		// GetItemList().GetReplicatedEntries().AtPtr(ReplicatedEntryIdx, FFortItemEntry::GetStructSize())->GetIsReplicatedCopy() = true;
 
-		if (WorldItemDefinition->IsValidLowLevel())
+		if (FortPlayerController && WorldItemDefinition->IsValidLowLevel())
 		{
-			if (WorldItemDefinition->ShouldFocusWhenAdded()) // Should we also do this for stacking?
-			{
-				FortPlayerController->ServerExecuteInventoryItemHook(FortPlayerController, NewItemInstance->GetItemEntry()->GetItemGuid());
-			}
-
 			bool AreGadgetsEnabled = Addresses::ApplyGadgetData && Addresses::RemoveGadgetData && Globals::bEnableAGIDs;
 
 			if (AreGadgetsEnabled)
@@ -180,9 +175,24 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 					bool (*ApplyGadgetData)(UFortGadgetItemDefinition * a1, __int64 a2, UFortItem* a3, unsigned __int8 a4) = decltype(ApplyGadgetData)(Addresses::ApplyGadgetData);
 					static auto FortInventoryOwnerInterfaceClass = FindObject<UClass>("/Script/FortniteGame.FortInventoryOwnerInterface");
-					auto Interface = __int64(PlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass));
+					auto Interface = __int64(FortPlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass));
 					LOG_INFO(LogDev, "Res: {}", ApplyGadgetData(GadgetItemDefinition, Interface, NewItemInstance, true));
+
+					if (Fortnite_Version < 7)
+					{
+						auto PickaxeInstance = GetPickaxeInstance();
+
+						if (PickaxeInstance)
+						{
+							RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, PickaxeInstance->GetItemEntry()->GetCount(), true);
+						}
+					}
 				}
+			}
+
+			if (WorldItemDefinition->ShouldFocusWhenAdded()) // Should we also do this for stacking?
+			{
+				FortPlayerController->ServerExecuteInventoryItemHook(FortPlayerController, NewItemInstance->GetItemEntry()->GetItemGuid());
 			}
 		}
 		else
@@ -343,6 +353,21 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 				{
 					LOG_INFO(LogDev, "Unequipping Gadget!");
 					GadgetItemDefinition->UnequipGadgetData(FortPlayerController, ItemInstances.at(i));
+
+					if (Fortnite_Version < 7)
+					{
+						auto CosmeticLoadout = FortPlayerController->GetCosmeticLoadout();
+						// LOG_INFO(LogDev, "CosmeticLoadout: {}", __int64(CosmeticLoadout));
+						auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
+						// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe: {}", __int64(CosmeticLoadoutPickaxe));
+						// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe Name: {}", CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->GetFullName() : "InvalidObject");
+						static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition");
+
+						auto PickaxeDefinition = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
+							: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
+
+						this->AddItem(PickaxeDefinition, nullptr);
+					}
 				}
 			}
 

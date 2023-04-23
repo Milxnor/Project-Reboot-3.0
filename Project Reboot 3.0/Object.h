@@ -55,6 +55,7 @@ public:
 	std::string GetFullName();
 
 	bool IsA(UClass* Other);
+	class UFunction* FindFunction(const std::string& ShortFunctionName);
 
 	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true);
 	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true) const;

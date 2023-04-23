@@ -9,6 +9,72 @@
 #include "FortAthenaMutator_GiveItemsAtGamePhaseStep.h"
 #include "DataTableFunctionLibrary.h"
 
+void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret)
+{
+	LOG_INFO(LogDev, __FUNCTION__);
+
+	auto Controller = (AFortPlayerControllerAthena*)Context;
+
+	UFortWorldItemDefinition* ItemProvidingGhostMode = nullptr;
+
+	Stack->StepCompiledIn(&ItemProvidingGhostMode);
+
+	if (!ItemProvidingGhostMode)
+		return StartGhostModeOriginal(Context, Stack, Ret);
+
+	// if (!Controller->HasAuthority) return StartGhostModeOriginal(Context, Stack, Ret);
+
+	// if (Controller->GhostModeRepData.bInGhostMode) return StartGhostModeOriginal(Context, Stack, Ret);
+
+	auto WorldInventory = Controller->GetWorldInventory();
+	
+	if (!WorldInventory)
+		return StartGhostModeOriginal(Context, Stack, Ret);
+
+	bool bShouldUpdate = false;
+	auto NewAndModifiedInstances = WorldInventory->AddItem(ItemProvidingGhostMode, &bShouldUpdate, 1);
+	auto GhostModeItemInstance = NewAndModifiedInstances.first[0];
+
+	if (!GhostModeItemInstance)
+		return StartGhostModeOriginal(Context, Stack, Ret);
+
+	if (bShouldUpdate)
+		WorldInventory->Update();
+
+	Controller->ServerExecuteInventoryItemHook(Controller, GhostModeItemInstance->GetItemEntry()->GetItemGuid());
+
+	return StartGhostModeOriginal(Context, Stack, Ret);
+}
+
+void AFortPlayerControllerAthena::EndGhostModeHook(AFortPlayerControllerAthena* PlayerController)
+{
+	// I believe there are a lot of other places we should remove it (go to XREFs of K2_RemoveItemFromPlayer on a version like 6.21, and there will be something checking ghost stuff).
+
+	LOG_INFO(LogDev, __FUNCTION__);
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return EndGhostModeOriginal(PlayerController);
+
+	auto GhostModeRepData = PlayerController->GetGhostModeRepData();
+
+	auto GhostModeItemDef = GhostModeRepData->GetGhostModeItemDef();
+	auto GhostModeItemInstance = WorldInventory->FindItemInstance(GhostModeItemDef);
+
+	if (GhostModeItemInstance)
+	{
+		bool bShouldUpdate = false;
+		int Count = 1; // GhostModeItemInstance->GetItemEntry()->GetCount()
+		WorldInventory->RemoveItem(GhostModeItemInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, Count);
+
+		if (bShouldUpdate)
+			WorldInventory->Update();
+	}
+
+	return EndGhostModeOriginal(PlayerController);
+}
+
 void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraft)
 {
 	auto PlayerController = Cast<AFortPlayerController>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
@@ -16,7 +82,7 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 	if (!PlayerController)
 		return;
 
-	LOG_INFO(LogDev, "EnterAircraftHook");
+	// LOG_INFO(LogDev, "EnterAircraftHook");
 
 	EnterAircraftOriginal(PC, Aircraft);
 
@@ -55,36 +121,49 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 	static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
 	auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
 
+	std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
+
 	for (int i = 0; i < AllMutators.Num(); i++)
 	{
-		auto Mutator = AllMutators.at(i);
+		auto Mutator = (AFortAthenaMutator*)AllMutators.at(i);
 
 		LOG_INFO(LogDev, "[{}] Mutator: {}", i, Mutator->GetFullName());
+
+		FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged")));
 
 		if (auto GiveItemsAtGamePhaseStepMutator = Cast<AFortAthenaMutator_GiveItemsAtGamePhaseStep>(Mutator))
 		{
 			auto PhaseToGive = GiveItemsAtGamePhaseStepMutator->GetPhaseToGiveItems();
-
-			LOG_INFO(LogDev, "[{}] PhaseToGiveItems: {}", i, (int)PhaseToGive);
-
 			auto& ItemsToGive = GiveItemsAtGamePhaseStepMutator->GetItemsToGive();
 
-			LOG_INFO(LogDev, "[{}] ItemsToGive.Num(): {}", i, ItemsToGive.Num());
+			LOG_INFO(LogDev, "[{}] PhaseToGiveItems: {} ItemsToGive.Num(): {}", i, (int)PhaseToGive, ItemsToGive.Num());
 
 			if (PhaseToGive <= 5) // Flying or lower
 			{
 				for (int j = 0; j < ItemsToGive.Num(); j++)
 				{
-					auto& ItemToGive = ItemsToGive.at(j);
+					auto ItemToGive = ItemsToGive.AtPtr(j, FItemsToGive::GetStructSize());
+
+					if (!ItemToGive->GetItemToDrop())
+						continue;
 
 					float Out = 1;
 					FString ContextString;
 					EEvaluateCurveTableResult result;
-					// UDataTableFunctionLibrary::EvaluateCurveTableRow(ItemToGive.NumberToGive.GetCurve().CurveTable, ItemToGive.NumberToGive.GetCurve().RowName, 0.f, ContextString, &result, &Out);
+					float Out2 = 0;
 
-					LOG_INFO(LogDev, "Out: {}", Out);
+					if (!IsBadReadPtr(ItemToGive->GetNumberToGive().GetCurve().CurveTable, 8) && ItemToGive->GetNumberToGive().GetCurve().RowName.IsValid())
+					{
+						UDataTableFunctionLibrary::EvaluateCurveTableRow(ItemToGive->GetNumberToGive().GetCurve().CurveTable, ItemToGive->GetNumberToGive().GetCurve().RowName,
+							0.f, ContextString, &result, &Out2);
+					}
 
-					WorldInventory->AddItem(ItemToGive.ItemToDrop, nullptr, Out);
+					LOG_INFO(LogDev, "[{}] [{}] Out: {} Out2: {} ItemToGive.ItemToDrop: {}", i, j, Out, Out2, ItemToGive->GetItemToDrop()->IsValidLowLevel() ? ItemToGive->GetItemToDrop()->GetFullName() : "BadRead");
+
+					if (!Out2)
+						continue;
+
+					WorldInventory->AddItem(ItemToGive->GetItemToDrop(), nullptr, Out2);
 				}
 			}
 		}
@@ -101,7 +180,43 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 		} */
 	}
 
+	static int LastNum1 = 3125;
+
+	if (LastNum1 != Globals::AmountOfListens)
+	{
+		LastNum1 = Globals::AmountOfListens;
+
+		for (auto& FunctionToCallPair : FunctionsToCall)
+		{
+			// On newer versions there is a second param.
+
+			LOG_INFO(LogDev, "FunctionToCallPair.second: {}", __int64(FunctionToCallPair.second));
+
+			if (FunctionToCallPair.second)
+			{
+				{
+					// mem leak btw
+
+					auto a = ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::GetReady);
+
+					if (a)
+					{
+						FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, a);
+						FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::BusLocked));
+						FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::BusFlying));
+					}
+
+					// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormFormingGamePhaseStep);
+					// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormHoldingGamePhaseStep);
+					// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormShrinkingGamePhaseStep);
+				}
+			}
+		}
+	}
+
 	WorldInventory->Update();
+	
+	// Should we equip the pickaxe for older builds here?
 }
 
 void AFortPlayerControllerAthena::ServerRequestSeatChangeHook(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex)

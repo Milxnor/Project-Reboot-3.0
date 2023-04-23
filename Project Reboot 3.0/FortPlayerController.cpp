@@ -890,7 +890,7 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 	if (!ItemDefinition || !ItemDefinition->CanBeDropped())
 		return;
 
-	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop())
+	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop)
 	{
 		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(),
 			EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn);

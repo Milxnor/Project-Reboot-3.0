@@ -10,19 +10,41 @@
 
 struct FGunGameGunEntry
 {
-	UFortWeaponItemDefinition* Weapon;                                                   // 0x0000(0x0008) (Edit, ZeroConstructor, DisableEditOnInstance, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	FScalableFloat                              Enabled;                                                  // 0x0008(0x0020) (Edit, DisableEditOnInstance, NativeAccessSpecifierPublic)
-	FScalableFloat                              AwardAtElim;                                              // 0x0028(0x0020) (Edit, DisableEditOnInstance, NativeAccessSpecifierPublic)
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.GunGameGunEntry");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
+
+	UFortWeaponItemDefinition*& GetWeapon()
+	{
+		static auto WeaponOffset = FindOffsetStruct("/Script/FortniteGame.GunGameGunEntry", "Weapon");
+		return *(UFortWeaponItemDefinition**)(__int64(this) + WeaponOffset);
+	}
+
+	FScalableFloat& GetEnabled()
+	{
+		static auto EnabledOffset = FindOffsetStruct("/Script/FortniteGame.GunGameGunEntry", "Enabled");
+		return *(FScalableFloat*)(__int64(this) + EnabledOffset);
+	}
+
+	FScalableFloat& GetAwardAtElim()
+	{
+		static auto AwardAtElimOffset = FindOffsetStruct("/Script/FortniteGame.GunGameGunEntry", "AwardAtElim");
+		return *(FScalableFloat*)(__int64(this) + AwardAtElimOffset);
+	}
 };
 
 struct FGunGameGunEntries
 {
-	TArray<struct FGunGameGunEntry>                    Entries;                                                  // 0x0000(0x0010) (ZeroConstructor, NativeAccessSpecifierPublic)
+	TArray<FGunGameGunEntry>                    Entries;                                                  // 0x0000(0x0010) (ZeroConstructor, NativeAccessSpecifierPublic)
 };
 
 struct FGunGamePlayerData
 {
-	TArray<class UFortWeaponItemDefinition*>           CurrentlyAssignedWeapons;                                 // 0x0000(0x0010) (ZeroConstructor, NativeAccessSpecifierPublic)
+	TArray<UFortWeaponItemDefinition*>           CurrentlyAssignedWeapons;                                 // 0x0000(0x0010) (ZeroConstructor, NativeAccessSpecifierPublic)
 };
 
 class AFortAthenaMutator_GG : public AFortAthenaMutator
@@ -50,7 +72,7 @@ public:
 	{
 		auto& AwardEntriesAtElimMap = GetAwardEntriesAtElimMap();
 
-		float Value = 0;
+		float Value = 0; // TODO Get from AwardAtElim
 
 		for (auto& AwardEntry : AwardEntriesAtElimMap)
 		{

@@ -3,6 +3,7 @@
 #include "reboot.h"
 #include "FortPlayerControllerAthena.h"
 #include "KismetSystemLibrary.h"
+#include "AthenaBarrierObjective.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {

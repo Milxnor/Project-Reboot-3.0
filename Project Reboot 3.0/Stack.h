@@ -49,7 +49,7 @@ public:
 		// (GNatives[B])(Context, *this, RESULT_PARAM);
 	}
 
-	__forceinline void StepCompiledIn(void* const Result/*, const FFieldClass* ExpectedPropertyType*/) // https://github.com/EpicGames/UnrealEngine/blob/cdaec5b33ea5d332e51eee4e4866495c90442122/Engine/Source/Runtime/CoreUObject/Public/UObject/Stack.h#L444
+	__forceinline void StepCompiledIn(void* const Result/*, const FFieldClass* ExpectedPropertyType*/, bool bPrint = false) // https://github.com/EpicGames/UnrealEngine/blob/cdaec5b33ea5d332e51eee4e4866495c90442122/Engine/Source/Runtime/CoreUObject/Public/UObject/Stack.h#L444
 	{
 		if (Code)
 		{
@@ -63,6 +63,9 @@ public:
 			FProperty* Property = (FProperty*)PropertyChainForCompiledIn;
 			PropertyChainForCompiledIn = Property->Next;
 			StepExplicitProperty(Result, Property); */
+
+			if (bPrint)
+				LOG_INFO(LogDev, "No code!");
 
 			void* Property = GetPropertyChainForCompiledIn();
 			GetPropertyChainForCompiledIn() = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;

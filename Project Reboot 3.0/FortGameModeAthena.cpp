@@ -24,6 +24,7 @@
 #include "OnlineReplStructs.h"
 #include "BGA.h"
 #include "vendingmachine.h"
+#include "FortAthenaMutator.h"
 
 static UFortPlaylist* GetPlaylistToUse()
 {
@@ -212,7 +213,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		auto Fortnite_Season = std::floor(Fortnite_Version);
 
-		if (false) // Manual foundation showing
+		// if (false) // Manual foundation showing
 		{
 			if (Fortnite_Season >= 7 && Fortnite_Season <= 10)
 			{
@@ -548,6 +549,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		Globals::bStartedListening = true;
 	}
 
+	bool Ret = false;
+
 	if (Engine_Version >= 424) // returning true is stripped on c2+
 	{
 		static auto WarmupRequiredPlayerCountOffset = GameMode->GetOffset("WarmupRequiredPlayerCount");
@@ -561,13 +564,67 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				// if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum > 0)
 				{
 					LOG_INFO(LogDev, "ReadyToStartMatch Return Address: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
-					return true;
+					Ret = true;
 				}
 			}
 		}
 	}
 
-	return Athena_ReadyToStartMatchOriginal(GameMode);
+	if (!Ret)
+		Ret = Athena_ReadyToStartMatchOriginal(GameMode);
+
+	if (Ret)
+	{
+		// We are assuming it successfully became warmup.
+
+		static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
+		auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
+
+		std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
+
+		for (int i = 0; i < AllMutators.Num(); i++)
+		{
+			auto Mutator = (AFortAthenaMutator*)AllMutators.at(i);
+
+			FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged")));
+		}
+
+		static int LastNum1 = 3125;
+
+		if (LastNum1 != Globals::AmountOfListens)
+		{
+			LastNum1 = Globals::AmountOfListens;
+
+			for (auto& FunctionToCallPair : FunctionsToCall)
+			{
+				// On newer versions there is a second param.
+
+				LOG_INFO(LogDev, "FunctionToCallPair.second: {}", __int64(FunctionToCallPair.second));
+
+				if (FunctionToCallPair.second)
+				{
+					if (Fortnite_Version < 10)
+					{
+						// mem leak btw
+
+						auto a = ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::None);
+
+						if (a)
+						{
+							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, a);
+							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::Setup));
+							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::Warmup));
+							// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormFormingGamePhaseStep);
+							// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormHoldingGamePhaseStep);
+							// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormShrinkingGamePhaseStep);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return Ret;
 }
 
 int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller)
@@ -580,11 +637,26 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
-	UObject* Playlist = nullptr;
+	UFortPlaylist* Playlist = nullptr;
+
+	bool bVersionHasPlaylist = false;
+
+	if (CurrentPlaylistDataOffset != -1 || Fortnite_Version >= 6)
+	{
+		bVersionHasPlaylist = true;
+		Playlist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
+	}
 
 	static int DefaultFirstTeam = 3;
+
+	if (Playlist)
+	{
+		static auto bIsLargeTeamGameOffset = Playlist->GetOffset("bIsLargeTeamGame");
+		bool bIsLargeTeamGame = Playlist->Get<bool>(bIsLargeTeamGameOffset);
+	}
+
 	static int CurrentTeamMembers = 0; // bad
-	static int Current = 3;
+	static int Current = DefaultFirstTeam;
 
 	static int LastNum = 1;
 
@@ -592,7 +664,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	{
 		LastNum = AmountOfRestarts;
 
-		Current = 3;
+		Current = DefaultFirstTeam;
 		CurrentTeamMembers = 0;
 	}
 
@@ -603,10 +675,8 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	bool bShouldSpreadTeams = false;
 
-	if (CurrentPlaylistDataOffset != -1 || Fortnite_Version >= 6)
+	if (bVersionHasPlaylist)
 	{
-		Playlist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
-
 		if (!Playlist)
 		{
 			CurrentTeamMembers = 0;
@@ -754,7 +824,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				// CurrentActor->K2_DestroyActor();
 				// continue;
 
-				if (Engine_Version != 419)
+				// if (Engine_Version != 419)
 				{
 					auto Location = CurrentActor->GetActorLocation();
 					Location.Z += UpZ;

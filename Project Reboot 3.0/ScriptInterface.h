@@ -5,8 +5,8 @@
 class FScriptInterface
 {
 public:
-	UObject* ObjectPointer;
-	void* InterfacePointer;
+	UObject* ObjectPointer = nullptr;
+	void* InterfacePointer = nullptr;
 
 	FORCEINLINE UObject*& GetObjectRef()
 	{
@@ -17,4 +17,5 @@ public:
 template<class InterfaceType>
 class TScriptInterface : public FScriptInterface
 {
+public:
 };

@@ -377,7 +377,7 @@ static void CopyStruct(void* Dest, void* Src, size_t Size, UStruct* Struct = nul
 }
 
 template <typename T = __int64>
-static T* Alloc(size_t Size, bool bUseRealloc = false)
+static T* Alloc(size_t Size = sizeof(T), bool bUseRealloc = false)
 {
 	return bUseRealloc ? (T*)FMemory::Realloc(0, Size, 0) : (T*)VirtualAlloc(0, Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 }

@@ -20,6 +20,7 @@ class UClass : public UStruct
 {
 public:
 	UObject* CreateDefaultObject();
+	UClass* GetSuperStruct() { return *(UClass**)(__int64(this) + Offsets::SuperStruct); } // idk if this is in UStruct
 };
 
 class UFunction : public UStruct

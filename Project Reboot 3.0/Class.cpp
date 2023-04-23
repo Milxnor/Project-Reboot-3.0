@@ -9,6 +9,9 @@ UObject* UClass::CreateDefaultObject()
 
     auto name = this->GetFullName();
 
+    if (name.contains("Default__"))
+        return this;
+
     auto defaultafqaf = defaultAbilities.find(name);
 
     UObject* DefaultObject = nullptr;

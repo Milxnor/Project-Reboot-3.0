@@ -5,6 +5,7 @@
 #include "Object.h"
 #include "Rotator.h"
 #include "Actor.h"
+#include "GameInstance.h"
 
 struct FNetworkNotify
 {
@@ -44,6 +45,24 @@ public:
 	{
 		static auto AuthorityGameModeOffset = GetOffset("AuthorityGameMode");
 		return this->Get<T*>(AuthorityGameModeOffset);
+	}
+
+	class AGameState* GetGameState()
+	{
+		static auto GameStateOffset = GetOffset("GameState");
+		return this->Get<class AGameState*>(GameStateOffset);
+	}
+
+	UGameInstance* GetOwningGameInstance()
+	{
+		static auto OwningGameInstanceOffset = GetOffset("OwningGameInstance");
+		return this->Get<UGameInstance*>(OwningGameInstanceOffset);
+	}
+
+	inline FTimerManager& GetTimerManager()
+	{
+		return GetOwningGameInstance()->GetTimerManager();
+		// return (GetOwningGameInstance() ? GetOwningGameInstance()->GetTimerManager() : *TimerManager);
 	}
 
 	template <typename ActorType>

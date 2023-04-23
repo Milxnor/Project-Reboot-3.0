@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -192,6 +192,8 @@
     <ClCompile Include="EngineTypes.cpp" />
     <ClCompile Include="events.cpp" />
     <ClCompile Include="FortAthenaCreativePortal.cpp" />
+    <ClCompile Include="FortAthenaMutator_Barrier.cpp" />
+    <ClCompile Include="FortAthenaMutator_Disco.cpp" />
     <ClCompile Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.cpp" />
     <ClCompile Include="FortAthenaSupplyDrop.cpp" />
     <ClCompile Include="FortAthenaVehicle.cpp" />
@@ -257,6 +259,9 @@
     <ClInclude Include="Array.h" />
     <ClInclude Include="AssertionMacros.h" />
     <ClInclude Include="AssetPtr.h" />
+    <ClInclude Include="AthenaBarrierFlag.h" />
+    <ClInclude Include="AthenaBarrierObjective.h" />
+    <ClInclude Include="AthenaBigBaseWall.h" />
     <ClInclude Include="AthenaMarkerComponent.h" />
     <ClInclude Include="AttributeSet.h" />
     <ClInclude Include="BGA.h" />
@@ -282,6 +287,8 @@
     <ClInclude Include="Decay.h" />
     <ClInclude Include="Delegate.h" />
     <ClInclude Include="DelegateBase.h" />
+    <ClInclude Include="DelegateCombinations.h" />
+    <ClInclude Include="DelegateInstanceInterface.h" />
     <ClInclude Include="die.h" />
     <ClInclude Include="EnableIf.h" />
     <ClInclude Include="Engine.h" />
@@ -291,8 +298,11 @@
     <ClInclude Include="FortAbilitySet.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
     <ClInclude Include="FortAthenaMutator.h" />
+    <ClInclude Include="FortAthenaMutator_Barrier.h" />
+    <ClInclude Include="FortAthenaMutator_Disco.h" />
     <ClInclude Include="FortAthenaMutator_GG.h" />
     <ClInclude Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.h" />
+    <ClInclude Include="FortAthenaMutator_Heist.h" />
     <ClInclude Include="FortAthenaMutator_InventoryOverride.h" />
     <ClInclude Include="FortAthenaMutator_InventoryOverride_Bucket.h" />
     <ClInclude Include="FortAthenaMutator_ItemDropOnDeath.h" />
@@ -335,6 +345,8 @@
     <ClInclude Include="FortWeaponMeleeItemDefinition.h" />
     <ClInclude Include="FortWeaponRangedMountedCannon.h" />
     <ClInclude Include="FortWorldItemDefinition.h" />
+    <ClInclude Include="Function.h" />
+    <ClInclude Include="GameInstance.h" />
     <ClInclude Include="GameMode.h" />
     <ClInclude Include="GameModeBase.h" />
     <ClInclude Include="GameplayAbilitySpec.h" />
@@ -344,12 +356,14 @@
     <ClInclude Include="GameSession.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GenericPlatformMath.h" />
+    <ClInclude Include="GenericPlatformMisc.h" />
     <ClInclude Include="GenericPlatformTime.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="hooking.h" />
     <ClInclude Include="IdentityFunctor.h" />
     <ClInclude Include="inc.h" />
+    <ClInclude Include="Interface.h" />
     <ClInclude Include="IntroSort.h" />
     <ClInclude Include="InventoryManagementLibrary.h" />
     <ClInclude Include="Invoke.h" />
@@ -390,6 +404,7 @@
     <ClInclude Include="RemoveReference.h" />
     <ClInclude Include="ReversePredicate.h" />
     <ClInclude Include="Rotator.h" />
+    <ClInclude Include="ScriptDelegates.h" />
     <ClInclude Include="ScriptInterface.h" />
     <ClInclude Include="Set.h" />
     <ClInclude Include="SharedPointer.h" />
@@ -402,9 +417,11 @@
     <ClInclude Include="Stack.h" />
     <ClInclude Include="StringAssetReference.h" />
     <ClInclude Include="Text.h" />
+    <ClInclude Include="TimerManager.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Tuple.h" />
     <ClInclude Include="TypeCompatibleBytes.h" />
+    <ClInclude Include="TypeWrapper.h" />
     <ClInclude Include="UnrealMathUtility.h" />
     <ClInclude Include="UnrealString.h" />
     <ClInclude Include="UnrealTemplate.h" />
@@ -420,6 +437,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="DelegateSignatureImpl.inl" />
+    <None Include="ExpressionParserTypes.inl" />
     <None Include="UnrealEngine.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

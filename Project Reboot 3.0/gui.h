@@ -22,6 +22,7 @@
 #include <fstream>
 #include <olectl.h>
 
+#include "FortAthenaMutator_Disco.h"
 #include "globals.h"
 #include "Fonts/ruda-bold.h"
 #include "Vector.h"
@@ -36,6 +37,7 @@
 #include "FortGadgetItemDefinition.h"
 #include "FortWeaponItemDefinition.h"
 #include "events.h"
+#include "FortAthenaMutator_Heist.h"
 
 #define GAME_TAB 1
 #define PLAYERS_TAB 2
@@ -45,8 +47,9 @@
 #define LATEGAME_TAB 6
 #define DUMP_TAB 7
 #define UNBAN_TAB 8
-#define SETTINGS_TAB 9
-#define CREDITS_TAB 10
+#define DEVELOPER_TAB 9
+#define SETTINGS_TAB 10
+#define CREDITS_TAB 11
 
 #define MAIN_PLAYERTAB 1
 #define INVENTORY_PLAYERTAB 2
@@ -216,6 +219,10 @@ static int playerTabTab = MAIN_PLAYERTAB;
 
 void StaticUI()
 {
+#ifndef PROD
+	ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
+#endif
+
 	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);
 	ImGui::Checkbox("Infinite Materials", &Globals::bInfiniteMaterials);
 
@@ -306,6 +313,16 @@ void MainTabs()
 
 		// maybe a Replication Stats for >3.3?
 
+#ifndef PROD
+		if (ImGui::BeginTabItem("Developer"))
+		{
+			Tab = DEVELOPER_TAB;
+			PlayerTab = -1;
+			bInformationTab = false;
+			ImGui::EndTabItem();
+		}
+#endif
+
 		if (false && ImGui::BeginTabItem(("Credits")))
 		{
 			Tab = CREDITS_TAB;
@@ -365,9 +382,7 @@ void MainUI()
 			if (bLoaded)
 			{
 				StaticUI();
-#ifndef PROD
-				ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
-#endif
+
 				if (!bStartedBus)
 				{
 					bool bWillBeLategame = Globals::bLateGame.load();
@@ -438,6 +453,44 @@ void MainUI()
 					else
 					{
 						LOG_ERROR(LogGame, "Restarting is not supported on chapter 2 and above!");
+					}
+				}
+
+				if (ImGui::Button("TEST"))
+				{
+					auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+					auto GameState = GameMode->GetGameState();
+
+					static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
+					auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
+
+					for (int i = 0; i < AllMutators.Num(); i++)
+					{
+						auto Mutator = AllMutators.at(i);
+
+						LOG_INFO(LogDev, "[{}] Mutator: {}", i, Mutator->GetFullName());
+
+						if (auto DiscoMutator = Cast<AFortAthenaMutator_Disco>(Mutator))
+						{
+							auto& ControlPointSpawnData = DiscoMutator->GetControlPointSpawnData();
+
+							LOG_INFO(LogDev, "ControlPointSpawnData.Num(): {}", ControlPointSpawnData.Num());
+						}
+						else if (auto HeistMutator = Cast<AFortAthenaMutator_Heist>(Mutator))
+						{
+							auto& HeistExitCraftSpawnData = HeistMutator->GetHeistExitCraftSpawnData();
+
+							LOG_INFO(LogDev, "HeistExitCraftSpawnData.Num(): {}", HeistExitCraftSpawnData.Num());
+
+							for (int j = 0; j < HeistExitCraftSpawnData.Num(); j++)
+							{
+								auto& CurrentHeistExitCraftSpawnData = HeistExitCraftSpawnData.at(j);
+								auto CurveTable = CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().CurveTable;
+
+								// LOG_INFO(LogDev, "{} {}", CurveTable ? CurveTable->GetFullName() : "InvalidTable",
+									// CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().RowName.IsValid() ? CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().RowName.ToString() : "InvalidName");
+							}
+						}
 					}
 				}
 
@@ -743,6 +796,22 @@ void MainUI()
 		else if (Tab == UNBAN_TAB)
 		{
 
+		}
+		else if (Tab == DEVELOPER_TAB)
+		{
+			static std::string ClassNameToDump;
+
+			ImGui::InputText("Class Name to get VFT", &ClassNameToDump);
+
+			if (ImGui::Button("Print Class VFT"))
+			{
+				auto ClassToDump = FindObject<UClass>(ClassNameToDump)->CreateDefaultObject();
+
+				if (ClassToDump)
+				{
+					LOG_INFO(LogDev, "{} VFT: 0x{:x}", ClassToDump->GetName(), __int64(ClassToDump->VFTable) - __int64(GetModuleHandleW(0)));
+				}
+			}
 		}
 		else if (Tab == SETTINGS_TAB)
 		{

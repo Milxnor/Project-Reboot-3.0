@@ -9,6 +9,33 @@
 
 } */
 
+TScriptInterface<UFortSafeZoneInterface> AFortGameStateAthena::GetSafeZoneInterface()
+{
+	int Offset = -1;
+
+	if (Fortnite_Version == 10.40)
+	{
+		// Offset = 0xF60;
+	}
+
+	TScriptInterface<UFortSafeZoneInterface> ScriptInterface{};
+
+	if (Offset != -1)
+	{
+		auto idk = (void*)(__int64(this) + Offset);
+
+		UObject* ObjectPtr = reinterpret_cast<UObject* (*)(__int64)>(((UObject*)idk)->VFTable[0x1])(__int64(idk)); // not actually a uobject but its just how we can get vft
+
+		if (ObjectPtr)
+		{
+			ScriptInterface.ObjectPointer = ObjectPtr;
+			ScriptInterface.InterfacePointer = ObjectPtr->GetInterfaceAddress(UFortSafeZoneInterface::StaticClass());
+		}
+	}
+
+	return ScriptInterface;
+}
+
 UFortPlaylist*& AFortGameStateAthena::GetCurrentPlaylist()
 {
 	static auto CurrentPlaylistInfoOffset = GetOffset("CurrentPlaylistInfo", false);

@@ -239,6 +239,12 @@
     <ClCompile Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Mutators</Filter>
     </ClCompile>
+    <ClCompile Include="FortAthenaMutator_Disco.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Mutators</Filter>
+    </ClCompile>
+    <ClCompile Include="FortAthenaMutator_Barrier.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Mutators</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -746,6 +752,51 @@
     <ClInclude Include="FortAthenaMutator_ItemDropOnDeath.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
     </ClInclude>
+    <ClInclude Include="FortAthenaMutator_Disco.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_Heist.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="AthenaBarrierFlag.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors\Barrier</Filter>
+    </ClInclude>
+    <ClInclude Include="AthenaBarrierObjective.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors\Barrier</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_Barrier.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="AthenaBigBaseWall.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors\Barrier</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerManager.h">
+      <Filter>Engine\Source\Runtime\Engine\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="DelegateCombinations.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Delegates</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptDelegates.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="GenericPlatformMisc.h">
+      <Filter>Engine\Source\Runtime\Core\Public\GenericPlatform</Filter>
+    </ClInclude>
+    <ClInclude Include="Function.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="GameInstance.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="DelegateInstanceInterface.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Delegates</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeWrapper.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -913,9 +964,6 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Building\GameplayActors">
       <UniqueIdentifier>{18a41ed2-b864-4a36-9396-cb0672b8464d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="FortniteGame\Source\FortniteGame\Public\Creative\Minigame">
-      <UniqueIdentifier>{a28fab04-cc3c-4032-ac3e-22c6b9379312}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Creative\Minigame">
       <UniqueIdentifier>{7905895d-5ebf-4313-a9de-06f507c35113}</UniqueIdentifier>
     </Filter>
@@ -976,6 +1024,15 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Mutators">
       <UniqueIdentifier>{6efc7bff-2d7b-4fdb-bae8-3d2e736cc82e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Building\GameplayActors\Barrier">
+      <UniqueIdentifier>{a633ca3f-f699-4c92-8522-e49a14157b95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Creative\Minigame">
+      <UniqueIdentifier>{a28fab04-cc3c-4032-ac3e-22c6b9379312}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Public">
+      <UniqueIdentifier>{3d909143-220c-44b3-819f-79d282c3fc0f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="UnrealEngine.cpp">
@@ -983,6 +1040,9 @@
     </None>
     <None Include="DelegateSignatureImpl.inl">
       <Filter>Engine\Source\Runtime\Core\Public\Delegates</Filter>
+    </None>
+    <None Include="ExpressionParserTypes.inl">
+      <Filter>Engine\Source\Runtime\Core\Public\Misc</Filter>
     </None>
   </ItemGroup>
 </Project>
