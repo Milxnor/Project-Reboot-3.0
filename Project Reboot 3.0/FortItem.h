@@ -108,9 +108,11 @@ struct FFortItemEntry : FFastArraySerializerItem
 			this->GetItemDefinition() = OtherItemEntry->GetItemDefinition();
 			this->GetCount() = OtherItemEntry->GetCount();
 			this->GetLoadedAmmo() = OtherItemEntry->GetLoadedAmmo();
+			this->GetItemGuid() = OtherItemEntry->GetItemGuid();
 		}
 
-		this->GetItemGuid() = OldGuid;
+		if (!bCopyGuid)
+			this->GetItemGuid() = OldGuid;
 	}
 
 	static UStruct* GetStruct()
@@ -143,6 +145,40 @@ struct FFortItemEntry : FFastArraySerializerItem
 		// Entry->bUpdateStatsOnCollection = true; // Idk what this does but fortnite does it soo
 
 		return Entry;
+	}
+
+	// We need to find a better way for below... Especially since we can't do either method for season 5 or 6.
+
+	static void FreeItemEntry(FFortItemEntry* Entry)
+	{
+		if (Addresses::FreeEntry)
+		{
+			static __int64 (*FreeEntryOriginal)(__int64 Entry) = decltype(FreeEntryOriginal)(Addresses::FreeEntry);
+			FreeEntryOriginal(__int64(Entry));
+		}
+	}
+
+	static void FreeArrayOfEntries(TArray<FFortItemEntry>& tarray)
+	{
+		if (Addresses::FreeArrayOfEntries)
+		{
+			static __int64 (*FreeArrayOfEntriesOriginal)(TArray<FFortItemEntry>& a1) = decltype(FreeArrayOfEntriesOriginal)(Addresses::FreeArrayOfEntries);
+			FreeArrayOfEntriesOriginal(tarray);
+		}
+		else
+		{
+			if (Addresses::FreeEntry)
+			{
+				for (int i = 0; i < tarray.size(); i++)
+				{
+					FreeItemEntry(tarray.AtPtr(i));
+				}
+			}
+			else
+			{
+				tarray.Free(); // does nothing
+			}
+		}
 	}
 };
 

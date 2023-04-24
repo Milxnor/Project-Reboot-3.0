@@ -561,15 +561,11 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 	Stack.StepCompiledIn(&WorldLevel);
 	Stack.StepCompiledIn(&ForcedLootTier);
 
+	FFortItemEntry::FreeArrayOfEntries(OutLootToDropTempBuf);
+
 	LOG_INFO(LogDev, "Picking loot for {}.", TierGroupName.ComparisonIndex.Value ? TierGroupName.ToString() : "InvalidName");
 
 	auto LootDrops = PickLootDrops(TierGroupName, true);
-
-	/* LootDrop skuffed{};
-	skuffed.ItemDefinition = FindObject<UFortItemDefinition>("AGID_CarminePack", nullptr, ANY_PACKAGE);
-	skuffed.Count = 1;
-
-	LootDrops.push_back(skuffed); */
 
 	for (int i = 0; i < LootDrops.size(); i++)
 	{

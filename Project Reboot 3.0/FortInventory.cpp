@@ -146,11 +146,11 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		static auto FortItemEntryStruct = FindObject(L"/Script/FortniteGame.FortItemEntry");
 		static auto FortItemEntrySize = *(int*)(__int64(FortItemEntryStruct) + Offsets::PropertiesSize);
 
-		bool bEnableStateValues = false;
+		bool bEnableStateValues = false; // Addresses::FreeEntry;
 
 		if (bEnableStateValues)
 		{
-			FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize());
+			FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize(), true);
 			StateValue->GetIntValue() = bShowItemToast;
 			StateValue->GetStateType() = EFortItemEntryState::ShouldShowItemToast;
 			NewItemInstance->GetItemEntry()->GetStateValues().AddPtr(StateValue, FFortItemEntryStateValue::GetStructSize());
@@ -372,7 +372,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 				}
 			}
 
-			ItemInstance->GetItemEntry()->GetStateValues().FreeReal();
+			FFortItemEntry::FreeItemEntry(ItemInstances.at(i)->GetItemEntry()); // Really this is deconstructing it, which frees the arrays inside, we have to do this since Remove doesn't.
 			ItemInstances.Remove(i);
 			break;
 		}
@@ -382,7 +382,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	{
 		if (ReplicatedEntries.at(i, FortItemEntrySize).GetItemGuid() == ItemGuid)
 		{
-			ReplicatedEntries.at(i, FortItemEntrySize).GetStateValues().FreeReal();
+			FFortItemEntry::FreeItemEntry(ReplicatedEntries.AtPtr(i, FortItemEntrySize));
 			ReplicatedEntries.Remove(i, FortItemEntrySize);
 			break;
 		}

@@ -53,12 +53,12 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 
 		if (Addresses::PickupInitialize)
 		{
-			static void (*SetupPickup)(AFortPickup* Pickup, __int64 ItemEntry, TArray<__int64> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
+			static void (*SetupPickup)(AFortPickup* Pickup, __int64 ItemEntry, TArray<FFortItemEntry> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
 				= decltype(SetupPickup)(Addresses::PickupInitialize);
 
-			TArray<__int64> MultiItemPickupEntriesIGuess{};
+			TArray<FFortItemEntry> MultiItemPickupEntriesIGuess{};
 			SetupPickup(Pickup, __int64(ItemEntry), MultiItemPickupEntriesIGuess, false);
-			MultiItemPickupEntriesIGuess.Free();
+			FFortItemEntry::FreeArrayOfEntries(MultiItemPickupEntriesIGuess);
 		}
 		else
 		{

@@ -271,6 +271,12 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding PickupInitialize");
 	Addresses::PickupInitialize = FindPickupInitialize();
 
+	LOG_INFO(LogDev, "Finding FreeEntry");
+	Addresses::FreeEntry = FindFreeEntry();
+
+	LOG_INFO(LogDev, "Finding FreeArrayOfEntries");
+	Addresses::FreeArrayOfEntries = FindFreeArrayOfEntries();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 

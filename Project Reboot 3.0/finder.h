@@ -731,6 +731,26 @@ static inline uint64 FindEnterAircraft()
 	return 0;
 }
 
+static inline uint64 FindFreeArrayOfEntries()
+{
+	// horrific way
+
+	if (Engine_Version == 422 || Engine_Version == 423)
+		return Memcury::Scanner::FindPattern("48 83 EC 38 48 89 6C 24 ? 4C 89 74 24 ? 4C 8B F1 48 8B 09 41 8B 6E 08 85 ED 0F 84 ? ? ? ? 48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 48 8D B9").Get(); // 7.30 & 10.40
+	
+	return 0;
+}
+
+static inline uint64 FindFreeEntry()
+{
+	// horrific way
+
+	if (Engine_Version == 420)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B F1 48 8B 89 ? ? ? ? 48 85 C9 74 05 E8 ? ? ? ? 48 8B 8E ? ? ? ? 48 85 C9 74 05 E8 ? ? ? ? 48 8B 8E ? ? ? ? 48 85 C9 74 05 E8 ? ? ? ? 48 8B 9E ? ? ? ? 48 85").Get(); // 4.1
+
+	return 0;
+}
+
 static inline uint64 FindRemoveGadgetData()
 {
 	if (Engine_Version <= 423)
