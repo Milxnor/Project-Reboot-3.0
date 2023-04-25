@@ -3,6 +3,16 @@
 #include "FortPlayerController.h"
 #include "FortGadgetItemDefinition.h"
 
+FFortAthenaLoadout* AFortPlayerPawn::GetCosmeticLoadout()
+{
+	static auto CosmeticLoadoutOffset = GetOffset("CosmeticLoadout");
+
+	if (CosmeticLoadoutOffset == -1)
+		return nullptr;
+
+	return GetPtr<FFortAthenaLoadout>(CosmeticLoadoutOffset);
+}
+
 void AFortPlayerPawn::ServerChoosePart(EFortCustomPartType Part, UObject* ChosenCharacterPart)
 {
 	static auto fn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerPawn.ServerChoosePart");

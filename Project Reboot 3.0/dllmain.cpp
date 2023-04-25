@@ -357,7 +357,7 @@ DWORD WINAPI Main(LPVOID)
 
     // Globals::bAbilitiesEnabled = Engine_Version < 500;
 
-    if (Fortnite_Version == 1.11)
+    if (Engine_Version < 420)
     {
         auto ApplyHomebaseEffectsOnPlayerSetupAddr = Memcury::Scanner::FindPattern("40 55 53 57 41 54 41 56 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 00 4C 8B BD ? ? ? ? 49").Get();
 

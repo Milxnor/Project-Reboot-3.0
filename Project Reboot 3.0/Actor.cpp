@@ -234,14 +234,14 @@ bool AActor::IsOnlyRelevantToOwner()
 bool AActor::CanBeDamaged()
 {
 	static auto bCanBeDamagedOffset = GetOffset("bCanBeDamaged");
-	static auto bCanBeDamagedFieldMask = GetFieldMask(GetProperty("bOnlyRelevantToOwner"));
+	static auto bCanBeDamagedFieldMask = GetFieldMask(GetProperty("bCanBeDamaged"));
 	return ReadBitfieldValue(bCanBeDamagedOffset, bCanBeDamagedFieldMask);
 }
 
 void AActor::SetCanBeDamaged(bool NewValue)
 {
 	static auto bCanBeDamagedOffset = GetOffset("bCanBeDamaged");
-	static auto bCanBeDamagedFieldMask = GetFieldMask(GetProperty("bOnlyRelevantToOwner"));
+	static auto bCanBeDamagedFieldMask = GetFieldMask(GetProperty("bCanBeDamaged"));
 	SetBitfieldValue(bCanBeDamagedOffset, bCanBeDamagedFieldMask, NewValue);
 }
 

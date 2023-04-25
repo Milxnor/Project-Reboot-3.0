@@ -5,6 +5,7 @@
 #include "Map.h"
 #include "WeakObjectPtrTemplates.h"
 #include "ActorChannel.h"
+#include <memcury.h>
 
 class UNetConnection : public UPlayer
 {
@@ -17,7 +18,7 @@ public:
 
 	FName& GetClientWorldPackageName() const
 	{
-		static auto ClientWorldPackageNameOffset = 0x337B8;
+		static auto ClientWorldPackageNameOffset = Offsets::ClientWorldPackageName;
 		return *(FName*)(__int64(this) + ClientWorldPackageNameOffset);
 	}
 
@@ -40,11 +41,11 @@ public:
 		return Get<double>(LastReceiveTimeOffset);
 	}
 
-	TSet<FName>& GetClientVisibleLevelNames()
+	/* TSet<FName>& GetClientVisibleLevelNames()
 	{
 		static auto ClientVisibleLevelNamesOffset = 0x336C8;
 		return *(TSet<FName>*)(__int64(this) + ClientVisibleLevelNamesOffset);
-	}
+	} */
 
 	class UNetDriver*& GetDriver()
 	{
@@ -70,9 +71,5 @@ public:
 		return Get<TArray<AActor*>>(SentTemporariesOffset);
 	}
 
-	bool ClientHasInitializedLevelFor(const AActor* TestActor) const
-	{
-		bool (*ClientHasInitializedLevelForOriginal)(const UNetConnection* Connection, const AActor* TestActor) = decltype(ClientHasInitializedLevelForOriginal)(this->VFTable[0x300 / 8]);
-		return ClientHasInitializedLevelForOriginal(this, TestActor);
-	}
+	bool ClientHasInitializedLevelFor(const AActor* TestActor) const;
 };

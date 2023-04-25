@@ -910,7 +910,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	if (!PlayerStateAthena)
 		return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);
 
-	if (Globals::bNoMCP)
+	if (Globals::bNoMCP || Engine_Version == 416)
 	{
 		static auto CharacterPartsOffset = PlayerStateAthena->GetOffset("CharacterParts", false);
 		static auto CustomCharacterPartsStruct = FindObject<UStruct>("/Script/FortniteGame.CustomCharacterParts");
@@ -930,9 +930,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			Parts[(int)EFortCustomPartType::Head] = headPart;
 			Parts[(int)EFortCustomPartType::Body] = bodyPart;
-
-			// if (Fortnite_Version > 2.5)
-			Parts[(int)EFortCustomPartType::Backpack] = backpackPart;
 
 			static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
 			PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);

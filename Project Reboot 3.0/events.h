@@ -25,6 +25,32 @@ static inline std::vector<Event> Events =
 {
 	Event
 	(
+		"Rocket",
+		"",
+		"",
+		0,
+		{
+
+		},
+		{
+			{
+				{
+					false,
+					// "/Buffet/Gameplay/Blueprints/BP_Buffet_Master_Scripting.BP_Buffet_Master_Scripting_C.startevent"
+					"/Game/Athena/Maps/Test/Events/BP_GeodeScripting.BP_GeodeScripting_C.LaunchSequence"
+				},
+
+				0
+			}
+		},
+
+		"/Game/Athena/Maps/Test/Events/BP_GeodeScripting.BP_GeodeScripting_C",
+		"/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo",
+		4.5,
+		false
+	),
+	Event
+	(
 		"Butterfly",
 		"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C",
 		"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C.LoadButterflySublevel",

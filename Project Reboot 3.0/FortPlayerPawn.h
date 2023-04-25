@@ -34,6 +34,7 @@ public:
 	static inline AActor* (*ServerOnExitVehicleOriginal)(AFortPlayerPawn* Pawn, ETryExitVehicleBehavior ExitForceBehavior); // actually returns AFortAthenaVehicle
 	static inline void (*StartGhostModeExitOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 
+	struct FFortAthenaLoadout* GetCosmeticLoadout();
 	void ServerChoosePart(EFortCustomPartType Part, class UObject* ChosenCharacterPart);
 	void ForceLaunchPlayerZipline(); // Thanks android
 	AActor* ServerOnExitVehicle(ETryExitVehicleBehavior ExitForceBehavior); // actually returns AFortAthenaVehicle

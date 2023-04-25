@@ -404,6 +404,11 @@ static inline uint64 FindIsNetRelevantForOffset()
 	return 0;
 }
 
+static inline uint64 FindApplyHomebaseEffectsOnPlayerSetup()
+{
+	return 0; 
+}
+
 static inline uint64 FindActorChannelClose()
 {
 	auto StringRef = Memcury::Scanner::FindStringRef(L"UActorChannel::Close: ChIndex: %d, Actor: %s");
@@ -1283,7 +1288,10 @@ static inline uint64 FindGetNetMode()
 
 static inline uint64 FindApplyCharacterCustomization()
 {
-	auto Addrr = Memcury::Scanner::FindStringRef(L"AFortPlayerState::ApplyCharacterCustomization - Failed initialization, using default parts. Player Controller: %s PlayerState: %s, HeroId: %s").Get();
+	auto Addrr = Memcury::Scanner::FindStringRef(L"AFortPlayerState::ApplyCharacterCustomization - Failed initialization, using default parts. Player Controller: %s PlayerState: %s, HeroId: %s", false).Get();
+
+	if (!Addrr)
+		return 0;
 
 	for (int i = 0; i < 7000; i++)
 	{

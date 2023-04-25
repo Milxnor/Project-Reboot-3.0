@@ -8,13 +8,40 @@
 #include "AthenaMarkerComponent.h"
 #include "FortVolume.h"
 
-static void ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChoosePart = false)
+static bool ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChoosePart = false)
 {
 	if (!CID)
-		return;
+		return false;
 
-	if (!Pawn && bUseServerChoosePart)
-		return;
+	auto PlayerController = Cast<AFortPlayerController>(Pawn->GetController());
+
+	if (!PlayerController)
+		return false;
+
+	/* auto PCCosmeticLoadout = PlayerController->GetCosmeticLoadout();
+
+	if (!PCCosmeticLoadout)
+	{
+		LOG_INFO(LogCosmetics, "PCCosmeticLoadout is not set! Will not be able to apply skin.");
+		return false;
+	}
+
+	auto PawnCosmeticLoadout = PlayerController->GetCosmeticLoadout();
+
+	if (!PawnCosmeticLoadout)
+	{
+		LOG_INFO(LogCosmetics, "PawnCosmeticLoadout is not set! Will not be able to apply skin.");
+		return false;
+	}
+
+	PCCosmeticLoadout->GetCharacter() = CID;
+	PawnCosmeticLoadout->GetCharacter() = CID;
+	PlayerController->ApplyCosmeticLoadout(); // would cause recursive
+
+	return true; */
+
+	if (Engine_Version == 416)
+		return false;
 
 	static auto HeroDefinitionOffset = CID->GetOffset("HeroDefinition");
 	auto HeroDefinition = CID->Get(HeroDefinitionOffset);

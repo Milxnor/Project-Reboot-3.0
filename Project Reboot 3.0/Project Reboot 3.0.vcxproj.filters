@@ -251,6 +251,9 @@
     <ClCompile Include="calendar.h">
       <Filter>Reboot\Public</Filter>
     </ClCompile>
+    <ClCompile Include="NetConnection.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />

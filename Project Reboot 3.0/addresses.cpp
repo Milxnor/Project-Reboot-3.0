@@ -96,6 +96,8 @@ void Addresses::SetupVersion()
 		Fortnite_Version = 1.72;
 	if (Fortnite_CL == 3724489)
 		Fortnite_Version = 1.8;
+	if (Fortnite_CL == 3757339)
+		Fortnite_Version = 1.9;
 	if (Fortnite_CL == 3870737)
 		Fortnite_Version = 2.42;
 
@@ -277,6 +279,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding FreeArrayOfEntries");
 	Addresses::FreeArrayOfEntries = FindFreeArrayOfEntries();
 
+	LOG_INFO(LogDev, "Finding ApplyHomebaseEffectsOnPlayerSetup");
+	Addresses::FreeArrayOfEntries = FindApplyHomebaseEffectsOnPlayerSetup();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -339,6 +344,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "EnterAircraft: 0x{:x}", EnterAircraft - Base);
 	LOG_INFO(LogDev, "SetTimer: 0x{:x}", SetTimer - Base);
 	LOG_INFO(LogDev, "PickupInitialize: 0x{:x}", PickupInitialize - Base);
+	LOG_INFO(LogDev, "ApplyHomebaseEffectsOnPlayerSetup: 0x{:x}", ApplyHomebaseEffectsOnPlayerSetup - Base);
 }
 
 void Offsets::FindAll()
@@ -379,14 +385,26 @@ void Offsets::FindAll()
 	else if (std::floor(Fortnite_Version) >= 21)
 		Offsets::ServerReplicateActors = 0x67; // checked onb 22.30
 
-	if (Engine_Version == 416) // checked on 1.7.2 & 1.8
+	if (Engine_Version == 416) // checked on 1.7.2 & 1.8 & 1.9
 	{
 		Offsets::NetworkObjectList = 0x3F8;
 		Offsets::ReplicationFrame = 0x288;
 	}
-	if (Fortnite_Version == 2.42)
+	if (Fortnite_Version == 1.72)
 	{
-		Offsets::ReplicationFrame = 0x2C8;
+		Offsets::ClientWorldPackageName = 0x336A8;
+	}
+	if (Fortnite_Version == 1.8 || Fortnite_Version == 1.9)
+	{
+		Offsets::ClientWorldPackageName = 0x33788;
+	}
+	if (Fortnite_Version == 1.11)
+	{
+		Offsets::ClientWorldPackageName = 0x337B8;
+	}
+	if (Fortnite_Version == 2.42 || Fortnite_Version == 2.5)
+	{
+		Offsets::ClientWorldPackageName = 0x17F8;
 	}
 	if (Fortnite_Version == 2.5)
 	{

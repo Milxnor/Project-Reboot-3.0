@@ -318,7 +318,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			Pawn->SetShield(Shield);
 			SendMessageToConsole(PlayerController, L"Set shield!\n");
 		}
-		/* else if (Command == "god")
+		else if (Command == "god")
 		{
 			auto Pawn = ReceivingController->GetMyFortPawn();
 
@@ -330,7 +330,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			Pawn->SetCanBeDamaged(!Pawn->CanBeDamaged());
 			SendMessageToConsole(PlayerController, std::wstring(L"God set to " + std::to_wstring(!(bool)Pawn->CanBeDamaged())).c_str());
-		} */
+		}
 		else if (Command == "applycid")
 		{
 			auto PlayerState = Cast<AFortPlayerState>(ReceivingController->GetPlayerState());
@@ -353,9 +353,16 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				return;
 			}
 
-			ApplyCID(Pawn, CIDDef);
+			LOG_INFO(LogDev, "Applying {}", CIDDef->GetFullName());
+			
+			if (!ApplyCID(Pawn, CIDDef))
+			{
+				SendMessageToConsole(PlayerController, L"Failed while applying skin! Please check the server log.");
+				return;
+			}
+
 			SendMessageToConsole(PlayerController, L"Applied CID!");
-		}
+		} 
 		else if (Command == "summon")
 		{
 			if (Arguments.size() <= 1)

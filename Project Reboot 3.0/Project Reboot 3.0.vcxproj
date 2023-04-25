@@ -238,6 +238,7 @@
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="LevelActor.cpp" />
     <ClCompile Include="NameTypes.cpp" />
+    <ClCompile Include="NetConnection.cpp" />
     <ClCompile Include="NetConnection.h" />
     <ClCompile Include="NetDriver.cpp" />
     <ClCompile Include="NetworkObjectList.cpp" />

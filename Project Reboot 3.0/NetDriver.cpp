@@ -7,6 +7,7 @@
 #include "GameplayStatics.h"
 #include "KismetMathLibrary.h"
 #include <random>
+#include "AssertionMacros.h"
 
 FNetworkObjectList& UNetDriver::GetNetworkObjectList()
 {
@@ -322,11 +323,11 @@ static FNetViewer ConstructNetViewer(UNetConnection* NetConnection)
 		static auto ControlRotationOffset = ViewingController->GetOffset("ControlRotation");
 		FRotator ViewRotation = ViewingController->Get<FRotator>(ControlRotationOffset); // hmmmm // ViewingController->GetControlRotation();
 		// AFortPlayerControllerAthena::GetPlayerViewPointHook(Cast<AFortPlayerControllerAthena>(ViewingController, false), newViewer.ViewLocation, ViewRotation);
-		// ViewingController->GetActorEyesViewPoint(&newViewer.ViewLocation, &ViewRotation); // HMMM
+		ViewingController->GetActorEyesViewPoint(&newViewer.ViewLocation, &ViewRotation); // HMMM
 
-		static auto GetActorEyesViewPointOffset = 0x5B0;
-		void (*GetActorEyesViewPointOriginal)(AController*, FVector * a2, FRotator * a3) = decltype(GetActorEyesViewPointOriginal)(ViewingController->VFTable[GetActorEyesViewPointOffset / 8]);
-		GetActorEyesViewPointOriginal(ViewingController, &newViewer.ViewLocation, &ViewRotation);
+		// static auto GetActorEyesViewPointOffset = 0x5B0;
+		// void (*GetActorEyesViewPointOriginal)(AController*, FVector * a2, FRotator * a3) = decltype(GetActorEyesViewPointOriginal)(ViewingController->VFTable[GetActorEyesViewPointOffset / 8]);
+		// GetActorEyesViewPointOriginal(ViewingController, &newViewer.ViewLocation, &ViewRotation);
 		// AFortPlayerControllerAthena::GetPlayerViewPointHook((AFortPlayerControllerAthena*)ViewingController, newViewer.ViewLocation, ViewRotation);
 		newViewer.ViewDir = ViewRotation.Vector();
 	}
@@ -342,6 +343,15 @@ static FORCEINLINE bool IsActorDormant(FNetworkObjectInfo* ActorInfo, const TWea
 
 bool UNetDriver::IsLevelInitializedForActor(const AActor* InActor, const UNetConnection* InConnection) const
 {
+	if (Fortnite_Version >= 2.42) // idk
+		return true;
+
+	if (!InActor || !InConnection)
+		return false;
+
+	// check(World == InActor->GetWorld());
+
+	// return true; // damn
 	const bool bCorrectWorld = (InConnection->GetClientWorldPackageName() == GetWorldPackage()->NamePrivate && InConnection->ClientHasInitializedLevelFor(InActor));
 	const bool bIsConnectionPC = (InActor == InConnection->GetPlayerController());
 	return bCorrectWorld || bIsConnectionPC;
@@ -376,7 +386,6 @@ int32 UNetDriver::ServerReplicateActors()
 	}
 
 	std::vector<FNetworkObjectInfo*> ConsiderList;
-
 	ConsiderList.reserve(GetNetworkObjectList().ActiveNetworkObjects.Num());
 
 	// std::cout << "ConsiderList.size(): " << GetNetworkObjectList(NetDriver).ActiveNetworkObjects.Num() << '\n';
@@ -384,6 +393,8 @@ int32 UNetDriver::ServerReplicateActors()
 	auto World = GetWorld();
 
 	ServerReplicateActors_BuildConsiderList(ConsiderList, ServerTickTime);
+
+	// LOG_INFO(LogReplication, "Considering {} actors.", ConsiderList.size());
 
 	for (int32 i = 0; i < this->GetClientConnections().Num(); i++)
 	{
@@ -434,9 +445,12 @@ int32 UNetDriver::ServerReplicateActors()
 			std::vector<FNetViewer> ConnectionViewers;
 			ConnectionViewers.push_back(ConstructNetViewer(Connection));
 
+			const bool bLevelInitializedForActor = IsLevelInitializedForActor(Actor, Connection);
+
 			if (!Channel)
 			{
-				if (!IsLevelInitializedForActor(Actor, Connection))
+				// if (!IsLevelInitializedForActor(Actor, Connection))
+				if (!bLevelInitializedForActor)
 				{
 					// If the level this actor belongs to isn't loaded on client, don't bother sending
 					continue;
@@ -473,6 +487,8 @@ int32 UNetDriver::ServerReplicateActors()
 
 						if (!IsActorRelevantToConnection(Actor, ConnectionViewers))
 						{
+							// LOG_INFO(LogReplication, "Actor is not relevant!");
+
 							if (Channel)
 								ActorChannelClose(Channel);
 
@@ -485,8 +501,6 @@ int32 UNetDriver::ServerReplicateActors()
 			static UChannel* (*CreateChannel)(UNetConnection*, int, bool, int32_t) = decltype(CreateChannel)(Addresses::CreateChannel);
 			static __int64 (*ReplicateActor)(UActorChannel*) = decltype(ReplicateActor)(Addresses::ReplicateActor);
 			static __int64 (*SetChannelActor)(UActorChannel*, AActor*) = decltype(SetChannelActor)(Addresses::SetChannelActor);
-
-			const bool bLevelInitializedForActor = IsLevelInitializedForActor(Actor, Connection);
 
 			if (!Channel)
 			{
@@ -513,6 +527,7 @@ int32 UNetDriver::ServerReplicateActors()
 			{
 				if (ReplicateActor(Channel))
 				{
+					// LOG_INFO(LogReplication, "Replicated Actor!");
 					auto TimeSeconds = UGameplayStatics::GetTimeSeconds(World);
 					const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();
 					const float MaxOptimalDelta = max(1.0f / Actor->GetMinNetUpdateFrequency(), MinOptimalDelta);

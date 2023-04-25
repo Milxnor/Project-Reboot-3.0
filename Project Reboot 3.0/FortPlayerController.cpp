@@ -897,7 +897,9 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 	if (!ItemDefinition || !ItemDefinition->CanBeDropped())
 		return;
 
-	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop)
+	static auto DropBehaviorOffset = ItemDefinition->GetOffset("DropBehavior", false);
+
+	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && (DropBehaviorOffset != -1 ? ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop : true))
 	{
 		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(),
 			EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn);
@@ -921,6 +923,11 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 	auto Pawn = PlayerController->GetPawn();
 
 	if (!EmoteAsset || !PlayerState || !Pawn)
+		return;
+
+	auto AbilitySystemComponent = PlayerState->GetAbilitySystemComponent();
+
+	if (!AbilitySystemComponent)
 		return;
 
 	UObject* AbilityToUse = nullptr;
@@ -995,10 +1002,15 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 
 	FGameplayAbilitySpec* Spec = MakeNewSpec((UClass*)AbilityToUse, EmoteAsset, true);
 
+	if (!Spec)
+		return;
+
 	static unsigned int* (*GiveAbilityAndActivateOnce)(UAbilitySystemComponent* ASC, int* outHandle, __int64 Spec, FGameplayEventData* TriggerEventData) = decltype(GiveAbilityAndActivateOnce)(Addresses::GiveAbilityAndActivateOnce); // EventData is only on ue500?
 
 	if (GiveAbilityAndActivateOnce)
-		GiveAbilityAndActivateOnce(PlayerState->GetAbilitySystemComponent(), &outHandle, __int64(Spec), nullptr);
+	{
+		GiveAbilityAndActivateOnce(AbilitySystemComponent, &outHandle, __int64(Spec), nullptr);
+	}
 }
 
 uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = false, AFortPawn* Pawn = nullptr)
