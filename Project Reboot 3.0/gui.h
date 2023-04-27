@@ -406,6 +406,40 @@ void MainUI()
 					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
 				}
 
+				/*
+				if (ImGui::Button("New"))
+				{
+					static auto NextFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.Next");
+					static auto NewFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");					
+					auto Loader = GetEventLoader("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C");
+
+					LOG_INFO(LogDev, "Loader: {}", __int64(Loader));
+
+					if (Loader)
+					{
+						int32 NewParam = 1;
+						// Loader->ProcessEvent(NextFn, &NewParam);
+						Loader->ProcessEvent(NewFn, &NewParam);
+					}
+				}
+
+				if (ImGui::Button("Next"))
+				{
+					static auto NextFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.Next");
+					static auto NewFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");
+					auto Loader = GetEventLoader("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C");
+
+					LOG_INFO(LogDev, "Loader: {}", __int64(Loader));
+
+					if (Loader)
+					{
+						int32 NewParam = 1;
+						Loader->ProcessEvent(NextFn, &NewParam);
+						// Loader->ProcessEvent(NewFn, &NewParam);
+					}
+				}
+				*/
+
 				if (Engine_Version < 424 && ImGui::Button("Restart"))
 				{
 					if (Engine_Version < 424)

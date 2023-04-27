@@ -344,12 +344,16 @@ static FORCEINLINE bool IsActorDormant(FNetworkObjectInfo* ActorInfo, const TWea
 bool UNetDriver::IsLevelInitializedForActor(const AActor* InActor, const UNetConnection* InConnection) const
 {
 	if (Fortnite_Version >= 2.42) // idk
+	{
 		return true;
+	}
 
+/* #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (!InActor || !InConnection)
 		return false;
 
 	// check(World == InActor->GetWorld());
+#endif */
 
 	// return true; // damn
 	const bool bCorrectWorld = (InConnection->GetClientWorldPackageName() == GetWorldPackage()->NamePrivate && InConnection->ClientHasInitializedLevelFor(InActor));

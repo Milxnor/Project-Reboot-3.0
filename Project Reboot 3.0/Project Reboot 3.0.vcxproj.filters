@@ -79,7 +79,6 @@
     <ClCompile Include="ActorComponent.cpp">
       <Filter>Engine\Source\Runtime\Engine\Private\Components</Filter>
     </ClCompile>
-    <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FortLootPackage.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
@@ -253,6 +252,9 @@
     </ClCompile>
     <ClCompile Include="NetConnection.cpp">
       <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Reboot\Public</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -808,6 +810,9 @@
     </ClInclude>
     <ClInclude Include="FortGameModePickup.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="moderation.h">
+      <Filter>Reboot\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

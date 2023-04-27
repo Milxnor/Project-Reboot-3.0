@@ -386,6 +386,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="MegaStormManager.h" />
     <ClInclude Include="MemoryOps.h" />
+    <ClInclude Include="moderation.h" />
     <ClInclude Include="NameTypes.h" />
     <ClInclude Include="NetDriver.h" />
     <ClInclude Include="NetSerialization.h" />

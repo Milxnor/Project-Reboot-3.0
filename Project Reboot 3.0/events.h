@@ -51,6 +51,64 @@ static inline std::vector<Event> Events =
 	),
 	Event
 	(
+		"Crack Closure",
+		"/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C",
+		"",
+		0,
+		{
+
+		},
+		{
+			{
+				{
+					false,
+					"/Game/Athena/Events/BP_Athena_Event_Components.BP_Athena_Event_Components_C.Final"
+				},
+
+				0
+			},
+			{
+				{
+					true,
+					"/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.Final"
+				},
+
+				0
+			},
+		},
+
+		"/Game/Athena/Events/BP_Athena_Event_Components.BP_Athena_Event_Components_C",
+		"/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo",
+		5.30,
+		false
+	),
+	/* Event
+	(
+		"Impact Lake",
+		"/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C",
+		"",
+		0,
+		{
+
+		},
+		{
+			{
+				{
+					true,
+					"/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.PlayFinalSink"
+				},
+
+				0
+			},
+		},
+
+		"/Game/Athena/Events/BP_Athena_Event_Components.BP_Athena_Event_Components_C",
+		"/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo",
+		5.41,
+		false
+	), */
+	Event
+	(
 		"Butterfly",
 		"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C",
 		"/Game/Athena/Prototype/Blueprints/Island/BP_Butterfly.BP_Butterfly_C.LoadButterflySublevel",
@@ -411,7 +469,7 @@ static inline UObject* GetEventScripting()
 	return AllScripters.at(0);
 }
 
-static inline UObject* GetEventLoader()
+static inline UObject* GetEventLoader(const std::string& OverrideLoaderName = "NULL")
 {
 	Event OurEvent;
 
@@ -427,7 +485,7 @@ static inline UObject* GetEventLoader()
 	if (!OurEvent.Version)
 		return nullptr;
 
-	auto LoaderClass = FindObject<UClass>(OurEvent.LoaderClass);
+	auto LoaderClass = FindObject<UClass>(OverrideLoaderName == "NULL" ? OurEvent.LoaderClass : OverrideLoaderName);
 
 	if (!LoaderClass)
 	{

@@ -406,10 +406,15 @@ void Offsets::FindAll()
 	{
 		Offsets::ClientWorldPackageName = 0x17F8;
 	}
-	if (Fortnite_Version == 2.5)
+	if (Fortnite_Version >= 2.5 && Fortnite_Version <= 3.1) // checked 2.5, 3.0, 3.1
 	{
 		Offsets::NetworkObjectList = 0x4F0;
 		Offsets::ReplicationFrame = 0x328;
+	}
+	if (Fortnite_Version == 3.1 || Fortnite_Version == 3.2)
+	{
+		Offsets::NetworkObjectList = 0x4F8;
+		Offsets::ClientWorldPackageName = 0x1818;
 	}
 	if (Engine_Version == 419) // checked 2.4.2 & 1.11
 	{
@@ -531,7 +536,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Engine_Version == 500)
 	{
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 F6 0F 29 70 A8 44 38 35").Get()); // zone
-		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A8 48 81 EC ? ? ? ? 45 33 FF").Get()); // Garbage collection
+		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A8 48 81 EC ? ? ? ? 45").Get()); // GC
 	}
 
 	toNull.push_back(Addresses::ChangeGameSessionId);

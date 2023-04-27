@@ -98,6 +98,8 @@ static bool ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChooseP
 
 	static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
 	// PlayerState->Get(HeroTypeOffset) = HeroDefinition;
+
+	return true;
 }
 
 struct FGhostModeRepData

@@ -5,7 +5,7 @@
 #include "FortLootPackage.h"
 #include "FortPickup.h"
 
-void SpawnBGAs()
+void SpawnBGAs() // hahah not "proper", there's a function that we can hook and it gets called on each spawner whenever playlist gets set, but it's fine.
 {
 	static auto BGAConsumableSpawnerClass = FindObject<UClass>("/Script/FortniteGame.BGAConsumableSpawner");
 
@@ -30,10 +30,10 @@ void SpawnBGAs()
 		for (auto& LootDrop : LootDrops)
 		{
 			static auto ConsumableClassOffset = LootDrop.ItemDefinition->GetOffset("ConsumableClass");
-			auto& ConsumableClassSoft = LootDrop.ItemDefinition->Get<TSoftObjectPtr<UClass>>(ConsumableClassOffset);
+			auto ConsumableClassSoft = LootDrop.ItemDefinition->GetPtr<TSoftObjectPtr<UClass>>(ConsumableClassOffset);
 
 			static auto BlueprintGeneratedClassClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
-			auto StrongConsumableClass = ConsumableClassSoft.Get(BlueprintGeneratedClassClass, true);
+			auto StrongConsumableClass = ConsumableClassSoft->Get(BlueprintGeneratedClassClass, true);
 
 			if (!StrongConsumableClass)
 			{
@@ -46,4 +46,6 @@ void SpawnBGAs()
 	}
 
 	AllBGAConsumableSpawners.Free();
+
+	LOG_INFO(LogDev, "Spawned BGAS!");
 }

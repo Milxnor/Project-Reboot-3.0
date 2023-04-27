@@ -398,7 +398,7 @@ static inline uint64 FindIsNetRelevantForOffset()
 {
 	if (Engine_Version == 416) // checked on 1.7.2 & 1.8
 		return 0x420 / 8;
-	if (Fortnite_Version == 1.11 || Fortnite_Version == 2.42 || Fortnite_Version == 2.5)
+	if (Fortnite_Version == 1.11 || (Fortnite_Version >= 2.42 && Fortnite_Version <= 3.2)) // checked 1.11, 2.4.2, 2.5, 3.0, 3.1
 		return 0x418 / 8;
 
 	return 0;
@@ -426,7 +426,7 @@ static inline uint64 FindSpawnActor()
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"SpawnActor failed because no class was specified");
 
-	if (Engine_Version >= 416 && Fortnite_Version <= 2.5)
+	if (Engine_Version >= 416 && Fortnite_Version <= 3.2)
 		return FindBytes(Addr, { 0x40, 0x55 }, 3000, 0, true);
 
 	return FindBytes(Addr, { 0x4C, 0x8B, 0xDC }, 3000, 0, true);
@@ -552,7 +552,14 @@ static inline uint64 FindCompletePickupAnimation()
 		return Memcury::Scanner::FindPattern("4C 8B DC 53 55 56 48 83 EC 60 48 8B F1 48 8B 89 ? ? ? ? 48 85 C9").Get();
 
 	if (Engine_Version == 420)
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 48 8B 89 ? ? ? ? 48 85 C9 74 20 48 8D 44 24").Get();
+	{
+		auto addy = Memcury::Scanner::FindPattern("4C 8B DC 53 55 56 48 83 EC 60 48 8B F1 48 8B 89", false).Get(); // 3.1
+
+		if (!addy)
+			addy = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 48 8B 89 ? ? ? ? 48 85 C9 74 20 48 8D 44 24").Get();
+
+		return addy;
+	}
 
 	if (Engine_Version == 421)
 	{
@@ -920,7 +927,7 @@ static inline uint64 FindTickFlush()
 		return addr;
 	}
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_NetTickFlush");
+	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_NetTickFlush", false);
 
 	if (!Addr.Get())
 	{
@@ -1516,7 +1523,7 @@ static inline uint64 FindReplaceBuildingActor()
 
 static inline uint64 FindSendClientAdjustment()
 {
-	if (Fortnite_Version <= 2.5)
+	if (Fortnite_Version <= 3.2)
 		return Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 99 ? ? ? ? 48 39 99 ? ? ? ? 74 0A 48 83 B9").Get();
 
 	return 0;
@@ -1526,15 +1533,22 @@ static inline uint64 FindReplicateActor()
 {
 	if (Engine_Version == 416)
 		return Memcury::Scanner::FindPattern("40 55 53 57 41 56 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8D 59 68 4C 8B F1 48 8B").Get();
-	if (Engine_Version >= 419 && Fortnite_Version <= 2.5)
-		return Memcury::Scanner::FindPattern("40 55 56 41 54 41 55 41 56 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 4C 8B E9 48 8B 49 68 48").Get();
+	if (Engine_Version >= 419 && Fortnite_Version <= 3.2)
+	{
+		auto addr = Memcury::Scanner::FindPattern("40 55 56 57 41 54 41 55 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 4C", false).Get(); // 3.0, we could just use this sig for everything?
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("40 55 56 41 54 41 55 41 56 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 4C 8B E9 48 8B 49 68 48").Get();
+
+		return addr;
+	}
 
 	return 0;
 }
 
 static inline uint64 FindCreateChannel()
 {
-	if (Fortnite_Version <= 2.5)
+	if (Fortnite_Version <= 3.2)
 		return Memcury::Scanner::FindPattern("40 56 57 41 54 41 55 41 57 48 83 EC 60 48 8B 01 41 8B F9 45 0F B6 E0").Get();
 
 	return 0;
@@ -1544,7 +1558,7 @@ static inline uint64 FindSetChannelActor()
 {
 	if (Engine_Version == 416)
 		return Memcury::Scanner::FindPattern("4C 8B DC 55 53 57 41 54 49 8D AB ? ? ? ? 48 81 EC ? ? ? ? 45 33").Get();
-	if (Engine_Version >= 419 && Fortnite_Version <= 2.5)
+	if (Engine_Version >= 419 && Fortnite_Version <= 3.2)
 	{
 		auto aa = Memcury::Scanner::FindPattern("48 8B C4 55 53 57 41 54 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 45 33 E4 48 89 70", false).Get();
 
@@ -1563,7 +1577,7 @@ static inline uint64 FindCallPreReplication()
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 8B C4 55 57 41 57 48 8D 68 A1 48 81 EC").Get();
 	if (Engine_Version == 419)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 8B C4 55 57 41 54 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C").Get();
-	if (Fortnite_Version == 2.5)
+	if (Fortnite_Version >= 2.5 && Fortnite_Version <= 3.2)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 56 41 56 48 83 EC 38 4C 8B F2").Get();
 
 	return 0;

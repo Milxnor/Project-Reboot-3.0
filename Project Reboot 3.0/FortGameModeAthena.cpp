@@ -160,7 +160,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 		else
 		{
-			GameState->Get("CurrentPlaylistData") = Playlist;
+			static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
+
+			if (CurrentPlaylistDataOffset != -1)
+				GameState->Get(CurrentPlaylistDataOffset) = Playlist;
 		}
 
 		if (bOnRep)
@@ -552,6 +555,22 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		// GameState->OnRep_CurrentPlaylistInfo();
 
 		// return false;
+
+		static auto NewFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");
+
+		if (NewFn && (Fortnite_Version == 5.30 ? !Globals::bGoingToPlayEvent : true))
+		{
+			auto Loader = GetEventLoader("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C");
+
+			LOG_INFO(LogDev, "Loader: {}", __int64(Loader));
+
+			if (Loader)
+			{
+				int32 NewParam = 1;
+				// Loader->ProcessEvent(NextFn, &NewParam);
+				Loader->ProcessEvent(NewFn, &NewParam);
+			}
+		}
 
 		LoopMutators([&](AFortAthenaMutator* Mutator) { LOG_INFO(LogGame, "Mutator {}", Mutator->GetPathName()); });
 
