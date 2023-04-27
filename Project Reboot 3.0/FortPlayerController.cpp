@@ -123,7 +123,7 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 			return;
 		}
 
-		auto CosmeticLoadout = this->GetCosmeticLoadout();
+		auto CosmeticLoadout = GetCosmeticLoadoutOffset() != -1 ? this->GetCosmeticLoadout() : nullptr;
 
 		if (CosmeticLoadout)
 		{
@@ -167,6 +167,11 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 					}
 				}
 			}
+		}
+		else
+		{
+			static auto HeroTypeOffset = PlayerStateAsFort->GetOffset("HeroType");
+			ApplyHID(PawnAsFort, PlayerStateAsFort->Get(HeroTypeOffset));
 		}
 
 		PlayerStateAsFort->ForceNetUpdate();

@@ -8,6 +8,59 @@
 #include "AthenaMarkerComponent.h"
 #include "FortVolume.h"
 
+static void ApplyHID(AFortPlayerPawn* Pawn, UObject* HeroDefinition)
+{
+	using UFortHeroSpecialization = UObject;
+
+	static auto SpecializationsOffset = HeroDefinition->GetOffset("Specializations");
+	auto& Specializations = HeroDefinition->Get<TArray<TSoftObjectPtr<UFortHeroSpecialization>>>(SpecializationsOffset);
+
+	auto PlayerState = Pawn->GetPlayerState();
+
+	for (int i = 0; i < Specializations.Num(); i++)
+	{
+		auto& SpecializationSoft = Specializations.at(i);
+
+		static auto FortHeroSpecializationClass = FindObject<UClass>("/Script/FortniteGame.FortHeroSpecialization");
+		auto Specialization = SpecializationSoft.Get(FortHeroSpecializationClass, true);
+
+		if (Specialization)
+		{
+			static auto Specialization_CharacterPartsOffset = Specialization->GetOffset("CharacterParts");
+			auto& CharacterParts = Specialization->Get<TArray<TSoftObjectPtr<UObject>>>(Specialization_CharacterPartsOffset);
+
+			static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
+
+			/* if (bUseServerChoosePart)
+			{
+				for (int z = 0; z < CharacterParts.Num(); z++)
+				{
+					Pawn->ServerChoosePart((EFortCustomPartType)z, CharacterParts.at(z).Get(CustomCharacterPartClass, true));
+				}
+
+				continue; // hm?
+			} */
+
+			bool aa;
+
+			TArray<UObject*> CharacterPartsaa;
+
+			for (int z = 0; z < CharacterParts.Num(); z++)
+			{
+				auto& CharacterPartSoft = CharacterParts.at(z, GetSoftObjectSize());
+				auto CharacterPart = CharacterPartSoft.Get(CustomCharacterPartClass, true);
+
+				CharacterPartsaa.Add(CharacterPart);
+
+				continue;
+			}
+
+			UFortKismetLibrary::ApplyCharacterCosmetics(GetWorld(), CharacterPartsaa, PlayerState, &aa);
+			CharacterPartsaa.Free();
+		}
+	}
+}
+
 static bool ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChoosePart = false)
 {
 	if (!CID)
@@ -46,57 +99,9 @@ static bool ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChooseP
 	static auto HeroDefinitionOffset = CID->GetOffset("HeroDefinition");
 	auto HeroDefinition = CID->Get(HeroDefinitionOffset);
 
-	using UFortHeroSpecialization = UObject;
+	ApplyHID(Pawn, HeroDefinition);
 
-	static auto SpecializationsOffset = HeroDefinition->GetOffset("Specializations");
-	auto& Specializations = HeroDefinition->Get<TArray<TSoftObjectPtr<UFortHeroSpecialization>>>(SpecializationsOffset);
-
-	auto PlayerState = Pawn->GetPlayerState();
-
-	for (int i = 0; i < Specializations.Num(); i++)
-	{
-		auto& SpecializationSoft = Specializations.at(i);
-
-		static auto FortHeroSpecializationClass = FindObject<UClass>("/Script/FortniteGame.FortHeroSpecialization");
-		auto Specialization = SpecializationSoft.Get(FortHeroSpecializationClass, true);
-
-		if (Specialization)
-		{
-			static auto Specialization_CharacterPartsOffset = Specialization->GetOffset("CharacterParts");
-			auto& CharacterParts = Specialization->Get<TArray<TSoftObjectPtr<UObject>>>(Specialization_CharacterPartsOffset);
-
-			static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
-
-			/* if (bUseServerChoosePart)
-			{
-				for (int z = 0; z < CharacterParts.Num(); z++)
-				{
-					Pawn->ServerChoosePart((EFortCustomPartType)z, CharacterParts.at(z).Get(CustomCharacterPartClass, true));
-				}
-
-				continue; // hm?
-			} */
-
-			bool aa;
-
-			TArray<UObject*> CharacterPartsaa;
-
-			for (int z = 0; z < CharacterParts.Num(); z++)
-			{
-				auto& CharacterPartSoft = CharacterParts.at(z);
-				auto CharacterPart = CharacterPartSoft.Get(CustomCharacterPartClass, true);
-
-				CharacterPartsaa.Add(CharacterPart);
-
-				continue;
-			}
-
-			UFortKismetLibrary::ApplyCharacterCosmetics(GetWorld(), CharacterPartsaa, PlayerState, &aa);
-			CharacterPartsaa.Free();
-		}
-	}
-
-	static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
+	// static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
 	// PlayerState->Get(HeroTypeOffset) = HeroDefinition;
 
 	return true;

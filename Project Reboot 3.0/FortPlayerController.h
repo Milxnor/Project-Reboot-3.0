@@ -66,16 +66,22 @@ public:
 		return Get<AFortPawn*>(MyFortPawnOffset);
 	}
 
-	FFortAthenaLoadout* GetCosmeticLoadout()
+	int GetCosmeticLoadoutOffset()
 	{
 		static auto CosmeticLoadoutPCOffset = this->GetOffset("CosmeticLoadoutPC", false);
 
 		if (CosmeticLoadoutPCOffset == -1)
-			CosmeticLoadoutPCOffset = this->GetOffset("CustomizationLoadout");
+			CosmeticLoadoutPCOffset = this->GetOffset("CustomizationLoadout", false);
 
 		if (CosmeticLoadoutPCOffset == -1)
-			return nullptr;
+			return -1;
 
+		return CosmeticLoadoutPCOffset;
+	}
+
+	FFortAthenaLoadout* GetCosmeticLoadout()
+	{
+		static auto CosmeticLoadoutPCOffset = GetCosmeticLoadoutOffset();
 		auto CosmeticLoadout = this->GetPtr<FFortAthenaLoadout>(CosmeticLoadoutPCOffset);
 
 		return CosmeticLoadout;

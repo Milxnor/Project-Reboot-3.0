@@ -1,13 +1,13 @@
 #pragma once
 
 #include "FortGameModePvPBase.h"
-// #include "FortPlayerControllerAthena.h"
 #include "FortGameStateAthena.h"
 #include "KismetStringLibrary.h"
 #include "reboot.h"
 #include "BuildingSMActor.h"
 #include "FortSafeZoneIndicator.h"
 #include "GameplayStatics.h"
+#include "FortItemDefinition.h"
 
 struct FAircraftFlightInfo
 {
@@ -158,6 +158,11 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 	{
 		UGameplayStatics::UnloadStreamLevel(GetWorld(), LevelToStream, FLatentActionInfo(), false);
 	} */
+
+	// real
+
+	BuildingFoundation->FlushNetDormancy();
+	BuildingFoundation->ForceNetUpdate();
 }
 
 static void StreamLevel(const std::string& LevelName, FVector Location = {})
@@ -208,6 +213,12 @@ public:
 	AFortGameStateAthena* GetGameStateAthena()
 	{
 		return (AFortGameStateAthena*)GetGameState();
+	}
+
+	TArray<FItemAndCount>& GetStartingItems() // really in zone
+	{
+		static auto StartingItemsOffset = GetOffset("StartingItems");
+		return Get<TArray<FItemAndCount>>(StartingItemsOffset);
 	}
 
 	FName RedirectLootTier(const FName& LootTier);

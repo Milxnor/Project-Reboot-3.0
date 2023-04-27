@@ -44,24 +44,6 @@ enum class EFortInventoryType : unsigned char
 	MAX = 3,
 };
 
-struct FItemAndCount
-{
-private:
-	int                                                Count;                                                    // 0x0000(0x0004) (Edit, BlueprintVisible, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	unsigned char                                      UnknownData00[0x4];                                       // 0x0004(0x0004) MISSED OFFSET
-	UFortItemDefinition* Item;                                                     // 0x0008(0x0008) (Edit, BlueprintVisible, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-public:
-	int& GetCount()
-	{
-		return Count;
-	}
-
-	UFortItemDefinition*& GetItem()
-	{
-		return Item;
-	}
-};
-
 struct FItemGuidAndCount
 {
 public:

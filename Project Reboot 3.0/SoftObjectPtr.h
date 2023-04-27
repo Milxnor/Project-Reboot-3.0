@@ -53,3 +53,8 @@ public:
 		}
 	}
 };
+
+static inline int GetSoftObjectSize()
+{
+	return Engine_Version == 416 ? sizeof(TAssetPtr<void>) : sizeof(TSoftObjectPtr<void>);
+}

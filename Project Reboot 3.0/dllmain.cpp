@@ -100,7 +100,26 @@ void __fastcall ApplyHomebaseEffectsOnPlayerSetupHook(
 {
     LOG_INFO(LogDev, "Old hero: {}", Hero ? Hero->GetFullName() : "InvalidObject");
 
-    auto HeroType = FindObject<UFortItemDefinition>("/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
+    UFortItemDefinition* HeroType = FindObject<UFortItemDefinition>("/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
+
+    if (Fortnite_Version == 1.72)
+    {
+        auto AllHeroTypes = GetAllObjectsOfClass(FindObject<UClass>("/Script/FortniteGame.FortHeroType"));
+        std::vector<UFortItemDefinition*> AthenaHeroTypes;
+
+        for (int i = 0; i < AllHeroTypes.size(); i++)
+        {
+            auto CurrentHeroType = (UFortItemDefinition*)AllHeroTypes.at(i);
+
+            if (CurrentHeroType->GetPathName().starts_with("/Game/Athena/Heroes/"))
+                AthenaHeroTypes.push_back(CurrentHeroType);
+        }
+
+        if (AthenaHeroTypes.size())
+        {
+            HeroType = AthenaHeroTypes.at(std::rand() % AthenaHeroTypes.size());
+        }
+    }
 
     static auto ItemDefinitionOffset = Hero->GetOffset("ItemDefinition");
     Hero->Get<UFortItemDefinition*>(ItemDefinitionOffset) = HeroType;
@@ -359,7 +378,7 @@ DWORD WINAPI Main(LPVOID)
 
     if (Engine_Version < 420)
     {
-        auto ApplyHomebaseEffectsOnPlayerSetupAddr = Memcury::Scanner::FindPattern("40 55 53 57 41 54 41 56 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 00 4C 8B BD ? ? ? ? 49").Get();
+        auto ApplyHomebaseEffectsOnPlayerSetupAddr = Memcury::Scanner::FindPattern("40 55 53 57 41 54 41 56 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 45 00 4C 8B").Get();
 
         Hooking::MinHook::Hook((PVOID)ApplyHomebaseEffectsOnPlayerSetupAddr, ApplyHomebaseEffectsOnPlayerSetupHook, (PVOID*)&ApplyHomebaseEffectsOnPlayerSetupOriginal);
     }

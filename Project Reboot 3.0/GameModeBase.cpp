@@ -90,12 +90,12 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			{
 				// TODO Check Playlist->bRequirePickaxeInStartingInventory
 
-				auto CosmeticLoadout = NewPlayerAsAthena->GetCosmeticLoadout();
+				auto CosmeticLoadout = NewPlayerAsAthena->GetCosmeticLoadoutOffset() != -1 ? NewPlayerAsAthena->GetCosmeticLoadout() : nullptr;
 				// LOG_INFO(LogDev, "CosmeticLoadout: {}", __int64(CosmeticLoadout));
 				auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
 				// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe: {}", __int64(CosmeticLoadoutPickaxe));
 				// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe Name: {}", CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->GetFullName() : "InvalidObject");
-				static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition");
+				static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition", false);
 
 				auto PickaxeDefinition = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
 					: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
