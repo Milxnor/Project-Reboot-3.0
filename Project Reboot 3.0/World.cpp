@@ -21,7 +21,7 @@ void UWorld::Listen()
 
 	constexpr bool bUseBeacons = true;
 
-	int Port = 7777 - AmountOfRestarts;
+	int Port = 7777 - Globals::AmountOfListens + 1;
 
 	if (bUseBeacons)
 	{
@@ -79,7 +79,7 @@ void UWorld::Listen()
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;
 
-	LOG_INFO(LogNet, "Listening on port {}!", Port + AmountOfRestarts);
+	LOG_INFO(LogNet, "Listening on port {}!", Port + Globals::AmountOfListens - 1);
 }
 
 AWorldSettings* UWorld::GetWorldSettings(const bool bCheckStreamingPersistent, const bool bChecked) const

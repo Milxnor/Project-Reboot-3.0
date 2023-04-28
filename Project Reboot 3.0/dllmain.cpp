@@ -98,13 +98,16 @@ void __fastcall ApplyHomebaseEffectsOnPlayerSetupHook(
     char a6,
     unsigned __int8 a7)
 {
+    if (!Hero)
+        return ApplyHomebaseEffectsOnPlayerSetupOriginal(GameState, a2, a3, a4, Hero, a6, a7);
+
     LOG_INFO(LogDev, "Old hero: {}", Hero ? Hero->GetFullName() : "InvalidObject");
 
-    UFortItemDefinition* HeroType = FindObject<UFortItemDefinition>("/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
+    UFortItemDefinition* HeroType = FindObject<UFortItemDefinition>(L"/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
 
-    if (Fortnite_Version == 1.72)
+    if (Fortnite_Version == 1.72 || Fortnite_Version == 1.8)
     {
-        auto AllHeroTypes = GetAllObjectsOfClass(FindObject<UClass>("/Script/FortniteGame.FortHeroType"));
+        auto AllHeroTypes = GetAllObjectsOfClass(FindObject<UClass>(L"/Script/FortniteGame.FortHeroType"));
         std::vector<UFortItemDefinition*> AthenaHeroTypes;
 
         for (int i = 0; i < AllHeroTypes.size(); i++)
@@ -214,11 +217,11 @@ DWORD WINAPI Main(LPVOID)
     bool bUseRemovePlayer = false;
     bool bUseSwitchLevel = false;
 
-    Hooking::MinHook::Hook(FindObject<ABuildingFoundation>("/Script/FortniteGame.Default__BuildingFoundation"),
+    Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationTransform"),
         ABuildingFoundation::SetDynamicFoundationTransformHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationTransformOriginal, false, true);
 
-    Hooking::MinHook::Hook(FindObject<ABuildingFoundation>("/Script/FortniteGame.Default__BuildingFoundation"),
+    Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationEnabled"),
         ABuildingFoundation::SetDynamicFoundationEnabledHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationEnabledOriginal, false, true);
 
@@ -302,7 +305,7 @@ DWORD WINAPI Main(LPVOID)
 
     auto AddressesToNull = Addresses::GetFunctionsToNull();
 
-    auto ServerCheatAllIndex = GetFunctionIdxOrPtr(FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ServerCheatAll"));
+    auto ServerCheatAllIndex = GetFunctionIdxOrPtr(FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerCheatAll"));
 
     if (ServerCheatAllIndex)
         AddressesToNull.push_back(__int64(FortPlayerControllerAthenaDefault->VFTable[ServerCheatAllIndex / 8]));
@@ -391,7 +394,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.HandleStartingNewPlayer"), AFortGameModeAthena::Athena_HandleStartingNewPlayerHook,
         (PVOID*)&AFortGameModeAthena::Athena_HandleStartingNewPlayerOriginal, false);
 
-    static auto ControllerServerAttemptInteractFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ServerAttemptInteract");
+    static auto ControllerServerAttemptInteractFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerAttemptInteract");
 
     if (ControllerServerAttemptInteractFn)
     {
@@ -400,8 +403,8 @@ DWORD WINAPI Main(LPVOID)
     }
     else
     {
-        Hooking::MinHook::Hook(FindObject("/Script/FortniteGame.Default__FortControllerComponent_Interaction"),
-            FindObject<UFunction>("/Script/FortniteGame.FortControllerComponent_Interaction.ServerAttemptInteract"),
+        Hooking::MinHook::Hook(FindObject(L"/Script/FortniteGame.Default__FortControllerComponent_Interaction"),
+            FindObject<UFunction>(L"/Script/FortniteGame.FortControllerComponent_Interaction.ServerAttemptInteract"),
             AFortPlayerController::ServerAttemptInteractHook, (PVOID*)&AFortPlayerController::ServerAttemptInteractOriginal, false, true);
     }
 
@@ -503,18 +506,18 @@ DWORD WINAPI Main(LPVOID)
 
     if (false && FortOctopusVehicleDefault) // hooking broken on 19.10 i cant figure it out for the life of me
     {
-        static auto ServerUpdateTowhookFn = FindObject<UFunction>("/Script/FortniteGame.FortOctopusVehicle.ServerUpdateTowhook");
+        static auto ServerUpdateTowhookFn = FindObject<UFunction>(L"/Script/FortniteGame.FortOctopusVehicle.ServerUpdateTowhook");
         Hooking::MinHook::Hook(FortOctopusVehicleDefault, ServerUpdateTowhookFn, AFortOctopusVehicle::ServerUpdateTowhookHook, nullptr, false);
     }
 
     Hooking::MinHook::Hook(FindObject<AFortWeaponRangedMountedCannon>(L"/Script/FortniteGame.Default__FortWeaponRangedMountedCannon"),
-        FindObject<UFunction>("/Script/FortniteGame.FortWeaponRangedMountedCannon.ServerFireActorInCannon"), AFortWeaponRangedMountedCannon::ServerFireActorInCannonHook, nullptr, false);
+        FindObject<UFunction>(L"/Script/FortniteGame.FortWeaponRangedMountedCannon.ServerFireActorInCannon"), AFortWeaponRangedMountedCannon::ServerFireActorInCannonHook, nullptr, false);
 
     static auto NetMulticast_Athena_BatchedDamageCuesFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.NetMulticast_Athena_BatchedDamageCues") ? FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.NetMulticast_Athena_BatchedDamageCues") : FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawnAthena.NetMulticast_Athena_BatchedDamageCues");
 
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
-    Hooking::MinHook::Hook((PVOID)GetFunctionIdxOrPtr(FindObject<UFunction>("/Script/FortniteGame.FortPlayerPawn.ServerOnExitVehicle"), true), AFortPlayerPawn::ServerOnExitVehicleHook, (PVOID*)&AFortPlayerPawn::ServerOnExitVehicleOriginal);
+    Hooking::MinHook::Hook((PVOID)GetFunctionIdxOrPtr(FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerOnExitVehicle"), true), AFortPlayerPawn::ServerOnExitVehicleHook, (PVOID*)&AFortPlayerPawn::ServerOnExitVehicleOriginal);
 
     bool bNativeHookRemoveFortItemFromPlayer = false;
 

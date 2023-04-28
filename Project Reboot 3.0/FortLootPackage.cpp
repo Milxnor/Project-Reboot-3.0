@@ -92,16 +92,15 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     static std::vector<UDataTable*> LTDTables;
     static std::vector<UDataTable*> LPTables;
 
-    static auto DataTableClass = FindObject<UClass>("/Script/Engine.DataTable");
-    static auto CompositeDataTableClass = FindObject<UClass>("/Script/Engine.CompositeDataTable");
+    static auto CompositeDataTableClass = FindObject<UClass>(L"/Script/Engine.CompositeDataTable");
 
     static int LastNum1 = 14915;
 
     auto CurrentPlaylist = CurrentPlaylistDataOffset == -1 && Fortnite_Version < 6 ? nullptr : GameState->GetCurrentPlaylist();
 
-    if (LastNum1 != AmountOfRestarts)
+    if (LastNum1 != Globals::AmountOfListens)
     {
-        LastNum1 = AmountOfRestarts;
+        LastNum1 = Globals::AmountOfListens;
 
         LTDTables.clear();
         LPTables.clear();
@@ -123,8 +122,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                 auto LootTierDataTableIsComposite = LootTierDataStr.contains("Composite");
                 auto LootPackageTableIsComposite = LootPackagesStr.contains("Composite");
 
-                auto StrongLootTierData = LootTierDataSoft.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
-                auto StrongLootPackage = LootPackagesSoft.Get(LootPackageTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                auto StrongLootTierData = LootTierDataSoft.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
+                auto StrongLootPackage = LootPackagesSoft.Get(LootPackageTableIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
 
                 if (StrongLootTierData && StrongLootPackage)
                 {
@@ -171,8 +170,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                         auto LootPackageTableStr = DefaultLootTableData->LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
                         auto LootPackageTableIsComposite = LootPackageTableStr.contains("Composite");
 
-                        auto LootTierDataPtr = DefaultLootTableData->LootTierData.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
-                        auto LootPackagePtr = DefaultLootTableData->LootPackageData.Get(LootPackageTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                        auto LootTierDataPtr = DefaultLootTableData->LootTierData.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
+                        auto LootPackagePtr = DefaultLootTableData->LootPackageData.Get(LootPackageTableIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
 
                         if (LootPackagePtr)
                         {
@@ -200,7 +199,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                                         auto OverrideLootPackageTableStr = Value.Second.LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
                                         auto bOverrideIsComposite = OverrideLootPackageTableStr.contains("Composite");
 
-                                        auto ptr = Value.Second.LootPackageData.Get(bOverrideIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                                        auto ptr = Value.Second.LootPackageData.Get(bOverrideIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
 
                                         if (ptr)
                                         {
@@ -254,7 +253,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                                         auto OverrideLootTierDataStr = Value.Second.LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
                                         auto bOverrideIsComposite = OverrideLootTierDataStr.contains("Composite");
 
-                                        auto ptr = Value.Second.LootTierData.Get(bOverrideIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                                        auto ptr = Value.Second.LootTierData.Get(bOverrideIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
 
                                         if (ptr)
                                         {
@@ -335,8 +334,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                 auto LootTierDataTableIsComposite = LootTierDataStr.contains("Composite");
                 auto LootPackageTableIsComposite = LootPackagesStr.contains("Composite");
 
-                auto StrongLootTierData = LootTierDataSoft.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
-                auto StrongLootPackage = LootPackagesSoft.Get(LootPackageTableIsComposite ? CompositeDataTableClass : DataTableClass, true);
+                auto StrongLootTierData = LootTierDataSoft.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
+                auto StrongLootPackage = LootPackagesSoft.Get(LootPackageTableIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
 
                 if (StrongLootTierData && StrongLootPackage)
                 {

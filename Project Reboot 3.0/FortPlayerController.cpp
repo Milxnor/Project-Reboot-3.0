@@ -270,13 +270,13 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 
 	// LOG_INFO(LogDev, "Equipping ItemDefinition: {}", ItemDefinition->GetFullName());
 
-	static auto FortGadgetItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortGadgetItemDefinition");
+	static auto FortGadgetItemDefinitionClass = FindObject<UClass>(L"/Script/FortniteGame.FortGadgetItemDefinition");
 
 	UFortGadgetItemDefinition* GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition);
 
 	if (GadgetItemDefinition)
 	{
-		static auto GetWeaponItemDefinition = FindObject<UFunction>("/Script/FortniteGame.FortGadgetItemDefinition.GetWeaponItemDefinition");
+		static auto GetWeaponItemDefinition = FindObject<UFunction>(L"/Script/FortniteGame.FortGadgetItemDefinition.GetWeaponItemDefinition");
 
 		if (GetWeaponItemDefinition)
 		{
@@ -284,7 +284,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 		}
 		else
 		{
-			static auto GetDecoItemDefinition = FindObject<UFunction>("/Script/FortniteGame.FortGadgetItemDefinition.GetDecoItemDefinition");
+			static auto GetDecoItemDefinition = FindObject<UFunction>(L"/Script/FortniteGame.FortGadgetItemDefinition.GetDecoItemDefinition");
 			ItemDefinition->ProcessEvent(GetDecoItemDefinition, &ItemDefinition);
 		}
 
@@ -296,7 +296,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 		Pawn->PickUpActor(nullptr, DecoItemDefinition); // todo check ret value? // I checked on 1.7.2 and it only returns true if the new weapon is a FortDecoTool
 		Pawn->GetCurrentWeapon()->GetItemEntryGuid() = ItemGuid;
 
-		static auto FortDecoTool_ContextTrapStaticClass = FindObject<UClass>("/Script/FortniteGame.FortDecoTool_ContextTrap");
+		static auto FortDecoTool_ContextTrapStaticClass = FindObject<UClass>(L"/Script/FortniteGame.FortDecoTool_ContextTrap");
 
 		if (Pawn->GetCurrentWeapon()->IsA(FortDecoTool_ContextTrapStaticClass))
 		{
@@ -314,7 +314,7 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	{
 		if (Engine_Version < 420)
 		{
-			static auto FortWeap_BuildingToolClass = FindObject<UClass>("/Script/FortniteGame.FortWeap_BuildingTool");
+			static auto FortWeap_BuildingToolClass = FindObject<UClass>(L"/Script/FortniteGame.FortWeap_BuildingTool");
 
 			if (!Weapon->IsA(FortWeap_BuildingToolClass))
 				return;
@@ -324,35 +324,35 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 			using UBuildingEditModeMetadata = UObject;
 			using UFortBuildingItemDefinition = UObject;
 
-			static auto OnRep_DefaultMetadataFn = FindObject<UFunction>("/Script/FortniteGame.FortWeap_BuildingTool.OnRep_DefaultMetadata");
+			static auto OnRep_DefaultMetadataFn = FindObject<UFunction>(L"/Script/FortniteGame.FortWeap_BuildingTool.OnRep_DefaultMetadata");
 			static auto DefaultMetadataOffset = BuildingTool->GetOffset("DefaultMetadata");
 
-			static auto RoofPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS");
-			static auto FloorPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor");
-			static auto WallPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall");
-			static auto StairPiece = FindObject<UFortBuildingItemDefinition>("/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
+			static auto RoofPiece = FindObject<UFortBuildingItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS");
+			static auto FloorPiece = FindObject<UFortBuildingItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor");
+			static auto WallPiece = FindObject<UFortBuildingItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall");
+			static auto StairPiece = FindObject<UFortBuildingItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
 
 			UBuildingEditModeMetadata* OldMetadata = nullptr; // Newer versions
 			OldMetadata = BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset);
 
 			if (ItemDefinition == RoofPiece)
 			{
-				static auto RoofMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Roof/EMP_Roof_RoofC.EMP_Roof_RoofC");
+				static auto RoofMetadata = FindObject<UBuildingEditModeMetadata>(L"/Game/Building/EditModePatterns/Roof/EMP_Roof_RoofC.EMP_Roof_RoofC");
 				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = RoofMetadata;
 			}
 			else if (ItemDefinition == StairPiece)
 			{
-				static auto StairMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Stair/EMP_Stair_StairW.EMP_Stair_StairW");
+				static auto StairMetadata = FindObject<UBuildingEditModeMetadata>(L"/Game/Building/EditModePatterns/Stair/EMP_Stair_StairW.EMP_Stair_StairW");
 				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = StairMetadata;
 			}
 			else if (ItemDefinition == WallPiece)
 			{
-				static auto WallMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Wall/EMP_Wall_Solid.EMP_Wall_Solid");
+				static auto WallMetadata = FindObject<UBuildingEditModeMetadata>(L"/Game/Building/EditModePatterns/Wall/EMP_Wall_Solid.EMP_Wall_Solid");
 				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = WallMetadata;
 			}
 			else if (ItemDefinition == FloorPiece)
 			{
-				static auto FloorMetadata = FindObject<UBuildingEditModeMetadata>("/Game/Building/EditModePatterns/Floor/EMP_Floor_Floor.EMP_Floor_Floor");
+				static auto FloorMetadata = FindObject<UBuildingEditModeMetadata>(L"/Game/Building/EditModePatterns/Floor/EMP_Floor_Floor.EMP_Floor_Floor");
 				BuildingTool->Get<UBuildingEditModeMetadata*>(DefaultMetadataOffset) = FloorMetadata;
 			}
 
@@ -363,15 +363,15 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 
 void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret)
 {
-	// static auto LlamaClass = FindObject<UClass>("/Game/Athena/SupplyDrops/Llama/AthenaSupplyDrop_Llama.AthenaSupplyDrop_Llama_C");
-	static auto FortAthenaSupplyDropClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaSupplyDrop");
-	static auto BuildingItemCollectorActorClass = FindObject<UClass>("/Script/FortniteGame.BuildingItemCollectorActor");
+	// static auto LlamaClass = FindObject<UClass>(L"/Game/Athena/SupplyDrops/Llama/AthenaSupplyDrop_Llama.AthenaSupplyDrop_Llama_C");
+	static auto FortAthenaSupplyDropClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaSupplyDrop");
+	static auto BuildingItemCollectorActorClass = FindObject<UClass>(L"/Script/FortniteGame.BuildingItemCollectorActor");
 
 	LOG_INFO(LogInteraction, "ServerAttemptInteract!");
 
 	auto Params = Stack->Locals;
 
-	static bool bIsUsingComponent = FindObject<UClass>("/Script/FortniteGame.FortControllerComponent_Interaction");
+	static bool bIsUsingComponent = FindObject<UClass>(L"/Script/FortniteGame.FortControllerComponent_Interaction");
 
 	AFortPlayerControllerAthena* PlayerController = bIsUsingComponent ? Cast<AFortPlayerControllerAthena>(((UActorComponent*)Context)->GetOwner()) :
 		Cast<AFortPlayerControllerAthena>(Context);
@@ -393,7 +393,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 	FVector LocationToSpawnLoot = ReceivingActor->GetActorLocation() + ReceivingActor->GetActorRightVector() * 70.f + FVector{ 0, 0, 50 };
 
-	static auto FortAthenaVehicleClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaVehicle");
+	static auto FortAthenaVehicleClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaVehicle");
 	static auto SearchAnimationCountOffset = FindOffsetStruct("/Script/FortniteGame.FortSearchBounceData", "SearchAnimationCount");
 
 	if (auto BuildingContainer = Cast<ABuildingContainer>(ReceivingActor))
@@ -412,7 +412,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		BuildingContainer->SetBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask, true);
 		(*(int*)(__int64(SearchBounceData) + SearchAnimationCountOffset))++;
 
-		static auto OnRep_bAlreadySearchedFn = FindObject<UFunction>("/Script/FortniteGame.BuildingContainer.OnRep_bAlreadySearched");
+		static auto OnRep_bAlreadySearchedFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingContainer.OnRep_bAlreadySearched");
 		BuildingContainer->ProcessEvent(OnRep_bAlreadySearchedFn);
 
 		static auto SearchLootTierGroupOffset = BuildingContainer->GetOffset("SearchLootTierGroup");
@@ -506,8 +506,8 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 		// this is a weird way of getting the current item collection we are on.
 
-		static auto StoneItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
-		static auto MetalItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+		static auto StoneItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+		static auto MetalItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
 
 		if (CurrentMaterial == StoneItemData)
 			Index = 1;
@@ -556,7 +556,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 			ItemCollector->SetBitfieldValue(bCurrentInteractionSuccessOffset, bCurrentInteractionSuccessFieldMask, true); // idek if this is needed
 		}
 
-		static auto DoVendDeath = FindObject<UFunction>("/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C.DoVendDeath");
+		static auto DoVendDeath = FindObject<UFunction>(L"/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C.DoVendDeath");
 
 		if (DoVendDeath)
 		{
@@ -602,7 +602,7 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 
 	if (Fortnite_Version >= 18)
 	{
-		static auto StormEffectClass = FindObject<UClass>("/Game/Athena/SafeZone/GE_OutsideSafeZoneDamage.GE_OutsideSafeZoneDamage_C");
+		static auto StormEffectClass = FindObject<UClass>(L"/Game/Athena/SafeZone/GE_OutsideSafeZoneDamage.GE_OutsideSafeZoneDamage_C");
 		auto PlayerState = PlayerController->GetPlayerStateAthena();
 		PlayerState->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(StormEffectClass, 1, PlayerState->GetAbilitySystemComponent());
 	}
@@ -634,20 +634,20 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 			}
 		}
 
-		static auto WoodItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
-		static auto StoneItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
-		static auto MetalItemData = FindObject<UFortItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+		static auto WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
+		static auto StoneItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+		static auto MetalItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
 
-		static auto Rifle = FindObject<UFortItemDefinition>("/Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03.WID_Assault_AutoHigh_Athena_SR_Ore_T03");
-		static auto Shotgun = FindObject<UFortItemDefinition>("/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03");
-		static auto SMG = FindObject<UFortItemDefinition>("/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03");
+		static auto Rifle = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03.WID_Assault_AutoHigh_Athena_SR_Ore_T03");
+		static auto Shotgun = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03");
+		static auto SMG = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03");
 
-		static auto MiniShields = FindObject<UFortItemDefinition>("/Game/Athena/Items/Consumables/ShieldSmall/Athena_ShieldSmall.Athena_ShieldSmall");
+		static auto MiniShields = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/ShieldSmall/Athena_ShieldSmall.Athena_ShieldSmall");
 
-		static auto Shells = FindObject<UFortItemDefinition>("/Game/Athena/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells");
-		static auto Medium = FindObject<UFortItemDefinition>("/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsMedium.AthenaAmmoDataBulletsMedium");
-		static auto Light = FindObject<UFortItemDefinition>("/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsLight.AthenaAmmoDataBulletsLight");
-		static auto Heavy = FindObject<UFortItemDefinition>("/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsHeavy.AthenaAmmoDataBulletsHeavy");
+		static auto Shells = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells");
+		static auto Medium = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsMedium.AthenaAmmoDataBulletsMedium");
+		static auto Light = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsLight.AthenaAmmoDataBulletsLight");
+		static auto Heavy = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsHeavy.AthenaAmmoDataBulletsHeavy");
 
 		auto WorldInventory = PlayerController->GetWorldInventory();
 
@@ -937,12 +937,12 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 
 	UObject* AbilityToUse = nullptr;
 
-	static auto AthenaSprayItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.AthenaSprayItemDefinition");
-	static auto AthenaToyItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.AthenaToyItemDefinition");
+	static auto AthenaSprayItemDefinitionClass = FindObject<UClass>(L"/Script/FortniteGame.AthenaSprayItemDefinition");
+	static auto AthenaToyItemDefinitionClass = FindObject<UClass>(L"/Script/FortniteGame.AthenaToyItemDefinition");
 
 	if (EmoteAsset->IsA(AthenaSprayItemDefinitionClass))
 	{
-		static auto SprayGameplayAbilityDefault = FindObject("/Game/Abilities/Sprays/GAB_Spray_Generic.Default__GAB_Spray_Generic_C");
+		static auto SprayGameplayAbilityDefault = FindObject(L"/Game/Abilities/Sprays/GAB_Spray_Generic.Default__GAB_Spray_Generic_C");
 		AbilityToUse = SprayGameplayAbilityDefault;
 	}
 
@@ -951,7 +951,7 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 		static auto ToySpawnAbilityOffset = EmoteAsset->GetOffset("ToySpawnAbility");
 		auto& ToySpawnAbilitySoft = EmoteAsset->Get<TSoftObjectPtr<UClass>>(ToySpawnAbilityOffset);
 
-		static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
+		static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
 
 		auto ToySpawnAbility = ToySpawnAbilitySoft.Get(BGAClass, true);
 
@@ -963,14 +963,14 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 
 	if (!AbilityToUse)
 	{
-		static auto EmoteGameplayAbilityDefault = FindObject("/Game/Abilities/Emotes/GAB_Emote_Generic.Default__GAB_Emote_Generic_C");
+		static auto EmoteGameplayAbilityDefault = FindObject(L"/Game/Abilities/Emotes/GAB_Emote_Generic.Default__GAB_Emote_Generic_C");
 		AbilityToUse = EmoteGameplayAbilityDefault;
 	}
 
 	if (!AbilityToUse)
 		return;
 
-	static auto AthenaDanceItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.AthenaDanceItemDefinition");
+	static auto AthenaDanceItemDefinitionClass = FindObject<UClass>(L"/Script/FortniteGame.AthenaDanceItemDefinition");
 
 	if (EmoteAsset->IsA(AthenaDanceItemDefinitionClass))
 	{
@@ -1020,7 +1020,7 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 
 uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = false, AFortPawn* Pawn = nullptr)
 {
-	static auto ToDeathCauseFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.ToDeathCause");
+	static auto ToDeathCauseFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.ToDeathCause");
 
 	if (ToDeathCauseFn)
 	{
@@ -1086,7 +1086,10 @@ DWORD WINAPI SpectateThread(LPVOID)
 		{
 			// auto PC = PlayerControllersDead.at(i).load();
 
-			static auto SpectateOnDeathFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.SpectateOnDeath");
+			static auto SpectateOnDeathFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") ? 
+				FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") :
+				FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.SpectateOnDeath");
+
 			PC->ProcessEvent(SpectateOnDeathFn);
 		}
 
@@ -1107,7 +1110,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	if (!DeadPawn || !GameState || !DeadPlayerState)
 		return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 
-	static auto DeathInfoStruct = FindObject<UStruct>("/Script/FortniteGame.DeathInfo");
+	static auto DeathInfoStruct = FindObject<UStruct>(L"/Script/FortniteGame.DeathInfo");
 	static auto DeathInfoStructSize = DeathInfoStruct->GetPropertiesSize();
 
 	auto DeathLocation = DeadPawn->GetActorLocation();
@@ -1154,7 +1157,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	if (MemberOffsets::FortPlayerState::PawnDeathLocation != -1)
 		DeadPlayerState->Get<FVector>(MemberOffsets::FortPlayerState::PawnDeathLocation) = DeathLocation;
 
-	static auto OnRep_DeathInfoFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
+	static auto OnRep_DeathInfoFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
 
 	if (OnRep_DeathInfoFn)
 	{
@@ -1242,7 +1245,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			AActor* DamageCauser = *(AActor**)(__int64(DeathReport) + MemberOffsets::DeathReport::DamageCauser);
 			UFortWeaponItemDefinition* KillerWeaponDef = nullptr;
 
-			static auto FortProjectileBaseClass = FindObject<UClass>("/Script/FortniteGame.FortProjectileBase");
+			static auto FortProjectileBaseClass = FindObject<UClass>(L"/Script/FortniteGame.FortProjectileBase");
 			LOG_INFO(LogDev, "FortProjectileBaseClass: {}", __int64(FortProjectileBaseClass));
 
 			if (DamageCauser)
@@ -1327,7 +1330,7 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (!WorldInventory)
 		return;
 
-	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>("/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
+	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>(L"/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
 
 	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
 
@@ -1402,7 +1405,7 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 
 	BuildingActorToStopEditing->SetEditingPlayer(nullptr);
 
-	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>("/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
+	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>(L"/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 

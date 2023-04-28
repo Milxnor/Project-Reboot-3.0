@@ -654,7 +654,7 @@ static inline uint64 FindSetZoneToIndex() // actually StartNewSafeZonePhase
 	if (Engine_Version == 422)
 		return Memcury::Scanner::FindPattern("E9 ? ? ? ? 48 8B C1 40 38 B9").RelativeOffset(1).Get(); // 7.40
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.", true, 0, Fortnite_Version >= 16.50).Get();
+	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.", true, 0, Fortnite_Version >= 16).Get();
 	// return FindBytes(Addr, { 0x40, 0x55 }, 30000, 0, true);
 
 	if (!Addr)
@@ -1307,10 +1307,13 @@ static inline uint64 FindApplyCharacterCustomization()
 			return Addrr - i;
 		}
 
-		/* if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		if (Fortnite_Version >= 15) // hm?
 		{
-			return Addrr - i;
-		} */
+			if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+			{
+				return Addrr - i;
+			}
+		}
 
 		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
 		{
@@ -1375,7 +1378,7 @@ static inline uint64 FindPickTeam()
 
 static inline uint64 FindInternalTryActivateAbility()
 {
-	auto Addrr = Memcury::Scanner::FindStringRef(L"InternalTryActivateAbility called with invalid Handle! ASC: %s. AvatarActor: %s", true, 0, Fortnite_Version >= 16.50).Get();
+	auto Addrr = Memcury::Scanner::FindStringRef(L"InternalTryActivateAbility called with invalid Handle! ASC: %s. AvatarActor: %s", true, 0, Fortnite_Version >= 16).Get(); // checked 16.40
 
 	for (int i = 0; i < 1000; i++)
 	{

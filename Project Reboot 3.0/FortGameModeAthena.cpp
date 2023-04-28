@@ -179,11 +179,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum2 = 1;
 
-	// LOG_INFO(LogDev, "ReadyToStartMatch AmountOfRestarts: {} LastNum2: {}!", AmountOfRestarts, LastNum2);
-
-	if (AmountOfRestarts != LastNum2)
+	if (Globals::AmountOfListens != LastNum2)
 	{
-		LastNum2 = AmountOfRestarts;
+		LastNum2 = Globals::AmountOfListens;
 
 		LOG_INFO(LogDev, "Presetup!");
 
@@ -418,9 +416,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum6 = 1;
 
-	if (AmountOfRestarts != LastNum6)
+	if (Globals::AmountOfListens != LastNum6)
 	{
-		LastNum6 = AmountOfRestarts;
+		LastNum6 = Globals::AmountOfListens;
 
 		if (Globals::bGoingToPlayEvent && DoesEventRequireLoading())
 		{
@@ -434,9 +432,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum5 = 1;
 
-	if (AmountOfRestarts != LastNum5 && LastNum6 == AmountOfRestarts)
+	if (Globals::AmountOfListens != LastNum5 && LastNum6 == Globals::AmountOfListens) // Make sure we loaded the event.
 	{
-		LastNum5 = AmountOfRestarts;
+		LastNum5 = Globals::AmountOfListens;
 
 		if (Globals::bGoingToPlayEvent)
 		{
@@ -463,9 +461,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum9 = 1;
 
-	if (AmountOfRestarts != LastNum9)
+	if (Globals::AmountOfListens != LastNum9)
 	{
-		LastNum9 = AmountOfRestarts;
+		LastNum9 = Globals::AmountOfListens;
 	}
 
 	static auto MapInfoOffset = GameState->GetOffset("MapInfo");
@@ -480,9 +478,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum = 1;
 
-	if (AmountOfRestarts != LastNum)
+	if (Globals::AmountOfListens != LastNum)
 	{
-		LastNum = AmountOfRestarts;
+		LastNum = Globals::AmountOfListens;
 
 		float Duration = 10000.f;
 		float EarlyDuration = Duration;
@@ -544,9 +542,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum3 = 1;
 
-	if (AmountOfRestarts != LastNum3)
+	if (Globals::AmountOfListens != LastNum3)
 	{
-		LastNum3 = AmountOfRestarts;
+		LastNum3 = ++Globals::AmountOfListens;
 
 		LOG_INFO(LogNet, "Attempting to listen!");
 
@@ -574,7 +572,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LoopMutators([&](AFortAthenaMutator* Mutator) { LOG_INFO(LogGame, "Mutator {}", Mutator->GetPathName()); });
 
-		Globals::AmountOfListens++;
 		Globals::bStartedListening = true;
 	}
 
@@ -692,9 +689,9 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	static int LastNum = 1;
 
-	if (AmountOfRestarts != LastNum)
+	if (Globals::AmountOfListens != LastNum)
 	{
-		LastNum = AmountOfRestarts;
+		LastNum = Globals::AmountOfListens;
 
 		Current = DefaultFirstTeam;
 		CurrentTeamMembers = 0;
@@ -793,9 +790,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	{
 		static int LastNum69 = 19451;
 
-		if (LastNum69 != AmountOfRestarts)
+		if (LastNum69 != Globals::AmountOfListens)
 		{
-			LastNum69 = AmountOfRestarts;
+			LastNum69 = Globals::AmountOfListens;
 
 			bool bShouldDestroyVendingMachines = Fortnite_Version < 3.4 || Engine_Version >= 424; // This is not how it works, we need to add the spawn percentage.
 
@@ -914,9 +911,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	{
 		static int LastNum420 = 1;
 
-		if (AmountOfRestarts != LastNum420)
+		if (Globals::AmountOfListens != LastNum420)
 		{
-			LastNum420 = AmountOfRestarts;
+			LastNum420 = Globals::AmountOfListens;
 
 			SpawnVehicles2();
 		}
