@@ -6,6 +6,7 @@
 #include "BuildingStructuralSupportSystem.h"
 #include "ScriptInterface.h"
 #include "Interface.h"
+#include "FortAthenaMapInfo.h"
 
 enum class EAthenaGamePhaseStep : uint8_t // idk if this changes
 {
@@ -77,6 +78,12 @@ public:
 	{
 		static auto PlayerBuildableClassesOffset = GetOffset("PlayerBuildableClasses");
 		return Get<FPlayerBuildableClassContainer*>(PlayerBuildableClassesOffset);
+	}
+
+	AFortAthenaMapInfo*& GetMapInfo()
+	{
+		static auto MapInfoOffset = GetOffset("MapInfo");
+		return Get<AFortAthenaMapInfo*>(MapInfoOffset);
 	}
 
 	UFortPlaylist*& GetCurrentPlaylist();

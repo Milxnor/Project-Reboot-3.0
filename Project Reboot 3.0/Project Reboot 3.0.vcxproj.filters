@@ -814,8 +814,11 @@
     <ClInclude Include="moderation.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
-    <ClInclude Include="creative.h">
+    <ClInclude Include="builder.h">
       <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMapInfo.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

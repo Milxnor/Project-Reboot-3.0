@@ -55,10 +55,7 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 
 			// LOG_INFO(LogDev, "Before {}", __int64(CurveTable));
 
-			float Out;
-			FString ContextString;
-			EEvaluateCurveTableResult result;
-			UDataTableFunctionLibrary::EvaluateCurveTableRow(CurveTable, BuildingResourceAmountOverride.RowName, 0.f, ContextString, &result, &Out);
+			float Out = UDataTableFunctionLibrary::EvaluateCurveTableRow(CurveTable, BuildingResourceAmountOverride.RowName, 0.f);
 
 			// LOG_INFO(LogDev, "Out: {}", Out);
 

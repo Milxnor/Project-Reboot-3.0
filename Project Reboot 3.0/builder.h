@@ -10,9 +10,9 @@
 
 namespace fs = std::filesystem;
 
-namespace Creative
+namespace Builder
 {
-	static inline bool LoadIsland(const std::string& SaveFileName, AFortVolume* LoadIntoVolume, bool* bCouldBeOutdatedPtr = nullptr)
+	static inline bool LoadSave(const std::string& SaveFileName, const FVector& Location, const FRotator& Rotation)
 	{
 		auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 
@@ -24,19 +24,8 @@ namespace Creative
 			return false;
 		}
 
-		/* auto AllBuildingActors = LoadIntoVolume->GetActorsWithinVolumeByClass(ABuildingActor::StaticClass());
-
-		for (int i = 0; i < AllBuildingActors.Num(); i++)
-		{
-			auto CurrentBuildingActor = (ABuildingActor*)AllBuildingActors[i];
-			CurrentBuildingActor->SilentDie();
-		} */
-
 		nlohmann::json j;
 		fileStream >> j;
-
-		auto VolumeLocation = LoadIntoVolume->GetActorLocation();
-		auto VolumeRotation = LoadIntoVolume->GetActorRotation();
 
 		for (const auto& obj : j) {
 			for (auto it = obj.begin(); it != obj.end(); ++it) {
@@ -82,9 +71,9 @@ namespace Creative
 				if (stuff.size() >= 8)
 				{
 					FRotator rot{};
-					rot.Pitch = stuff[3] + VolumeRotation.Pitch;
-					rot.Roll = stuff[4] + VolumeRotation.Roll;
-					rot.Yaw = stuff[5] + VolumeRotation.Yaw;
+					rot.Pitch = stuff[3] + Rotation.Pitch;
+					rot.Roll = stuff[4] + Rotation.Roll;
+					rot.Yaw = stuff[5] + Rotation.Yaw;
 
 					FVector Scale3D = { 1, 1, 1 };
 
@@ -95,7 +84,7 @@ namespace Creative
 						Scale3D.Z = stuff[10];
 					}
 
-					auto NewActor = GetWorld()->SpawnActor<ABuildingActor>(Class, FVector{ stuff[0] + VolumeLocation.X , stuff[1] + VolumeLocation.Y, stuff[2] + VolumeLocation.Z },
+					auto NewActor = GetWorld()->SpawnActor<ABuildingActor>(Class, FVector{ stuff[0] + Location.X , stuff[1] + Location.Y, stuff[2] + Location.Z },
 						rot.Quaternion(), Scale3D);
 
 					if (!NewActor)
@@ -107,7 +96,7 @@ namespace Creative
 					// NewActor->SetHealth(stuff[7]);
 
 					static auto FortActorOptionsComponentClass = FindObject<UClass>("/Script/FortniteGame.FortActorOptionsComponent");
-					auto ActorOptionsComponent = NewActor->GetComponentByClass(FortActorOptionsComponentClass);
+					auto ActorOptionsComponent = FortActorOptionsComponentClass ? NewActor->GetComponentByClass(FortActorOptionsComponentClass) : nullptr;
 
 					// continue;
 
@@ -143,5 +132,18 @@ namespace Creative
 		}
 
 		return true;
+	}
+
+	static inline bool LoadSave(const std::string& SaveFileName, AFortVolume* LoadIntoVolume)
+	{
+		/* auto AllBuildingActors = LoadIntoVolume->GetActorsWithinVolumeByClass(ABuildingActor::StaticClass());
+
+		for (int i = 0; i < AllBuildingActors.Num(); i++)
+		{
+			auto CurrentBuildingActor = (ABuildingActor*)AllBuildingActors[i];
+			CurrentBuildingActor->SilentDie();
+		} */
+
+		return LoadSave(SaveFileName, LoadIntoVolume->GetActorLocation(), LoadIntoVolume->GetActorRotation());
 	}
 }

@@ -62,19 +62,19 @@ static inline bool bIsInAutoRestart = false;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
-static LPDIRECT3D9              g_pD3D = NULL;
-static LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
-static D3DPRESENT_PARAMETERS    g_d3dpp = {};
+static inline LPDIRECT3D9              g_pD3D = NULL;
+static inline LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
+static inline D3DPRESENT_PARAMETERS    g_d3dpp = {};
 
 // Forward declarations of helper functions
-bool CreateDeviceD3D(HWND hWnd);
-void CleanupDeviceD3D();
-void ResetDevice();
-LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+static inline bool CreateDeviceD3D(HWND hWnd);
+static inline void CleanupDeviceD3D();
+static inline void ResetDevice();
+static inline LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 static inline bool bStartedBus = false;
 
-void Restart() // todo move?
+static inline void Restart() // todo move?
 {
 	FString LevelA = Engine_Version < 424
 		? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
@@ -124,7 +124,7 @@ void Restart() // todo move?
 	// UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
 }
 
-std::string wstring_to_utf8(const std::wstring& str)
+static inline std::string wstring_to_utf8(const std::wstring& str)
 {
 	if (str.empty()) return {};
 	const auto size_needed = WideCharToMultiByte(CP_UTF8, 0, &str[0], static_cast<int>(str.size()), nullptr, 0, nullptr, nullptr);
@@ -133,7 +133,7 @@ std::string wstring_to_utf8(const std::wstring& str)
 	return str_to;
 }
 
-void InitStyle()
+static inline void InitStyle()
 {
 	ImFontConfig FontConfig;
 	FontConfig.FontDataOwnedByAtlas = false;
@@ -194,18 +194,7 @@ void InitStyle()
 	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.20f, 0.22f, 0.27f, 0.9f);
 }
 
-class Playera
-{
-public:
-	std::string Name;
-	int Kills = 0;
-
-	Playera(const std::string& _Name, int _Kills) : Name(_Name), Kills(_Kills) {}
-
-	Playera() {}
-};
-
-void TextCentered(std::string text, bool bNewLine = true) {
+static inline void TextCentered(std::string text, bool bNewLine = true) {
 	if (bNewLine)
 		ImGui::NewLine();
 
@@ -229,7 +218,7 @@ void TextCentered(std::string text, bool bNewLine = true) {
 	ImGui::PopTextWrapPos();
 }
 
-bool ButtonCentered(std::string text, bool bNewLine = true) {
+static inline bool ButtonCentered(std::string text, bool bNewLine = true) {
 	if (bNewLine)
 		ImGui::NewLine();
 
@@ -254,7 +243,7 @@ bool ButtonCentered(std::string text, bool bNewLine = true) {
 	return res;
 }
 
-void InputVector(const std::string& baseText, FVector* vec)
+static inline void InputVector(const std::string& baseText, FVector* vec)
 {
 	ImGui::InputFloat((baseText + " X").c_str(), &vec->X);
 	ImGui::InputFloat((baseText + " Y").c_str(), &vec->Y);
@@ -270,7 +259,7 @@ static bool bIsEditingInventory = false;
 static bool bInformationTab = false;
 static int playerTabTab = MAIN_PLAYERTAB;
 
-void StaticUI()
+static inline void StaticUI()
 {
 	ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
 
@@ -289,7 +278,7 @@ void StaticUI()
 	}
 }
 
-void MainTabs()
+static inline void MainTabs()
 {
 	// std::ofstream bannedStream(Moderation::Banning::GetFilePath());
 
@@ -390,7 +379,7 @@ void MainTabs()
 	}
 }
 
-void PlayerTabs()
+static inline void PlayerTabs()
 {
 	if (ImGui::BeginTabBar(""))
 	{
@@ -422,7 +411,7 @@ void PlayerTabs()
 	}
 }
 
-void MainUI()
+static inline void MainUI()
 {
 	bool bLoaded = true;
 
@@ -915,7 +904,7 @@ void MainUI()
 	}
 }
 
-void PregameUI()
+static inline void PregameUI()
 {
 	StaticUI();
 
@@ -939,7 +928,7 @@ void PregameUI()
 	ImGui::InputText("Playlist", &PlaylistName);
 }
 
-DWORD WINAPI GuiThread(LPVOID)
+static inline DWORD WINAPI GuiThread(LPVOID)
 {
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"RebootClass", NULL };
 	::RegisterClassEx(&wc);
@@ -1116,7 +1105,7 @@ DWORD WINAPI GuiThread(LPVOID)
 
 // Helper functions
 
-bool CreateDeviceD3D(HWND hWnd)
+static inline bool CreateDeviceD3D(HWND hWnd)
 {
 	if ((g_pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == NULL)
 		return false;
@@ -1136,13 +1125,13 @@ bool CreateDeviceD3D(HWND hWnd)
 	return true;
 }
 
-void CleanupDeviceD3D()
+static inline void CleanupDeviceD3D()
 {
 	if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = NULL; }
 	if (g_pD3D) { g_pD3D->Release(); g_pD3D = NULL; }
 }
 
-void ResetDevice()
+static inline void ResetDevice()
 {
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 	HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
@@ -1153,7 +1142,7 @@ void ResetDevice()
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+static inline LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	// my implementation of window dragging..
 	/* {

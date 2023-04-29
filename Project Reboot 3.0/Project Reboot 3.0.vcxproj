@@ -284,7 +284,7 @@
     <ClInclude Include="commands.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />
     <ClInclude Include="Controller.h" />
-    <ClInclude Include="creative.h" />
+    <ClInclude Include="builder.h" />
     <ClInclude Include="CurveTable.h" />
     <ClInclude Include="DataTable.h" />
     <ClInclude Include="DataTableFunctionLibrary.h" />
@@ -301,6 +301,7 @@
     <ClInclude Include="finder.h" />
     <ClInclude Include="FortAbilitySet.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
+    <ClInclude Include="FortAthenaMapInfo.h" />
     <ClInclude Include="FortAthenaMutator.h" />
     <ClInclude Include="FortAthenaMutator_Barrier.h" />
     <ClInclude Include="FortAthenaMutator_Disco.h" />

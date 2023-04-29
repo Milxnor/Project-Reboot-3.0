@@ -159,18 +159,14 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 					if (!ItemToGive->GetItemToDrop())
 						continue;
 
-					float Out = 1;
-					FString ContextString;
-					EEvaluateCurveTableResult result;
 					float Out2 = 0;
 
 					if (!IsBadReadPtr(ItemToGive->GetNumberToGive().GetCurve().CurveTable, 8) && ItemToGive->GetNumberToGive().GetCurve().RowName.IsValid())
 					{
-						UDataTableFunctionLibrary::EvaluateCurveTableRow(ItemToGive->GetNumberToGive().GetCurve().CurveTable, ItemToGive->GetNumberToGive().GetCurve().RowName,
-							0.f, ContextString, &result, &Out2);
+						Out2 = UDataTableFunctionLibrary::EvaluateCurveTableRow(ItemToGive->GetNumberToGive().GetCurve().CurveTable, ItemToGive->GetNumberToGive().GetCurve().RowName, 0.f);
 					}
 
-					LOG_INFO(LogDev, "[{}] [{}] Out: {} Out2: {} ItemToGive.ItemToDrop: {}", i, j, Out, Out2, ItemToGive->GetItemToDrop()->IsValidLowLevel() ? ItemToGive->GetItemToDrop()->GetFullName() : "BadRead");
+					LOG_INFO(LogDev, "[{}] [{}] Out2: {} ItemToGive.ItemToDrop: {}", i, j, Out2, ItemToGive->GetItemToDrop()->IsValidLowLevel() ? ItemToGive->GetItemToDrop()->GetFullName() : "BadRead");
 
 					if (!Out2)
 						continue;

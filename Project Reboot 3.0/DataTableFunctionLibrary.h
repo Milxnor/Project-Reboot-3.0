@@ -14,8 +14,8 @@ enum class EEvaluateCurveTableResult : uint8_t
 class UDataTableFunctionLibrary : public UObject
 {
 public:
-	static void EvaluateCurveTableRow(UCurveTable* CurveTable, FName RowName, float InXY,
-		const FString& ContextString, EEvaluateCurveTableResult* OutResult, float* OutXY);
+	static float EvaluateCurveTableRow(UCurveTable* CurveTable, FName RowName, float InXY,
+		const FString& ContextString = FString(), EEvaluateCurveTableResult* OutResult = nullptr);
 
 	static UClass* StaticClass();
 };

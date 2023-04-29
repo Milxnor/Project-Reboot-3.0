@@ -12,6 +12,7 @@
 #include "FortAbilitySet.h"
 #include "NetSerialization.h"
 #include "GameplayStatics.h"
+#include "DataTableFunctionLibrary.h"
 #include "KismetStringLibrary.h"
 #include "SoftObjectPtr.h"
 
@@ -27,6 +28,7 @@
 #include "FortAthenaMutator.h"
 #include "calendar.h"
 #include "gui.h"
+#include <random>
 
 static UFortPlaylist* GetPlaylistToUse()
 {
@@ -119,6 +121,19 @@ UClass* AFortGameModeAthena::GetVehicleClassOverride(UClass* DefaultClass)
 	this->ProcessEvent(GetVehicleClassOverrideFn, &GetVehicleClassOverride_Params);
 
 	return GetVehicleClassOverride_Params.ReturnValue;
+}
+
+void AFortGameModeAthena::HandleSpawnRateForActorClass(UClass* ActorClass, float SpawnPercentage)
+{
+	TArray<AActor*> AllActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ActorClass);
+
+	int AmmoBoxesToDelete = std::round(AllActors.Num() - ((AllActors.Num()) * (SpawnPercentage / 100)));
+
+	while (AmmoBoxesToDelete)
+	{
+		AllActors.at(rand() % AllActors.Num())->K2_DestroyActor();
+		AmmoBoxesToDelete--;
+	}
 }
 
 bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode)
@@ -467,15 +482,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		LastNum9 = Globals::AmountOfListens;
 	}
 
-	static auto MapInfoOffset = GameState->GetOffset("MapInfo");
-	auto MapInfo = GameState->Get(MapInfoOffset);
+	auto MapInfo = GameState->GetMapInfo();
 	
 	if (!MapInfo && Engine_Version >= 421)
 		return false;
-
-	// if (GameState->GetPlayersLeft() < GameMode->Get<int>("WarmupRequiredPlayerCount"))
-	// if (!bFirstPlayerJoined)
-		// return false;
 
 	static int LastNum = 1;
 
@@ -507,7 +517,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		GameSession->Get<int>(MaxPlayersOffset) = 100;
 
-		// if (Engine_Version < 424)
 		GameState->OnRep_CurrentPlaylistInfo(); // ?
 
 		// SetupNavConfig();
@@ -821,6 +830,34 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			SpawnBGAs();
 
+			// Handle spawn rate
+
+			if (false)
+			{
+				auto MapInfo = GameState->GetMapInfo();
+
+				if (MapInfo)
+				{
+					float AmmoBoxMinSpawnPercent = UDataTableFunctionLibrary::EvaluateCurveTableRow(
+						MapInfo->GetAmmoBoxMinSpawnPercent()->GetCurve().CurveTable, MapInfo->GetAmmoBoxMinSpawnPercent()->GetCurve().RowName, 0
+					);
+
+					float AmmoBoxMaxSpawnPercent = UDataTableFunctionLibrary::EvaluateCurveTableRow(
+						MapInfo->GetAmmoBoxMaxSpawnPercent()->GetCurve().CurveTable, MapInfo->GetAmmoBoxMaxSpawnPercent()->GetCurve().RowName, 0
+					);
+
+					LOG_INFO(LogDev, "AmmoBoxMinSpawnPercent: {} AmmoBoxMaxSpawnPercent: {}", AmmoBoxMinSpawnPercent, AmmoBoxMaxSpawnPercent);
+
+					std::random_device AmmoBoxRd;
+					std::mt19937 AmmoBoxGen(AmmoBoxRd());
+					std::uniform_int_distribution<> AmmoBoxDis(AmmoBoxMinSpawnPercent * 100, AmmoBoxMaxSpawnPercent * 100 + 1); // + 1 ?
+
+					float AmmoBoxSpawnPercent = AmmoBoxDis(AmmoBoxGen);
+
+					HandleSpawnRateForActorClass(MapInfo->GetAmmoBoxClass(), AmmoBoxSpawnPercent);
+				}
+			}
+
 			auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
 			auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
@@ -841,10 +878,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
 
-				// CurrentActor->K2_DestroyActor();
-				// continue;
-
-				// if (Engine_Version != 419)
 				{
 					auto Location = CurrentActor->GetActorLocation();
 					Location.Z += UpZ;

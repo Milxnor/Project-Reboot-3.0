@@ -1291,7 +1291,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			{
 				static auto bAllowSpectateAfterDeathOffset = GameMode->GetOffset("bAllowSpectateAfterDeath");
 
-				bool bAllowSpectate = GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
+				bool bAllowSpectate = false; // GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
 
 				LOG_INFO(LogDev, "bAllowSpectate: {}", bAllowSpectate);
 

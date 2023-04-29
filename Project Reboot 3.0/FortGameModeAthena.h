@@ -224,6 +224,10 @@ public:
 	FName RedirectLootTier(const FName& LootTier);
 	UClass* GetVehicleClassOverride(UClass* DefaultClass);
 
+	// Idk where to put these 3 functions.
+
+	static void HandleSpawnRateForActorClass(UClass* ActorClass, float SpawnPercentage);
+
 	static bool Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode);
 	static int Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller);
 	static void Athena_HandleStartingNewPlayerHook(AFortGameModeAthena* GameMode, AActor* NewPlayerActor);

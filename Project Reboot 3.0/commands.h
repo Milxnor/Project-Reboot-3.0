@@ -6,7 +6,7 @@
 #include "AthenaBarrierObjective.h"
 #include "FortAthenaMutator_Barrier.h"
 #include "FortWeaponMeleeItemDefinition.h"
-#include "creative.h"
+#include "builder.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
@@ -262,13 +262,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				return;
 			}
 
-			auto Volume = ReceivingController->GetCreativePlotLinkedVolume();
-
-			if (!Volume)
-			{
-				SendMessageToConsole(PlayerController, L"They do not have an island!");
-				return;
-			}
+			static auto CreativePlotLinkedVolumeOffset = ReceivingController->GetOffset("CreativePlotLinkedVolume", false);
+			auto Volume = CreativePlotLinkedVolumeOffset == -1 ? nullptr : ReceivingController->GetCreativePlotLinkedVolume();
 
 			if (Arguments.size() <= 1)
 			{
@@ -281,7 +276,31 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			try { FileName = Arguments[1]; }
 			catch (...) {}
 
-			Creative::LoadIsland(FileName, Volume);
+			float X{ -1 }, Y{ -1 }, Z{ -1 };
+
+			if (Arguments.size() >= 4)
+			{
+				try { X = std::stof(Arguments[2]); }
+				catch (...) {}
+				try { Y = std::stof(Arguments[3]); }
+				catch (...) {}
+				try { Z = std::stof(Arguments[4]); }
+				catch (...) {}
+			}
+			else
+			{
+				if (!Volume)
+				{
+					SendMessageToConsole(PlayerController, L"They do not have an island!");
+					return;
+				}
+			}
+
+			if (X != -1 && Y != -1 && Z != -1) // omg what if they want to spawn it at -1 -1 -1!!!
+				Builder::LoadSave(FileName, FVector(X, Y, Z), FRotator());
+			else
+				Builder::LoadSave(FileName, Volume);
+
 			SendMessageToConsole(PlayerController, L"Loaded!");
 		}
 		else if (Command == "spawnpickup")
