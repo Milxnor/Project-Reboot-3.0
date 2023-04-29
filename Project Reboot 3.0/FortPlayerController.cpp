@@ -21,6 +21,7 @@
 #include "FortAbilitySet.h"
 #include "vendingmachine.h"
 #include "KismetSystemLibrary.h"
+#include "gui.h"
 
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
@@ -1099,6 +1100,23 @@ DWORD WINAPI SpectateThread(LPVOID)
 	return 0;
 }
 
+DWORD WINAPI RestartThread(LPVOID)
+{
+	// We should probably use unreal engine's timing system for this.
+	// There is no way to restart that I know of without closing the connection to the clients.
+
+	bIsInAutoRestart = true;
+
+	float SecondsBeforeRestart = 10;
+	Sleep(SecondsBeforeRestart * 1000);
+
+	Restart();
+
+	bIsInAutoRestart = false;
+
+	return 0;
+}
+
 void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerController, void* DeathReport)
 {
 	auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)GetWorld()->GetGameMode())->GetGameState());
@@ -1301,6 +1319,11 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 						CreateThread(0, 0, SpectateThread, 0, 0, 0);
 					}
 				}
+			}
+
+			if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
+			{
+				CreateThread(0, 0, RestartThread, 0, 0, 0);
 			}
 		}
 	}

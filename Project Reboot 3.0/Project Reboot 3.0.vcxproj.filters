@@ -814,6 +814,9 @@
     <ClInclude Include="moderation.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
+    <ClInclude Include="creative.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">

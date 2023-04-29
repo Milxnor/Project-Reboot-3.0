@@ -284,6 +284,7 @@
     <ClInclude Include="commands.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />
     <ClInclude Include="Controller.h" />
+    <ClInclude Include="creative.h" />
     <ClInclude Include="CurveTable.h" />
     <ClInclude Include="DataTable.h" />
     <ClInclude Include="DataTableFunctionLibrary.h" />

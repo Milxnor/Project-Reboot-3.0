@@ -149,6 +149,12 @@ public:
 		return Get<UAthenaMarkerComponent*>(MarkerComponentOffset);
 	}
 
+	AFortVolume*& GetCreativePlotLinkedVolume()
+	{
+		static auto CreativePlotLinkedVolumeOffset = GetOffset("CreativePlotLinkedVolume");
+		return Get<AFortVolume*>(CreativePlotLinkedVolumeOffset);
+	}
+
 	static void StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret); // we could native hook this but eh
 	static void EndGhostModeHook(AFortPlayerControllerAthena* PlayerController);
 	static void EnterAircraftHook(UObject* PC, AActor* Aircraft);

@@ -395,12 +395,13 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 		if (QuickBars)
 		{
-			auto SlotIndex = QuickBars->GetSlotIndex(ItemGuid);
+			auto ItemDefinitionQuickBars = IsPrimaryQuickbar(ItemDefinition) ? EFortQuickBars::Primary : EFortQuickBars::Secondary;
+			auto SlotIndex = QuickBars->GetSlotIndex(ItemGuid, ItemDefinitionQuickBars);
 
 			if (SlotIndex != -1)
 			{
 				QuickBars->ServerRemoveItemInternal(ItemGuid, false, true);
-				QuickBars->EmptySlot(IsPrimaryQuickbar(ItemDefinition) ? EFortQuickBars::Primary : EFortQuickBars::Secondary, SlotIndex);
+				QuickBars->EmptySlot(ItemDefinitionQuickBars, SlotIndex);
 			}
 		}
 	}

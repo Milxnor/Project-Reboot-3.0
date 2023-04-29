@@ -313,7 +313,8 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 			!strstr(FunctionName.c_str(), "BlueprintGetAllHighlightableComponents") &&
 			!strstr(FunctionFullName.c_str(), "Primitive_Structure_AmbAudioComponent") &&
 			!strstr(FunctionName.c_str(), "ServerTriggerCombatEvent") &&
-			!strstr(FunctionName.c_str(), "SpinCubeTimeline__UpdateFunc"))
+			!strstr(FunctionName.c_str(), "SpinCubeTimeline__UpdateFunc") &&
+			!strstr(ObjectName.c_str(), "FortPhysicsObjectComponent"))
 		{
 			LOG_INFO(LogDev, "Function called: {} with {}", FunctionFullName, ObjectName);
 		}

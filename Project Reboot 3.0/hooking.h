@@ -317,7 +317,7 @@ namespace Hooking
                 if (Original)
                     *Original = DefaultClass->VFTable[Idx];
 
-                LOG_INFO(LogDev, "Hooking {} with Idx 0x{:x}", FunctionName, AddrOrIdx);
+                LOG_INFO(LogDev, "Hooking {} with Idx 0x{:x} (0x{:x})", FunctionName, AddrOrIdx, __int64(DefaultClass->VFTable[Idx]) - __int64(GetModuleHandleW(0)));
 
                 VirtualSwap(DefaultClass->VFTable, Idx, Detour);
 

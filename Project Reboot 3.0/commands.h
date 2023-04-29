@@ -5,6 +5,8 @@
 #include "KismetSystemLibrary.h"
 #include "AthenaBarrierObjective.h"
 #include "FortAthenaMutator_Barrier.h"
+#include "FortWeaponMeleeItemDefinition.h"
+#include "creative.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
@@ -197,6 +199,90 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				WorldInventory->Update();
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
+		}
+		else if (Command == "setpickaxe")
+		{
+			if (NumArgs < 1)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a pickaxe!");
+				return;
+			}
+
+			auto WorldInventory = ReceivingController->GetWorldInventory();
+
+			if (!WorldInventory)
+			{
+				SendMessageToConsole(PlayerController, L"No world inventory!");
+				return;
+			}
+
+			auto& pickaxeName = Arguments[1];
+			static auto AthenaPickaxeItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.AthenaPickaxeItemDefinition");
+
+			auto Pickaxe1 = FindObject(pickaxeName + "." + pickaxeName, nullptr, ANY_PACKAGE);
+
+			UFortWeaponMeleeItemDefinition* NewPickaxeItemDefinition = nullptr;
+
+			if (Pickaxe1)
+			{
+				if (Pickaxe1->IsA(AthenaPickaxeItemDefinitionClass))
+				{
+					static auto WeaponDefinitionOffset = Pickaxe1->GetOffset("WeaponDefinition");
+					NewPickaxeItemDefinition = Pickaxe1->Get<UFortWeaponMeleeItemDefinition*>(WeaponDefinitionOffset);
+				}
+				else
+				{
+					NewPickaxeItemDefinition = Cast<UFortWeaponMeleeItemDefinition>(Pickaxe1);
+				}
+			}
+
+			if (!NewPickaxeItemDefinition)
+			{
+				SendMessageToConsole(PlayerController, L"Invalid pickaxe item definition!");
+				return;
+			}
+
+			auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
+			
+			if (PickaxeInstance)
+			{
+				WorldInventory->RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, PickaxeInstance->GetItemEntry()->GetCount(), true);
+			}
+
+			WorldInventory->AddItem(NewPickaxeItemDefinition, nullptr, 1);
+			WorldInventory->Update();
+
+			SendMessageToConsole(PlayerController, L"Successfully set pickaxe!");
+		}
+		else if (Command == "load")
+		{
+			if (!Globals::bCreative)
+			{
+				SendMessageToConsole(PlayerController, L"It is not creative!");
+				return;
+			}
+
+			auto Volume = ReceivingController->GetCreativePlotLinkedVolume();
+
+			if (!Volume)
+			{
+				SendMessageToConsole(PlayerController, L"They do not have an island!");
+				return;
+			}
+
+			if (Arguments.size() <= 1)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a filename!\n");
+				return;
+			}
+
+			std::string FileName = "islandSave";
+
+			try { FileName = Arguments[1]; }
+			catch (...) {}
+
+			Creative::LoadIsland(FileName, Volume);
+			SendMessageToConsole(PlayerController, L"Loaded!");
 		}
 		else if (Command == "spawnpickup")
 		{

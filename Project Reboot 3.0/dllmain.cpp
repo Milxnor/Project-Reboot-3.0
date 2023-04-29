@@ -171,6 +171,7 @@ DWORD WINAPI Main(LPVOID)
     }
 
     bSwitchedInitialLevel = true;
+    Globals::bAutoRestart = IsRestartingSupported();
 
     static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
     static auto FortPlayerControllerZoneDefault = FindObject<AFortPlayerController>(L"/Script/FortniteGame.Default__FortPlayerControllerZone");
@@ -496,8 +497,13 @@ DWORD WINAPI Main(LPVOID)
     }
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerGiveCreativeItem"),
         AFortPlayerControllerAthena::ServerGiveCreativeItemHook, nullptr, true);
-    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerPlaySquadQuickChatMessage"),
-        AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessageHook, nullptr, false);
+
+    if (Fortnite_Version < 19) // its all screwed up idk
+    {
+        Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerPlaySquadQuickChatMessage"),
+            AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessageHook, nullptr, false);
+    }
+
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerTeleportToPlaygroundLobbyIsland"),
         AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook, nullptr, false);
 

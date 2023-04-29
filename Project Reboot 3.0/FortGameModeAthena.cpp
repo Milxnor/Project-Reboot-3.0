@@ -26,6 +26,7 @@
 #include "vendingmachine.h"
 #include "FortAthenaMutator.h"
 #include "calendar.h"
+#include "gui.h"
 
 static UFortPlaylist* GetPlaylistToUse()
 {
@@ -1157,14 +1158,15 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			static auto OwnedPortalOffset = NewPlayer->GetOffset("OwnedPortal");
 			NewPlayer->Get<AFortAthenaCreativePortal*>(OwnedPortalOffset) = Portal;
 
-			static auto CreativePlotLinkedVolumeOffset = NewPlayer->GetOffset("CreativePlotLinkedVolume");
-			NewPlayer->Get<AFortVolume*>(CreativePlotLinkedVolumeOffset) = Portal->GetLinkedVolume();
+			NewPlayer->GetCreativePlotLinkedVolume() = Portal->GetLinkedVolume();
+
+			// OnRep_CreativePlotLinkedVolume ?
 
 			Portal->GetLinkedVolume()->GetVolumeState() = EVolumeState::Ready;
 
 			static auto IslandPlayset = FindObject<UFortPlaysetItemDefinition>("/Game/Playsets/PID_Playset_60x60_Composed.PID_Playset_60x60_Composed");
 
-			if (auto Volume = NewPlayer->Get<AFortVolume*>(CreativePlotLinkedVolumeOffset))
+			if (auto Volume = NewPlayer->GetCreativePlotLinkedVolume())
 			{
 				// if (IslandPlayset)
 					// Volume->UpdateSize({ (float)IslandPlayset->Get<int>("SizeX"), (float)IslandPlayset->Get<int>("SizeY"), (float)IslandPlayset->Get<int>("SizeZ") });

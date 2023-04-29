@@ -51,3 +51,8 @@ inline bool AreVehicleWeaponsEnabled()
 {
 	return Fortnite_Version < 9;
 }
+
+inline bool IsRestartingSupported()
+{
+	return Engine_Version < 424;
+}

@@ -130,7 +130,7 @@ bool AFortGameStateAthena::IsPlayerBuildableClass(UClass* Class)
 bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState)
 {
 	auto GameModeAthena = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
-	static auto IsRespawningAllowedFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateZone.IsRespawningAllowed");
+	static auto IsRespawningAllowedFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameStateZone.IsRespawningAllowed");
 
 	LOG_INFO(LogDev, "IsRespawningAllowedFn: {}", __int64(IsRespawningAllowedFn));
 
@@ -196,13 +196,13 @@ void AFortGameStateAthena::OnRep_GamePhase()
 {
 	EAthenaGamePhase OldGamePhase = GetGamePhase();
 
-	static auto OnRep_GamePhase = FindObject<UFunction>("/Script/FortniteGame.FortGameStateAthena.OnRep_GamePhase");
+	static auto OnRep_GamePhase = FindObject<UFunction>(L"/Script/FortniteGame.FortGameStateAthena.OnRep_GamePhase");
 	this->ProcessEvent(OnRep_GamePhase, &OldGamePhase);
 }
 
 void AFortGameStateAthena::OnRep_CurrentPlaylistInfo()
 {
-	static auto OnRep_CurrentPlaylistData = FindObject<UFunction>("/Script/FortniteGame.FortGameStateAthena.OnRep_CurrentPlaylistData");
+	static auto OnRep_CurrentPlaylistData = FindObject<UFunction>(L"/Script/FortniteGame.FortGameStateAthena.OnRep_CurrentPlaylistData");
 
 	if (OnRep_CurrentPlaylistData)
 	{
@@ -210,7 +210,7 @@ void AFortGameStateAthena::OnRep_CurrentPlaylistInfo()
 	}
 	else
 	{
-		static auto OnRep_CurrentPlaylistInfo = FindObject<UFunction>("/Script/FortniteGame.FortGameStateAthena.OnRep_CurrentPlaylistInfo");
+		static auto OnRep_CurrentPlaylistInfo = FindObject<UFunction>(L"/Script/FortniteGame.FortGameStateAthena.OnRep_CurrentPlaylistInfo");
 
 		if (OnRep_CurrentPlaylistInfo)
 			this->ProcessEvent(OnRep_CurrentPlaylistInfo);

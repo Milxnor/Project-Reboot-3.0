@@ -20,6 +20,7 @@ namespace Globals
 	extern inline bool bHitReadyToStartMatch = false;
 	extern inline bool bInitializedPlaylist = false;
 	extern inline bool bStartedListening = false;
+	extern inline bool bAutoRestart = true;
 
 	extern inline int AmountOfListens = 0; // TODO: Switch to this for LastNum
 }

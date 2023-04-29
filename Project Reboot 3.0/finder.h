@@ -168,7 +168,8 @@ static inline uint64 FindKickPlayer()
 
 	if (std::floor(Fortnite_Version) == 18)
 		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 48 83 65 ? ? 4C 8B F2 83 65 E8 00 4C 8B E1 83 65 EC").Get();
-
+	if (std::floor(Fortnite_Version) == 19)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 48 8B EC 48 83 EC 60 48 8B FA 48 8B F1 E8").Get();
 	if (Engine_Version >= 423 || Engine_Version <= 425) // && instead of || ??
 		return Memcury::Scanner::FindPattern("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC ? 49 8B F0 48 8B DA 48 85 D2").Get();
 
@@ -178,7 +179,7 @@ static inline uint64 FindKickPlayer()
 
 	uint64 Ret = 0;
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"Validation Failure: %s. kicking %s", false);
+	auto Addr = Memcury::Scanner::FindStringRef(L"Validation Failure: %s. kicking %s", false, 0, Fortnite_Version >= 19);
 
 	if (Addr.Get())
 	{
@@ -192,21 +193,30 @@ static inline uint64 FindKickPlayer()
 		return Ret;
 
 	auto Addr2 = Memcury::Scanner::FindStringRef(L"Failed to kick player"); // L"KickPlayer %s Reason %s"
-	Ret = Addr2.Get() ? FindBytes(Addr2, { 0x48, 0x89, 0x5C }, 2000, 0, true) : Ret; // s12??
-	// Ret = Addr2.Get() ? FindBytes(Addr2, { 0x48, 0x8B, 0xC4 }, 2000, 0, true) : Ret;
+	auto Addrr = Addr2.Get();
 
-	if (Ret)
-		return Ret;
+	for (int i = 0; i < 3000; i++)
+	{
+		/* if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x53)
+		{
+			return Addrr - i;
+		} */
 
-	/* auto Addr3 = Memcury::Scanner::FindStringRef(L"Game already ended.");
-	Ret = Addr3.Get() ? FindBytes(Addr3, { 0x48, 0x89, 0x5C }, 2000, 0, true) : Ret;
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
 
-	if (Ret)
-		return Ret; */
+		if (Fortnite_Version >= 17)
+		{
+			if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
+			{
+				return Addrr - i;
+			}
+		}
+	}
 
-	Ret = Memcury::Scanner::FindPattern("40 53 41 56 48 81 EC ? ? ? ? 48 8B 01 48 8B DA 4C 8B F1 FF 90").Get();
-
-	return Ret;
+	return Memcury::Scanner::FindPattern("40 53 41 56 48 81 EC ? ? ? ? 48 8B 01 48 8B DA 4C 8B F1 FF 90").Get();
 }
 
 static inline uint64 FindInitHost()
@@ -729,10 +739,13 @@ static inline uint64 FindEnterAircraft()
 			return Addr - i;
 		}
 
-		/* if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x5C && *(uint8_t*)(uint8_t*)(Addr - i + 3) == 0x24)
+		if (Fortnite_Version >= 15)
 		{
-			return Addr - i;
-		} */
+			if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x5C && *(uint8_t*)(uint8_t*)(Addr - i + 3) == 0x24)
+			{
+				return Addr - i;
+			}
+		}
 
 		if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x74) // 4.1
 		{
@@ -1136,7 +1149,7 @@ static inline uint64 FindDispatchRequest()
 {
 	auto Addrr = Memcury::Scanner::FindStringRef(L"MCP-Profile: Dispatching request to %s", true, 0, Fortnite_Version >= 19).Get();
 
-	for (int i = 0; i < 400; i++)
+	for (int i = 0; i < 1000; i++)
 	{
 		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
 		{

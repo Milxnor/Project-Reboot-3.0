@@ -57,7 +57,8 @@
 #define FUN_PLAYERTAB 5
 
 static inline int SecondsUntilTravel = 5;
-static bool bSwitchedInitialLevel = false;
+static inline bool bSwitchedInitialLevel = false;
+static inline bool bIsInAutoRestart = false;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -70,6 +71,58 @@ bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void ResetDevice();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+static inline bool bStartedBus = false;
+
+void Restart() // todo move?
+{
+	FString LevelA = Engine_Version < 424
+		? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+		? L"open Asteria_Terrain"
+		: Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+		: L"open Artemis_Terrain"
+		: Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+		: L"open Apollo_Terrain";
+
+	static auto BeaconClass = FindObject<UClass>(L"/Script/FortniteGame.FortOnlineBeaconHost");
+	auto AllFortBeacons = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BeaconClass);
+
+	for (int i = 0; i < AllFortBeacons.Num(); i++)
+	{
+		AllFortBeacons.at(i)->K2_DestroyActor();
+	}
+
+	AllFortBeacons.Free();
+
+	Globals::bInitializedPlaylist = false;
+	Globals::bStartedListening = false;
+	Globals::bHitReadyToStartMatch = false;
+	bStartedBus = false;
+	AmountOfRestarts++;
+
+	LOG_INFO(LogDev, "Switching!");
+
+	if (Fortnite_Version >= 3) // idk what ver
+	{
+		((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
+	}
+	else
+	{
+		UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
+	}
+
+	/*
+
+	auto& LevelCollections = GetWorld()->Get<TArray<__int64>>("LevelCollections");
+	int LevelCollectionSize = FindObject<UStruct>("/Script/Engine.LevelCollection")->GetPropertiesSize();
+
+	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = nullptr;
+	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = nullptr;
+
+	*/
+
+	// UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
+}
 
 std::string wstring_to_utf8(const std::wstring& str)
 {
@@ -219,6 +272,8 @@ static int playerTabTab = MAIN_PLAYERTAB;
 
 void StaticUI()
 {
+	ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
+
 #ifndef PROD
 	ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
 #endif
@@ -367,8 +422,6 @@ void PlayerTabs()
 	}
 }
 
-static bool bStartedBus = false;
-
 void MainUI()
 {
 	bool bLoaded = true;
@@ -440,56 +493,11 @@ void MainUI()
 				}
 				*/
 
-				if (Engine_Version < 424 && ImGui::Button("Restart"))
+				if (!bIsInAutoRestart && (Engine_Version < 424 && ImGui::Button("Restart")))
 				{
 					if (Engine_Version < 424)
 					{
-						FString LevelA = Engine_Version < 424
-							? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
-							? L"open Asteria_Terrain"
-							: Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-							: L"open Artemis_Terrain"
-							: Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-							: L"open Apollo_Terrain";
-
-						static auto BeaconClass = FindObject<UClass>(L"/Script/FortniteGame.FortOnlineBeaconHost");
-						auto AllFortBeacons = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BeaconClass);
-
-						for (int i = 0; i < AllFortBeacons.Num(); i++)
-						{
-							AllFortBeacons.at(i)->K2_DestroyActor();
-						}
-
-						AllFortBeacons.Free();
-
-						Globals::bInitializedPlaylist = false;
-						Globals::bStartedListening = false;
-						Globals::bHitReadyToStartMatch = false;
-						bStartedBus = false;
-						AmountOfRestarts++;
-
-						LOG_INFO(LogDev, "Switching!");
-
-						if (Fortnite_Version >= 3) // idk what ver
-						{
-							((AGameMode*)GetWorld()->GetGameMode())->RestartGame();
-						}
-						else
-						{
-							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelA, nullptr);
-						}
-
-						/*
-
-						auto& LevelCollections = GetWorld()->Get<TArray<__int64>>("LevelCollections");
-						int LevelCollectionSize = FindObject<UStruct>("/Script/Engine.LevelCollection")->GetPropertiesSize();
-
-						*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = nullptr;
-						*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = nullptr;
-
-						*/
-
-						// UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
+						Restart();
 						LOG_INFO(LogGame, "Restarting!");
 					}
 					else

@@ -102,7 +102,7 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 		if (!CurrentTeamMemberMarkerComponent)
 			continue;
 
-		static auto ClientAddMarkerFn = FindObject<UFunction>("/Script/FortniteGame.AthenaMarkerComponent.ClientAddMarker");
+		static auto ClientAddMarkerFn = FindObject<UFunction>(L"/Script/FortniteGame.AthenaMarkerComponent.ClientAddMarker");
 
 		if (ClientAddMarkerFn)
 		{
