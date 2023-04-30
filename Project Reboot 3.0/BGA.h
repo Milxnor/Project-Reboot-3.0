@@ -4,6 +4,7 @@
 #include "GameplayStatics.h"
 #include "FortLootPackage.h"
 #include "FortPickup.h"
+#include "BuildingGameplayActor.h"
 
 void SpawnBGAs() // hahah not "proper", there's a function that we can hook and it gets called on each spawner whenever playlist gets set, but it's fine.
 {
@@ -11,6 +12,8 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 
 	if (!BGAConsumableSpawnerClass)
 		return;
+
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 
 	auto AllBGAConsumableSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BGAConsumableSpawnerClass);
 
@@ -20,7 +23,17 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 	{
 		auto BGAConsumableSpawner = AllBGAConsumableSpawners.at(i);
 		auto SpawnLocation = BGAConsumableSpawner->GetActorLocation();
-		SpawnLocation.Z += 100;
+
+		if (FBuildingGameplayActorSpawnDetails::GetStruct())
+		{
+			// todo handle?
+
+			auto MapInfo = GameState->GetMapInfo();
+		}
+		else
+		{
+			// SpawnLocation.Z += 100;
+		}
 
 		static auto SpawnLootTierGroupOffset = BGAConsumableSpawner->GetOffset("SpawnLootTierGroup");
 		auto& SpawnLootTierGroup = BGAConsumableSpawner->Get<FName>(SpawnLootTierGroupOffset);
@@ -41,7 +54,13 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 				continue;
 			}
 
-			auto ConsumableActor = GetWorld()->SpawnActor<AActor>(StrongConsumableClass, SpawnLocation);
+			auto ConsumableActor = GetWorld()->SpawnActor<ABuildingGameplayActor>(StrongConsumableClass, SpawnLocation);
+
+			if (ConsumableActor)
+			{
+				// BeginDeferredActorSpawnFromClass ??
+				// ConsumableActor->InitializeBuildingActor(nullptr, nullptr, true); // idk UFortKismetLibrary::SpawnBuildingGameplayActor does this
+			}
 		}
 	}
 

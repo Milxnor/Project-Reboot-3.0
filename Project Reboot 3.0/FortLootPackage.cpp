@@ -190,7 +190,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                             {
                                 auto& Tag = GameplayTagContainer->GameplayTags.At(i);
 
-                                for (auto Value : PlaylistOverrideLootTableData)
+                                for (auto& Value : PlaylistOverrideLootTableData)
                                 {
                                     auto CurrentOverrideTag = Value.First;
 
@@ -504,7 +504,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
     auto ChosenLootPackageName = ChosenRowLootTierData->GetLootPackage().ToString();
 
-    if (ChosenLootPackageName.contains(".Empty"))
+    if (ChosenLootPackageName.contains(".Empty")) // I don't think?
     {
         return PickLootDrops(TierGroupName, bPrint);
         // return LootDrops;
@@ -581,6 +581,11 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                 {
                     lootPackageCallsTotalWeight += CurrentLP->GetWeight();
                     lootPackageCalls.push_back(CurrentLP);
+
+                    if (bPrint)
+                    {
+                        LOG_INFO(LogDev, "Adding LootPackage: {}", CurrentLP->GetAnnotation().ToString());
+                    }
                 }
             }
         }

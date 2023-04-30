@@ -119,24 +119,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 	if (NewItemInstance)
 	{
-		auto OldItemGuid = NewItemInstance->GetItemEntry()->GetItemGuid();
-
-		if (false)
-		{
-			CopyStruct(NewItemInstance->GetItemEntry(), ItemEntry, FFortItemEntry::GetStructSize(), FFortItemEntry::GetStruct());
-		}
-		else
-		{
-			NewItemInstance->GetItemEntry()->GetItemDefinition() = ItemEntry->GetItemDefinition();
-			NewItemInstance->GetItemEntry()->GetCount() = ItemEntry->GetCount();
-			NewItemInstance->GetItemEntry()->GetLoadedAmmo() = ItemEntry->GetLoadedAmmo();
-		}		
-
-		NewItemInstance->GetItemEntry()->GetItemGuid() = OldItemGuid;
-
-		NewItemInstance->GetItemEntry()->MostRecentArrayReplicationKey = -1;
-		NewItemInstance->GetItemEntry()->ReplicationID = -1;
-		NewItemInstance->GetItemEntry()->ReplicationKey = -1;
+		NewItemInstance->GetItemEntry()->CopyFromAnotherItemEntry(ItemEntry);
 
 		if (OverrideCount != -1)
 			NewItemInstance->GetItemEntry()->GetCount() = OverrideCount;
@@ -414,6 +397,44 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	return true;
 }
 
+void AFortInventory::SwapItem(const FGuid& ItemGuid, FFortItemEntry* NewItemEntry, int OverrideNewCount, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries)
+{
+	auto NewCount = OverrideNewCount == -1 ? NewItemEntry->GetCount() : OverrideNewCount;
+	
+	auto ItemInstance = FindItemInstance(ItemGuid);
+
+	if (!ItemInstance)
+		return;
+
+	/* RemoveItem(ItemGuid, nullptr, ItemInstance->GetItemEntry()->GetCount(), true);
+	AddItem(NewItemEntry, nullptr, false, OverrideNewCount);
+
+	return; */
+
+	// IDK WHY THIS DOESNT WORK
+
+	static auto FortItemEntrySize = FFortItemEntry::GetStructSize();
+
+	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
+	
+	for (int i = 0; i < ReplicatedEntries.Num(); i++)
+	{
+		auto& ReplicatedEntry = ReplicatedEntries.At(i, FortItemEntrySize);
+
+		if (ReplicatedEntry.GetItemGuid() == ItemGuid)
+		{
+			ReplicatedEntry.CopyFromAnotherItemEntry(NewItemEntry);
+			ItemInstance->GetItemEntry()->CopyFromAnotherItemEntry(NewItemEntry);
+
+			ReplicatedEntry.GetCount() = NewCount;
+			ItemInstance->GetItemEntry()->GetCount() = NewCount;
+			
+			if (outEntries)
+				*outEntries = std::make_pair(ItemInstance->GetItemEntry(), &ReplicatedEntry);
+		}
+	}
+}
+
 void AFortInventory::ModifyCount(UFortItem* ItemInstance, int New, bool bRemove, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries, bool bUpdate, bool bShowItemToast)
 {
 	auto ReplicatedEntry = FindReplicatedEntry(ItemInstance->GetItemEntry()->GetItemGuid());
@@ -529,8 +550,7 @@ UFortItem* AFortInventory::FindItemInstance(const FGuid& Guid)
 
 FFortItemEntry* AFortInventory::FindReplicatedEntry(const FGuid& Guid)
 {
-	static auto FortItemEntryStruct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntry");
-	static auto FortItemEntrySize = FortItemEntryStruct->GetPropertiesSize();
+	static auto FortItemEntrySize = FFortItemEntry::GetStructSize();
 
 	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
 

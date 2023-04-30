@@ -83,6 +83,12 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return *(int*)(__int64(this) + CountOffset);
 	}
 
+	int& GetLevel()
+	{
+		static auto LevelOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "Level");
+		return *(int*)(__int64(this) + LevelOffset);
+	}
+
 	TArray<FFortItemEntryStateValue>& GetStateValues()
 	{
 		static auto StateValuesOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "StateValues");
@@ -97,7 +103,7 @@ struct FFortItemEntry : FFastArraySerializerItem
 
 	void CopyFromAnotherItemEntry(FFortItemEntry* OtherItemEntry, bool bCopyGuid = false)
 	{
-		auto OldGuid = this->GetItemGuid();
+		FGuid OldGuid = this->GetItemGuid();
 
 		if (false)
 		{
@@ -109,10 +115,17 @@ struct FFortItemEntry : FFastArraySerializerItem
 			this->GetCount() = OtherItemEntry->GetCount();
 			this->GetLoadedAmmo() = OtherItemEntry->GetLoadedAmmo();
 			this->GetItemGuid() = OtherItemEntry->GetItemGuid();
+			this->GetLevel() = OtherItemEntry->GetLevel();
 		}
 
 		if (!bCopyGuid)
 			this->GetItemGuid() = OldGuid;
+
+		// should we do this?
+
+		this->MostRecentArrayReplicationKey = -1;
+		this->ReplicationID = -1;
+		this->ReplicationKey = -1;
 	}
 
 	static UStruct* GetStruct()

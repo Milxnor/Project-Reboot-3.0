@@ -100,6 +100,7 @@ public:
 	std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AddItem(FFortItemEntry* ItemEntry, bool* bShouldUpdate, bool bShowItemToast = false, int OverrideCount = -1);
 	std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AddItem(UFortItemDefinition* ItemDefinition, bool* bShouldUpdate, int Count = 1, int LoadedAmmo = -1, bool bShowItemToast = false);
 	bool RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count, bool bForceRemoval = false);
+	void SwapItem(const FGuid& ItemGuid, FFortItemEntry* NewItemEntry, int OverrideNewCount = -1, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries = nullptr);
 	void ModifyCount(UFortItem* ItemInstance, int New, bool bRemove = false, std::pair<FFortItemEntry*, FFortItemEntry*>* outEntries = nullptr, bool bUpdate = true, bool bShowItemToast = false);
 	
 	UFortItem* GetPickaxeInstance();

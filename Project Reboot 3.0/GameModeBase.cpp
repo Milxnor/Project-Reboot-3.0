@@ -72,11 +72,20 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		if (!PlayerStateAthena)
 			return nullptr;
 
+		auto ASC = PlayerStateAthena->GetAbilitySystemComponent();
+
 		GET_PLAYLIST(GameState);
 
-		if (CurrentPlaylist)
+		if (CurrentPlaylist) // Apply gameplay effects from playlist // We need to move this!
 		{
-			CurrentPlaylist->ApplyModifiersToActor(PlayerStateAthena); // We need to move this!
+			CurrentPlaylist->ApplyModifiersToActor(PlayerStateAthena);
+		}
+
+		auto PlayerAbilitySet = GetPlayerAbilitySet(); // Apply default gameplay effects // We need to move maybe?
+
+		if (PlayerAbilitySet && ASC)
+		{
+			PlayerAbilitySet->ApplyGrantedGameplayAffectsToAbilitySystem(ASC);
 		}
 
 		if (NewPlayerAsAthena)
@@ -91,10 +100,8 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 				// TODO Check Playlist->bRequirePickaxeInStartingInventory
 
 				auto CosmeticLoadout = NewPlayerAsAthena->GetCosmeticLoadoutOffset() != -1 ? NewPlayerAsAthena->GetCosmeticLoadout() : nullptr;
-				// LOG_INFO(LogDev, "CosmeticLoadout: {}", __int64(CosmeticLoadout));
 				auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
-				// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe: {}", __int64(CosmeticLoadoutPickaxe));
-				// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe Name: {}", CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->GetFullName() : "InvalidObject");
+
 				static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition", false);
 
 				auto PickaxeDefinition = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
@@ -114,10 +121,6 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 				WorldInventory->AddItem(BuildingItemData_Floor, nullptr);
 				WorldInventory->AddItem(BuildingItemData_Stair_W, nullptr);
 				WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
-				// WorldInventory->AddItem(WoodItemData, nullptr, 100);
-				// WorldInventory->AddItem(DamageTrap, nullptr);
-				// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel.WID_WestSausage_Parallel"), nullptr, 1, 1000);
-				// WorldInventory->AddItem(FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/HappyGhost/WID_Athena_HappyGhost.WID_Athena_HappyGhost"), nullptr);
 
 				/* if (Globals::bLateGame)
 				{

@@ -885,7 +885,7 @@ void AFortPlayerController::DropSpecificItemHook(UObject* Context, FFrame& Stack
 
 void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController* PlayerController, FGuid ItemGuid, int Count)
 {
-	LOG_INFO(LogDev, "ServerAttemptInventoryDropHook!");
+	LOG_INFO(LogDev, "ServerAttemptInventoryDropHook Dropping: {}", Count);
 
 	auto Pawn = PlayerController->GetMyFortPawn();
 
@@ -895,7 +895,7 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 	auto WorldInventory = PlayerController->GetWorldInventory();
 	auto ReplicatedEntry = WorldInventory->FindReplicatedEntry(ItemGuid);
 
-	if (!ReplicatedEntry)
+	if (!ReplicatedEntry || ReplicatedEntry->GetCount() < Count)
 		return;
 
 	auto ItemDefinition = Cast<UFortWorldItemDefinition>(ReplicatedEntry->GetItemDefinition());
@@ -908,7 +908,7 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && (DropBehaviorOffset != -1 ? ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop : true))
 	{
 		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(),
-			EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn);
+			EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn, nullptr, true, Count);
 
 		if (!Pickup)
 			return;

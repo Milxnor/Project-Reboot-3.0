@@ -45,6 +45,12 @@ public:
 		static auto CountOffset = FindOffsetStruct("/Script/FortniteGame.FortLootPackageData", "Count");
 		return *(int*)(__int64(this) + CountOffset);
 	}
+
+	FString& GetAnnotation()
+	{
+		static auto AnnotationOffset = FindOffsetStruct("/Script/FortniteGame.FortLootPackageData", "Annotation");
+		return *(FString*)(__int64(this) + AnnotationOffset);
+	}
 };
 
 struct FFortLootTierData

@@ -259,6 +259,9 @@
     <ClCompile Include="SavePackage.cpp">
       <Filter>Engine\Source\Runtime\CoreUObject\Private</Filter>
     </ClCompile>
+    <ClCompile Include="FortAthenaVehicleSpawner.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -825,6 +828,9 @@
     </ClInclude>
     <ClInclude Include="Vector.h">
       <Filter>Engine\Source\Runtime\Core\Public\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaVehicleSpawner.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

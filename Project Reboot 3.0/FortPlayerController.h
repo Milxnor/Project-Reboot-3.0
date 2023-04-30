@@ -87,6 +87,18 @@ public:
 		return CosmeticLoadout;
 	}
 
+	bool& ShouldTryPickupSwap()
+	{
+		static auto bTryPickupSwapOffset = GetOffset("bTryPickupSwap");
+		return Get<bool>(bTryPickupSwapOffset);
+	}
+	
+	bool HasTryPickupSwap()
+	{
+		static auto bTryPickupSwapOffset = GetOffset("bTryPickupSwap");
+		return bTryPickupSwapOffset != -1;
+	}
+
 	bool DoesBuildFree();
 	void DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar = false, bool bRemoveIfNotDroppable = false);
 	void ApplyCosmeticLoadout();

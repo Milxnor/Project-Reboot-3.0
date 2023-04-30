@@ -48,22 +48,8 @@ public:
 		return this->GetPtr<TArray<FGameplayEffectApplicationInfoHard>>(GrantedGameplayEffectsOffset);
 	}
 
-	void GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent, UObject* SourceObject = nullptr)
+	void ApplyGrantedGameplayAffectsToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent)
 	{
-		auto GameplayAbilities = GetGameplayAbilities();
-
-		for (int i = 0; i < GameplayAbilities->Num(); i++)
-		{
-			UClass* AbilityClass = GameplayAbilities->At(i);
-
-			if (!AbilityClass)
-				continue;
-
-			LOG_INFO(LogDev, "Giving AbilityClass {}", AbilityClass->GetFullName());
-
-			AbilitySystemComponent->GiveAbilityEasy(AbilityClass, SourceObject);
-		}
-
 		if (!FGameplayEffectApplicationInfoHard::GetStruct())
 			return;
 
@@ -84,6 +70,25 @@ public:
 			FGameplayEffectContextHandle EffectContext{}; // AbilitySystemComponent->MakeEffectContext()
 			AbilitySystemComponent->ApplyGameplayEffectToSelf(EffectToGrant.GameplayEffect, EffectToGrant.Level, EffectContext);
 		}
+	}
+
+	void GiveToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent, UObject* SourceObject = nullptr)
+	{
+		auto GameplayAbilities = GetGameplayAbilities();
+
+		for (int i = 0; i < GameplayAbilities->Num(); i++)
+		{
+			UClass* AbilityClass = GameplayAbilities->At(i);
+
+			if (!AbilityClass)
+				continue;
+
+			LOG_INFO(LogDev, "Giving AbilityClass {}", AbilityClass->GetFullName());
+
+			AbilitySystemComponent->GiveAbilityEasy(AbilityClass, SourceObject);
+		}
+
+		ApplyGrantedGameplayAffectsToAbilitySystem(AbilitySystemComponent);
 	}
 
 	static UClass* StaticClass()

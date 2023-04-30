@@ -195,9 +195,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum2 = 1;
 
-	if (Globals::AmountOfListens != LastNum2)
+	if (AmountOfRestarts != LastNum2)
 	{
-		LastNum2 = Globals::AmountOfListens;
+		LastNum2 = AmountOfRestarts;
 
 		LOG_INFO(LogDev, "Presetup!");
 
@@ -432,9 +432,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum6 = 1;
 
-	if (Globals::AmountOfListens != LastNum6)
+	if (AmountOfRestarts != LastNum6)
 	{
-		LastNum6 = Globals::AmountOfListens;
+		LastNum6 = AmountOfRestarts;
 
 		if (Globals::bGoingToPlayEvent && DoesEventRequireLoading())
 		{
@@ -448,9 +448,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum5 = 1;
 
-	if (Globals::AmountOfListens != LastNum5 && LastNum6 == Globals::AmountOfListens) // Make sure we loaded the event.
+	if (AmountOfRestarts != LastNum5 && LastNum6 == AmountOfRestarts) // Make sure we loaded the event.
 	{
-		LastNum5 = Globals::AmountOfListens;
+		LastNum5 = AmountOfRestarts;
 
 		if (Globals::bGoingToPlayEvent)
 		{
@@ -475,13 +475,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			return false;
 	}
 
-	static int LastNum9 = 1;
-
-	if (Globals::AmountOfListens != LastNum9)
-	{
-		LastNum9 = Globals::AmountOfListens;
-	}
-
 	auto MapInfo = GameState->GetMapInfo();
 	
 	if (!MapInfo && Engine_Version >= 421)
@@ -489,9 +482,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum = 1;
 
-	if (Globals::AmountOfListens != LastNum)
+	if (AmountOfRestarts != LastNum)
 	{
-		LastNum = Globals::AmountOfListens;
+		LastNum = AmountOfRestarts;
 
 		float Duration = 10000.f;
 		float EarlyDuration = Duration;
@@ -552,9 +545,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum3 = 1;
 
-	if (Globals::AmountOfListens != LastNum3)
+	if (AmountOfRestarts != LastNum3)
 	{
-		LastNum3 = ++Globals::AmountOfListens;
+		LastNum3 = AmountOfRestarts;
+		++Globals::AmountOfListens;
 
 		LOG_INFO(LogNet, "Attempting to listen!");
 
@@ -579,8 +573,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				Loader->ProcessEvent(NewFn, &NewParam);
 			}
 		}
-
-		LoopMutators([&](AFortAthenaMutator* Mutator) { LOG_INFO(LogGame, "Mutator {}", Mutator->GetPathName()); });
 
 		Globals::bStartedListening = true;
 	}
@@ -613,17 +605,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	{
 		// We are assuming it successfully became warmup.
 
-		static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
-		auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
-
 		std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
 
-		for (int i = 0; i < AllMutators.Num(); i++)
-		{
-			auto Mutator = (AFortAthenaMutator*)AllMutators.at(i);
-
-			FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged")));
-		}
+		LoopMutators([&](AFortAthenaMutator* Mutator) { LOG_INFO(LogGame, "Mutator {}", Mutator->GetPathName()); });
+		LoopMutators([&](AFortAthenaMutator* Mutator) { FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged"))); });
 
 		static int LastNum1 = 3125;
 
@@ -650,9 +635,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, a);
 							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::Setup));
 							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::Warmup));
-							// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormFormingGamePhaseStep);
-							// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormHoldingGamePhaseStep);
-							// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormShrinkingGamePhaseStep);
 						}
 					}
 				}
@@ -1008,34 +990,14 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	LOG_INFO(LogDev, "Old ID: {}", PlayerStateAthena->GetWorldPlayerId());
 	LOG_INFO(LogDev, "PlayerID: {}", PlayerStateAthena->GetPlayerID());
 
-	// if (PlayerStateAthena->GetWorldPlayerId() == -1)
+	PlayerStateAthena->GetWorldPlayerId() = PlayerStateAthena->GetPlayerID();
+
+	auto PlayerAbilitySet = GetPlayerAbilitySet();
+	auto AbilitySystemComponent = PlayerStateAthena->GetAbilitySystemComponent();
+
+	if (PlayerAbilitySet)
 	{
-		static int CurrentPlayerId = 1;
-		// static auto PlayerIdOffset = PlayerStateAthena->GetOffset("PlayerId"); // Unable to find tf
-		PlayerStateAthena->GetWorldPlayerId() = PlayerStateAthena->GetPlayerID(); // ++CurrentPlayerId; // PlayerStateAthena->Get<int>(PlayerIdOffset); // 
-	}
-
-	{
-		static auto GameplayAbilitySet = (UFortAbilitySet*)(Fortnite_Version >= 8.30 ? // LoadObject<UObject>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer") ? 
-			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer", UFortAbilitySet::StaticClass()) :
-			LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer", UFortAbilitySet::StaticClass()));
-
-		LOG_INFO(LogDev, "GameplayAbilitySet {}", __int64(GameplayAbilitySet));
-
-		auto AbilitySystemComponent = PlayerStateAthena->GetAbilitySystemComponent();
-
-		if (GameplayAbilitySet)
-		{
-			LOG_INFO(LogDev, "GameplayAbilitySet Name {}", GameplayAbilitySet->GetName());
-			GameplayAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
-		}
-
-		GET_PLAYLIST(GameState);
-
-		if (CurrentPlaylist)
-		{
-			// CurrentPlaylist->ApplyModifiersToActor(PlayerStateAthena); // scuffed we need to do as pawn spawns
-		}
+		PlayerAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
 	}
 
 	struct FUniqueNetIdReplExperimental

@@ -13,6 +13,59 @@ FFortAthenaLoadout* AFortPlayerPawn::GetCosmeticLoadout()
 	return GetPtr<FFortAthenaLoadout>(CosmeticLoadoutOffset);
 }
 
+void AFortPlayerPawn::ServerHandlePickupWithRequestedSwapHook(UObject* Context, FFrame* Stack, void* Ret)
+{
+	auto Pawn = (AFortPlayerPawn*)Context;
+	auto Controller = Cast<AFortPlayerController>(Pawn->GetController());
+
+	if (!Controller)
+		return ServerHandlePickupWithRequestedSwapOriginal(Context, Stack, Ret);
+
+	auto Params = Stack->Locals;
+
+	static auto PickupOffset = FindOffsetStruct("/Script/FortniteGame.FortPlayerPawn.ServerHandlePickupWithRequestedSwap", "Pickup");
+	static auto SwapOffset = FindOffsetStruct("/Script/FortniteGame.FortPlayerPawn.ServerHandlePickupWithRequestedSwap", "Swap");
+
+	auto Pickup = *(AFortPickup**)(__int64(Params) + PickupOffset);
+	auto& Swap = *(FGuid*)(__int64(Params) + SwapOffset);
+
+	// LOG_INFO(LogDev, "Pickup: {}", Pickup->IsValidLowLevel() ? Pickup->GetFullName() : "BadRead");
+
+	if (!Pickup)
+		return ServerHandlePickupWithRequestedSwapOriginal(Context, Stack, Ret);
+
+	static auto bPickedUpOffset = Pickup->GetOffset("bPickedUp");
+
+	if (Pickup->Get<bool>(bPickedUpOffset))
+	{
+		LOG_INFO(LogDev, "Trying to pickup picked up weapon (Swap)?");
+		return ServerHandlePickupWithRequestedSwapOriginal(Context, Stack, Ret);
+	}
+
+	static auto IncomingPickupsOffset = Pawn->GetOffset("IncomingPickups");
+	Pawn->Get<TArray<AFortPickup*>>(IncomingPickupsOffset).Add(Pickup);
+
+	auto PickupLocationData = Pickup->GetPickupLocationData();
+
+	PickupLocationData->GetPickupTarget() = Pawn;
+	PickupLocationData->GetFlyTime() = 0.40f;
+	PickupLocationData->GetItemOwner() = Pawn;
+	// PickupLocationData->GetStartDirection() = InStartDirection;
+	PickupLocationData->GetPickupGuid() = Swap;
+
+	Controller->ShouldTryPickupSwap() = true;
+
+	static auto OnRep_PickupLocationDataFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPickup.OnRep_PickupLocationData");
+	Pickup->ProcessEvent(OnRep_PickupLocationDataFn);
+
+	Pickup->Get<bool>(bPickedUpOffset) = true;
+
+	static auto OnRep_bPickedUpFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPickup.OnRep_bPickedUp");
+	Pickup->ProcessEvent(OnRep_bPickedUpFn);
+
+	return ServerHandlePickupWithRequestedSwapOriginal(Context, Stack, Ret);
+}
+
 void AFortPlayerPawn::ServerChoosePart(EFortCustomPartType Part, UObject* ChosenCharacterPart)
 {
 	static auto fn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerPawn.ServerChoosePart");

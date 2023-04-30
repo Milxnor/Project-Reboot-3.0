@@ -9,22 +9,21 @@ AFortWeapon* AFortPawn::EquipWeaponDefinition(UFortWeaponItemDefinition* WeaponD
 
 	FGuid TrackerGuid{};
 
-	struct { UObject* Def; FGuid Guid; AFortWeapon* Wep; } params{ WeaponData, ItemEntryGuid };
-	struct { UObject* Def; FGuid Guid; FGuid TrackerGuid; AFortWeapon* Wep; } S16_params{ WeaponData, ItemEntryGuid, TrackerGuid };
-	struct { UObject* Def; FGuid Guid; FGuid TrackerGuid; bool bDisableEquipAnimation; AFortWeapon* Wep; } S17_params{ WeaponData, ItemEntryGuid, TrackerGuid, false };
-
 	if (Fortnite_Version < 16)
 	{
+		struct { UObject* Def; FGuid Guid; AFortWeapon* Wep; } params{ WeaponData, ItemEntryGuid };
 		this->ProcessEvent(EquipWeaponDefinitionFn, &params);
 		return params.Wep;
 	}
 	else if (std::floor(Fortnite_Version) == 16)
 	{
+		struct { UObject* Def; FGuid Guid; FGuid TrackerGuid; AFortWeapon* Wep; } S16_params{ WeaponData, ItemEntryGuid, TrackerGuid };
 		this->ProcessEvent(EquipWeaponDefinitionFn, &S16_params);
 		return S16_params.Wep;
 	}
 	else
 	{
+		struct { UObject* Def; FGuid Guid; FGuid TrackerGuid; bool bDisableEquipAnimation; AFortWeapon* Wep; } S17_params{ WeaponData, ItemEntryGuid, TrackerGuid, false };
 		this->ProcessEvent(EquipWeaponDefinitionFn, &S17_params);
 		return S17_params.Wep;
 	}

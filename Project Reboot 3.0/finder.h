@@ -223,7 +223,7 @@ static inline uint64 FindInitHost()
 {
 	if (Engine_Version == 427) // idk im dumb
 	{
-		auto addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B F1 4C 8D 05").Get();
+		auto addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B F1 4C 8D 05", false).Get();
 	
 		if (!addr) // s18
 			addr = Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 48 8B F1 4C 8D 35 ? ? ? ? 4D").Get();
@@ -664,7 +664,7 @@ static inline uint64 FindSetZoneToIndex() // actually StartNewSafeZonePhase
 	if (Engine_Version == 422)
 		return Memcury::Scanner::FindPattern("E9 ? ? ? ? 48 8B C1 40 38 B9").RelativeOffset(1).Get(); // 7.40
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.", true, 0, Fortnite_Version >= 16).Get();
+	auto Addr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: No MegaStorm on SafeZone[%d].  GridCellThickness is less than 1.0.", true, 0, Engine_Version >= 427).Get();
 	// return FindBytes(Addr, { 0x40, 0x55 }, 30000, 0, true);
 
 	if (!Addr)
@@ -859,7 +859,9 @@ static inline uint64 FindActorGetNetMode()
 	// return 0;
 
 	if (Engine_Version == 500)
+	{
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 F6 41 08 10 48 8B D9 0F 85 ? ? ? ? 48 8B 41 20 48 85 C0 0F 84 ? ? ? ? F7 40").Get();
+	}
 
 	if (Engine_Version == 427)
 	{
@@ -1132,10 +1134,7 @@ static inline uint64 FindChangeGameSessionId()
 
 	if (Engine_Version >= 427)
 	{
-		if (Fortnite_Version < 18)
-			return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 4C 8B FA 4C").Get();
-		else
-			return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 4C 8B FA 4C").Get();
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 54 41 55 41 56 41 57 48 8B EC 48 83 EC 70 4C 8B FA 4C").Get(); // no work on s18
 	}
 
 	if (Fortnite_Version == 2.5)

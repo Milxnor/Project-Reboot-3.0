@@ -7,6 +7,7 @@
 #include "BuildingSMActor.h"
 #include "FortSafeZoneIndicator.h"
 #include "GameplayStatics.h"
+#include "FortAbilitySet.h"
 #include "FortItemDefinition.h"
 
 struct FAircraftFlightInfo
@@ -75,6 +76,17 @@ static void SetFoundationTransform(AActor* BuildingFoundation, const FTransform&
 		static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
 		BuildingFoundation->ProcessEvent(OnRep_DynamicFoundationRepDataFn);
 	}
+}
+
+static inline UFortAbilitySet* GetPlayerAbilitySet()
+{
+	// There are some variables that contain this but it changes through versions soo..
+
+	static auto GameplayAbilitySet = (UFortAbilitySet*)(Fortnite_Version >= 8.30
+		? LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer", UFortAbilitySet::StaticClass()) 
+		: LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer", UFortAbilitySet::StaticClass()));
+
+	return GameplayAbilitySet;
 }
 
 static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)

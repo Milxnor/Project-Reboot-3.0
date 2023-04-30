@@ -189,6 +189,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 	FGuid NewSwappedItem = FGuid(-1, -1, -1, -1);
 
+	bool bForceDontAddItem = false;
 	bool bForceOverflow = false;
 
 	while (cpyCount > 0)
@@ -214,9 +215,12 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 			bIsInventoryFull = (PrimarySlotsFilled /* - 6 */) >= 5;
 
-			if (bIsInventoryFull) // probs shouldnt do in loop but alr
+			if (bIsInventoryFull || (PlayerController->HasTryPickupSwap() ? PlayerController->ShouldTryPickupSwap() : false)) // probs shouldnt do in loop but alr
 			{
-				if (ItemInstanceToSwap && ItemDefinitionToSwap->CanBeDropped() && !bHasSwapped) // swap
+				if (PlayerController->HasTryPickupSwap())
+					PlayerController->ShouldTryPickupSwap() = false;
+
+				if (ItemInstanceToSwap && ItemDefinitionToSwap->CanBeDropped() && !bHasSwapped && ItemDefGoingInPrimary) // swap
 				{
 					auto SwappedPickup = SpawnPickup(ItemEntryToSwap, PawnLoc,
 						EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn);
@@ -228,12 +232,26 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 						bWasHoldingSameItemWhenSwap = CurrentWeapon->GetItemEntryGuid()  == ItemInstanceToSwap->GetItemEntry()->GetItemGuid();
 					}
 
+					// THIS IS NOT PROPER! We should use the commented code but there are some bugs idk why.
+
 					WorldInventory->RemoveItem(CurrentItemGuid, nullptr, ItemEntryToSwap->GetCount(), true);
+
+					/*
+					auto NewItemCount = cpyCount > PickupItemDefinition->GetMaxStackSize() ? PickupItemDefinition->GetMaxStackSize() : cpyCount;
+
+					std::pair<FFortItemEntry*, FFortItemEntry*> Pairs;
+					WorldInventory->SwapItem(CurrentItemGuid, PickupEntry, cpyCount, &Pairs);
+					PairsToMarkDirty.push_back(Pairs);
+
+					cpyCount -= NewItemCount;
+					*/
 
 					bHasSwapped = true;
 
 					if constexpr (bTestPrinting)
 						LOG_INFO(LogDev, "[{}] Swapping: {}", i, ItemDefinitionToSwap->GetFullName());
+
+					// bForceDontAddItem = true;
 
 					continue; // ???
 				}
@@ -287,7 +305,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 				break;
 		}
 
-		if (cpyCount > 0 && !bIsInventoryFull)
+		if (cpyCount > 0 && !bIsInventoryFull && !bForceDontAddItem)
 		{
 			if constexpr (bTestPrinting)
 				LOG_INFO(LogDev, "Attempting to add to inventory.");

@@ -198,6 +198,7 @@
     <ClCompile Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.cpp" />
     <ClCompile Include="FortAthenaSupplyDrop.cpp" />
     <ClCompile Include="FortAthenaVehicle.cpp" />
+    <ClCompile Include="FortAthenaVehicleSpawner.cpp" />
     <ClCompile Include="FortDecoItemDefinition.cpp" />
     <ClCompile Include="FortGadgetItemDefinition.cpp" />
     <ClCompile Include="FortGameMode.cpp" />
@@ -315,6 +316,7 @@
     <ClInclude Include="FortAthenaSKPushCannon.h" />
     <ClInclude Include="FortAthenaSupplyDrop.h" />
     <ClInclude Include="FortAthenaVehicle.h" />
+    <ClInclude Include="FortAthenaVehicleSpawner.h" />
     <ClInclude Include="FortDecoItemDefinition.h" />
     <ClInclude Include="FortGadgetItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />

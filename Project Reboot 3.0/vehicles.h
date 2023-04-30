@@ -5,6 +5,8 @@
 #include "Actor.h"
 #include "hooking.h"
 #include "SoftObjectPtr.h"
+#include "FortGameModeAthena.h"
+#include "GameplayStatics.h"
 
 // Vehicle class name changes multiple times across versions, so I made it it's own file.
 
@@ -186,108 +188,6 @@ static inline void SpawnVehicles2()
 	{
 		auto VehicleSpawner = AllVehicleSpawners.at(i);
 		auto Vehicle = SpawnVehicleFromSpawner(VehicleSpawner);
-	}
-
-	AllVehicleSpawners.Free();
-}
-
-static inline void SpawnVehicles()
-{
-	static auto FortAthenaVehicleSpawnerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaVehicleSpawner");
-	TArray<AActor*> AllVehicleSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaVehicleSpawnerClass);
-
-	for (int i = 0; i < AllVehicleSpawners.Num(); i++)
-	{
-		auto VehicleSpawner = (AllVehicleSpawners.at(i));
-
-		static auto FortVehicleItemDefVariantsOffset = VehicleSpawner->GetOffset("FortVehicleItemDefVariants", false);
-
-		bool aa = true;
-
-		static auto VIDClass = FindObject<UClass>("/Script/FortniteGame.FortVehicleItemDefinition");
-
-		if (FortVehicleItemDefVariantsOffset != -1)
-		{
-			struct FVehicleWeightedDef
-			{
-				TSoftObjectPtr<UFortItemDefinition> VehicleItemDef;
-				char pad[0x20]; // FScalableFloat Weight;                                                   // 0x0028(0x0020) (Edit, BlueprintVisible, BlueprintReadOnly)
-			};
-
-			auto FortVehicleItemDefVariants = VehicleSpawner->GetPtr<TArray<FVehicleWeightedDef>>(FortVehicleItemDefVariantsOffset);
-
-			if (FortVehicleItemDefVariants->Num() > 0)
-			{
-				aa = false;
-				auto& first = FortVehicleItemDefVariants->At(0);
-
-				auto AssetPathName = first.VehicleItemDef.SoftObjectPtr.ObjectID.AssetPathName;
-
-				if (!AssetPathName.ComparisonIndex.Value)
-					continue;
-
-				auto VehicleItemDef = LoadObject(AssetPathName.ToString(), VIDClass);
-
-				if (VehicleItemDef)
-				{
-					static auto VehicleActorClassOffset = VehicleItemDef->GetOffset("VehicleActorClass");
-
-					auto VehicleActorClassSoft = VehicleItemDef->GetPtr<TSoftObjectPtr<UClass>>(VehicleActorClassOffset);
-
-					auto VehicleClassAssetPath = VehicleActorClassSoft->SoftObjectPtr.ObjectID.AssetPathName;
-
-					if (!VehicleClassAssetPath.ComparisonIndex.Value)
-						continue;
-
-					static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
-					auto VehicleActorClass = LoadObject<UClass>(VehicleClassAssetPath.ToString(), BGAClass);
-;
-					if (!VehicleActorClass)
-						continue;
-
-					GetWorld()->SpawnActor<AActor>(VehicleActorClass, VehicleSpawner->GetActorLocation(), VehicleSpawner->GetActorRotation().Quaternion());
-				}
-			}
-		}
-
-		if (aa)
-		{
-			static auto FortVehicleItemDefOffset = VehicleSpawner->GetOffset("FortVehicleItemDef");
-			
-			if (FortVehicleItemDefOffset == -1)
-			{
-
-			}
-
-			auto FortVehicleItemDefSoft = VehicleSpawner->GetPtr<TSoftObjectPtr<UFortItemDefinition>>(FortVehicleItemDefOffset);
-
-			auto FortVehicleItemDefAssetPath = FortVehicleItemDefSoft->SoftObjectPtr.ObjectID.AssetPathName;
-
-			if (!FortVehicleItemDefAssetPath.ComparisonIndex.Value)
-				continue;
-
-			auto FortVehicleItemDef = LoadObject<UFortItemDefinition>(FortVehicleItemDefAssetPath.ToString(), VIDClass);
-
-			if (!FortVehicleItemDef)
-				continue;
-
-			static auto VehicleActorClassOffset = FortVehicleItemDef->GetOffset("VehicleActorClass");
-
-			auto VehicleActorClassSoft = FortVehicleItemDef->GetPtr<TSoftObjectPtr<UClass>>(VehicleActorClassOffset);
-
-			auto VehicleActorClassAssetPath = VehicleActorClassSoft->SoftObjectPtr.ObjectID.AssetPathName;
-
-			if (!VehicleActorClassAssetPath.ComparisonIndex.Value)
-				continue;
-
-			static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
-			auto VehicleActorClass = LoadObject<UClass>(VehicleActorClassAssetPath.ToString(), BGAClass);
-
-			if (!VehicleActorClass)
-				continue;
-
-			GetWorld()->SpawnActor<AActor>(VehicleActorClass, VehicleSpawner->GetActorLocation(), VehicleSpawner->GetActorRotation().Quaternion());
-		}
 	}
 
 	AllVehicleSpawners.Free();

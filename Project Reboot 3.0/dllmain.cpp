@@ -40,6 +40,7 @@
 #include "FortAthenaMutator_Barrier.h"
 
 #include "PlaysetLevelStreamComponent.h"
+#include "FortAthenaVehicleSpawner.h"
 
 enum ENetMode
 {
@@ -636,6 +637,9 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(InventoryManagementLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.InventoryManagementLibrary.SwapItems"),
         UInventoryManagementLibrary::SwapItemsHook, (PVOID*)&UInventoryManagementLibrary::SwapItemsOriginal, false, true);
 
+    Hooking::MinHook::Hook(FindObject("/Script/FortniteGame.Default__FortAthenaVehicleSpawner"), FindObject<UFunction>(L"/Script/FortniteGame.FortAthenaVehicleSpawner.SpawnVehicle"),
+        AFortAthenaVehicleSpawner::SpawnVehicleHook, nullptr, false);
+
     static auto ServerHandlePickupInfoFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickupInfo");
 
     if (ServerHandlePickupInfoFn)
@@ -646,6 +650,8 @@ DWORD WINAPI Main(LPVOID)
     {
         Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickup"),
             AFortPlayerPawn::ServerHandlePickupHook, nullptr, false);
+        Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickupWithRequestedSwap"),
+            AFortPlayerPawn::ServerHandlePickupWithRequestedSwapHook, (PVOID*)&AFortPlayerPawn::ServerHandlePickupWithRequestedSwapOriginal, false, true);
     }
 
     static auto PredictionKeyStruct = FindObject<UStruct>(L"/Script/GameplayAbilities.PredictionKey");
@@ -712,11 +718,18 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::CompletePickupAnimation, (PVOID)AFortPickup::CompletePickupAnimationHook, (PVOID*)&AFortPickup::CompletePickupAnimationOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::CanActivateAbility, ReturnTrueHook); // ahhh wtf
 
-    // if (Fortnite_Version >= 2.5)
-    if (Engine_Version >= 419)
+    uint64 ServerRemoveInventoryItemFunctionCallBeginFunctionAddr = 0;
+
+    if (Engine_Version >= 419) // Dude idk why but its getting the second ref kms
     {
-        auto ServerRemoveInventoryItemFunctionCallRef = Memcury::Scanner::FindPointerRef((PVOID)FindFunctionCall(L"ServerRemoveInventoryItem",
-            Fortnite_Version >= 16 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C }), 0, true);
+        std::vector<uint8_t> ServerRemoveInventoryItemCallFunctionStarts = Engine_Version == 416 
+            ? std::vector<uint8_t>{ 0x44, 0x88, 0x4C } 
+            : Fortnite_Version >= 16 
+                ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 }
+            : std::vector<uint8_t>{ 0x48, 0x89, 0x5C };
+
+        auto ServerRemoveInventoryItemCallFunctionCall = FindFunctionCall(L"ServerRemoveInventoryItem", ServerRemoveInventoryItemCallFunctionStarts);
+        auto ServerRemoveInventoryItemFunctionCallRef = Memcury::Scanner::FindPointerRef((PVOID)ServerRemoveInventoryItemCallFunctionCall, true);
 
         LOG_INFO(LogDev, "ServerRemoveInventoryItemFunctionCallRef: 0x{:x}", ServerRemoveInventoryItemFunctionCallRef.Get() - __int64(GetModuleHandleW(0)));
 
@@ -736,12 +749,13 @@ DWORD WINAPI Main(LPVOID)
                 break;
             }
         }
-
-        Hooking::MinHook::Hook(
-            Memcury::Scanner(ServerRemoveInventoryItemFunctionCallBeginFunctionAddr).GetAs<PVOID>(),
-            UFortInventoryInterface::RemoveInventoryItemHook
-        );
     }
+    else
+    {
+
+    }
+
+    Hooking::MinHook::Hook(Memcury::Scanner(ServerRemoveInventoryItemFunctionCallBeginFunctionAddr).GetAs<PVOID>(), UFortInventoryInterface::RemoveInventoryItemHook);
    
     // if (Fortnite_Version >= 13)
     Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)SetZoneToIndexHook, (PVOID*)&SetZoneToIndexOriginal);
@@ -799,9 +813,16 @@ DWORD WINAPI Main(LPVOID)
 
     LOG_INFO(LogHook, "Finished!");
 
-    while (true)
+    if (false)
     {
-        Sleep(10000);
+        while (true)
+        {
+            Sleep(10000);
+        }
+    }
+    else
+    {
+        Sleep(-1);
     }
 
     return 0;
