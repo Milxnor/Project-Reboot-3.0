@@ -5,6 +5,7 @@
 #include "Class.h"
 #include "KismetSystemLibrary.h"
 #include "UObjectArray.h"
+#include "Package.h"
 
 FName* getFNameOfProp(void* Property)
 {
@@ -138,6 +139,20 @@ std::string UObject::GetPathName()
 std::string UObject::GetFullName()
 {
 	return ClassPrivate ? ClassPrivate->GetName() + " " + UKismetSystemLibrary::GetPathName(this).ToString() : "NoClassPrivate";
+}
+
+UPackage* UObject::GetOutermost() const
+{
+	UObject* Top = (UObject*)this;
+	for (;;)
+	{
+		UObject* CurrentOuter = Top->GetOuter();
+		if (!CurrentOuter)
+		{
+			return Cast<UPackage>(Top);
+		}
+		Top = CurrentOuter;
+	}
 }
 
 bool UObject::IsA(UClass* otherClass)

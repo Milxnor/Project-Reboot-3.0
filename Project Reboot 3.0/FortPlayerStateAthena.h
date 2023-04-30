@@ -20,12 +20,10 @@ public:
 		return Get<uint8>(TeamIndexOffset);
 	}
 
-	FString GetPlayerName()
+	int& GetPlace()
 	{
-		static auto GetPlayerNameFn = FindObject<UFunction>("/Script/Engine.PlayerState.GetPlayerName");
-		FString PlayerName;
-		this->ProcessEvent(GetPlayerNameFn, &PlayerName);
-		return PlayerName;
+		static auto PlaceOffset = GetOffset("Place");
+		return Get<int>(PlaceOffset);
 	}
 
 	void ClientReportKill(AFortPlayerStateAthena* Player)

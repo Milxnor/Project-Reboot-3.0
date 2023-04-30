@@ -261,7 +261,10 @@ static int playerTabTab = MAIN_PLAYERTAB;
 
 static inline void StaticUI()
 {
-	ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
+	if (IsRestartingSupported())
+	{
+		// ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
+	}
 
 #ifndef PROD
 	ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);

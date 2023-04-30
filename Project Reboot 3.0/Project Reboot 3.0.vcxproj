@@ -245,6 +245,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerState.cpp" />
+    <ClCompile Include="SavePackage.cpp" />
     <ClCompile Include="UnrealMath.cpp" />
     <ClCompile Include="UnrealNames.cpp" />
     <ClCompile Include="UObjectGlobals.cpp" />
@@ -398,6 +399,7 @@
     <ClInclude Include="ObjectMacros.h" />
     <ClInclude Include="OnlineReplStructs.h" />
     <ClInclude Include="OutputDevice.h" />
+    <ClInclude Include="Package.h" />
     <ClInclude Include="Pawn.h" />
     <ClInclude Include="PersistentObjectPtr.h" />
     <ClInclude Include="Player.h" />

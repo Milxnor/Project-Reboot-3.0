@@ -7,6 +7,7 @@
 #include "GameplayStatics.h"
 #include "KismetMathLibrary.h"
 #include <random>
+#include "Package.h"S
 #include "AssertionMacros.h"
 
 FNetworkObjectList& UNetDriver::GetNetworkObjectList()
@@ -348,15 +349,18 @@ bool UNetDriver::IsLevelInitializedForActor(const AActor* InActor, const UNetCon
 		return true;
 	}
 
-/* #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+/* #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST) // (Milxnor) This is on some ue versions and others not.
 	if (!InActor || !InConnection)
 		return false;
 
 	// check(World == InActor->GetWorld());
 #endif */
 
-	// return true; // damn
-	const bool bCorrectWorld = (InConnection->GetClientWorldPackageName() == GetWorldPackage()->NamePrivate && InConnection->ClientHasInitializedLevelFor(InActor));
+	bool bFirstWorldCheck = Engine_Version == 416 
+		? (InConnection->GetClientWorldPackageName() == GetWorld()->GetOutermost()->GetFName())
+		: (InConnection->GetClientWorldPackageName() == GetWorldPackage()->NamePrivate);
+
+	const bool bCorrectWorld = (bFirstWorldCheck && InConnection->ClientHasInitializedLevelFor(InActor));
 	const bool bIsConnectionPC = (InActor == InConnection->GetPlayerController());
 	return bCorrectWorld || bIsConnectionPC;
 }

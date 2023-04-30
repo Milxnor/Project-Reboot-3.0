@@ -256,6 +256,9 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Reboot\Public</Filter>
     </ClCompile>
+    <ClCompile Include="SavePackage.cpp">
+      <Filter>Engine\Source\Runtime\CoreUObject\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -322,9 +325,6 @@
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
-      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector.h">
       <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
     </ClInclude>
     <ClInclude Include="Quat.h">
@@ -819,6 +819,12 @@
     </ClInclude>
     <ClInclude Include="FortAthenaMapInfo.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Package.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Misc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

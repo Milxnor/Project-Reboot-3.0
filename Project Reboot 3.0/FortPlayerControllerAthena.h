@@ -93,7 +93,7 @@ static bool ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChooseP
 
 	return true; */
 
-	if (Engine_Version == 416)
+	if (Fortnite_Version == 1.72)
 		return false;
 
 	static auto HeroDefinitionOffset = CID->GetOffset("HeroDefinition");

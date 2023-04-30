@@ -208,6 +208,12 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				return;
 			}
 
+			if (Fortnite_Version < 3) // Idk why but emptyslot kicks the player because of the validate.
+			{
+				SendMessageToConsole(PlayerController, L"Not supported on this version!");
+				return;
+			}
+
 			auto WorldInventory = ReceivingController->GetWorldInventory();
 
 			if (!WorldInventory)
@@ -357,7 +363,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 				auto CurrentPlayerState = Cast<AFortPlayerStateAthena>(CurrentPlayerController->GetPlayerState());
 
-				if (!CurrentPlayerState)
+				if (!CurrentPlayerState->IsValidLowLevel())
 					continue;
 
 				PlayerNames += "\"" + CurrentPlayerState->GetPlayerName().ToString() + "\" ";

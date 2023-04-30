@@ -53,7 +53,10 @@ public:
 	std::string GetName() { return NamePrivate.ToString(); }
 	std::string GetPathName();
 	std::string GetFullName();
+	UObject* GetOuter() const { return OuterPrivate; }
+	FName GetFName() const { return NamePrivate; }
 
+	class UPackage* GetOutermost() const;
 	bool IsA(UClass* Other);
 	class UFunction* FindFunction(const std::string& ShortFunctionName);
 

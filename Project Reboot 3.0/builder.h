@@ -34,7 +34,6 @@ namespace Builder
 
 				if (!Class)
 				{
-					std::cout << "Invalid Class!\n";
 					continue;
 				}
 

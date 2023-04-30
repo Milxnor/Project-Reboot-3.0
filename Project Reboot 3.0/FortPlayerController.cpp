@@ -1321,7 +1321,10 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 				}
 			}
 
-			if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
+			LOG_INFO(LogDev, "KillerPlayerState->Place: {}", KillerPlayerState ? KillerPlayerState->GetPlace() : -1);
+
+			// if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
+			if (false)
 			{
 				CreateThread(0, 0, RestartThread, 0, 0, 0);
 			}
