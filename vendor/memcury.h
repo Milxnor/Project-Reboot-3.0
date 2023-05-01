@@ -777,6 +777,8 @@
                         {
                             add = PE::Address(&scanBytes[i]);
 
+                            // LOG_INFO(LogDev, "2add: 0x{:x}", add.Get() - __int64(GetModuleHandleW(0)));
+
                             if (bUseFirstResult)
                                 return Scanner(add);
 
@@ -790,6 +792,8 @@
                         if (PE::Address(&scanBytes[i]).RelativeOffset(1).GetAs<void*>() == Pointer)
                         {
                             add = PE::Address(&scanBytes[i]);
+
+                            // LOG_INFO(LogDev, "1add: 0x{:x}", add.Get() - __int64(GetModuleHandleW(0)));
 
                             if (bUseFirstResult)
                                 return Scanner(add);
@@ -847,7 +851,8 @@
                             {
                                 if constexpr (!bIsPtr)
                                 {
-                                    typedef T::value_type char_type;
+                                    // typedef T::value_type char_type;
+                                    using char_type = std::decay_t<std::remove_pointer_t<T>>;
 
                                     auto lea = stringAdd.GetAs<char_type*>();
 
@@ -1404,7 +1409,7 @@
     }
 
     // Finds a string ref, then goes searches xref of the function that it's in and returns that address.
-    inline uintptr_t FindFunctionCall(const wchar_t* Name, const std::vector<uint8_t>& Bytes = { 0x48, 0x89, 0x5C }, int skip = 0) // credit ender & me
+    inline uintptr_t FindFunctionCall(const wchar_t* Name, const std::vector<uint8_t>& Bytes = std::vector<uint8_t>{ 0x48, 0x89, 0x5C }, int skip = 0) // credit ender & me
     {
         auto FunctionPtr = Memcury::Scanner::FindStringRef(Name, true, skip).ScanFor({ 0x48, 0x8D, 0x0D }).RelativeOffset(3).GetAs<void*>();
 

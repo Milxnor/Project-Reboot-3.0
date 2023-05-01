@@ -178,6 +178,7 @@
     <ClCompile Include="addresses.cpp" />
     <ClCompile Include="AthenaMarkerComponent.cpp" />
     <ClCompile Include="BuildingActor.cpp" />
+    <ClCompile Include="BuildingContainer.cpp" />
     <ClCompile Include="BuildingFoundation.cpp" />
     <ClCompile Include="BuildingSMActor.cpp" />
     <ClCompile Include="BuildingStructuralSupportSystem.cpp" />
@@ -313,6 +314,8 @@
     <ClInclude Include="FortAthenaMutator_InventoryOverride.h" />
     <ClInclude Include="FortAthenaMutator_InventoryOverride_Bucket.h" />
     <ClInclude Include="FortAthenaMutator_ItemDropOnDeath.h" />
+    <ClInclude Include="FortAthenaMutator_LoadoutSwap.h" />
+    <ClInclude Include="FortAthenaMutator_TDM.h" />
     <ClInclude Include="FortAthenaSKPushCannon.h" />
     <ClInclude Include="FortAthenaSupplyDrop.h" />
     <ClInclude Include="FortAthenaVehicle.h" />

@@ -27,3 +27,10 @@ struct FDataTableRowHandle
 	UDataTable* DataTable;                                                // 0x0000(0x0008) (Edit, BlueprintVisible, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	FName                                       RowName;                                                  // 0x0008(0x0008) (Edit, BlueprintVisible, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 };
+
+template <typename StructType = uint8>
+struct RowNameAndRowData
+{
+	FName RowName;
+	StructType* RowData;
+};

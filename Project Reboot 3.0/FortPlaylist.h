@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "BuildingActor.h"
 #include "FortPlayerPawnAthena.h"
+#include "GameplayAbilityTypes.h"
 
 struct FGameplayTagRequirements
 {
@@ -236,6 +237,41 @@ public:
 	}
 };
 
+
+struct FAthenaScoreData
+{
+
+};
+
+struct FWinConditionScoreData
+{
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.WinConditionScoreData");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
+
+	FScalableFloat* GetGoalScore()
+	{
+		static auto GoalScoreOffset = FindOffsetStruct("/Script/FortniteGame.WinConditionScoreData", "GoalScore");
+		return (FScalableFloat*)(__int64(this) + GoalScoreOffset);
+	}
+
+	FScalableFloat* GetBigScoreThreshold()
+	{
+		static auto BigScoreThresholdOffset = FindOffsetStruct("/Script/FortniteGame.WinConditionScoreData", "BigScoreThreshold");
+		return (FScalableFloat*)(__int64(this) + BigScoreThresholdOffset);
+	}
+
+	TArray<FAthenaScoreData>& GetScoreDataList()
+	{
+		static auto ScoreDataListOffset = FindOffsetStruct("/Script/FortniteGame.WinConditionScoreData", "ScoreDataList");
+		return *(TArray<FAthenaScoreData>*)(__int64(this) + ScoreDataListOffset);
+	}
+};
+
 class UFortPlaylist : public UObject
 {
 public:
@@ -243,6 +279,12 @@ public:
 	{
 		static auto ModifierListOffset = this->GetOffset("ModifierList");
 		return this->Get<TArray<TSoftObjectPtr<UFortGameplayModifierItemDefinition>>>(ModifierListOffset);
+	}
+
+	FWinConditionScoreData* GetScoringData()
+	{
+		static auto ScoringDataOffset = GetOffset("ScoringData");
+		return GetPtr<FWinConditionScoreData>(ScoringDataOffset);
 	}
 
 	void ApplyModifiersToActor(AActor* Actor)

@@ -279,9 +279,6 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding FreeArrayOfEntries");
 	Addresses::FreeArrayOfEntries = FindFreeArrayOfEntries();
 
-	LOG_INFO(LogDev, "Finding ApplyHomebaseEffectsOnPlayerSetup");
-	Addresses::FreeArrayOfEntries = FindApplyHomebaseEffectsOnPlayerSetup();
-
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -344,7 +341,6 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "EnterAircraft: 0x{:x}", EnterAircraft - Base);
 	LOG_INFO(LogDev, "SetTimer: 0x{:x}", SetTimer - Base);
 	LOG_INFO(LogDev, "PickupInitialize: 0x{:x}", PickupInitialize - Base);
-	LOG_INFO(LogDev, "ApplyHomebaseEffectsOnPlayerSetup: 0x{:x}", ApplyHomebaseEffectsOnPlayerSetup - Base);
 }
 
 void Offsets::FindAll()

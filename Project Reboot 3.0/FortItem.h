@@ -103,6 +103,8 @@ struct FFortItemEntry : FFastArraySerializerItem
 
 	void CopyFromAnotherItemEntry(FFortItemEntry* OtherItemEntry, bool bCopyGuid = false)
 	{
+		// We can use FortItemEntryStruct->CopyScriptStruct
+
 		FGuid OldGuid = this->GetItemGuid();
 
 		if (false)

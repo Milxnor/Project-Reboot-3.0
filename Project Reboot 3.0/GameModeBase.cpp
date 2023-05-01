@@ -107,20 +107,16 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 				auto PickaxeDefinition = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
 					: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
 
-				static UFortItemDefinition* EditToolItemDefinition = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
-				static UFortItemDefinition* BuildingItemData_Wall = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall");
-				static UFortItemDefinition* BuildingItemData_Floor = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor");
-				static UFortItemDefinition* BuildingItemData_Stair_W = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W");
-				static UFortItemDefinition* BuildingItemData_RoofS = FindObject<UFortItemDefinition>(L"/Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS");
-				static UFortItemDefinition* WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
-				static UFortItemDefinition* DamageTrap = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Traps/TID_ContextTrap_Athena.TID_ContextTrap_Athena");
+				auto& StartingItems = ((AFortGameModeAthena*)GameMode)->GetStartingItems();
 
 				WorldInventory->AddItem(PickaxeDefinition, nullptr);
-				WorldInventory->AddItem(EditToolItemDefinition, nullptr);
-				WorldInventory->AddItem(BuildingItemData_Wall, nullptr);
-				WorldInventory->AddItem(BuildingItemData_Floor, nullptr);
-				WorldInventory->AddItem(BuildingItemData_Stair_W, nullptr);
-				WorldInventory->AddItem(BuildingItemData_RoofS, nullptr);
+
+				for (int i = 0; i < StartingItems.Num(); i++)
+				{
+					auto& StartingItem = StartingItems.at(i);
+
+					WorldInventory->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
+				}
 
 				/* if (Globals::bLateGame)
 				{
@@ -142,12 +138,17 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 					if (auto InventoryOverride = Cast<AFortAthenaMutator_InventoryOverride>(Mutator))
 					{
 						auto TeamIndex = PlayerStateAthena->GetTeamIndex();
-						auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
+						auto LoadoutTeam = InventoryOverride->GetLoadoutTeamForTeamIndex(TeamIndex);
 
-						for (int i = 0; i < LoadoutContainer.Loadout.Num(); i++)
+						if (LoadoutTeam.UpdateOverrideType == EAthenaInventorySpawnOverride::Always)
 						{
-							auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
-							WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());
+							auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
+
+							for (int i = 0; i < LoadoutContainer.Loadout.Num(); i++)
+							{
+								auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
+								WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());
+							}
 						}
 					}
 				};

@@ -95,7 +95,7 @@ public:
 	
 	bool HasTryPickupSwap()
 	{
-		static auto bTryPickupSwapOffset = GetOffset("bTryPickupSwap");
+		static auto bTryPickupSwapOffset = GetOffset("bTryPickupSwap", false);
 		return bTryPickupSwapOffset != -1;
 	}
 

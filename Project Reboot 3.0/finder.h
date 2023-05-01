@@ -414,11 +414,6 @@ static inline uint64 FindIsNetRelevantForOffset()
 	return 0;
 }
 
-static inline uint64 FindApplyHomebaseEffectsOnPlayerSetup()
-{
-	return 0; 
-}
-
 static inline uint64 FindActorChannelClose()
 {
 	auto StringRef = Memcury::Scanner::FindStringRef(L"UActorChannel::Close: ChIndex: %d, Actor: %s");
@@ -1450,7 +1445,14 @@ static inline uint64 FindCanActivateAbility()
 static inline uint64 FindGiveAbilityAndActivateOnce()
 {
 	if (Engine_Version == 426)
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 49 8B 40 10 49 8B D8 48 8B FA 48 8B F1").Get();
+	{
+		auto sig1 = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 49 8B 40 10 49 8B D8 48 8B FA 48 8B F1", false).Get();
+
+		if (!sig1)
+			sig1 = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 40 49 8B 40 10 49").Get(); // 15.50
+
+		return sig1;
+	}
 
 	auto Addrr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!", true, 0, Engine_Version >= 500).Get();
 
@@ -1601,6 +1603,9 @@ static inline uint64 FindCallPreReplication()
 static inline uint64 FindClearAbility()
 {
 	auto GiveAbilityAndActivateOnce = FindGiveAbilityAndActivateOnce();
+
+	if (!GiveAbilityAndActivateOnce)
+		return 0;
 
 	return Memcury::Scanner(GiveAbilityAndActivateOnce).ScanFor({ 0xE8 }, true, 4).RelativeOffset(1).Get();
 

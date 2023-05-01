@@ -74,6 +74,43 @@ void UGameplayStatics::RemovePlayer(APlayerController* Player, bool bDestroyPawn
 	defaultObj->ProcessEvent(fn, &UGameplayStatics_RemovePlayer_Params);
 }
 
+AActor* UGameplayStatics::BeginDeferredActorSpawnFromClass(const UObject* WorldContextObject, UClass* ActorClass, const FTransform& SpawnTransform, ESpawnActorCollisionHandlingMethod CollisionHandlingOverride, AActor* Owner)
+{
+	static auto fn = FindObject<UFunction>("/Script/Engine.GameplayStatics.BeginDeferredActorSpawnFromClass");
+
+	struct
+	{
+		const UObject* WorldContextObject;                                       // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		UClass* ActorClass;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FTransform                                  SpawnTransform;                                           // (ConstParm, Parm, OutParm, ReferenceParm, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
+		ESpawnActorCollisionHandlingMethod                 CollisionHandlingOverride;                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		AActor* Owner;                                                    // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		AActor* ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} UGameplayStatics_BeginDeferredActorSpawnFromClass_Params{ WorldContextObject, ActorClass, SpawnTransform, CollisionHandlingOverride, Owner };
+
+	static auto defaultObj = StaticClass();
+	defaultObj->ProcessEvent(fn, &UGameplayStatics_BeginDeferredActorSpawnFromClass_Params);
+
+	return UGameplayStatics_BeginDeferredActorSpawnFromClass_Params.ReturnValue;
+}
+
+AActor* UGameplayStatics::FinishSpawningActor(AActor* Actor, const FTransform& SpawnTransform)
+{
+	static auto FinishSpawningActorFn = FindObject<UFunction>("/Script/Engine.GameplayStatics.FinishSpawningActor");
+
+	struct
+	{
+		AActor* Actor;                                                    // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FTransform                                  SpawnTransform;                                           // (ConstParm, Parm, OutParm, ReferenceParm, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
+		AActor* ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} UGameplayStatics_FinishSpawningActor_Params{ Actor, SpawnTransform };
+
+	static auto defaultObj = StaticClass();
+	defaultObj->ProcessEvent(FinishSpawningActorFn, &UGameplayStatics_FinishSpawningActor_Params);
+
+	return UGameplayStatics_FinishSpawningActor_Params.ReturnValue;
+}
+
 void UGameplayStatics::LoadStreamLevel(UObject* WorldContextObject, FName LevelName, bool bMakeVisibleAfterLoad, bool bShouldBlockOnLoad, const FLatentActionInfo& LatentInfo)
 {
 	static auto LoadStreamLevelFn = FindObject<UFunction>("/Script/Engine.GameplayStatics.LoadStreamLevel");

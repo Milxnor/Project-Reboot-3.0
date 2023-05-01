@@ -843,8 +843,11 @@ static inline void MainUI()
 		else if (Tab == DEVELOPER_TAB)
 		{
 			static std::string ClassNameToDump;
+			static std::string FunctionNameToDump;
 
 			ImGui::InputText("Class Name to mess with", &ClassNameToDump);
+
+			ImGui::InputText("Function Name to mess with", &FunctionNameToDump);
 
 			if (ImGui::Button("Print Class VFT"))
 			{
@@ -858,6 +861,16 @@ static inline void MainUI()
 					{
 						LOG_INFO(LogDev, "{} VFT: 0x{:x}", ClassToDump->GetName(), __int64(ClassToDump->VFTable) - __int64(GetModuleHandleW(0)));
 					}
+				}
+			}
+
+			if (ImGui::Button("Print Function Exec Addy"))
+			{
+				auto Function = FindObject<UFunction>(FunctionNameToDump);
+
+				if (Function)
+				{
+					LOG_INFO(LogDev, "{} Exec: 0x{:x}", Function->GetName(), __int64(Function->GetFunc()) - __int64(GetModuleHandleW(0)));
 				}
 			}
 

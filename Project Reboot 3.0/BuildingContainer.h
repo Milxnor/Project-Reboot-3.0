@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BuildingSMActor.h"
+#include "FortPawn.h"
 
 class ABuildingContainer : public ABuildingSMActor
 {
@@ -11,6 +12,8 @@ public:
 		static auto bDestroyContainerOnSearchFieldMask = GetFieldMask(GetProperty("bDestroyContainerOnSearch"));
 		return this->ReadBitfieldValue(bDestroyContainerOnSearchOffset, bDestroyContainerOnSearchFieldMask);
 	}
+
+	bool SpawnLoot(AFortPawn* Pawn);
 
 	static UClass* StaticClass()
 	{

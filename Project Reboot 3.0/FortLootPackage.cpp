@@ -74,9 +74,8 @@ static FFortLootPackageData* GetLootPackage(std::vector<FFortLootPackageData*>& 
 
 struct FFortGameFeatureLootTableData
 {
-public:
-    TSoftObjectPtr<UDataTable>             LootTierData;                                      // 0x0(0x28)(Edit, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-    TSoftObjectPtr<UDataTable>            LootPackageData;                                   // 0x28(0x28)(Edit, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+    TSoftObjectPtr<UDataTable> LootTierData;
+    TSoftObjectPtr<UDataTable> LootPackageData; 
 };
 
 std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recursive)
@@ -203,7 +202,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
                                         if (ptr)
                                         {
-                                            if (bOverrideIsComposite)
+                                            /* if (bOverrideIsComposite)
                                             {
                                                 static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
 
@@ -218,7 +217,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                                                         LPTables.push_back(ParentTable);
                                                     }
                                                 }
-                                            }
+                                            } */
 
                                             LPTables.push_back(ptr);
                                         }
@@ -257,7 +256,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
                                         if (ptr)
                                         {
-                                            if (bOverrideIsComposite)
+                                            /* if (bOverrideIsComposite)
                                             {
                                                 static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
 
@@ -272,7 +271,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
                                                         LTDTables.push_back(ParentTable);
                                                     }
                                                 }
-                                            }
+                                            } */
 
                                             LTDTables.push_back(ptr);
                                         }
@@ -312,7 +311,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
         } 
     }
 
-    if (Fortnite_Version <= 6) // ahhh
+    if (Fortnite_Version <= 6 || std::floor(Fortnite_Version) == 9) // ahhh
     {
         LTDTables.clear();
         LPTables.clear();

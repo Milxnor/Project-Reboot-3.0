@@ -262,6 +262,9 @@
     <ClCompile Include="FortAthenaVehicleSpawner.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
     </ClCompile>
+    <ClCompile Include="BuildingContainer.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -831,6 +834,12 @@
     </ClInclude>
     <ClInclude Include="FortAthenaVehicleSpawner.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_TDM.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_LoadoutSwap.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

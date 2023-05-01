@@ -8,6 +8,7 @@
 #include "hooking.h"
 #include "FortAthenaMutator_GiveItemsAtGamePhaseStep.h"
 #include "DataTableFunctionLibrary.h"
+#include "FortAthenaMutator_InventoryOverride.h"
 
 void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret)
 {
@@ -135,20 +136,15 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 
 	std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
 
-	for (int i = 0; i < AllMutators.Num(); i++)
-	{
-		auto Mutator = (AFortAthenaMutator*)AllMutators.at(i);
+	LoopMutators([&](AFortAthenaMutator* Mutator) { FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged"))); });
 
-		LOG_INFO(LogDev, "[{}] Mutator: {}", i, Mutator->GetFullName());
-
-		FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged")));
-
+	auto HandleGiveItemsAtGamePhaseStepMutator = [&](AFortAthenaMutator* Mutator) {
 		if (auto GiveItemsAtGamePhaseStepMutator = Cast<AFortAthenaMutator_GiveItemsAtGamePhaseStep>(Mutator))
 		{
 			auto PhaseToGive = GiveItemsAtGamePhaseStepMutator->GetPhaseToGiveItems();
 			auto& ItemsToGive = GiveItemsAtGamePhaseStepMutator->GetItemsToGive();
 
-			LOG_INFO(LogDev, "[{}] PhaseToGiveItems: {} ItemsToGive.Num(): {}", i, (int)PhaseToGive, ItemsToGive.Num());
+			// LOG_INFO(LogDev, "[{}] PhaseToGiveItems: {} ItemsToGive.Num(): {}", i, (int)PhaseToGive, ItemsToGive.Num());
 
 			if (PhaseToGive <= 5) // Flying or lower
 			{
@@ -166,27 +162,54 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 						Out2 = UDataTableFunctionLibrary::EvaluateCurveTableRow(ItemToGive->GetNumberToGive().GetCurve().CurveTable, ItemToGive->GetNumberToGive().GetCurve().RowName, 0.f);
 					}
 
-					LOG_INFO(LogDev, "[{}] [{}] Out2: {} ItemToGive.ItemToDrop: {}", i, j, Out2, ItemToGive->GetItemToDrop()->IsValidLowLevel() ? ItemToGive->GetItemToDrop()->GetFullName() : "BadRead");
+					LOG_INFO(LogDev, "[{}] Out2: {} ItemToGive.ItemToDrop: {}", j, Out2, ItemToGive->GetItemToDrop()->IsValidLowLevel() ? ItemToGive->GetItemToDrop()->GetFullName() : "BadRead");
 
-					if (!Out2)
+					if (!Out2) // ?
 						continue;
 
 					WorldInventory->AddItem(ItemToGive->GetItemToDrop(), nullptr, Out2);
 				}
 			}
 		}
-		/* else if (auto GGMutator = Cast<AFortAthenaMutator_GG>(Mutator))
+	};
+
+	LoopMutators(HandleGiveItemsAtGamePhaseStepMutator);
+
+	/* if (auto GGMutator = Cast<AFortAthenaMutator_GG>(Mutator))
+	{
+		auto& WeaponEntries = GGMutator->GetWeaponEntries();
+
+		LOG_INFO(LogDev, "[{}] WeaponEntries.Num(): {}", i, WeaponEntries.Num());
+
+		for (int j = 0; j < WeaponEntries.Num(); j++)
 		{
-			auto& WeaponEntries = GGMutator->GetWeaponEntries();
+			WorldInventory->AddItem(WeaponEntries.at(j).Weapon, nullptr, 1);
+		}
+	} */
 
-			LOG_INFO(LogDev, "[{}] WeaponEntries.Num(): {}", i, WeaponEntries.Num());
+	auto PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
 
-			for (int j = 0; j < WeaponEntries.Num(); j++)
+	auto AddInventoryOverrideTeamLoadouts = [&](AFortAthenaMutator* Mutator)
+	{
+		if (auto InventoryOverride = Cast<AFortAthenaMutator_InventoryOverride>(Mutator))
+		{
+			auto TeamIndex = PlayerStateAthena->GetTeamIndex();
+			auto LoadoutTeam = InventoryOverride->GetLoadoutTeamForTeamIndex(TeamIndex);
+
+			if (LoadoutTeam.UpdateOverrideType == EAthenaInventorySpawnOverride::AircraftPhaseOnly)
 			{
-				WorldInventory->AddItem(WeaponEntries.at(j).Weapon, nullptr, 1);
+				auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
+
+				for (int i = 0; i < LoadoutContainer.Loadout.Num(); i++)
+				{
+					auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
+					WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());
+				}
 			}
-		} */
-	}
+		}
+	};
+
+	LoopMutators(AddInventoryOverrideTeamLoadouts);
 
 	static int LastNum1 = 3125;
 

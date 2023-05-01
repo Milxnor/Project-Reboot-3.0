@@ -314,7 +314,8 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 			!strstr(FunctionFullName.c_str(), "Primitive_Structure_AmbAudioComponent") &&
 			!strstr(FunctionName.c_str(), "ServerTriggerCombatEvent") &&
 			!strstr(FunctionName.c_str(), "SpinCubeTimeline__UpdateFunc") &&
-			!strstr(ObjectName.c_str(), "FortPhysicsObjectComponent"))
+			!strstr(ObjectName.c_str(), "FortPhysicsObjectComponent") &&
+			!strstr(FunctionName.c_str(), "GetTextValue"))
 		{
 			LOG_INFO(LogDev, "Function called: {} with {}", FunctionFullName, ObjectName);
 		}

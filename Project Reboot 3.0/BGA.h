@@ -24,6 +24,11 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 		auto BGAConsumableSpawner = AllBGAConsumableSpawners.at(i);
 		auto SpawnLocation = BGAConsumableSpawner->GetActorLocation();
 
+		FTransform SpawnTransform{};
+		SpawnTransform.Translation = SpawnLocation;
+		SpawnTransform.Scale3D = FVector{ 1, 1, 1 };
+		SpawnTransform.Rotation = FQuat();
+
 		if (FBuildingGameplayActorSpawnDetails::GetStruct())
 		{
 			// todo handle?
@@ -33,6 +38,7 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 		else
 		{
 			// SpawnLocation.Z += 100;
+			// SpawnLocation.Z -= 50; // proper frfr
 		}
 
 		static auto SpawnLootTierGroupOffset = BGAConsumableSpawner->GetOffset("SpawnLootTierGroup");
@@ -45,7 +51,7 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 			static auto ConsumableClassOffset = LootDrop.ItemDefinition->GetOffset("ConsumableClass");
 			auto ConsumableClassSoft = LootDrop.ItemDefinition->GetPtr<TSoftObjectPtr<UClass>>(ConsumableClassOffset);
 
-			static auto BlueprintGeneratedClassClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
+			static auto BlueprintGeneratedClassClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
 			auto StrongConsumableClass = ConsumableClassSoft->Get(BlueprintGeneratedClassClass, true);
 
 			if (!StrongConsumableClass)
@@ -54,12 +60,20 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 				continue;
 			}
 
-			auto ConsumableActor = GetWorld()->SpawnActor<ABuildingGameplayActor>(StrongConsumableClass, SpawnLocation);
+			bool bDeferConstruction = false; // hm?
+
+			FActorSpawnParameters SpawnParameters{};
+			// SpawnParameters.ObjectFlags = RF_Transactional; // idk fortnite does this i think
+			SpawnParameters.bDeferConstruction = bDeferConstruction;
+
+			auto ConsumableActor = GetWorld()->SpawnActor<ABuildingGameplayActor>(StrongConsumableClass, SpawnTransform, SpawnParameters);
 
 			if (ConsumableActor)
 			{
-				// BeginDeferredActorSpawnFromClass ??
-				// ConsumableActor->InitializeBuildingActor(nullptr, nullptr, true); // idk UFortKismetLibrary::SpawnBuildingGameplayActor does this
+				if (bDeferConstruction)
+					UGameplayStatics::FinishSpawningActor(ConsumableActor, SpawnTransform); // what
+
+				ConsumableActor->InitializeBuildingActor(nullptr, nullptr, true); // idk UFortKismetLibrary::SpawnBuildingGameplayActor does this
 			}
 		}
 	}
