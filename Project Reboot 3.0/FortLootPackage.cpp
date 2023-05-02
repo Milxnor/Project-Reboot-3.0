@@ -583,7 +583,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
                     if (bPrint)
                     {
-                        LOG_INFO(LogDev, "Adding LootPackage: {}", CurrentLP->GetAnnotation().ToString());
+                        // LOG_INFO(LogDev, "Adding LootPackage: {}", CurrentLP->GetAnnotation().ToString());
                     }
                 }
             }

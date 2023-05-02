@@ -33,6 +33,8 @@
 
 static UFortPlaylist* GetPlaylistToUse()
 {
+	// LOG_DEBUG(LogDev, "PlaylistName: {}", PlaylistName);
+
 	auto Playlist = FindObject<UFortPlaylist>(PlaylistName);
 
 	if (Globals::bGoingToPlayEvent)
@@ -202,7 +204,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "Presetup!");
 
-		GameMode->Get<int>("WarmupRequiredPlayerCount") = 1;
+		static auto WarmupRequiredPlayerCountOffset = GameMode->GetOffset("WarmupRequiredPlayerCount");
+		GameMode->Get<int>(WarmupRequiredPlayerCountOffset) = 1;
 
 		static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
@@ -238,22 +241,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			{
 				if (Fortnite_Season == 7)
 				{
-					if (Fortnite_Version == 7.30)
-					{
-						// should be automatic..
-						
-						if (true)
-						{
-							auto PleasantParkIdk = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkFestivus"));
-							ShowFoundation(PleasantParkIdk);
-						}
-						else
-						{
-							auto PleasantParkGround = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkDefault");
-							ShowFoundation(PleasantParkGround);
-						}
-					}
-
 					ShowFoundation(FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_25x36")); // Polar Peak
 					ShowFoundation(FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.ShopsNew")); // Tilted Tower Shops, is this 7.40 specific?
 				}
@@ -353,11 +340,16 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		if (Fortnite_Version == 7.30)
 		{
-			auto PleasantParkIdk = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkFestivus"));
-			ShowFoundation(PleasantParkIdk);
-
-			auto PleasantParkGround = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkDefault");
-			ShowFoundation(PleasantParkGround);
+			if (true) // idfk if the stage only showed on marshmello playlist
+			{
+				auto PleasantParkIdk = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkFestivus"));
+				ShowFoundation(PleasantParkIdk);
+			}
+			else
+			{
+				auto PleasantParkGround = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkDefault");
+				ShowFoundation(PleasantParkGround);
+			}
 		}
 
 		if (Fortnite_Season == 6)
@@ -368,7 +360,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				auto Lake2 = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake2");
 
 				Fortnite_Version <= 6.21 ? ShowFoundation(Lake) : ShowFoundation(Lake2);
-				// ^ This shows the lake after or before the event i dont know if this is needed.
 			}
 			else
 			{
@@ -424,7 +415,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			}
 		}
 
-		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>("bWorldIsReady"), 1, true); // idk when we actually set this
+		static auto bWorldIsReadyOffset = GameMode->GetOffset("bWorldIsReady");
+		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>(bWorldIsReadyOffset), 1, true); // idk when we actually set this
 
 		// Calendar::SetSnow(1000);
 
@@ -465,8 +457,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	// if (!Globals::bCreative)
 	{
-		static auto FortPlayerStartWarmupClass = Globals::bCreative ? FindObject<UClass>("/Script/FortniteGame.FortPlayerStartCreative") : FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
-		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartWarmupClass);
+		static auto FortPlayerStartCreativeClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartCreative");
+		static auto FortPlayerStartWarmupClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
+		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
 
 		int ActorsNum = Actors.Num();
 
@@ -499,11 +492,16 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "GameMode 0x{:x}", __int64(GameMode));
 
-		GameState->Get<float>("WarmupCountdownEndTime") = TimeSeconds + Duration;
-		GameMode->Get<float>("WarmupCountdownDuration") = Duration;
+		static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
+		static auto WarmupCountdownStartTimeOffset = GameState->GetOffset("WarmupCountdownStartTime");
+		static auto WarmupCountdownDurationOffset = GameMode->GetOffset("WarmupCountdownDuration");
+		static auto WarmupEarlyCountdownDurationOffset = GameMode->GetOffset("WarmupEarlyCountdownDuration");
 
-		GameState->Get<float>("WarmupCountdownStartTime") = TimeSeconds;
-		GameMode->Get<float>("WarmupEarlyCountdownDuration") = EarlyDuration;
+		GameState->Get<float>(WarmupCountdownEndTimeOffset) = TimeSeconds + Duration;
+		GameMode->Get<float>(WarmupCountdownDurationOffset) = Duration;
+
+		GameState->Get<float>(WarmupCountdownStartTimeOffset) = TimeSeconds;
+		GameMode->Get<float>(WarmupEarlyCountdownDurationOffset) = EarlyDuration;
 
 		static auto GameSessionOffset = GameMode->GetOffset("GameSession");
 		auto GameSession = GameMode->Get<AActor*>(GameSessionOffset);
@@ -579,6 +577,50 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 					int32 NewParam = 1;
 					// Loader->ProcessEvent(NextFn, &NewParam);
 					Loader->ProcessEvent(NewFn, &NewParam);
+				}
+			}
+		}
+
+		std::vector<std::string> WorldNamesToStreamAllFoundationsIn; // wtf
+
+		if (Fortnite_Version == 6.21)
+		{
+			WorldNamesToStreamAllFoundationsIn.push_back("/Temp/Game/Athena/Maps/POI/Athena_POI_Lake_002_5d9a86c8.Athena_POI_Lake_002:PersistentLevel.");
+		}
+
+		if (Fortnite_Version == 7.30)
+		{
+			// idk what one we actually need
+			WorldNamesToStreamAllFoundationsIn.push_back("/Temp/Game/Athena/Maps/POI/Athena_POI_CommunityPark_003_77acf920");
+			WorldNamesToStreamAllFoundationsIn.push_back("/Temp/Game/Athena/Maps/POI/Athena_POI_CommunityPark_003_M_5c711338");
+		}
+
+		if (WorldNamesToStreamAllFoundationsIn.size() > 0)
+		{
+			auto ObjectNum = ChunkedObjects ? ChunkedObjects->Num() : UnchunkedObjects ? UnchunkedObjects->Num() : 0;
+
+			for (int i = 0; i < ObjectNum; i++)
+			{
+				auto CurrentObject = GetObjectByIndex(i);
+
+				if (!CurrentObject)
+					continue;
+
+				static auto BuildingFoundationClass = FindObject<UClass>("/Script/FortniteGame.BuildingFoundation");
+
+				if (!CurrentObject->IsA(BuildingFoundationClass))
+					continue;
+
+				auto CurrentObjectFullName = CurrentObject->GetFullName(); // We can do GetPathName() and starts with but eh.
+
+				for (int z = 0; z < WorldNamesToStreamAllFoundationsIn.size(); z++)
+				{
+					if (CurrentObject->GetFullName().contains(WorldNamesToStreamAllFoundationsIn.at(z)))
+					{
+						// I think we only have to set bServerStreamedInLevel.
+						ShowFoundation((AActor*)CurrentObject);
+						continue;
+					}
 				}
 			}
 		}

@@ -37,12 +37,14 @@ void UWorld::Listen()
 		static bool (*InitHost)(UObject* Beacon) = decltype(InitHost)(Addresses::InitHost);
 		static void (*PauseBeaconRequests)(UObject* Beacon, bool bPause) = decltype(PauseBeaconRequests)(Addresses::PauseBeaconRequests);
 
-		NewBeacon->Get<int>("ListenPort") = Engine_Version < 426 ? Port - 1 : Port;
+		static auto ListenPortOffset = NewBeacon->GetOffset("ListenPort");
+		NewBeacon->Get<int>(ListenPortOffset) = Engine_Version < 426 ? Port - 1 : Port;
 
 		InitHost(NewBeacon);
 		PauseBeaconRequests(NewBeacon, false);
 
-		NewNetDriver = NewBeacon->Get<UNetDriver*>("NetDriver");
+		static auto Beacon_NetDriverOffset = NewBeacon->GetOffset("NetDriver");
+		NewNetDriver = NewBeacon->Get<UNetDriver*>(Beacon_NetDriverOffset);
 	}
 	else
 	{
@@ -55,8 +57,11 @@ void UWorld::Listen()
 		return;
 	}
 
-	NewNetDriver->Get<FName>("NetDriverName") = GameNetDriverName;
-	GetWorld()->Get("NetDriver") = NewNetDriver;
+	static auto NetDriverNameOffset = NewNetDriver->GetOffset("NetDriverName");
+	NewNetDriver->Get<FName>(NetDriverNameOffset) = GameNetDriverName;
+
+	static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
+	GetWorld()->Get(World_NetDriverOffset) = NewNetDriver;
 
 	FURL URL = FURL();
 	URL.Port = Port - (Engine_Version >= 426);
@@ -73,8 +78,9 @@ void UWorld::Listen()
 
 	// LEVEL COLLECTIONS
 
-	auto& LevelCollections = GetWorld()->Get<TArray<__int64>>("LevelCollections");
-	int LevelCollectionSize = FindObject<UStruct>("/Script/Engine.LevelCollection")->GetPropertiesSize();
+	static auto LevelCollectionsOffset = GetWorld()->GetOffset("LevelCollections");
+	auto& LevelCollections = GetWorld()->Get<TArray<__int64>>(LevelCollectionsOffset);
+	static int LevelCollectionSize = FindObject<UStruct>("/Script/Engine.LevelCollection")->GetPropertiesSize();
 
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;
@@ -87,6 +93,7 @@ AWorldSettings* UWorld::GetWorldSettings(const bool bCheckStreamingPersistent, c
 	// checkSlow(!IsInActualRenderingThread());
 	AWorldSettings* WorldSettings = nullptr;
 	static auto PersistentLevelOffset = GetOffset("PersistentLevel");
+
 	if (Get(PersistentLevelOffset))
 	{
 		WorldSettings = Get<ULevel*>(PersistentLevelOffset)->GetWorldSettings(bChecked);

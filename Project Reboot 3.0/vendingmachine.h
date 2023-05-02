@@ -63,11 +63,15 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 	static auto ItemCollectionsOffset = ItemCollector->GetOffset("ItemCollections");
 	auto& ItemCollections = ItemCollector->Get<TArray<FCollectorUnitInfo>>(ItemCollectionsOffset);
 
-	auto CurrentPlaylist = GameState->GetCurrentPlaylist();
 	UCurveTable* FortGameData = nullptr;
 
-	static auto GameDataOffset = CurrentPlaylist->GetOffset("GameData");
-	FortGameData = CurrentPlaylist ? CurrentPlaylist->Get<TSoftObjectPtr<UCurveTable>>(GameDataOffset).Get() : nullptr;
+	auto CurrentPlaylist = GameState->GetCurrentPlaylist();
+
+	if (CurrentPlaylist)
+	{
+		static auto GameDataOffset = CurrentPlaylist->GetOffset("GameData");
+		FortGameData = CurrentPlaylist ? CurrentPlaylist->GetPtr<TSoftObjectPtr<UCurveTable>>(GameDataOffset)->Get() : nullptr;
+	}
 
 	if (!FortGameData)
 		FortGameData = FindObject<UCurveTable>("/Game/Athena/Balance/AthenaGameData.AthenaGameData"); // uhm so theres one without athena and on newer versions that has it so idk
@@ -187,8 +191,11 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		}
 
 		// The reason I set the curve to 0 is because it will force it to return value, probably not how we are supposed to do it but whatever.
-		ItemCollection->GetInputCount()->GetCurve().CurveTable = Fortnite_Version < 5 ? nullptr : FortGameData; // scuffed idc
-		ItemCollection->GetInputCount()->GetCurve().RowName = Fortnite_Version < 5 ? FName(0) : WoodName; // Scuffed idc 
+
+		bool bShouldBeNullTable = true; // Fortnite_Version < 5
+
+		ItemCollection->GetInputCount()->GetCurve().CurveTable = bShouldBeNullTable ? nullptr : FortGameData; // scuffed idc
+		ItemCollection->GetInputCount()->GetCurve().RowName = bShouldBeNullTable ? FName(0) : WoodName; // Scuffed idc 
 		ItemCollection->GetInputCount()->GetValue() = RarityToUse == 0 ? CommonPrice 
 			: RarityToUse == 1 ? UncommonPrice 
 			: RarityToUse == 2 ? RarePrice 

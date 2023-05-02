@@ -58,7 +58,7 @@
 
 static inline int SecondsUntilTravel = 5;
 static inline bool bSwitchedInitialLevel = false;
-static inline bool bIsInAutoRestart = false;
+extern inline bool bIsInAutoRestart = false;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -72,7 +72,7 @@ static inline void CleanupDeviceD3D();
 static inline void ResetDevice();
 static inline LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-static inline bool bStartedBus = false;
+extern inline bool bStartedBus = false;
 
 static inline void Restart() // todo move?
 {
@@ -263,7 +263,7 @@ static inline void StaticUI()
 {
 	if (IsRestartingSupported())
 	{
-		// ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
+		ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
 	}
 
 #ifndef PROD

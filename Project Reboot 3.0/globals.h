@@ -8,7 +8,7 @@ namespace Globals
 {
 	extern inline bool bCreative = false;
 	extern inline bool bGoingToPlayEvent = false;
-	extern inline bool bEnableAGIDs = false;
+	extern inline bool bEnableAGIDs = true;
 	extern inline bool bNoMCP = true;
 	extern inline bool bLogProcessEvent = false;
 	// extern inline bool bLateGame = false;

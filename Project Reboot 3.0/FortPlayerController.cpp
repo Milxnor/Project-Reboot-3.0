@@ -1235,50 +1235,51 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		{
 			auto WorldInventory = PlayerController->GetWorldInventory();
 
-			if (!WorldInventory)
-				return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
-
-			auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
-
-			std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
-
-			for (int i = 0; i < ItemInstances.Num(); i++)
+			if (WorldInventory)
 			{
-				auto ItemInstance = ItemInstances.at(i);
 
-				// LOG_INFO(LogDev, "[{}/{}] CurrentItemInstance {}", i, ItemInstances.Num(), __int64(ItemInstance));
+				auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
 
-				if (!ItemInstance)
-					continue;
+				std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
 
-				auto ItemEntry = ItemInstance->GetItemEntry();
-				auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
+				for (int i = 0; i < ItemInstances.Num(); i++)
+				{
+					auto ItemInstance = ItemInstances.at(i);
 
-				// LOG_INFO(LogDev, "[{}/{}] WorldItemDefinition {}", i, ItemInstances.Num(), WorldItemDefinition ? WorldItemDefinition->GetFullName() : "InvalidObject");
+					// LOG_INFO(LogDev, "[{}/{}] CurrentItemInstance {}", i, ItemInstances.Num(), __int64(ItemInstance));
 
-				if (!WorldItemDefinition)
-					continue;
+					if (!ItemInstance)
+						continue;
 
-				auto ShouldBeDropped = WorldItemDefinition->CanBeDropped(); // WorldItemDefinition->ShouldDropOnDeath();
+					auto ItemEntry = ItemInstance->GetItemEntry();
+					auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
 
-				// LOG_INFO(LogDev, "[{}/{}] ShouldBeDropped {}", i, ItemInstances.Num(), ShouldBeDropped);
+					// LOG_INFO(LogDev, "[{}/{}] WorldItemDefinition {}", i, ItemInstances.Num(), WorldItemDefinition ? WorldItemDefinition->GetFullName() : "InvalidObject");
 
-				if (!ShouldBeDropped)
-					continue;
+					if (!WorldItemDefinition)
+						continue;
 
-				AFortPickup::SpawnPickup(WorldItemDefinition, DeathLocation, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
-					ItemEntry->GetLoadedAmmo());
+					auto ShouldBeDropped = WorldItemDefinition->CanBeDropped(); // WorldItemDefinition->ShouldDropOnDeath();
 
-				GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
-				// WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
+					// LOG_INFO(LogDev, "[{}/{}] ShouldBeDropped {}", i, ItemInstances.Num(), ShouldBeDropped);
+
+					if (!ShouldBeDropped)
+						continue;
+
+					AFortPickup::SpawnPickup(WorldItemDefinition, DeathLocation, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
+						ItemEntry->GetLoadedAmmo());
+
+					GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
+					// WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
+				}
+
+				for (auto& Pair : GuidAndCountsToRemove)
+				{
+					WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
+				}
+
+				WorldInventory->Update();
 			}
-
-			for (auto& Pair : GuidAndCountsToRemove)
-			{
-				WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
-			}
-
-			WorldInventory->Update();
 		}
 
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
@@ -1354,12 +1355,15 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			}
 
 			// LOG_INFO(LogDev, "KillerPlayerState->Place: {}", KillerPlayerState ? KillerPlayerState->GetPlace() : -1);
+		}
 
-			bool bDidSomeoneWin = false;
-
+		if (IsRestartingSupported() && Globals::bAutoRestart && !bIsInAutoRestart)
+		{
 			// wtf
 
 			auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
+
+			bool bDidSomeoneWin = AllPlayerStates.Num() == 0;
 
 			for (int i = 0; i < AllPlayerStates.Num(); i++)
 			{
