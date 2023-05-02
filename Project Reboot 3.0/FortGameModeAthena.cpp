@@ -15,6 +15,7 @@
 #include "DataTableFunctionLibrary.h"
 #include "KismetStringLibrary.h"
 #include "SoftObjectPtr.h"
+#include "discord.h"
 
 #include "vehicles.h"
 #include "globals.h"
@@ -558,19 +559,27 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		// return false;
 
-		static auto NewFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");
-
-		if (NewFn && (Fortnite_Version == 5.30 ? !Globals::bGoingToPlayEvent : true))
+		if (!UptimeWebHook.send_message(std::format("Server up! {} {}", Fortnite_Version, PlaylistName))) // PlaylistName sometimes isn't always what we use.
 		{
-			auto Loader = GetEventLoader("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C");
+			// Sleep(-1); // what why did i have this here i honestly forgot
+		}
 
-			LOG_INFO(LogDev, "Loader: {}", __int64(Loader));
+		if (std::floor(Fortnite_Version) == 5)
+		{
+			auto NewFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");
 
-			if (Loader)
+			if (NewFn && (Fortnite_Version == 5.30 ? !Globals::bGoingToPlayEvent : true))
 			{
-				int32 NewParam = 1;
-				// Loader->ProcessEvent(NextFn, &NewParam);
-				Loader->ProcessEvent(NewFn, &NewParam);
+				auto Loader = GetEventLoader("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C");
+
+				LOG_INFO(LogDev, "Loader: {}", __int64(Loader));
+
+				if (Loader)
+				{
+					int32 NewParam = 1;
+					// Loader->ProcessEvent(NextFn, &NewParam);
+					Loader->ProcessEvent(NewFn, &NewParam);
+				}
 			}
 		}
 

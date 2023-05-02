@@ -1097,6 +1097,8 @@ DWORD WINAPI RestartThread(LPVOID)
 	float SecondsBeforeRestart = 10;
 	Sleep(SecondsBeforeRestart * 1000);
 
+	LOG_INFO(LogDev, "Auto restarting!");
+
 	Restart();
 
 	bIsInAutoRestart = false;
@@ -1351,10 +1353,27 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 				}
 			}
 
-			LOG_INFO(LogDev, "KillerPlayerState->Place: {}", KillerPlayerState ? KillerPlayerState->GetPlace() : -1);
+			// LOG_INFO(LogDev, "KillerPlayerState->Place: {}", KillerPlayerState ? KillerPlayerState->GetPlace() : -1);
+
+			bool bDidSomeoneWin = false;
+
+			// wtf
+
+			auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
+
+			for (int i = 0; i < AllPlayerStates.Num(); i++)
+			{
+				if (((AFortPlayerStateAthena*)AllPlayerStates.at(i))->GetPlace() <= 1)
+				{
+					bDidSomeoneWin = true;
+					break;
+				}
+			}
+
+			LOG_INFO(LogDev, "bDidSomeoneWin: {}", bDidSomeoneWin);
 
 			// if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
-			if (false)
+			if (bDidSomeoneWin)
 			{
 				CreateThread(0, 0, RestartThread, 0, 0, 0);
 			}

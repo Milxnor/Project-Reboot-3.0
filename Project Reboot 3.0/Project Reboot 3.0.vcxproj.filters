@@ -841,6 +841,7 @@
     <ClInclude Include="FortAthenaMutator_LoadoutSwap.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
     </ClInclude>
+    <ClInclude Include="discord.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">

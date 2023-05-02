@@ -160,7 +160,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>../vendor</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Oleaut32.lib;Onecore.lib;MinHook/minhook.x64.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>curl/libcurl.lib;curl/zlib.lib;Oleaut32.lib;Onecore.lib;MinHook/minhook.x64.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -297,6 +297,7 @@
     <ClInclude Include="DelegateCombinations.h" />
     <ClInclude Include="DelegateInstanceInterface.h" />
     <ClInclude Include="die.h" />
+    <ClInclude Include="discord.h" />
     <ClInclude Include="EnableIf.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="EngineTypes.h" />

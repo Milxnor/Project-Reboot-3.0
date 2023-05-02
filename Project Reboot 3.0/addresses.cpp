@@ -465,6 +465,11 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 {
 	std::vector<uint64> toNull;
 
+	if (Engine_Version == 416)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 89 54 24 ? 48 89 4C 24 ? 55 53 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 8B 41 08 C1 E8 05").Get()); // Widget class
+	}
+
 	if (Fortnite_Version == 1.11)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B 01 49 8B E9 45 0F B6 F8").Get()); // No Reserve
@@ -484,6 +489,11 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Engine_Version == 421)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 57 48 81 EC ? ? ? ? 48 8B BA ? ? ? ? 48 8B DA 0F 29").Get()); // Pawn Overlap
+		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor({ 0x40, 0x55 }, false).Get()); // Widget class
+	}
+
+	if (Engine_Version == 421)
+	{
 		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor({ 0x40, 0x55 }, false).Get()); // Widget class
 	}
 
