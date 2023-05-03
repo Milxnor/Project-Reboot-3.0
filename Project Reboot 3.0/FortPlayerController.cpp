@@ -35,6 +35,22 @@ void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor
 	this->ProcessEvent(fn, &AFortPlayerController_ClientReportDamagedResourceBuilding_Params);
 }
 
+void AFortPlayerController::ClientEquipItem(const FGuid& ItemGuid, bool bForceExecution)
+{
+	static auto ClientEquipItemFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ClientEquipItem");
+
+	if (ClientEquipItemFn)
+	{
+		struct
+		{
+			FGuid                                       ItemGuid;                                                 // (ConstParm, Parm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+			bool                                               bForceExecution;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		} AFortPlayerController_ClientEquipItem_Params{ ItemGuid, bForceExecution };
+
+		this->ProcessEvent(ClientEquipItemFn, &AFortPlayerController_ClientEquipItem_Params);
+	}
+}
+
 bool AFortPlayerController::DoesBuildFree()
 {
 	if (Globals::bInfiniteMaterials)
@@ -185,6 +201,10 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 	}
 
 	UFortKismetLibrary::StaticClass()->ProcessEvent(UpdatePlayerCustomCharacterPartsVisualizationFn, &PlayerStateAsFort);
+
+	PlayerStateAsFort->ForceNetUpdate();
+	PawnAsFort->ForceNetUpdate();
+	this->ForceNetUpdate();
 }
 
 void AFortPlayerController::ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret)
@@ -878,6 +898,13 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	if (Count < 0 || !Pawn)
 		return;
+
+	if (auto PlayerControllerAthena = Cast<AFortPlayerControllerAthena>(PlayerController))
+	{
+		if (PlayerControllerAthena->IsInGhostMode())
+			return;
+	}
+
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 	auto ReplicatedEntry = WorldInventory->FindReplicatedEntry(ItemGuid);

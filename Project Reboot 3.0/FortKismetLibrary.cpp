@@ -394,27 +394,6 @@ void UFortKismetLibrary::K2_GiveBuildingResourceHook(UObject* Context, FFrame& S
 	return K2_GiveBuildingResourceOriginal(Context, Stack, Ret);
 }
 
-int UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook1(AFortPlayerController* PlayerController, UFortItem* Item, int AmountToRemove, bool bForceRemoval)
-{
-	LOG_INFO(LogDev, "K2_RemoveFortItemFromPlayerHookNative!");
-
-	if (!PlayerController || !Item)
-		return 0;
-
-	auto WorldInventory = PlayerController->GetWorldInventory();
-
-	if (!WorldInventory)
-		return 0;
-
-	bool bShouldUpdate = false;
-	WorldInventory->RemoveItem(Item->GetItemEntry()->GetItemGuid(), &bShouldUpdate, AmountToRemove, bForceRemoval);
-
-	if (bShouldUpdate)
-		WorldInventory->Update();
-
-	return 1; // idk probably how much we removed
-}
-
 void UFortKismetLibrary::K2_RemoveFortItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret)
 {
 	AFortPlayerController* PlayerController = nullptr;                                         // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)

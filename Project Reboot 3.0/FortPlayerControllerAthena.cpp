@@ -14,7 +14,7 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 {
 	LOG_INFO(LogDev, __FUNCTION__);
 
-	auto Controller = (AFortPlayerControllerAthena*)Context;
+	auto PlayerController = (AFortPlayerControllerAthena*)Context;
 
 	UFortWorldItemDefinition* ItemProvidingGhostMode = nullptr;
 
@@ -26,11 +26,12 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 		return StartGhostModeOriginal(Context, Stack, Ret);
 	}
 
-	// if (!Controller->HasAuthority()) return StartGhostModeOriginal(Context, Stack, Ret);
+	if (!PlayerController->HasAuthority()) // for real
+		return StartGhostModeOriginal(Context, Stack, Ret);
 	
 	LOG_INFO(LogDev, "Attempting to give item {}", ItemProvidingGhostMode->IsValidLowLevel() ? ItemProvidingGhostMode->GetFullName() : "BadRead");
 
-	auto GhostModeRepData = Controller->GetGhostModeRepData();
+	auto GhostModeRepData = PlayerController->GetGhostModeRepData();
 
 	if (GhostModeRepData->IsInGhostMode())
 	{
@@ -38,7 +39,7 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 		return StartGhostModeOriginal(Context, Stack, Ret);
 	}
 
-	auto WorldInventory = Controller->GetWorldInventory();
+	auto WorldInventory = PlayerController->GetWorldInventory();
 	
 	if (!WorldInventory)
 		return StartGhostModeOriginal(Context, Stack, Ret);
@@ -53,7 +54,8 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 	if (bShouldUpdate)
 		WorldInventory->Update();
 
-	Controller->ServerExecuteInventoryItemHook(Controller, GhostModeItemInstance->GetItemEntry()->GetItemGuid());
+	PlayerController->ServerExecuteInventoryItemHook(PlayerController, GhostModeItemInstance->GetItemEntry()->GetItemGuid());
+	PlayerController->ClientEquipItem(GhostModeItemInstance->GetItemEntry()->GetItemGuid(), true);
 	LOG_INFO(LogDev, "Finished!");
 
 	return StartGhostModeOriginal(Context, Stack, Ret);
@@ -65,25 +67,41 @@ void AFortPlayerControllerAthena::EndGhostModeHook(AFortPlayerControllerAthena* 
 
 	LOG_INFO(LogDev, __FUNCTION__);
 
+	if (!PlayerController->HasAuthority()) // for real
+		return EndGhostModeOriginal(PlayerController);
+
 	auto WorldInventory = PlayerController->GetWorldInventory();
 
 	if (!WorldInventory)
 		return EndGhostModeOriginal(PlayerController);
 
-	auto GhostModeRepData = PlayerController->GetGhostModeRepData();
+	FGhostModeRepData* GhostModeRepData = PlayerController->GetGhostModeRepData();
+	UFortWorldItemDefinition* GhostModeItemDef = GhostModeRepData->GetGhostModeItemDef();
 
-	auto GhostModeItemDef = GhostModeRepData->GetGhostModeItemDef();
+	LOG_INFO(LogDev, "GhostModeItemDef: {}", GhostModeItemDef->IsValidLowLevel() ? GhostModeItemDef->GetFullName() : "BadRead");
+
+	if (!GhostModeItemDef) // bro IDFK
+	{
+		GhostModeItemDef = FindObject<UFortWorldItemDefinition>("/Game/Athena/Items/Gameplay/SpookyMist/AGID_SpookyMist.AGID_SpookyMist");
+	}
+
+	if (!GhostModeItemDef)
+		return EndGhostModeOriginal(PlayerController);
+
 	auto GhostModeItemInstance = WorldInventory->FindItemInstance(GhostModeItemDef);
 
-	if (GhostModeItemInstance)
-	{
-		bool bShouldUpdate = false;
-		int Count = 1; // GhostModeItemInstance->GetItemEntry()->GetCount()
-		WorldInventory->RemoveItem(GhostModeItemInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, Count);
+	LOG_INFO(LogDev, "GhostModeItemInstance: {}", GhostModeItemInstance->IsValidLowLevel() ? GhostModeItemInstance->GetFullName() : "BadRead");
 
-		if (bShouldUpdate)
-			WorldInventory->Update();
-	}
+	if (!GhostModeItemInstance)
+		return EndGhostModeOriginal(PlayerController);
+
+	bool bShouldUpdate = false;
+	int Count = GhostModeItemInstance->GetItemEntry()->GetCount(); // 1
+	bool bForceRemoval = true; // false
+	WorldInventory->RemoveItem(GhostModeItemInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, Count, bForceRemoval);
+
+	if (bShouldUpdate)
+		WorldInventory->Update();
 
 	return EndGhostModeOriginal(PlayerController);
 }

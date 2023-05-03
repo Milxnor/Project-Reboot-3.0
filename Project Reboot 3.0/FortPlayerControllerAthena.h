@@ -139,8 +139,22 @@ public:
 
 	FGhostModeRepData* GetGhostModeRepData()
 	{
-		static auto GhostModeRepDataOffset = GetOffset("GhostModeRepData");
+		static auto GhostModeRepDataOffset = GetOffset("GhostModeRepData", false);
+
+		if (GhostModeRepDataOffset == -1)
+			return nullptr;
+
 		return GetPtr<FGhostModeRepData>(GhostModeRepDataOffset);
+	}
+
+	bool IsInGhostMode()
+	{
+		auto GhostModeRepData = GetGhostModeRepData();
+
+		if (!GhostModeRepData)
+			return false;
+
+		return GhostModeRepData->IsInGhostMode();
 	}
 
 	UAthenaMarkerComponent* GetMarkerComponent()

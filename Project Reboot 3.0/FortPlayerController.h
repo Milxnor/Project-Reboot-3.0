@@ -87,6 +87,25 @@ public:
 		return CosmeticLoadout;
 	}
 
+	void AddPickaxeToInventory()
+	{
+		auto CosmeticLoadout = GetCosmeticLoadout();
+		auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
+	
+		static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition");
+
+		auto PickaxeDefinition = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
+			: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
+
+		auto WorldInventory = GetWorldInventory();
+
+		if (!WorldInventory || WorldInventory->GetPickaxeInstance())
+			return;
+
+		WorldInventory->AddItem(PickaxeDefinition, nullptr);
+		WorldInventory->Update();
+	}
+
 	bool& ShouldTryPickupSwap()
 	{
 		static auto bTryPickupSwapOffset = GetOffset("bTryPickupSwap");
@@ -98,6 +117,8 @@ public:
 		static auto bTryPickupSwapOffset = GetOffset("bTryPickupSwap", false);
 		return bTryPickupSwapOffset != -1;
 	}
+
+	void ClientEquipItem(const FGuid& ItemGuid, bool bForceExecution);
 
 	bool DoesBuildFree();
 	void DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar = false, bool bRemoveIfNotDroppable = false);

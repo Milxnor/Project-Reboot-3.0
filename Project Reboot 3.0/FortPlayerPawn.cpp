@@ -2,6 +2,7 @@
 #include <memcury.h>
 #include "FortPlayerController.h"
 #include "FortGadgetItemDefinition.h"
+#include "FortPlayerControllerAthena.h"
 
 FFortAthenaLoadout* AFortPlayerPawn::GetCosmeticLoadout()
 {
@@ -272,6 +273,11 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 		LOG_INFO(LogDev, "Trying to pickup picked up weapon?");
 		return;
 	}
+
+	auto PlayerControllerAthena = Cast<AFortPlayerControllerAthena>(Pawn->GetController());
+
+	if (PlayerControllerAthena && PlayerControllerAthena->IsInGhostMode())
+		return;
 
 	static auto IncomingPickupsOffset = Pawn->GetOffset("IncomingPickups");
 	Pawn->Get<TArray<AFortPickup*>>(IncomingPickupsOffset).Add(Pickup);

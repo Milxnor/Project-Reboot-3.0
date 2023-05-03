@@ -19,6 +19,17 @@ public:
 		return ReadBitfieldValue(bDropAllOnEquipOffset, bDropAllOnEquipFieldMask);
 	}
 
+	bool ShouldDestroyGadgetWhenTrackedAttributesIsZero()
+	{
+		static auto bDestroyGadgetWhenTrackedAttributesIsZeroOffset = GetOffset("bDestroyGadgetWhenTrackedAttributesIsZero", false);
+
+		if (bDestroyGadgetWhenTrackedAttributesIsZeroOffset == -1)
+			return false;
+
+		static auto bDestroyGadgetWhenTrackedAttributesIsZeroFieldMask = GetFieldMask(GetProperty("bDestroyGadgetWhenTrackedAttributesIsZero"));
+		return ReadBitfieldValue(bDestroyGadgetWhenTrackedAttributesIsZeroOffset, bDestroyGadgetWhenTrackedAttributesIsZeroFieldMask);
+	}
+
 	UAttributeSet* GetAttributeSet()
 	{
 		static auto AttributeSetOffset = this->GetOffset("AttributeSet", false);
@@ -33,6 +44,8 @@ public:
 	}
 
 	void UnequipGadgetData(AFortPlayerController* PlayerController, UFortItem* Item);
+
+	static void UpdateTrackedAttributesHook(UFortGadgetItemDefinition* GadgetItemDefinition);
 
 	static UClass* StaticClass()
 	{

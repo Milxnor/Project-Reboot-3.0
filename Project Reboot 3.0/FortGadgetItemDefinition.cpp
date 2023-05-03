@@ -3,6 +3,8 @@
 #include "SoftObjectPath.h"
 #include "FortPlayerStateAthena.h"
 #include "addresses.h"
+#include "FortPlayerPawnAthena.h"
+#include "FortPlayerControllerAthena.h"
 
 void UFortGadgetItemDefinition::UnequipGadgetData(AFortPlayerController* PlayerController, UFortItem* Item)
 {
@@ -10,64 +12,21 @@ void UFortGadgetItemDefinition::UnequipGadgetData(AFortPlayerController* PlayerC
 	__int64 (*RemoveGadgetDataOriginal)(UFortGadgetItemDefinition* a1, __int64 a2, UFortItem* a3) = decltype(RemoveGadgetDataOriginal)(Addresses::RemoveGadgetData);
 	RemoveGadgetDataOriginal(this, __int64(PlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass)), Item);
 
-	/* auto Pawn = PlayerController->GetMyFortPawn();
-
-	if (Pawn)
+	if (auto CosmeticLoadoutPC = PlayerController->GetCosmeticLoadout())
 	{
-		static auto OriginalFootstepBankOffset = Pawn->GetOffset("OriginalFootstepBank");
-		static auto FootstepBankOverrideOffset = Pawn->GetOffset("FootstepBankOverride");
-		Pawn->Get(FootstepBankOverrideOffset) = Pawn->Get(OriginalFootstepBankOffset);
-
-		static auto AnimBPOverrideOffset = Pawn->GetOffset("AnimBPOverride");
-		static auto OriginalAnimBPOffset = Pawn->GetOffset("OriginalAnimBP");
-		Pawn->Get(AnimBPOverrideOffset) = Pawn->Get(OriginalAnimBPOffset);
-	}
-
-	static auto AbilitySetOffset = this->GetOffset("AbilitySet");
-	auto& AbilitySetSoft = this->Get<TSoftObjectPtr<UFortAbilitySet>>(AbilitySetOffset);
-
-	auto StrongAbilitySet = AbilitySetSoft.Get(UFortAbilitySet::StaticClass(), true);
-
-	if (StrongAbilitySet)
-	{
-		auto PlayerState = (AFortPlayerStateAthena*)PlayerController->GetPlayerState();
-		auto ASC = PlayerState ? PlayerState->GetAbilitySystemComponent() : nullptr;
-
-		if (ASC)
+		if (auto CharacterToApply = CosmeticLoadoutPC->GetCharacter())
 		{
-			if (FGameplayEffectApplicationInfoHard::GetStruct())
-			{
-				auto AS_GrantedGameplayEffects = StrongAbilitySet->GetGrantedGameplayEffects();
-
-				if (AS_GrantedGameplayEffects)
-				{
-					for (int i = 0; i < AS_GrantedGameplayEffects->Num(); i++)
-					{
-						ASC->RemoveActiveGameplayEffectBySourceEffect(AS_GrantedGameplayEffects->at(i, FGameplayEffectApplicationInfoHard::GetStructSize()).GameplayEffect, ASC, 1);
-					}
-				}
-			}
-
-			auto& ActivatableAbilitiesItems = ASC->GetActivatableAbilities()->GetItems();
-			auto AS_GameplayAbilities = StrongAbilitySet->GetGameplayAbilities();
-
-			for (int j = 0; j < AS_GameplayAbilities->Num(); j++)
-			{
-				auto CurrentDefaultAbility = AS_GameplayAbilities->at(j)->CreateDefaultObject();
-
-				for (int i = 0; i < ActivatableAbilitiesItems.Num(); i++)
-				{
-					auto Spec = ActivatableAbilitiesItems.AtPtr(i, FGameplayAbilitySpec::GetStructSize());
-
-					if (Spec->GetAbility() == CurrentDefaultAbility)
-					{
-						ASC->ClearAbility(Spec->GetHandle());
-					}
-				}
-			}
+			ApplyCID(Cast<AFortPlayerPawn>(PlayerController->GetMyFortPawn()), CharacterToApply); // idk why no automatic
 		}
 	}
+}
 
-	PlayerController->ApplyCosmeticLoadout();
-	*/
+void UFortGadgetItemDefinition::UpdateTrackedAttributesHook(UFortGadgetItemDefinition* GadgetItemDefinition)
+{
+	// LOG_INFO(LogDev, "UpdateTrackedAttributesHook Return: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
+
+	if (GadgetItemDefinition->ShouldDestroyGadgetWhenTrackedAttributesIsZero())
+	{
+		// PlayerState->MulticastTriggerOnGadgetTrackedAttributeDestroyedFX
+	}
 }

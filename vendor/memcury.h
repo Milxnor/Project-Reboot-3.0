@@ -758,9 +758,12 @@
                 return Scanner(add);
             }
 
-            static auto FindPointerRef(void* Pointer, int useRefNum = 0, bool bUseFirstResult = false) -> Scanner // credit me and ender
+            static auto FindPointerRef(void* Pointer, int useRefNum = 0, bool bUseFirstResult = false, bool bWarnIfNotFound = true) -> Scanner // credit me and ender
             {
                 PE::Address add{ nullptr };
+
+                if (!Pointer)
+                    return Scanner(add);
 
                 auto textSection = PE::Section::GetSection(".text");
 
@@ -803,14 +806,17 @@
                         }
                     }
                 }
-
-                if (add == 0)
+                
+                if (bWarnIfNotFound)
                 {
-                    MessageBoxA(0, "FindPointerRef return nullptr", "Memcury", MB_OK);
-                }
-                else
-                {
-                    // MessageBoxA(0, std::format("FindPointerRef return 0x{:x}", add.Get() - __int64(GetModuleHandleW(0))).c_str(), "Memcury", MB_OK);
+                    if (add == 0)
+                    {
+                        MessageBoxA(0, "FindPointerRef return nullptr", "Memcury", MB_OK);
+                    }
+                    else
+                    {
+                        // MessageBoxA(0, std::format("FindPointerRef return 0x{:x}", add.Get() - __int64(GetModuleHandleW(0))).c_str(), "Memcury", MB_OK);
+                    }
                 }
                 
                 return Scanner(add);
@@ -1424,3 +1430,5 @@
 
         return PtrRef.ScanFor(Bytes, false).Get();
     }
+
+    inline bool IsNullSub(uint64 Addr) { return *(uint8_t*)(Addr) == 0xC3 || *(uint8_t*)(Addr) == 0xC2; }

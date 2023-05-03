@@ -339,3 +339,42 @@ namespace Hooking
         } */
 	}
 }
+
+static inline void ChangeBytesThing(uint8_t* instrAddr, uint8_t* DetourAddr, int Offset)
+{
+    int64_t delta = DetourAddr - (instrAddr + Offset + 4);
+    *(int32_t*)(instrAddr + Offset) = static_cast<int32_t>(delta);
+}
+
+enum ERelativeOffsets
+{
+    CALL = 1,
+    LEA = 3
+};
+
+static inline void HookInstruction(uint64 instrAddr, void* Detour, const std::string& FunctionToReplace, ERelativeOffsets Offset, UObject* DefaultClass = nullptr) // we need better name
+{
+    if (!instrAddr)
+        return;
+
+    auto UFunc = FindObject<UFunction>(FunctionToReplace);
+
+    uint64 FunctionAddr = __int64(UFunc->GetFunc()); // GetFunctionIdxOrPtr(FindObject<UFunction>(FunctionToReplace));
+
+    if (IsBadReadPtr((void*)FunctionAddr))
+    {
+        auto Idx = FunctionAddr / 8;
+
+        FunctionAddr = (uint64)DefaultClass->VFTable[Idx];
+    }
+
+    if (__int64(instrAddr) - FunctionAddr < 0) // We do not want the FunctionAddr (detour) to be less than where we are replacing.
+    {
+        LOG_INFO(LogDev, "Hooking Instruction will not work! Function is after ({})!", FunctionToReplace);
+        return;
+    }
+
+    Hooking::MinHook::Hook((PVOID)FunctionAddr, Detour, nullptr, FunctionToReplace);
+
+    ChangeBytesThing((uint8_t*)instrAddr, (uint8_t*)FunctionAddr, (int)Offset);
+}

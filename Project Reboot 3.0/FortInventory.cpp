@@ -146,7 +146,8 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		if (FortPlayerController && WorldItemDefinition->IsValidLowLevel())
 		{
 			bool AreGadgetsEnabled = Addresses::ApplyGadgetData && Addresses::RemoveGadgetData && Globals::bEnableAGIDs;
-
+			bool bWasGadget = false;
+			
 			if (AreGadgetsEnabled)
 			{
 				if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(WorldItemDefinition))
@@ -156,10 +157,14 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 						FortPlayerController->DropAllItems({ GadgetItemDefinition });
 					}
 
-					bool (*ApplyGadgetData)(UFortGadgetItemDefinition * a1, __int64 a2, UFortItem* a3, unsigned __int8 a4) = decltype(ApplyGadgetData)(Addresses::ApplyGadgetData);
+					bool (*ApplyGadgetData)(UFortGadgetItemDefinition* a1, __int64 a2, UFortItem* a3, unsigned __int8 a4) = decltype(ApplyGadgetData)(Addresses::ApplyGadgetData);
 					static auto FortInventoryOwnerInterfaceClass = FindObject<UClass>("/Script/FortniteGame.FortInventoryOwnerInterface");
 					auto Interface = __int64(FortPlayerController->GetInterfaceAddress(FortInventoryOwnerInterfaceClass));
-					LOG_INFO(LogDev, "Res: {}", ApplyGadgetData(GadgetItemDefinition, Interface, NewItemInstance, true));
+					bool idktbh = true; // Something to do with durability
+					
+					bool DidApplyingGadgetSucceed = ApplyGadgetData(GadgetItemDefinition, Interface, NewItemInstance, idktbh);
+					LOG_INFO(LogDev, "DidApplyingGadgetSucceed: {}", DidApplyingGadgetSucceed);
+					bWasGadget = true;
 
 					if (Fortnite_Version < 7)
 					{
@@ -168,6 +173,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 						if (PickaxeInstance)
 						{
 							RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, PickaxeInstance->GetItemEntry()->GetCount(), true);
+							Update();
 						}
 					}
 				}
@@ -177,6 +183,15 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 			{
 				LOG_INFO(LogDev, "Force focus {}", ItemDefinition->GetFullName());
 				FortPlayerController->ServerExecuteInventoryItemHook(FortPlayerController, NewItemInstance->GetItemEntry()->GetItemGuid());
+				FortPlayerController->ClientEquipItem(NewItemInstance->GetItemEntry()->GetItemGuid(), true);
+			}
+
+			if (bWasGadget)
+			{
+				if (Fortnite_Version < 7)
+				{
+					// FortPlayerController->AddPickaxeToInventory();
+				}
 			}
 		}
 		else
@@ -325,32 +340,26 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	auto FortPlayerController = Cast<AFortPlayerController>(GetOwner());
 
+	bool bWasGadget = false;
+
 	for (int i = 0; i < ItemInstances.Num(); i++)
 	{
 		if (ItemInstances.at(i)->GetItemEntry()->GetItemGuid() == ItemGuid)
 		{
 			bool AreGadgetsEnabled = Addresses::ApplyGadgetData && Addresses::RemoveGadgetData && Globals::bEnableAGIDs;
 
-			if (AreGadgetsEnabled)
+			if (FortPlayerController && AreGadgetsEnabled)
 			{
 				if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition))
 				{
 					LOG_INFO(LogDev, "Unequipping Gadget!");
 					GadgetItemDefinition->UnequipGadgetData(FortPlayerController, ItemInstances.at(i));
 
+					bWasGadget = true;
+
 					if (Fortnite_Version < 7)
 					{
-						auto CosmeticLoadout = FortPlayerController->GetCosmeticLoadout();
-						// LOG_INFO(LogDev, "CosmeticLoadout: {}", __int64(CosmeticLoadout));
-						auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
-						// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe: {}", __int64(CosmeticLoadoutPickaxe));
-						// LOG_INFO(LogDev, "CosmeticLoadoutPickaxe Name: {}", CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->GetFullName() : "InvalidObject");
-						static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition");
-
-						auto PickaxeDefinition = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
-							: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
-
-						this->AddItem(PickaxeDefinition, nullptr);
+						FortPlayerController->AddPickaxeToInventory();
 					}
 				}
 			}

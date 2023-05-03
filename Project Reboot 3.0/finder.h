@@ -551,6 +551,77 @@ static inline uint64 FindSpecConstructor()
 	return 0;
 }
 
+static inline uint64 FindCreateBuildingActorCallForDeco() // kill me
+{
+	auto Addrr = Memcury::Scanner::FindStringRef(L"ServerCreateBuildingAndSpawnDeco called without a valid DecoItemDef").Get(); // honestly L (we should get it from the ufunc not string)
+
+	if (!Addrr)
+		return 0;
+
+	for (int i = 0; i < 10000; i++)
+	{
+		if ((*(uint8_t*)(uint8_t*)(Addrr + i) == 0xC6 && *(uint8_t*)(uint8_t*)(Addrr + i + 6) == 0xE8)) // Checked 10.40
+		{
+			return Addrr - i + 6;
+		}
+	}
+
+	return 0;
+}
+
+static inline uint64 FindUpdateTrackedAttributesLea() // kill me
+{
+	// 10.40 = (__int64(GetModuleHandleW(0)) + 0x19E19A5)
+
+	// So we keep going until we find a lea with nullsub..
+
+	uint64 ApplyGadgetAttributesAddr = 0;
+
+	if (!ApplyGadgetAttributesAddr)
+		return 0;
+
+	for (int i = 0; i < 10000; i++)
+	{
+		if ((*(uint8_t*)(uint8_t*)(ApplyGadgetAttributesAddr + i) == 0x48 && *(uint8_t*)(uint8_t*)(ApplyGadgetAttributesAddr + i + 1) == 0x8D
+			&& *(uint8_t*)(uint8_t*)(ApplyGadgetAttributesAddr + i + 2) == 0x05))
+		{
+			auto loadAddress = Memcury::Scanner(ApplyGadgetAttributesAddr + i).RelativeOffset(3).Get();
+
+			if (IsNullSub(loadAddress)) // Safety
+				return ApplyGadgetAttributesAddr + i;
+		}
+	}
+
+	return 0;
+}
+
+static inline uint64 FindCombinePickupLea() // kill me
+{
+	/* uint64 OnRep_PickupLocationDataAddr = 0; // TODO (Idea: Find SetupCombinePickupDelegates from this).
+
+	if (!OnRep_PickupLocationDataAddr)
+		return 0; */
+	
+	uint64 SetupCombinePickupDelegatesAddr = Memcury::Scanner::FindPattern("48 89 AC 24 ? ? ? ? 48 89 B4 24 ? ? ? ? 48 89 BC 24 ? ? ? ? 0F 29 B4 24 ? ? ? ? 75").Get(); // Haha so funny thing, this isn't actually the start its the middle because it's in function chunks yay!
+
+	if (!SetupCombinePickupDelegatesAddr)
+		return 0;
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(SetupCombinePickupDelegatesAddr + i) == 0x48 && *(uint8_t*)(uint8_t*)(SetupCombinePickupDelegatesAddr + i + 1) == 0x8D
+			&& *(uint8_t*)(uint8_t*)(SetupCombinePickupDelegatesAddr + i + 2) == 0x05) // Checked on 10.40, it was the first lea.
+		{
+			auto loadAddress = Memcury::Scanner(SetupCombinePickupDelegatesAddr + i).RelativeOffset(3).Get();
+
+			if (IsNullSub(loadAddress)) // Safety
+				return SetupCombinePickupDelegatesAddr + i;
+		}
+	}
+
+	return 0;
+}
+
 static inline uint64 FindCompletePickupAnimation()
 {
 	if (Engine_Version == 416 || Engine_Version == 419)
@@ -771,8 +842,43 @@ static inline uint64 FindFreeEntry()
 	return 0;
 }
 
+static inline uint64 FindBeginningOfFuncEXP(uint64 Addr, int ToSearch = 1000)
+{
+	for (int i = 0; i < ToSearch; i++)
+	{
+		if (Fortnite_Version >= 10)
+		{
+			if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x53))
+			{
+				return Addr - i;
+			}
+		}
+
+		if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x55))
+		{
+			return Addr - i;
+
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x5C)
+		{
+			return Addr - i;
+
+		}
+
+		/* if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0xC4)
+		{
+			return Addr - i;
+		} */
+	}
+
+	return 0;
+}
+
 static inline uint64 FindRemoveGadgetData()
 {
+	uint64 RemoveGadgetDataAddr = 0;
+
 	if (Engine_Version <= 423)
 	{
 		auto Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadget Item [%s]!", false).Get();
@@ -781,56 +887,64 @@ static inline uint64 FindRemoveGadgetData()
 			Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Removing Gadget Data for Gadet Item [%s]!", false).Get();
 
 		if (!Addr)
-		{
 			Addr = Memcury::Scanner::FindStringRef(L"UFortGadgetItemDefinition::RemoveGadgetData - Failed to get the Player Controller to cleanup Gadget Item [%s]!").Get();
-		}
 
 		if (!Addr)
 			return 0;
 
-		for (int i = 0; i < 1000; i++)
-		{
-			if (Fortnite_Version >= 10)
-			{
-				if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x53))
-				{
-					return Addr - i;
-				}
-			}
-
-			if ((*(uint8_t*)(uint8_t*)(Addr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x55))
-			{
-				return Addr - i;
-			}
-
-			if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0x5C)
-			{
-				return Addr - i;
-			}
-
-			/* if (*(uint8_t*)(uint8_t*)(Addr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addr - i + 2) == 0xC4)
-			{
-				return Addr - i;
-			} */
-		}
-
-		return 0;
-		// return FindBytes(StringRef, { 0x40, 0x55 }, 1000, 0, true);
+		RemoveGadgetDataAddr = FindBeginningOfFuncEXP(Addr);
 	}
-	if (Engine_Version == 426)
-		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 56 41 56 41 57 48 83 EC 30 48 8B 02 48").Get(); // 14.60
+	else if (Engine_Version == 426)
+		RemoveGadgetDataAddr = Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 56 41 56 41 57 48 83 EC 30 48 8B 02 48").Get(); // 14.60
+	
+	LOG_INFO(LogDev, "RemoveGadgetData: 0x{:x}", RemoveGadgetDataAddr - __int64(GetModuleHandleW(0)));
 
-	return 0;
+	if (!RemoveGadgetDataAddr)
+		return 0;
+
+	uint64 RemoveGadgetDataCall = Memcury::Scanner::FindPointerRef((PVOID)RemoveGadgetDataAddr, 0, false, false).Get();
+
+	if (!RemoveGadgetDataCall)
+		return RemoveGadgetDataAddr;
+
+	uint64 FortGadgetItemDefinition_RemoveGadgetDataAddr = FindBeginningOfFuncEXP(RemoveGadgetDataCall);
+
+	if (!FortGadgetItemDefinition_RemoveGadgetDataAddr)
+		return RemoveGadgetDataAddr;
+
+	uint64 FortGadgetItemDefinition_RemoveGadgetDataCall = Memcury::Scanner::FindPointerRef((PVOID)FortGadgetItemDefinition_RemoveGadgetDataAddr, 0, false, false).Get();
+
+	if (!FortGadgetItemDefinition_RemoveGadgetDataCall)
+		return FortGadgetItemDefinition_RemoveGadgetDataAddr;
+	
+	uint64 AthenaGadgetItemDefinition_RemoveGadgetDataAddr = FindBeginningOfFuncEXP(FortGadgetItemDefinition_RemoveGadgetDataCall);
+
+	if (!AthenaGadgetItemDefinition_RemoveGadgetDataAddr)
+		return FortGadgetItemDefinition_RemoveGadgetDataAddr;
+
+	return AthenaGadgetItemDefinition_RemoveGadgetDataAddr;
 }
 
 static inline uint64 FindApplyGadgetData()
 {
-	if (Engine_Version >= 420 && Engine_Version <= 422)
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 41 0F B6 D9 49 8B").Get(); // 4.1 & 6.21 & 7.40
-	if (Engine_Version >= 423 && Engine_Version <= 426)
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 7C 24 ? 41 54 41 56 41 57 48 83 EC 20 41 0F").Get(); // 8.51 & 12.41
+	uint64 FortGadgetItemDefinition_ApplyGadgetDataAddr = 0;
 
-	return 0;
+	if (Engine_Version >= 420 && Engine_Version <= 422)
+		FortGadgetItemDefinition_ApplyGadgetDataAddr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 41 0F B6 D9 49 8B").Get(); // 4.1 & 6.21 & 7.40
+	if (Engine_Version >= 423 && Engine_Version <= 426)
+		FortGadgetItemDefinition_ApplyGadgetDataAddr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 7C 24 ? 41 54 41 56 41 57 48 83 EC 20 41 0F").Get(); // 8.51 & 12.41
+
+	uint64 FortGadgetItemDefinition_ApplyGadgetDataCall = Memcury::Scanner::FindPointerRef((PVOID)FortGadgetItemDefinition_ApplyGadgetDataAddr, 0, false, false).Get();
+
+	if (!FortGadgetItemDefinition_ApplyGadgetDataCall)
+		return FortGadgetItemDefinition_ApplyGadgetDataAddr;
+
+	auto AthenaGadgetItemDefinition_ApplyGadgetDataAddr = FindBeginningOfFuncEXP(FortGadgetItemDefinition_ApplyGadgetDataCall);
+
+	if (!AthenaGadgetItemDefinition_ApplyGadgetDataAddr)
+		return FortGadgetItemDefinition_ApplyGadgetDataAddr;
+
+	return AthenaGadgetItemDefinition_ApplyGadgetDataAddr;
 }
 
 static inline uint64 FindGetInterfaceAddress()

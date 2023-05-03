@@ -806,7 +806,6 @@ static inline void MainUI()
 				if (WeaponsFile.is_open())
 				{
 					WeaponsFile << FortniteVersionStr;
-					static auto FortWeaponItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortWeaponItemDefinition");
 
 					auto DumpItemDefinitionClass = [&WeaponsFile](UClass* Class) {
 						auto AllObjects = GetAllObjectsOfClass(Class);
@@ -831,6 +830,7 @@ static inline void MainUI()
 
 					DumpItemDefinitionClass(UFortWeaponItemDefinition::StaticClass());
 					DumpItemDefinitionClass(UFortGadgetItemDefinition::StaticClass());
+					DumpItemDefinitionClass(FindObject<UClass>("/Script/FortniteGame.FortAmmoItemDefinition"));
 				}
 				else
 					std::cout << "Failed to open playlist file!\n";

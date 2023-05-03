@@ -62,23 +62,13 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 		}
 		else
 		{
-			auto OldGuid = PrimaryPickupItemEntry->GetItemGuid();
-
-			if (false)
-			{
-				CopyStruct(PrimaryPickupItemEntry, ItemEntry, FFortItemEntry::GetStructSize(), FFortItemEntry::GetStruct());
-			}
-			else
-			{
-				PrimaryPickupItemEntry->GetItemDefinition() = ItemEntry->GetItemDefinition();
-				PrimaryPickupItemEntry->GetLoadedAmmo() = ItemEntry->GetLoadedAmmo();
-			}
+			PrimaryPickupItemEntry->CopyFromAnotherItemEntry(ItemEntry);
 		}
 		
 		static auto PickupSourceTypeFlagsOffset = Pickup->GetOffset("PickupSourceTypeFlags", false);
 
 		if (PickupSourceTypeFlagsOffset != -1)
-			Pickup->Get<int32>(PickupSourceTypeFlagsOffset) |= (int)PickupSource;
+			Pickup->Get<int32>(PickupSourceTypeFlagsOffset) |= (int)PickupSource; // Assuming its the same enum on older versions.
 
 		PrimaryPickupItemEntry->GetCount() = OverrideCount == -1 ? ItemEntry->GetCount() : OverrideCount;
 
@@ -88,8 +78,50 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 
 		// static auto OptionalOwnerIDOffset = Pickup->GetOffset("OptionalOwnerID");
 		// Pickup->Get<int>(OptionalOwnerIDOffset) = PlayerState ? PlayerState->GetWorldPlayerId() : -1;
+		
+		auto PickupLocationData = Pickup->GetPickupLocationData();
 
-		Pickup->TossPickup(Location, Pawn, 0, bToss, PickupSource, SpawnSource);
+		auto CanCombineWithPickup = [&](AActor* OtherPickupActor) -> bool
+		{
+			auto OtherPickup = (AFortPickup*)OtherPickupActor;
+
+			if (OtherPickup->GetPickupLocationData()->GetCombineTarget())
+				return false;
+
+			if (PrimaryPickupItemEntry->GetItemDefinition() == OtherPickup->GetPrimaryPickupItemEntry()->GetItemDefinition())
+			{
+				auto IncomingCount = OtherPickup->GetPrimaryPickupItemEntry()->GetCount();
+
+				if (PrimaryPickupItemEntry->GetCount() + IncomingCount > PrimaryPickupItemEntry->GetItemDefinition()->GetMaxStackSize())
+					return false;
+
+				return true;
+			}
+
+			return false;
+		};
+
+		if (Addresses::CombinePickupLea)
+		{
+			PickupLocationData->GetCombineTarget() = (AFortPickup*)Pickup->GetClosestActor(AFortPickup::StaticClass(), 4, CanCombineWithPickup);
+		}
+
+		// our little remake of tosspickup
+
+		Pickup->GetPickupLocationData()->GetLootFinalPosition() = Location;
+		Pickup->GetPickupLocationData()->GetLootInitialPosition() = Pickup->GetActorLocation();
+		Pickup->GetPickupLocationData()->GetFlyTime() = 1.4f; // not right really
+		Pickup->GetPickupLocationData()->GetItemOwner() = Pawn;
+		Pickup->GetPickupLocationData()->GetFinalTossRestLocation() = Pickup->GetActorLocation(); // ong ong proper
+
+		if (!PickupLocationData->GetCombineTarget()) // I don't think we should call TossPickup for every pickup.
+		{
+			Pickup->TossPickup(Location, Pawn, 0, bToss, PickupSource, SpawnSource);
+		}
+		else
+		{
+			Pickup->OnRep_PickupLocationData();
+		}
 
 		if (PickupSource == EFortPickupSourceTypeFlag::Container) // crashes if we do this then tosspickup
 		{
@@ -124,6 +156,26 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 	auto Pickup = SpawnPickup(ItemEntry, Location, PickupSource, SpawnSource, Pawn, OverrideClass, bToss);
 	// VirtualFree(ItemEntry);
 	return Pickup;
+}
+
+void AFortPickup::CombinePickupHook(AFortPickup* Pickup)
+{
+	// LOG_INFO(LogDev, "CombinePickupHook!");
+
+	auto PickupToCombineInto = (AFortPickup*)Pickup->GetPickupLocationData()->GetCombineTarget();
+
+	if (!PickupToCombineInto->IsActorBeingDestroyed())
+	{
+		// TODO Add more checks
+
+		PickupToCombineInto->GetPrimaryPickupItemEntry()->GetCount() += Pickup->GetPrimaryPickupItemEntry()->GetCount();
+		PickupToCombineInto->OnRep_PrimaryPickupItemEntry();
+
+		PickupToCombineInto->ForceNetUpdate();
+		PickupToCombineInto->FlushNetDormancy();
+
+		Pickup->K2_DestroyActor();
+	}
 }
 
 char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
@@ -355,18 +407,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 	if (bWasHoldingSameItemWhenSwap && NewSwappedItem != FGuid(-1, -1, -1, -1))
 	{
-		static auto ClientEquipItemFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ClientEquipItem");
-
-		if (ClientEquipItemFn)
-		{
-			struct
-			{
-				FGuid                                       ItemGuid;                                                 // (ConstParm, Parm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-				bool                                               bForceExecution;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-			} AFortPlayerController_ClientEquipItem_Params{ NewSwappedItem, true };
-
-			PlayerController->ProcessEvent(ClientEquipItemFn, &AFortPlayerController_ClientEquipItem_Params);
-		}
+		PlayerController->ClientEquipItem(NewSwappedItem, true);
 	}
 
 	return CompletePickupAnimationOriginal(Pickup);

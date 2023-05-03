@@ -49,10 +49,34 @@ struct FFortPickupLocationData
 		return *(AFortPawn**)(__int64(this) + ItemOwnerOffset);
 	}
 
+	class AFortPickup*& GetCombineTarget()
+	{
+		static auto CombineTargetOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "CombineTarget");
+		return *(AFortPickup**)(__int64(this) + CombineTargetOffset);
+	}
+
 	FVector& GetStartDirection()
 	{
 		static auto StartDirectionOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "StartDirection");
 		return *(FVector*)(__int64(this) + StartDirectionOffset);
+	}
+
+	FVector& GetFinalTossRestLocation()
+	{
+		static auto FinalTossRestLocationOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "FinalTossRestLocation");
+		return *(FVector*)(__int64(this) + FinalTossRestLocationOffset);
+	}
+
+	FVector& GetLootInitialPosition()
+	{
+		static auto LootInitialPositionOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "LootInitialPosition");
+		return *(FVector*)(__int64(this) + LootInitialPositionOffset);
+	}
+
+	FVector& GetLootFinalPosition()
+	{
+		static auto LootFinalPositionOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "LootFinalPosition");
+		return *(FVector*)(__int64(this) + LootFinalPositionOffset);
 	}
 
 	FGuid& GetPickupGuid()
@@ -88,6 +112,12 @@ public:
 		return this->GetPtr<FFortItemEntry>(PrimaryPickupItemEntryOffset);
 	}
 
+	void OnRep_PickupLocationData()
+	{
+		static auto OnRep_PickupLocationDataFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPickup.OnRep_PickupLocationData");
+		this->ProcessEvent(OnRep_PickupLocationDataFn);
+	}
+
 	static AFortPickup* SpawnPickup(FFortItemEntry* ItemEntry, FVector Location, 
 		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset,
 		class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true, int OverrideCount = -1);
@@ -96,6 +126,7 @@ public:
 		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset, 
 		int LoadedAmmo = -1, class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true);
 
+	static void CombinePickupHook(AFortPickup* Pickup);
 	static char CompletePickupAnimationHook(AFortPickup* Pickup);
 
 	static UClass* StaticClass();

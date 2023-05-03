@@ -49,7 +49,8 @@ public:
 	float& GetMinNetUpdateFrequency();
 	const AActor* GetNetOwner() const;
 	void GetActorEyesViewPoint(FVector* OutLocation, FRotator* OutRotation) const;
-	
+	AActor* GetClosestActor(UClass* ActorClass, float DistMax, std::function<bool(AActor*)> AdditionalCheck = [&](AActor*) { return true; });
+
 	bool IsRelevancyOwnerFor(const AActor* ReplicatedActor, const AActor* ActorOwner, const AActor* ConnectionActor) const
 	{
 		// we should call virtual function but eh

@@ -529,9 +529,6 @@
     <ClInclude Include="BuildingTrap.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building</Filter>
     </ClInclude>
-    <ClInclude Include="FortAthenaSupplyDrop.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors</Filter>
-    </ClInclude>
     <ClInclude Include="BuildingGameplayActor.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building</Filter>
     </ClInclude>
@@ -842,6 +839,9 @@
       <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
     </ClInclude>
     <ClInclude Include="discord.h" />
+    <ClInclude Include="FortAthenaSupplyDrop.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Building</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -1080,6 +1080,9 @@
     </Filter>
     <Filter Include="Engine\Source\Runtime\Core\Private\GenericPlatform">
       <UniqueIdentifier>{c04eb59f-e186-49a3-a145-1fd3dc1dcd3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Reboot\Private">
+      <UniqueIdentifier>{00ba0f86-7eef-4ffd-9a9d-47477e5193b2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@
 #include "Transform.h"
 
 #include "reboot.h"
+#include "GameplayStatics.h"
 
 bool AActor::HasAuthority()
 {
@@ -208,6 +209,40 @@ void AActor::GetActorEyesViewPoint(FVector* OutLocation, FRotator* OutRotation) 
 
 	*OutLocation = AActor_GetActorEyesViewPoint_Params.OutLocation;
 	*OutRotation = AActor_GetActorEyesViewPoint_Params.OutRotation;
+}
+
+AActor* AActor::GetClosestActor(UClass* ActorClass, float DistMax, std::function<bool(AActor*)> AdditionalCheck)
+{
+	float TargetDist = FLT_MAX;
+	AActor* TargetActor = nullptr;
+
+	TArray<AActor*> AllActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ActorClass);
+	auto ActorLocation = GetActorLocation();
+
+	for (int i = 0; i < AllActors.Num(); i++)
+	{
+		auto Actor = AllActors.at(i);
+
+		if (!Actor || Actor == this)
+			continue;
+
+		if (!AdditionalCheck(Actor))
+			continue;
+
+		auto CurrentActorLocation = Actor->GetActorLocation();
+
+		int Dist = float(sqrtf(powf(CurrentActorLocation.X - ActorLocation.X, 2.0) + powf(CurrentActorLocation.Y - ActorLocation.Y, 2.0) + powf(CurrentActorLocation.Z - ActorLocation.Z, 2.0))) / 100.f;
+
+		if (Dist <= DistMax && Dist < TargetDist)
+		{
+			TargetDist = Dist;
+			TargetActor = Actor;
+		}
+	}
+
+	AllActors.Free();
+
+	return TargetActor;
 }
 
 bool AActor::IsAlwaysRelevant()

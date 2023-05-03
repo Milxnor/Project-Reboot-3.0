@@ -99,17 +99,9 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			{
 				// TODO Check Playlist->bRequirePickaxeInStartingInventory
 
-				auto CosmeticLoadout = NewPlayerAsAthena->GetCosmeticLoadoutOffset() != -1 ? NewPlayerAsAthena->GetCosmeticLoadout() : nullptr;
-				auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
-
-				static auto WeaponDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.AthenaPickaxeItemDefinition", "WeaponDefinition", false);
-
-				auto PickaxeDefinition = CosmeticLoadoutPickaxe ? CosmeticLoadoutPickaxe->Get<UFortItemDefinition*>(WeaponDefinitionOffset)
-					: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01");
-
 				auto& StartingItems = ((AFortGameModeAthena*)GameMode)->GetStartingItems();
 
-				WorldInventory->AddItem(PickaxeDefinition, nullptr);
+				NewPlayerAsAthena->AddPickaxeToInventory();
 
 				for (int i = 0; i < StartingItems.Num(); i++)
 				{

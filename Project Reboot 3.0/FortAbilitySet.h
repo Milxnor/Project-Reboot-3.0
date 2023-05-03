@@ -48,7 +48,7 @@ public:
 		return this->GetPtr<TArray<FGameplayEffectApplicationInfoHard>>(GrantedGameplayEffectsOffset);
 	}
 
-	void ApplyGrantedGameplayAffectsToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent)
+	void ApplyGrantedGameplayAffectsToAbilitySystem(UAbilitySystemComponent* AbilitySystemComponent) // i dont think this is proper
 	{
 		if (!FGameplayEffectApplicationInfoHard::GetStruct())
 			return;
