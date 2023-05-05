@@ -1,9 +1,23 @@
+// Food Fight
+
 #pragma once
 
 #include "FortAthenaMutator.h"
 #include "AthenaBigBaseWall.h"
 #include "AthenaBarrierObjective.h"
 #include "AthenaBarrierFlag.h"
+
+/* 
+
+EVENT IDS (got on 10.40):
+
+WallComingDown - 1
+WallDown - 2
+// IDK REST COMPILER WAS TOO SMART
+Intro - 9
+NoMoreRespawns - 10
+
+*/
 
 struct FBarrierTeamState // Idk if this actually changes
 {

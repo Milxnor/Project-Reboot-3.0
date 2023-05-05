@@ -778,12 +778,13 @@ DWORD WINAPI Main(LPVOID)
 
     AddVehicleHook();
 
-    // if (Fortnite_Version > 1.8 || Fortnite_Version == 1.11)
-    {
-        auto ClientOnPawnDiedCallAddr = FindFunctionCall(L"ClientOnPawnDied", Engine_Version == 416 ? std::vector<uint8_t>{ 0x48, 0x89, 0x54 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C });
-        LOG_INFO(LogDev, "ClientOnPawnDiedCallAddr: 0x{:x}", ClientOnPawnDiedCallAddr - __int64(GetModuleHandleW(0)));
-        Hooking::MinHook::Hook((PVOID)ClientOnPawnDiedCallAddr, AFortPlayerController::ClientOnPawnDiedHook, (PVOID*)&AFortPlayerController::ClientOnPawnDiedOriginal);
-    }
+    auto ClientOnPawnDiedCallAddr = FindFunctionCall(L"ClientOnPawnDied", Engine_Version == 416 ? std::vector<uint8_t>{ 0x48, 0x89, 0x54 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C });
+    LOG_INFO(LogDev, "ClientOnPawnDiedCallAddr: 0x{:x}", ClientOnPawnDiedCallAddr - __int64(GetModuleHandleW(0)));
+    Hooking::MinHook::Hook((PVOID)ClientOnPawnDiedCallAddr, AFortPlayerController::ClientOnPawnDiedHook, (PVOID*)&AFortPlayerController::ClientOnPawnDiedOriginal);
+
+    auto OnSafeZoneStateChangeAddr = FindFunctionCall(L"OnSafeZoneStateChange", Engine_Version == 416 ? std::vector<uint8_t>{ 0x48, 0x89, 0x54 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C });
+    LOG_INFO(LogDev, "OnSafeZoneStateChangeAddr: 0x{:x}", OnSafeZoneStateChangeAddr - __int64(GetModuleHandleW(0)));
+    Hooking::MinHook::Hook((PVOID)OnSafeZoneStateChangeAddr, AFortSafeZoneIndicator::OnSafeZoneStateChangeHook, (PVOID*)&AFortSafeZoneIndicator::OnSafeZoneStateChangeOriginal);
 
     LOG_INFO(LogDev, "PredictionKeySize: 0x{:x} {}", PredictionKeySize, PredictionKeySize);
 

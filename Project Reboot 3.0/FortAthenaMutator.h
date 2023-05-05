@@ -31,3 +31,14 @@ static inline void LoopMutators(std::function<void(AFortAthenaMutator*)> Callbac
 
 	AllMutators.Free();
 }
+
+template <typename MutatorType = AFortAthenaMutator>
+static inline MutatorType* FindFirstMutator(UClass* MutatorClass = MutatorType::StaticClass())
+{
+	auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), MutatorClass);
+	auto FirstMutator = AllMutators.Num() >= 1 ? AllMutators.at(0) : nullptr;
+
+	AllMutators.Free();
+
+	return (MutatorType*)FirstMutator;
+}

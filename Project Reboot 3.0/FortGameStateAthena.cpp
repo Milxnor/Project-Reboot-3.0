@@ -3,6 +3,7 @@
 #include "reboot.h"
 #include "FortPlayerStateAthena.h"
 #include "FortGameModeAthena.h"
+#include "FortAthenaMutator.h"
 
 /* void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState)
 {
@@ -34,6 +35,33 @@ TScriptInterface<UFortSafeZoneInterface> AFortGameStateAthena::GetSafeZoneInterf
 	}
 
 	return ScriptInterface;
+}
+
+void AFortGameStateAthena::SetGamePhaseStep(EAthenaGamePhaseStep NewGamePhaseStep)
+{
+	this->GetGamePhaseStep() = NewGamePhaseStep;
+
+	std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
+
+	LoopMutators([&](AFortAthenaMutator* Mutator) { FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged"))); });
+
+	for (auto& FunctionToCallPair : FunctionsToCall)
+	{
+		// On newer versions there is a second param.
+
+		LOG_INFO(LogDev, "A1: {} FunctionToCallPair.second: {}", FunctionToCallPair.first->IsValidLowLevel() ? FunctionToCallPair.first->GetFullName() : "BadRead", __int64(FunctionToCallPair.second));
+
+		if (FunctionToCallPair.second->IsValidLowLevel() && FunctionToCallPair.first->IsValidLowLevel())
+		{
+			auto Params = ConstructOnGamePhaseStepChangedParams(NewGamePhaseStep);
+
+			if (Params)
+			{
+				FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, Params);
+				VirtualFree(Params, 0, MEM_RELEASE);
+			}
+		}
+	}
 }
 
 UFortPlaylist*& AFortGameStateAthena::GetCurrentPlaylist()

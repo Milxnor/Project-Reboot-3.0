@@ -1,5 +1,20 @@
 #include "FortAthenaSupplyDrop.h"
 
+FVector AFortAthenaSupplyDrop::FindGroundLocationAt(FVector InLocation)
+{
+	static auto FindGroundLocationAtFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaSupplyDrop.FindGroundLocationAt");
+
+	struct
+	{
+		FVector                                     InLocation;                                               // (ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FVector                                     ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} AFortAthenaSupplyDrop_FindGroundLocationAt_Params{ InLocation };
+
+	this->ProcessEvent(FindGroundLocationAtFn, &AFortAthenaSupplyDrop_FindGroundLocationAt_Params);
+
+	return AFortAthenaSupplyDrop_FindGroundLocationAt_Params.ReturnValue;
+}
+
 AFortPickup* AFortAthenaSupplyDrop::SpawnPickupFromItemEntryHook(UObject* Context, FFrame& Stack, AFortPickup** Ret)
 {
 	LOG_INFO(LogDev, __FUNCTION__);

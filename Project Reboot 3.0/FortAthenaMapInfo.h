@@ -6,15 +6,16 @@
 
 #include "GameplayAbilityTypes.h"
 #include "DataTableFunctionLibrary.h"
+#include "SoftObjectPtr.h"
 
-static inline float CalcuateCurveMinAndMax(FScalableFloat* Min, FScalableFloat* Max) // returns 000 not 0.00 (forgot techinal name for this)
+static inline float CalcuateCurveMinAndMax(FScalableFloat* Min, FScalableFloat* Max, float Multiplier = 100.f) // returns 000 not 0.00 (forgot techinal name for this)
 {
 	float MinSpawnPercent = UDataTableFunctionLibrary::EvaluateCurveTableRow(Min->GetCurve().CurveTable, Min->GetCurve().RowName, 0);
 	float MaxSpawnPercent = UDataTableFunctionLibrary::EvaluateCurveTableRow(Max->GetCurve().CurveTable, Max->GetCurve().RowName, 0);
 
 	std::random_device MinMaxRd;
 	std::mt19937 MinMaxGen(MinMaxRd());
-	std::uniform_int_distribution<> MinMaxDis(MinSpawnPercent * 100, MaxSpawnPercent * 100 + 1); // + 1 ?
+	std::uniform_int_distribution<> MinMaxDis(MinSpawnPercent * Multiplier, MaxSpawnPercent * Multiplier + 1); // + 1 ?
 
 	float SpawnPercent = MinMaxDis(MinMaxGen);
 
@@ -129,4 +130,35 @@ public:
 		static auto BuildingGameplayActorSpawnDetailsOffset = GetOffset("BuildingGameplayActorSpawnDetails");
 		return Get<TArray<FBuildingGameplayActorSpawnDetails>>(BuildingGameplayActorSpawnDetailsOffset);
 	}
+
+	FScalableFloat* GetLlamaQuantityMin()
+	{
+		static auto LlamaQuantityMinOffset = GetOffset("LlamaQuantityMin");
+		return GetPtr<FScalableFloat>(LlamaQuantityMinOffset);
+	}
+
+	FScalableFloat* GetLlamaQuantityMax()
+	{
+		static auto LlamaQuantityMaxOffset = GetOffset("LlamaQuantityMax");
+		return GetPtr<FScalableFloat>(LlamaQuantityMaxOffset);
+	}
+
+	UClass* GetLlamaClass()
+	{
+		static auto LlamaClassOffset = GetOffset("LlamaClass", false);
+
+		if (LlamaClassOffset == -1)
+			return nullptr;
+
+		return Get<UClass*>(LlamaClassOffset);
+	}
+
+	AActor*& GetAircraftDropVolume() // actually AVolume
+	{
+		static auto AircraftDropVolumeOffset = GetOffset("AircraftDropVolume");
+		return Get<AActor*>(AircraftDropVolumeOffset);
+	}
+
+	FVector PickSupplyDropLocation(FVector Center, float Radius);
+	void SpawnLlamas();
 };

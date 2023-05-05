@@ -147,7 +147,14 @@ static inline uint64 FindPickupInitialize()
 	if (Engine_Version == 420)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 41 56 48 83 EC 20 80 B9 ? ? ? ? ? 45 0F B6 F1 49 8B E8").Get(); // 4.1
 	if (Engine_Version == 421)
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 57 41 57 48 83 EC 30 80 B9 ? ? ? ? ? 41 0F B6").Get(); // 6.21
+	{
+		auto addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 57 41 57 48 83 EC 30 80 B9 ? ? ? ? ? 41 0F B6", false).Get(); // 6.21
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 80 B9 ? ? ? ? ? 41 0F B6 E9").Get(); // 5.41
+
+		return addr;
+	}
 	if (Engine_Version == 422)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 41 56 41 57 48 83 EC 30 80 B9 ? ? ? ? ? 45 0F B6 F1").Get(); // 7.30
 	if (Engine_Version == 423)
@@ -235,6 +242,26 @@ static inline uint64 FindInitHost()
 	return FindBytes(Addr, (Engine_Version == 427 ? std::vector<uint8_t>{ 0x48, 0x8B, 0x5C } : std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 }), 1000, 0, true);
 }
 
+static inline uint64 FindPickSupplyDropLocation()
+{
+	auto Addrr = Memcury::Scanner::FindStringRef(L"PickSupplyDropLocation: Failed to find valid location using rejection.  Using safe zone location.", true, 0).Get();
+
+	if (!Addrr)
+		return 0;
+
+	// Newer versions it is "AFortAthenaMapInfo::PickSupplyDropLocation" (no wide str), but they also changed params so ill add later.
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
+}
+
 static inline uint64 FindPauseBeaconRequests()
 {
 	if (Engine_Version == 500)
@@ -250,6 +277,9 @@ static inline uint64 FindPauseBeaconRequests()
 
 	if (Engine_Version == 420)
 		return Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 68 80 3D ? ? ? ? ? 72 2C 48 8B 05 ? ? ? ? 4C 8D 44").Get();
+
+	if (Fortnite_Version == 6.30 || Fortnite_Version == 6.31) // bro for real! (i think its cuz theres like 3 refs to the same string)
+		return Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 68 80 3D").Get();
 
 	if (Engine_Version == 419)
 	{
@@ -725,6 +755,8 @@ static inline uint64 FindNoMCP()
 
 static inline uint64 FindSetZoneToIndex() // actually StartNewSafeZonePhase
 {
+	if (Engine_Version == 419)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 70 48 8B B9 ? ? ? ? 33 DB 0F 29 74 24 ? 48 8B F1 48 85 FF 74 2C E8").Get(); // 1.11
 	if (Engine_Version == 420)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? EB 31 80 B9 ? ? ? ? ?").RelativeOffset(1).Get(); // 3.5
 	if (Engine_Version == 422)
@@ -1474,7 +1506,7 @@ static inline uint64 FindPickTeam()
 		auto testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 56 41 54 41 55 41 56 48 83 EC 60 4C 8B A1", false).Get(); // 14.60 what is happening lol ????
 
 		if (!testAddr)
-			testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 55 56 41 55 41 56 48 83 EC 70 48 8B", false).Get(); // 15.10
+			testAddr = Memcury::Scanner::FindPattern("88 54 24 10 53 55 56 41 55 41 ? 48 83 EC 70 48", false).Get(); // 15.10 & 15.50
 
 		if (testAddr)
 			return testAddr;
@@ -1640,7 +1672,7 @@ static inline uint64 FindCantBuild()
 
 static inline uint64 FindReplaceBuildingActor()
 {
-	auto StringRef = Memcury::Scanner::FindStringRef(L"STAT_Fort_BuildingSMActorReplaceBuildingActor");
+	auto StringRef = Memcury::Scanner::FindStringRef(L"STAT_Fort_BuildingSMActorReplaceBuildingActor", false);
 
 	if (!StringRef.Get()) // we are on a version where stats dont exist
 	{

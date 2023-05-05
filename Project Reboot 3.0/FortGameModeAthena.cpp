@@ -480,17 +480,17 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	{
 		LastNum = AmountOfRestarts;
 
-		float Duration = 10000.f;
-		float EarlyDuration = Duration;
-
-		float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
-
 		LOG_INFO(LogDev, "Initializing!");
 
 		if (std::floor(Fortnite_Version) == 3)
 			SetPlaylist(GetPlaylistToUse(), true);
 
 		LOG_INFO(LogDev, "GameMode 0x{:x}", __int64(GameMode));
+
+		float Duration = 100000.f;
+		float EarlyDuration = Duration;
+
+		float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
 
 		static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
 		static auto WarmupCountdownStartTimeOffset = GameState->GetOffset("WarmupCountdownStartTime");
@@ -729,6 +729,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	static int CurrentTeamMembers = 0; // bad
 	static int Current = DefaultFirstTeam;
+	static int NextTeamIndex = DefaultFirstTeam;
 
 	static int LastNum = 1;
 
@@ -737,6 +738,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		LastNum = Globals::AmountOfListens;
 
 		Current = DefaultFirstTeam;
+		NextTeamIndex = DefaultFirstTeam;
 		CurrentTeamMembers = 0;
 	}
 
@@ -780,8 +782,6 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 		TeamsNum = 100;
 	}
-
-	static int NextTeamIndex = DefaultFirstTeam;
 
 	LOG_INFO(LogTeams, "Before team assigning NextTeamIndex: {} CurrentTeamMembers: {}", NextTeamIndex, CurrentTeamMembers);
 
@@ -829,6 +829,34 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	LOG_INFO(LogPlayer, "HandleStartingNewPlayer!");
 
+	if (Globals::bAutoRestart)
+	{
+		static int LastNum123 = 15;
+
+		if (GetWorld()->GetNetDriver()->GetClientConnections().Num() >= NumRequiredPlayersToStart && LastNum123 != Globals::AmountOfListens)
+		{
+			LastNum123 = Globals::AmountOfListens;
+
+			float Duration = AutoBusStartSeconds;
+			float EarlyDuration = Duration;
+
+			float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
+
+			static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
+			static auto WarmupCountdownStartTimeOffset = GameState->GetOffset("WarmupCountdownStartTime");
+			static auto WarmupCountdownDurationOffset = GameMode->GetOffset("WarmupCountdownDuration");
+			static auto WarmupEarlyCountdownDurationOffset = GameMode->GetOffset("WarmupEarlyCountdownDuration");
+
+			GameState->Get<float>(WarmupCountdownEndTimeOffset) = TimeSeconds + Duration;
+			GameMode->Get<float>(WarmupCountdownDurationOffset) = Duration;
+
+			GameState->Get<float>(WarmupCountdownStartTimeOffset) = TimeSeconds;
+			GameMode->Get<float>(WarmupEarlyCountdownDurationOffset) = EarlyDuration;
+
+			LOG_INFO(LogDev, "Auto starting bus in {}.", AutoBusStartSeconds);
+		}
+	}
+
 	// if (Engine_Version < 427)
 	{
 		static int LastNum69 = 19451;
@@ -837,11 +865,14 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		{
 			LastNum69 = Globals::AmountOfListens;
 
-			bool bShouldDestroyVendingMachines = Fortnite_Version < 3.4 || Engine_Version >= 424; // This is not how it works, we need to add the spawn percentage.
+			// is there spawn percentage for vending machines?
 
-			if (!bShouldDestroyVendingMachines) // idk how to set the mat count sooooo problem for later me
+			bool bShouldDestroyVendingMachines = Fortnite_Version < 3.4 || Engine_Version >= 424;
+
+			if (!bShouldDestroyVendingMachines)
 			{
-				FillVendingMachines();
+				if (Globals::bFillVendingMachines)
+					FillVendingMachines();
 			}
 			else
 			{
@@ -861,15 +892,21 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				AllVendingMachines.Free();
 			}
 
-			SpawnBGAs();
+			if (Fortnite_Version < 19) // fr idk what i did too lazy to debug
+				SpawnBGAs();
 
 			// Handle spawn rate
 
-			if (false)
-			{
-				auto MapInfo = GameState->GetMapInfo();
+			auto MapInfo = GameState->GetMapInfo();
 
-				if (MapInfo)
+			if (MapInfo)
+			{
+				if (Fortnite_Version >= 3.3)
+				{
+					MapInfo->SpawnLlamas();
+				}
+
+				if (false)
 				{
 					float AmmoBoxMinSpawnPercent = UDataTableFunctionLibrary::EvaluateCurveTableRow(
 						MapInfo->GetAmmoBoxMinSpawnPercent()->GetCurve().CurveTable, MapInfo->GetAmmoBoxMinSpawnPercent()->GetCurve().RowName, 0

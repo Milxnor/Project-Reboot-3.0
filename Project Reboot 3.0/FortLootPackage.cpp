@@ -82,7 +82,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 {
     std::vector<LootDrop> LootDrops;
 
-    if (recursive > 10)
+    if (recursive > 6)
         return LootDrops;
 
     auto GameState = ((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena();
@@ -505,7 +505,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
 
     if (ChosenLootPackageName.contains(".Empty")) // I don't think?
     {
-        return PickLootDrops(TierGroupName, bPrint);
+        return PickLootDrops(TierGroupName, bPrint, ++recursive);
         // return LootDrops;
     }
 

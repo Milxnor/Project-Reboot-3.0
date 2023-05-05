@@ -149,11 +149,7 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 		WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
 	}
 
-	static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
-	auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
-
 	std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
-
 	LoopMutators([&](AFortAthenaMutator* Mutator) { FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged"))); });
 
 	auto HandleGiveItemsAtGamePhaseStepMutator = [&](AFortAthenaMutator* Mutator) {
@@ -162,7 +158,7 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 			auto PhaseToGive = GiveItemsAtGamePhaseStepMutator->GetPhaseToGiveItems();
 			auto& ItemsToGive = GiveItemsAtGamePhaseStepMutator->GetItemsToGive();
 
-			// LOG_INFO(LogDev, "[{}] PhaseToGiveItems: {} ItemsToGive.Num(): {}", i, (int)PhaseToGive, ItemsToGive.Num());
+			LOG_INFO(LogDev, "PhaseToGiveItems: {} ItemsToGive.Num(): {}", (int)PhaseToGive, ItemsToGive.Num());
 
 			if (PhaseToGive <= 5) // Flying or lower
 			{

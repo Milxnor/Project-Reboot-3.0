@@ -86,6 +86,14 @@ public:
 		return Get<AFortAthenaMapInfo*>(MapInfoOffset);
 	}
 
+	EAthenaGamePhaseStep& GetGamePhaseStep()
+	{
+		static auto GamePhaseStepOffset = GetOffset("GamePhaseStep");
+		return Get<EAthenaGamePhaseStep>(GamePhaseStepOffset);
+	}
+
+	void SetGamePhaseStep(EAthenaGamePhaseStep NewGamePhaseStep);
+
 	UFortPlaylist*& GetCurrentPlaylist();
 	TScriptInterface<UFortSafeZoneInterface> GetSafeZoneInterface();
 

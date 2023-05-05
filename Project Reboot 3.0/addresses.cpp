@@ -288,6 +288,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding CreateBuildingActorCallForDeco");
 	Addresses::CreateBuildingActorCallForDeco = FindCreateBuildingActorCallForDeco();
 
+	LOG_INFO(LogDev, "Finding PickSupplyDropLocation");
+	Addresses::PickSupplyDropLocation = FindPickSupplyDropLocation();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -353,6 +356,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "UpdateTrackedAttributesLea: 0x{:x}", UpdateTrackedAttributesLea - Base);
 	LOG_INFO(LogDev, "CombinePickupLea: 0x{:x}", CombinePickupLea - Base);
 	LOG_INFO(LogDev, "CreateBuildingActorCallForDeco: 0x{:x}", CreateBuildingActorCallForDeco - Base);
+	LOG_INFO(LogDev, "PickSupplyDropLocation: 0x{:x}", PickSupplyDropLocation - Base);
 }
 
 void Offsets::FindAll()

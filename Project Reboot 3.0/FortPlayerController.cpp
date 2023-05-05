@@ -586,8 +586,6 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	if (Fortnite_Version == 17.30 && Globals::bGoingToPlayEvent)
 		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation); // We want to be teleported back to the UFO but we dont use chooseplayerstart
 
-	LOG_INFO(LogDev, "PlayerController: {}", __int64(PlayerController));
-
 	if (!PlayerController)
 		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 
@@ -597,13 +595,25 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	auto GameMode = (AFortGameModeAthena*)GetWorld()->GetGameMode();
 	auto GameState = GameMode->GetGameStateAthena();
 
-	static auto AircraftsOffset = GameState->GetOffset("Aircrafts");
-	auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
+	AActor* AircraftToJumpFrom = nullptr;
 
-	if (Aircrafts->Num() <= 0)
+	static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
+
+	if (AircraftsOffset == -1)
+	{
+		static auto AircraftOffset = GameState->GetOffset("Aircraft");
+		AircraftToJumpFrom = GameState->Get<AActor*>(AircraftOffset);
+	}
+	else
+	{
+		auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
+		AircraftToJumpFrom = Aircrafts->Num() > 0 ? Aircrafts->at(0) : nullptr;
+	}
+
+	if (!AircraftToJumpFrom)
 		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 
-	auto NewPawn = GameMode->SpawnDefaultPawnForHook(GameMode, (AController*)PlayerController, Aircrafts->at(0));
+	auto NewPawn = GameMode->SpawnDefaultPawnForHook(GameMode, (AController*)PlayerController, AircraftToJumpFrom);
 	PlayerController->Possess(NewPawn);
 
 	auto NewPawnAsFort = Cast<AFortPawn>(NewPawn);

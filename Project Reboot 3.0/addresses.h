@@ -68,6 +68,7 @@ namespace Addresses
 	extern inline uint64 UpdateTrackedAttributesLea = 0;
 	extern inline uint64 CombinePickupLea = 0;
 	extern inline uint64 CreateBuildingActorCallForDeco = 0;
+	extern inline uint64 PickSupplyDropLocation = 0;
 
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();

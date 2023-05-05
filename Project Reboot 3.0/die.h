@@ -22,6 +22,8 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 
 	auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
 
+	LOG_INFO(LogDev, "GamePhaseStep: {}", (int)GameState->GetGamePhaseStep());
+
 	if (Globals::bLateGame)
 	{
 		static auto GameMode_SafeZonePhaseOffset = GameModeAthena->GetOffset("SafeZonePhase");

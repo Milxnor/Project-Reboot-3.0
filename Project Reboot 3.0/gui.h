@@ -56,9 +56,11 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
-static inline int SecondsUntilTravel = 5;
-static inline bool bSwitchedInitialLevel = false;
+extern inline int SecondsUntilTravel = 5;
+extern inline bool bSwitchedInitialLevel = false;
 extern inline bool bIsInAutoRestart = false;
+extern inline float AutoBusStartSeconds = 60;
+extern inline int NumRequiredPlayersToStart = 2;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -264,6 +266,12 @@ static inline void StaticUI()
 	if (IsRestartingSupported())
 	{
 		ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
+
+		if (Globals::bAutoRestart)
+		{
+			ImGui::InputFloat(std::format("How long after {} players join the bus will start", NumRequiredPlayersToStart).c_str(), &AutoBusStartSeconds);
+			ImGui::InputInt("How many players required to join for bus auto timer to start", &NumRequiredPlayersToStart);
+		}
 	}
 
 #ifndef PROD
@@ -548,21 +556,31 @@ static inline void MainUI()
 							auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
 							auto GameState = GameMode->GetGameState();
 
-							static auto AircraftsOffset = GameState->GetOffset("Aircrafts");
-
 							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
 
-							while (GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->Num() <= 0) // hmm
+							auto GetAircrafts = [&]() -> TArray<AActor*>
+							{
+								static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
+
+								if (AircraftsOffset == -1)
+								{
+									// GameState->Aircraft
+
+									static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
+									auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
+
+									return AllAircrafts;
+								}
+
+								return GameState->Get<TArray<AActor*>>(AircraftsOffset);
+							};
+
+							while (GetAircrafts().Num() <= 0) // hmm
 							{
 								Sleep(500);
 							}
 
 							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startsafezone", nullptr);
-
-							static auto SafeZoneLocationsOffset = GameMode->GetOffset("SafeZoneLocations");
-							auto& SafeZoneLocations = GameMode->Get<TArray<FVector>>(SafeZoneLocationsOffset);
-
-							LOG_INFO(LogDev, "SafeZoneLocations.Num(): {}", SafeZoneLocations.Num());
 
 							static auto SafeZoneIndicatorOffset = GameState->GetOffset("SafeZoneIndicator");
 
@@ -574,26 +592,44 @@ static inline void MainUI()
 								Sleep(500);
 							}
 
-							while (GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->Num() <= 0) // hmm
+							while (GetAircrafts().Num() <= 0) // hmm
 							{
 								Sleep(500);
 							}
 
-							static auto NextNextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextNextCenter");
+							static auto NextNextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextNextCenter", false);
 							static auto NextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextCenter");
-							FVector LocationToStartAircraft = GameState->Get(SafeZoneIndicatorOffset)->Get<FVector>(NextNextCenterOffset); // SafeZoneLocations.at(4);
+							FVector LocationToStartAircraft = GameState->Get(SafeZoneIndicatorOffset)->Get<FVector>(NextNextCenterOffset == -1 ? NextCenterOffset : NextNextCenterOffset); // SafeZoneLocations.at(4);
 							LocationToStartAircraft.Z += 10000;
 
-							for (int i = 0; i < GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->Num(); i++)
+							for (int i = 0; i < GetAircrafts().Num(); i++)
 							{
-								GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->at(i)->TeleportTo(LocationToStartAircraft, FRotator());
+								auto CurrentAircraft = GetAircrafts().at(i);
 
-								static auto FlightInfoOffset = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->at(i)->GetOffset("FlightInfo");
-								auto FlightInfo = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset)->at(i)->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
+								CurrentAircraft->TeleportTo(LocationToStartAircraft, FRotator());
 
-								FlightInfo->GetFlightSpeed() = 0;
-								FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
-								FlightInfo->GetTimeTillDropStart() = 0.0f;
+								static auto FlightInfoOffset = CurrentAircraft->GetOffset("FlightInfo", false);
+
+								float FlightSpeed = 0.0f;
+
+								if (FlightInfoOffset == -1)
+								{
+									static auto FlightStartLocationOffset = CurrentAircraft->GetOffset("FlightStartLocation");
+									static auto FlightSpeedOffset = CurrentAircraft->GetOffset("FlightSpeed");
+									static auto DropStartTimeOffset = CurrentAircraft->GetOffset("DropStartTime");
+
+									CurrentAircraft->Get<FVector>(FlightStartLocationOffset) = LocationToStartAircraft;
+									CurrentAircraft->Get<float>(FlightSpeedOffset) = FlightSpeed;
+									CurrentAircraft->Get<float>(DropStartTimeOffset) = GameState->GetServerWorldTimeSeconds();
+								}
+								else
+								{
+									auto FlightInfo = CurrentAircraft->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
+
+									FlightInfo->GetFlightSpeed() = FlightSpeed;
+									FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
+									FlightInfo->GetTimeTillDropStart() = 0.0f;
+								}
 							}
 
 							static auto MapInfoOffset = GameState->GetOffset("MapInfo");
@@ -601,18 +637,22 @@ static inline void MainUI()
 
 							if (MapInfo)
 							{
-								static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
-								auto& FlightInfos = MapInfo->Get<TArray<FAircraftFlightInfo>>(FlightInfosOffset);
+								static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos", false);
 
-								LOG_INFO(LogDev, "FlightInfos.Num(): {}", FlightInfos.Num());
-
-								for (int i = 0; i < FlightInfos.Num(); i++)
+								if (FlightInfosOffset != -1)
 								{
-									auto FlightInfo = FlightInfos.AtPtr(i, FAircraftFlightInfo::GetStructSize());
+									auto& FlightInfos = MapInfo->Get<TArray<FAircraftFlightInfo>>(FlightInfosOffset);
 
-									FlightInfo->GetFlightSpeed() = 0;
-									FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
-									FlightInfo->GetTimeTillDropStart() = 0.0f;
+									LOG_INFO(LogDev, "FlightInfos.Num(): {}", FlightInfos.Num());
+
+									for (int i = 0; i < FlightInfos.Num(); i++)
+									{
+										auto FlightInfo = FlightInfos.AtPtr(i, FAircraftFlightInfo::GetStructSize());
+
+										FlightInfo->GetFlightSpeed() = 0;
+										FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
+										FlightInfo->GetTimeTillDropStart() = 0.0f;
+									}
 								}
 							}
 
@@ -845,6 +885,7 @@ static inline void MainUI()
 			static std::string ClassNameToDump;
 			static std::string FunctionNameToDump;
 
+			ImGui::Checkbox("Fill Vending Machines", &Globals::bFillVendingMachines);
 			ImGui::InputText("Class Name to mess with", &ClassNameToDump);
 
 			ImGui::InputText("Function Name to mess with", &FunctionNameToDump);
@@ -864,7 +905,7 @@ static inline void MainUI()
 				}
 			}
 
-			if (ImGui::Button("Print Function Exec Addy"))
+			if (ImGui::Button("Print Function Exec Addr"))
 			{
 				auto Function = FindObject<UFunction>(FunctionNameToDump);
 
@@ -929,9 +970,12 @@ static inline void PregameUI()
 		ImGui::Checkbox("Creative", &Globals::bCreative);
 	}
 
-	bool bWillBeLategame = Globals::bLateGame.load();
-	ImGui::Checkbox("Lategame", &bWillBeLategame);
-	Globals::bLateGame.store(bWillBeLategame);
+	if (Addresses::SetZoneToIndex)
+	{
+		bool bWillBeLategame = Globals::bLateGame.load();
+		ImGui::Checkbox("Lategame", &bWillBeLategame);
+		Globals::bLateGame.store(bWillBeLategame);
+	}
 
 	if (HasEvent())
 	{

@@ -41,16 +41,22 @@ public:
 	static inline UObject* (*SpawnActorOriginal)(UWorld* World, UClass* Class, FTransform const* UserTransformPtr, const FActorSpawnParameters& SpawnParameters);
 
 	template <typename T = AActor>
-	T* GetGameMode()
+	T*& GetGameMode()
 	{
 		static auto AuthorityGameModeOffset = GetOffset("AuthorityGameMode");
 		return this->Get<T*>(AuthorityGameModeOffset);
 	}
 
-	class AGameState* GetGameState()
+	class AGameState*& GetGameState()
 	{
 		static auto GameStateOffset = GetOffset("GameState");
 		return this->Get<class AGameState*>(GameStateOffset);
+	}
+
+	class UNetDriver*& GetNetDriver()
+	{
+		static auto NetDriverOffset = GetOffset("NetDriver");
+		return this->Get<class UNetDriver*>(NetDriverOffset);
 	}
 
 	UGameInstance* GetOwningGameInstance()

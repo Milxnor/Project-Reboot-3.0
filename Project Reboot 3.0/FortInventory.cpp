@@ -172,7 +172,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 						if (PickaxeInstance)
 						{
-							RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, PickaxeInstance->GetItemEntry()->GetCount(), true);
+							// RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, PickaxeInstance->GetItemEntry()->GetCount(), true);
 							Update();
 						}
 					}
@@ -359,7 +359,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 					if (Fortnite_Version < 7)
 					{
-						FortPlayerController->AddPickaxeToInventory();
+						// FortPlayerController->AddPickaxeToInventory();
 					}
 				}
 			}
