@@ -84,6 +84,7 @@ public:
 
 	static UFortResourceItemDefinition* K2_GetResourceItemDefinition(EFortResourceType ResourceType);
 	static void ApplyCharacterCosmetics(UObject* WorldContextObject, const TArray<UObject*>& CharacterParts, UObject* PlayerState, bool* bSuccess);
+	static FVector FindGroundLocationAt(UWorld* World, AActor* IgnoreActor, FVector InLocation, float TraceStartZ, float TraceEndZ, FName TraceName);
 
 	static void PickLootDropsWithNamedWeightsHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void SpawnItemVariantPickupInWorldHook(UObject* Context, FFrame& Stack, void* Ret);

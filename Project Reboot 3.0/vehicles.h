@@ -184,11 +184,22 @@ static inline void SpawnVehicles2()
 	static auto FortAthenaVehicleSpawnerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaVehicleSpawner");
 	TArray<AActor*> AllVehicleSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaVehicleSpawnerClass);
 
+	int AmountOfVehiclesSpawned = 0;
+
 	for (int i = 0; i < AllVehicleSpawners.Num(); i++)
 	{
 		auto VehicleSpawner = AllVehicleSpawners.at(i);
 		auto Vehicle = SpawnVehicleFromSpawner(VehicleSpawner);
+
+		if (Vehicle)
+		{
+			AmountOfVehiclesSpawned++;
+		}
 	}
 
+	auto AllVehicleSpawnersNum = AllVehicleSpawners.Num();
+
 	AllVehicleSpawners.Free();
+
+	LOG_INFO(LogGame, "Spawned {}/{} vehicles.", AmountOfVehiclesSpawned, AllVehicleSpawnersNum);
 }

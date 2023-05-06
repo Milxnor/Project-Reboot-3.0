@@ -29,4 +29,9 @@ struct FName
 	{
 		return ComparisonIndex.Value == other.ComparisonIndex.Value;
 	}
+
+	bool operator<(FName Other) const
+	{
+		return this->ComparisonIndex.Value < Other.ComparisonIndex.Value;
+	}
 };

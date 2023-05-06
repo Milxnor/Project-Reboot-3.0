@@ -154,7 +154,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 				{
 					if (GadgetItemDefinition->ShouldDropAllItemsOnEquip()) // idk shouldnt this be auto?
 					{
-						FortPlayerController->DropAllItems({ GadgetItemDefinition });
+						FortPlayerController->DropAllItems({ GadgetItemDefinition }, false, false, Fortnite_Version < 7);
 					}
 
 					bool (*ApplyGadgetData)(UFortGadgetItemDefinition* a1, __int64 a2, UFortItem* a3, unsigned __int8 a4) = decltype(ApplyGadgetData)(Addresses::ApplyGadgetData);
@@ -165,17 +165,6 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 					bool DidApplyingGadgetSucceed = ApplyGadgetData(GadgetItemDefinition, Interface, NewItemInstance, idktbh);
 					LOG_INFO(LogDev, "DidApplyingGadgetSucceed: {}", DidApplyingGadgetSucceed);
 					bWasGadget = true;
-
-					if (Fortnite_Version < 7)
-					{
-						auto PickaxeInstance = GetPickaxeInstance();
-
-						if (PickaxeInstance)
-						{
-							// RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, PickaxeInstance->GetItemEntry()->GetCount(), true);
-							Update();
-						}
-					}
 				}
 			}
 
@@ -184,14 +173,6 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 				LOG_INFO(LogDev, "Force focus {}", ItemDefinition->GetFullName());
 				FortPlayerController->ServerExecuteInventoryItemHook(FortPlayerController, NewItemInstance->GetItemEntry()->GetItemGuid());
 				FortPlayerController->ClientEquipItem(NewItemInstance->GetItemEntry()->GetItemGuid(), true);
-			}
-
-			if (bWasGadget)
-			{
-				if (Fortnite_Version < 7)
-				{
-					// FortPlayerController->AddPickaxeToInventory();
-				}
 			}
 		}
 		else
@@ -357,9 +338,12 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 					bWasGadget = true;
 
-					if (Fortnite_Version < 7)
+					if (bWasGadget)
 					{
-						// FortPlayerController->AddPickaxeToInventory();
+						if (Fortnite_Version < 7 && GadgetItemDefinition->ShouldDropAllItemsOnEquip())
+						{
+							FortPlayerController->AddPickaxeToInventory();
+						}
 					}
 				}
 			}

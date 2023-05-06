@@ -694,9 +694,6 @@
     <ClInclude Include="ReversePredicate.h">
       <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
     </ClInclude>
-    <ClInclude Include="UnrealTypeTraits.h">
-      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
-    </ClInclude>
     <ClInclude Include="IsEnum.h">
       <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
     </ClInclude>
@@ -847,6 +844,12 @@
     </ClInclude>
     <ClInclude Include="Vector2D.h">
       <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="UnrealTypeTraits.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
+    <ClInclude Include="FortLootLevel.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -35,6 +35,27 @@ UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EF
 	return params.ret;
 }
 
+FVector UFortKismetLibrary::FindGroundLocationAt(UWorld* World, AActor* IgnoreActor, FVector InLocation, float TraceStartZ, float TraceEndZ, FName TraceName)
+{
+	static auto FindGroundLocationAtFn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.FindGroundLocationAt");
+
+	struct
+	{
+		UWorld* World;                                                    // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		AActor* IgnoreActor;                                              // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FVector                                     InLocation;                                               // (ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		float                                              TraceStartZ;                                              // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		float                                              TraceEndZ;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FName                                       TraceName;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FVector                                     ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} UFortKismetLibrary_FindGroundLocationAt_Params{ World, IgnoreActor, InLocation, TraceStartZ, TraceEndZ, TraceName };
+
+	static auto DefaultClass = StaticClass();
+	DefaultClass->ProcessEvent(FindGroundLocationAtFn, &UFortKismetLibrary_FindGroundLocationAt_Params);
+
+	return UFortKismetLibrary_FindGroundLocationAt_Params.ReturnValue;
+}
+
 void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, const TArray<UObject*>& CharacterParts, UObject* PlayerState, bool* bSuccess)
 {
 	static auto fn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.ApplyCharacterCosmetics");
@@ -550,7 +571,7 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 	{
 		auto& LootDrop = LootDrops.at(i);
 
-		auto NewEntry = FFortItemEntry::MakeItemEntry(LootDrop.ItemDefinition, LootDrop.Count, LootDrop.LoadedAmmo);
+		auto NewEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
 
 		OutLootToDrop.AddPtr(NewEntry, FFortItemEntry::GetStructSize());
 	}

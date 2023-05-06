@@ -20,6 +20,12 @@ public:
 		return ReadBitfieldValue(bCanBeDroppedOffset, bCanBeDroppedFieldMask);
 	}
 
+	int& GetDropCount()
+	{
+		static auto DropCountOffset = GetOffset("DropCount");
+		return Get<int>(DropCountOffset);
+	}
+
 	EWorldItemDropBehavior& GetDropBehavior()
 	{
 		static auto DropBehaviorOffset = GetOffset("DropBehavior");

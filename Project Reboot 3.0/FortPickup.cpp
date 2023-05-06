@@ -8,6 +8,7 @@
 #include "FortPlayerController.h"
 #include <memcury.h>
 #include "GameplayStatics.h"
+#include "gui.h"
 
 void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, EFortPickupSourceTypeFlag InPickupSourceTypeFlags, EFortPickupSpawnSource InPickupSpawnSource)
 {
@@ -30,7 +31,7 @@ void AFortPickup::SpawnMovementComponent()
 
 AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Location,
 	EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
-	class AFortPawn* Pawn, UClass* OverrideClass, bool bToss, int OverrideCount)
+	class AFortPawn* Pawn, UClass* OverrideClass, bool bToss, int OverrideCount, AFortPickup* IgnoreCombinePickup)
 {
 	if (bToss)
 	{
@@ -85,14 +86,17 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 		{
 			auto OtherPickup = (AFortPickup*)OtherPickupActor;
 
-			if (OtherPickup->GetPickupLocationData()->GetCombineTarget())
+			if (OtherPickup == IgnoreCombinePickup || OtherPickup->GetPickupLocationData()->GetCombineTarget())
 				return false;
 
 			if (PrimaryPickupItemEntry->GetItemDefinition() == OtherPickup->GetPrimaryPickupItemEntry()->GetItemDefinition())
 			{
-				auto IncomingCount = OtherPickup->GetPrimaryPickupItemEntry()->GetCount();
+				// auto IncomingCount = OtherPickup->GetPrimaryPickupItemEntry()->GetCount();
 
-				if (PrimaryPickupItemEntry->GetCount() + IncomingCount > PrimaryPickupItemEntry->GetItemDefinition()->GetMaxStackSize())
+				// if (PrimaryPickupItemEntry->GetCount() + IncomingCount == PrimaryPickupItemEntry->GetItemDefinition()->GetMaxStackSize())
+					// return false;
+
+				if (OtherPickup->GetPrimaryPickupItemEntry()->GetCount() == PrimaryPickupItemEntry->GetItemDefinition()->GetMaxStackSize()) // Other pickup is already at the max size.
 					return false;
 
 				return true;
@@ -106,21 +110,29 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 			PickupLocationData->GetCombineTarget() = (AFortPickup*)Pickup->GetClosestActor(AFortPickup::StaticClass(), 4, CanCombineWithPickup);
 		}
 
-		// our little remake of tosspickup
-
-		Pickup->GetPickupLocationData()->GetLootFinalPosition() = Location;
-		Pickup->GetPickupLocationData()->GetLootInitialPosition() = Pickup->GetActorLocation();
-		Pickup->GetPickupLocationData()->GetFlyTime() = 1.4f; // not right really
-		Pickup->GetPickupLocationData()->GetItemOwner() = Pawn;
-		Pickup->GetPickupLocationData()->GetFinalTossRestLocation() = Pickup->GetActorLocation(); // ong ong proper
-
-		if (!PickupLocationData->GetCombineTarget()) // I don't think we should call TossPickup for every pickup.
+		if (!PickupLocationData->GetCombineTarget()) // I don't think we should call TossPickup for every pickup anyways.
 		{
 			Pickup->TossPickup(Location, Pawn, 0, bToss, PickupSource, SpawnSource);
 		}
 		else
 		{
+			auto ActorLocation = Pickup->GetActorLocation();
+			auto CurrentActorLocation = PickupLocationData->GetCombineTarget()->GetActorLocation();
+
+			int Dist = float(sqrtf(powf(CurrentActorLocation.X - ActorLocation.X, 2.0) + powf(CurrentActorLocation.Y - ActorLocation.Y, 2.0) + powf(CurrentActorLocation.Z - ActorLocation.Z, 2.0))) / 100.f;
+
+			// LOG_INFO(LogDev, "Distance: {}", Dist);
+
+			// our little remake of tosspickup
+
+			PickupLocationData->GetLootFinalPosition() = Location;
+			PickupLocationData->GetLootInitialPosition() = Pickup->GetActorLocation();
+			PickupLocationData->GetFlyTime() = 1.f / Dist; // Higher the dist quicker it should be. // not right
+			PickupLocationData->GetItemOwner() = Pawn;
+			PickupLocationData->GetFinalTossRestLocation() = PickupLocationData->GetCombineTarget()->GetActorLocation(); // Pickup->GetActorLocation() // ong ong proper
+
 			Pickup->OnRep_PickupLocationData();
+			Pickup->ForceNetUpdate();
 		}
 
 		if (PickupSource == EFortPickupSourceTypeFlag::Container) // crashes if we do this then tosspickup
@@ -142,7 +154,7 @@ AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Locatio
 }
 
 AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Location, int Count, EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
-	int LoadedAmmo, AFortPawn* Pawn, UClass* OverrideClass, bool bToss)
+	int LoadedAmmo, AFortPawn* Pawn, UClass* OverrideClass, bool bToss, AFortPickup* IgnoreCombinePickup)
 {
 	if (LoadedAmmo == -1)
 	{
@@ -153,7 +165,7 @@ AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Loca
 	}
 
 	auto ItemEntry = FFortItemEntry::MakeItemEntry(ItemDef, Count, LoadedAmmo);
-	auto Pickup = SpawnPickup(ItemEntry, Location, PickupSource, SpawnSource, Pawn, OverrideClass, bToss);
+	auto Pickup = SpawnPickup(ItemEntry, Location, PickupSource, SpawnSource, Pawn, OverrideClass, bToss, -1, IgnoreCombinePickup);
 	// VirtualFree(ItemEntry);
 	return Pickup;
 }
@@ -164,27 +176,40 @@ void AFortPickup::CombinePickupHook(AFortPickup* Pickup)
 
 	auto PickupToCombineInto = (AFortPickup*)Pickup->GetPickupLocationData()->GetCombineTarget();
 
-	if (!PickupToCombineInto->IsActorBeingDestroyed())
+	if (PickupToCombineInto->IsActorBeingDestroyed())
+		return;
+
+	const int IncomingCount = Pickup->GetPrimaryPickupItemEntry()->GetCount();
+	const int OriginalCount = PickupToCombineInto->GetPrimaryPickupItemEntry()->GetCount();
+
+	// add more checks?
+
+	auto ItemDefinition = PickupToCombineInto->GetPrimaryPickupItemEntry()->GetItemDefinition();
+
+	int CountToAdd = IncomingCount;
+
+	if (OriginalCount + CountToAdd > ItemDefinition->GetMaxStackSize())
 	{
-		// TODO Add more checks
+		const int OverStackCount = OriginalCount + CountToAdd - ItemDefinition->GetMaxStackSize();
+		CountToAdd = ItemDefinition->GetMaxStackSize() - OriginalCount;
 
-		PickupToCombineInto->GetPrimaryPickupItemEntry()->GetCount() += Pickup->GetPrimaryPickupItemEntry()->GetCount();
-		PickupToCombineInto->OnRep_PrimaryPickupItemEntry();
+		auto ItemOwner = Pickup->GetPickupLocationData()->GetItemOwner();
 
-		PickupToCombineInto->ForceNetUpdate();
-		PickupToCombineInto->FlushNetDormancy();
-
-		Pickup->K2_DestroyActor();
+		auto NewOverStackPickup = AFortPickup::SpawnPickup(ItemDefinition, PickupToCombineInto->GetActorLocation(), OverStackCount,
+			EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, ItemOwner, nullptr, false, PickupToCombineInto);
 	}
+
+	PickupToCombineInto->GetPrimaryPickupItemEntry()->GetCount() += CountToAdd;
+	PickupToCombineInto->OnRep_PrimaryPickupItemEntry();
+
+	PickupToCombineInto->ForceNetUpdate();
+	PickupToCombineInto->FlushNetDormancy();
+
+	Pickup->K2_DestroyActor();
 }
 
 char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 {
-	constexpr bool bTestPrinting = false; // we could just use our own logger but eh
-
-	if constexpr (bTestPrinting)
-		LOG_INFO(LogDev, "CompletePickupAnimationHook!");
-
 	auto Pawn = Cast<AFortPlayerPawn>(Pickup->GetPickupLocationData()->GetPickupTarget());
 
 	if (!Pawn)
@@ -234,7 +259,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 	std::vector<std::pair<FFortItemEntry*, FFortItemEntry*>> PairsToMarkDirty; // vector of sets or something so no duplicates??
 	
-	if constexpr (bTestPrinting)
+	if (bDebugPrintSwapping)
 		LOG_INFO(LogDev, "Start cpyCount: {}", cpyCount);
 
 	bool bWasHoldingSameItemWhenSwap = false;
@@ -300,7 +325,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 					bHasSwapped = true;
 
-					if constexpr (bTestPrinting)
+					if (bDebugPrintSwapping)
 						LOG_INFO(LogDev, "[{}] Swapping: {}", i, ItemDefinitionToSwap->GetFullName());
 
 					// bForceDontAddItem = true;
@@ -311,7 +336,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 			if (CurrentItemEntry->GetItemDefinition() == PickupItemDefinition)
 			{
-				if constexpr (bTestPrinting)
+				if (bDebugPrintSwapping)
 					LOG_INFO(LogDev, "[{}] Found stack of item!", i);
 
 				if (CurrentItemEntry->GetCount() < PickupItemDefinition->GetMaxStackSize())
@@ -327,7 +352,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 					bEverStacked = true;
 
-					if constexpr (bTestPrinting)
+					if (bDebugPrintSwapping)
 						LOG_INFO(LogDev, "[{}] We are stacking {}.", i, AmountToStack);
 
 					// if (cpyCount > 0)
@@ -339,7 +364,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 			if ((bIsInventoryFull || bForceOverflow) && cpyCount > 0) // overflow
 			{
-				if constexpr (bTestPrinting)
+				if (bDebugPrintSwapping)
 					LOG_INFO(LogDev, "[{}] Overflow", i);
 
 				UFortWorldItemDefinition* ItemDefinitionToSpawn = PickupItemDefinition;
@@ -359,7 +384,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 		if (cpyCount > 0 && !bIsInventoryFull && !bForceDontAddItem)
 		{
-			if constexpr (bTestPrinting)
+			if (bDebugPrintSwapping)
 				LOG_INFO(LogDev, "Attempting to add to inventory.");
 
 			if (bDoesStackExist ? PickupItemDefinition->DoesAllowMultipleStacks() : true)
@@ -375,7 +400,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 				else
 					cpyCount -= NewItemCount;
 
-				if constexpr (bTestPrinting)
+				if (bDebugPrintSwapping)
 					LOG_INFO(LogDev, "Added item with count {} to inventory.", NewItemCount);
 
 				if (bHasSwapped && NewSwappedItem == FGuid(-1, -1, -1, -1))

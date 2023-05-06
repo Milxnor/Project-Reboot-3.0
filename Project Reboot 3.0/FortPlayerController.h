@@ -87,7 +87,7 @@ public:
 		return CosmeticLoadout;
 	}
 
-	void AddPickaxeToInventory()
+	UFortItem* AddPickaxeToInventory()
 	{
 		auto CosmeticLoadout = GetCosmeticLoadout();
 		auto CosmeticLoadoutPickaxe = CosmeticLoadout ? CosmeticLoadout->GetPickaxe() : nullptr;
@@ -100,10 +100,12 @@ public:
 		auto WorldInventory = GetWorldInventory();
 
 		if (!WorldInventory || WorldInventory->GetPickaxeInstance())
-			return;
+			return nullptr;
 
-		WorldInventory->AddItem(PickaxeDefinition, nullptr);
+		auto NewAndModifiedInstances = WorldInventory->AddItem(PickaxeDefinition, nullptr);
 		WorldInventory->Update();
+
+		return NewAndModifiedInstances.first.size() > 0 ? NewAndModifiedInstances.first[0] : nullptr;
 	}
 
 	bool& ShouldTryPickupSwap()
@@ -121,7 +123,7 @@ public:
 	void ClientEquipItem(const FGuid& ItemGuid, bool bForceExecution);
 
 	bool DoesBuildFree();
-	void DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar = false, bool bRemoveIfNotDroppable = false);
+	void DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar = false, bool bRemoveIfNotDroppable = false, bool RemovePickaxe = false);
 	void ApplyCosmeticLoadout();
 
 	static void ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret);

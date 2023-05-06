@@ -2,6 +2,7 @@
 #include "FortPickup.h"
 #include "FortLootPackage.h"
 #include "FortGameModeAthena.h"
+#include "gui.h"
 
 bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 {
@@ -12,14 +13,14 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 
 	// LOG_INFO(LogInteraction, "RedirectedLootTier: {}", RedirectedLootTier.ToString());
 
-	auto LootDrops = PickLootDrops(RedirectedLootTier, true);
+	auto LootDrops = PickLootDrops(RedirectedLootTier, bDebugPrintLooting);
 
 	// LOG_INFO(LogInteraction, "LootDrops.size(): {}", LootDrops.size());
 
 	for (int i = 0; i < LootDrops.size(); i++)
 	{
 		auto& lootDrop = LootDrops.at(i);
-		AFortPickup::SpawnPickup(lootDrop.ItemDefinition, LocationToSpawnLoot, lootDrop.Count, EFortPickupSourceTypeFlag::Container, EFortPickupSpawnSource::Unset, lootDrop.LoadedAmmo);
+		AFortPickup::SpawnPickup(lootDrop->GetItemDefinition(), LocationToSpawnLoot, lootDrop->GetCount(), EFortPickupSourceTypeFlag::Container, EFortPickupSpawnSource::Unset, lootDrop->GetLoadedAmmo());
 	}
 
 	return true;

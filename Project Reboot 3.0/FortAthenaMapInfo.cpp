@@ -40,6 +40,7 @@ void AFortAthenaMapInfo::SpawnLlamas()
 		return;
 	}
 
+	int AmountOfLlamasSpawned = 0;
 	auto AmountOfLlamasToSpawn = CalcuateCurveMinAndMax(GetLlamaQuantityMin(), GetLlamaQuantityMax(), 1);
 
 	LOG_INFO(LogDev, "Attempting to spawn {} llamas.", AmountOfLlamasToSpawn);
@@ -67,7 +68,7 @@ void AFortAthenaMapInfo::SpawnLlamas()
 
 		auto LlamaStart = GetWorld()->SpawnActor<AFortAthenaSupplyDrop>(GetLlamaClass(), InitialSpawnTransform, SpawnParameters);
 	
-		LOG_INFO(LogDev, "LlamaStart: {}", __int64(LlamaStart));
+		// LOG_INFO(LogDev, "LlamaStart: {}", __int64(LlamaStart));
 
 		if (!LlamaStart)
 			continue;
@@ -80,5 +81,8 @@ void AFortAthenaMapInfo::SpawnLlamas()
 		LOG_INFO(LogDev, "Spawning Llama at {} {} {}", GroundLocation.X, GroundLocation.Y, GroundLocation.Z);
 
 		UGameplayStatics::FinishSpawningActor(LlamaStart, FinalSpawnTransform);
+		AmountOfLlamasSpawned++;
 	}
+
+	LOG_INFO(LogGame, "Spawned {} llamas.", AmountOfLlamasSpawned);
 }

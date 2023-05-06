@@ -335,6 +335,7 @@
     <ClInclude Include="FortItem.h" />
     <ClInclude Include="FortItemDefinition.h" />
     <ClInclude Include="FortKismetLibrary.h" />
+    <ClInclude Include="FortLootLevel.h" />
     <ClInclude Include="FortLootPackage.h" />
     <ClInclude Include="FortMinigame.h" />
     <ClInclude Include="FortMountedCannon.h" />

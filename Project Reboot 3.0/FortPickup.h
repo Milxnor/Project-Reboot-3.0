@@ -120,11 +120,11 @@ public:
 
 	static AFortPickup* SpawnPickup(FFortItemEntry* ItemEntry, FVector Location, 
 		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset,
-		class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true, int OverrideCount = -1);
+		class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true, int OverrideCount = -1, AFortPickup* IgnoreCombinePickup = nullptr);
 
-	static AFortPickup* SpawnPickup(class UFortItemDefinition* ItemDef, FVector Location, int Count, 
-		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset, 
-		int LoadedAmmo = -1, class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true);
+	static AFortPickup* SpawnPickup(class UFortItemDefinition* ItemDef, FVector Location, int Count,
+		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset,
+		int LoadedAmmo = -1, class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true, AFortPickup* IgnoreCombinePickup = nullptr);
 
 	static void CombinePickupHook(AFortPickup* Pickup);
 	static char CompletePickupAnimationHook(AFortPickup* Pickup);

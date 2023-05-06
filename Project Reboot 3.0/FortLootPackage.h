@@ -5,13 +5,9 @@
 #include "Array.h"
 #include "FortWorldItemDefinition.h"
 #include "SoftObjectPtr.h"
+#include "FortItem.h"
 
-struct LootDrop
-{
-	UFortItemDefinition* ItemDefinition;
-	int Count;
-	int LoadedAmmo;
-};
+#define EXPERIMENTAL_LOOTING
 
 struct FFortLootPackageData
 {
@@ -44,6 +40,12 @@ public:
 	{
 		static auto CountOffset = FindOffsetStruct("/Script/FortniteGame.FortLootPackageData", "Count");
 		return *(int*)(__int64(this) + CountOffset);
+	}
+
+	int& GetLootPackageCategory()
+	{
+		static auto LootPackageCategoryOffset = FindOffsetStruct("/Script/FortniteGame.FortLootPackageData", "LootPackageCategory");
+		return *(int*)(__int64(this) + LootPackageCategoryOffset);
 	}
 
 	FString& GetAnnotation()
@@ -96,6 +98,20 @@ public:
 	{
 		static auto LootPackageCategoryMaxArrayOffset = FindOffsetStruct("/Script/FortniteGame.FortLootTierData", "LootPackageCategoryMaxArray");
 		return *(TArray<int>*)(__int64(this) + LootPackageCategoryMaxArrayOffset);
+	}
+};
+
+struct LootDrop
+{
+	FFortItemEntry* ItemEntry;
+
+	FFortItemEntry* operator->() {
+		return ItemEntry;
+	}
+
+	~LootDrop()
+	{
+
 	}
 };
 

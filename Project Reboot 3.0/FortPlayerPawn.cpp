@@ -140,17 +140,7 @@ UFortWeaponItemDefinition* AFortPlayerPawn::GetVehicleWeaponDefinition(AFortAthe
 	if (!Vehicle)
 		return nullptr;
 
-	static auto FindSeatIndexFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.FindSeatIndex");
-	/* auto Vehicle = GetVehicle();
-
-	if (!Vehicle)
-		return nullptr; */
-
-	struct { AFortPlayerPawn* PlayerPawn; int ReturnValue; } AFortAthenaVehicle_FindSeatIndex_Params{ this };
-	Vehicle->ProcessEvent(FindSeatIndexFn, &AFortAthenaVehicle_FindSeatIndex_Params);
-
-	auto SeatIndex = AFortAthenaVehicle_FindSeatIndex_Params.ReturnValue;
-	return Vehicle->GetVehicleWeaponForSeat(SeatIndex);
+	return Vehicle->GetVehicleWeaponForSeat(Vehicle->FindSeatIndex(this));
 }
 
 void AFortPlayerPawn::UnEquipVehicleWeaponDefinition(UFortWeaponItemDefinition* VehicleWeaponDefinition)

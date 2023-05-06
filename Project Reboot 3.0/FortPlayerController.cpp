@@ -61,7 +61,7 @@ bool AFortPlayerController::DoesBuildFree()
 	return ReadBitfieldValue(bBuildFreeOffset, bBuildFreeFieldMask);
 }
 
-void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar, bool bRemoveIfNotDroppable)
+void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar, bool bRemoveIfNotDroppable, bool RemovePickaxe)
 {
 	auto Pawn = this->GetMyFortPawn();
 
@@ -78,6 +78,8 @@ void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>
 
 	std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
 
+	auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
+
 	for (int i = 0; i < ItemInstances.Num(); i++)
 	{
 		auto ItemInstance = ItemInstances.at(i);
@@ -86,6 +88,13 @@ void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>
 			continue;
 
 		auto ItemEntry = ItemInstance->GetItemEntry();
+
+		if (RemovePickaxe && ItemInstance == PickaxeInstance)
+		{
+			GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
+			continue;
+		}
+
 		auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
 
 		if (!WorldItemDefinition || std::find(IgnoreItemDefs.begin(), IgnoreItemDefs.end(), WorldItemDefinition) != IgnoreItemDefs.end())
@@ -482,16 +491,42 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		auto VehicleWeapon = Pawn->EquipWeaponDefinition(VehicleWeaponDefinition, NewVehicleInstance->GetItemEntry()->GetItemGuid());
 		// PlayerController->ServerExecuteInventoryItemHook(PlayerController, newitem->GetItemEntry()->GetItemGuid());
 
-		/* if (WeaponComponent)
+		/* static auto GetSeatWeaponComponentFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.GetSeatWeaponComponent");
+
+		if (GetSeatWeaponComponentFn)
 		{
-			static auto bWeaponEquippedOffset = WeaponComponent->GetOffset("bWeaponEquipped");
-			WeaponComponent->Get<bool>(bWeaponEquippedOffset) = true;
+			struct { int SeatIndex; UObject* ReturnValue; } AFortAthenaVehicle_GetSeatWeaponComponent_Params{};
 
-			static auto CachedWeaponOffset = WeaponComponent->GetOffset("CachedWeapon");
-			WeaponComponent->Get<AFortWeapon*>(CachedWeaponOffset) = VehicleWeapon;
+			Vehicle->ProcessEvent(GetSeatWeaponComponentFn, &AFortAthenaVehicle_GetSeatWeaponComponent_Params);
 
-			static auto CachedWeaponDefOffset = WeaponComponent->GetOffset("CachedWeaponDef");
-			WeaponComponent->Get<UFortWeaponItemDefinition*>(CachedWeaponDefOffset) = VehicleWeaponDefinition;
+			UObject* WeaponComponent = AFortAthenaVehicle_GetSeatWeaponComponent_Params.ReturnValue;
+
+			if (!WeaponComponent)
+				return;
+
+			static auto WeaponSeatDefinitionStructSize = FindObject<UClass>("/Script/FortniteGame.WeaponSeatDefinition")->GetPropertiesSize();
+			static auto VehicleWeaponOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "VehicleWeapon");
+			static auto SeatIndexOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "SeatIndex");
+			static auto WeaponSeatDefinitionsOffset = WeaponComponent->GetOffset("WeaponSeatDefinitions");
+			auto& WeaponSeatDefinitions = WeaponComponent->Get<TArray<__int64>>(WeaponSeatDefinitionsOffset);
+
+			for (int i = 0; i < WeaponSeatDefinitions.Num(); i++)
+			{
+				auto WeaponSeat = WeaponSeatDefinitions.AtPtr(i, WeaponSeatDefinitionStructSize);
+
+				if (*(int*)(__int64(WeaponSeat) + SeatIndexOffset) != Vehicle->FindSeatIndex(Pawn))
+					continue;
+
+				auto VehicleGrantedWeaponItem = (TWeakObjectPtr<UFortItem>*)(__int64(WeaponSeat) + 0x20);
+
+				VehicleGrantedWeaponItem->ObjectIndex = NewVehicleInstance->InternalIndex;
+				VehicleGrantedWeaponItem->ObjectSerialNumber = GetItemByIndex(NewVehicleInstance->InternalIndex)->SerialNumber;
+
+				static auto bWeaponEquippedOffset = WeaponComponent->GetOffset("bWeaponEquipped");
+				WeaponComponent->Get<bool>(bWeaponEquippedOffset) = true;
+
+				break;
+			}
 		} */
 
 		return;

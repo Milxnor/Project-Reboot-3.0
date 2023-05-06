@@ -490,7 +490,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				return;
 			}
 
-			auto Pawn = ReceivingController->GetMyFortPawn();
+			auto Pawn = ReceivingController->GetPawn();
 
 			if (!Pawn)
 			{
@@ -519,11 +519,25 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			if (ClassObj)
 			{
+				int AmountSpawned = 0;
+
 				for (int i = 0; i < Count; i++)
 				{
+					FActorSpawnParameters SpawnParameters{};
+					// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
 					auto Loc = Pawn->GetActorLocation();
-					// Loc.Z += 1000;
-					GetWorld()->SpawnActor<AActor>(ClassObj, Loc, FQuat());
+					Loc.Z += 1000;
+					auto NewActor = GetWorld()->SpawnActor<AActor>(ClassObj, Loc, FQuat(), FVector(1, 1, 1), SpawnParameters);
+
+					if (!NewActor)
+					{
+						SendMessageToConsole(PlayerController, L"Failed to spawn an actor!");
+					}
+					else
+					{
+						AmountSpawned++;
+					}
 				}
 
 				SendMessageToConsole(PlayerController, L"Summoned!");

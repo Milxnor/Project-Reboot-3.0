@@ -963,7 +963,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 					{
 						for (auto& LootDrop : LootDrops)
 						{
-							auto Pickup = AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+							auto Pickup = AFortPickup::SpawnPickup(LootDrop->GetItemDefinition(), Location, LootDrop->GetCount(), SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop->GetLoadedAmmo());
 						}
 					}
 				}
@@ -996,7 +996,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				{
 					for (auto& LootDrop : LootDrops)
 					{
-						auto Pickup = AFortPickup::SpawnPickup(LootDrop.ItemDefinition, Location, LootDrop.Count, SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop.LoadedAmmo);
+						auto Pickup = AFortPickup::SpawnPickup(LootDrop->GetItemDefinition(), Location, LootDrop->GetCount(), SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop->GetLoadedAmmo());
 					}
 				}
 
@@ -1013,9 +1013,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	if (Engine_Version >= 423 && Fortnite_Version <= 12.61) // 423+ we need to spawn manually and vehicle sync doesn't work on >S13.
 	{
-		static int LastNum420 = 1;
+		static int LastNum420 = 114;
 
-		if (Globals::AmountOfListens != LastNum420)
+		if (LastNum420 != Globals::AmountOfListens)
 		{
 			LastNum420 = Globals::AmountOfListens;
 

@@ -35,11 +35,6 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 
 			auto MapInfo = GameState->GetMapInfo();
 		}
-		else
-		{
-			// SpawnLocation.Z += 100;
-			// SpawnLocation.Z -= 50; // proper frfr
-		}
 
 		static auto SpawnLootTierGroupOffset = BGAConsumableSpawner->GetOffset("SpawnLootTierGroup");
 		auto& SpawnLootTierGroup = BGAConsumableSpawner->Get<FName>(SpawnLootTierGroupOffset);
@@ -48,8 +43,8 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 
 		for (auto& LootDrop : LootDrops)
 		{
-			static auto ConsumableClassOffset = LootDrop.ItemDefinition->GetOffset("ConsumableClass");
-			auto ConsumableClassSoft = LootDrop.ItemDefinition->GetPtr<TSoftObjectPtr<UClass>>(ConsumableClassOffset);
+			static auto ConsumableClassOffset = LootDrop->GetItemDefinition()->GetOffset("ConsumableClass");
+			auto ConsumableClassSoft = LootDrop->GetItemDefinition()->GetPtr<TSoftObjectPtr<UClass>>(ConsumableClassOffset);
 
 			static auto BlueprintGeneratedClassClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
 			auto StrongConsumableClass = ConsumableClassSoft->Get(BlueprintGeneratedClassClass, true);

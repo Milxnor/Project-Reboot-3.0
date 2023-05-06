@@ -38,8 +38,8 @@ int UFortWeaponItemDefinition::GetClipSize()
 UFortWorldItemDefinition* UFortWeaponItemDefinition::GetAmmoData()
 {
 	static auto AmmoDataOffset = GetOffset("AmmoData");
-	auto AmmoData = Get<TSoftObjectPtr<UFortWorldItemDefinition>>(AmmoDataOffset);
-	return AmmoData.Get();
+	auto AmmoData = GetPtr<TSoftObjectPtr<UFortWorldItemDefinition>>(AmmoDataOffset);
+	return AmmoData->Get();
 }
 
 UClass* UFortWeaponItemDefinition::StaticClass()

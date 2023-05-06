@@ -17,6 +17,15 @@ public:
 		return GetPawnAtSeat_Params.ReturnValue;
 	}
 
+	int FindSeatIndex(class AFortPlayerPawn* PlayerPawn)
+	{
+		static auto FindSeatIndexFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.FindSeatIndex");
+		struct { AFortPlayerPawn* PlayerPawn; int ReturnValue; } AFortAthenaVehicle_FindSeatIndex_Params{ PlayerPawn };
+		this->ProcessEvent(FindSeatIndexFn, &AFortAthenaVehicle_FindSeatIndex_Params);
+
+		return AFortAthenaVehicle_FindSeatIndex_Params.ReturnValue;
+	}
+
 	UFortWeaponItemDefinition* GetVehicleWeaponForSeat(int SeatIdx);
 
 	static UClass* StaticClass()

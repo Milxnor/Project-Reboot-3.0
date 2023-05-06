@@ -44,6 +44,13 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 	if (!WorldInventory)
 		return StartGhostModeOriginal(Context, Stack, Ret);
 
+	auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
+
+	if (PickaxeInstance)
+	{
+		WorldInventory->RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, PickaxeInstance->GetItemEntry()->GetCount(), true);
+	}
+
 	bool bShouldUpdate = false;
 	auto NewAndModifiedInstances = WorldInventory->AddItem(ItemProvidingGhostMode, &bShouldUpdate, 1);
 	auto GhostModeItemInstance = NewAndModifiedInstances.first[0];
@@ -51,7 +58,7 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 	if (!GhostModeItemInstance)
 		return StartGhostModeOriginal(Context, Stack, Ret);
 
-	if (bShouldUpdate)
+	// if (bShouldUpdate)
 		WorldInventory->Update();
 
 	PlayerController->ServerExecuteInventoryItemHook(PlayerController, GhostModeItemInstance->GetItemEntry()->GetItemGuid());
@@ -95,12 +102,20 @@ void AFortPlayerControllerAthena::EndGhostModeHook(AFortPlayerControllerAthena* 
 	if (!GhostModeItemInstance)
 		return EndGhostModeOriginal(PlayerController);
 
+	auto PickaxeInstance = PlayerController->AddPickaxeToInventory();
+	WorldInventory->Update();
+
+	if (PickaxeInstance)
+	{
+		PlayerController->ClientEquipItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), true);
+	}
+
 	bool bShouldUpdate = false;
 	int Count = GhostModeItemInstance->GetItemEntry()->GetCount(); // 1
 	bool bForceRemoval = true; // false
 	WorldInventory->RemoveItem(GhostModeItemInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, Count, bForceRemoval);
 
-	if (bShouldUpdate)
+	// if (bShouldUpdate)
 		WorldInventory->Update();
 
 	return EndGhostModeOriginal(PlayerController);

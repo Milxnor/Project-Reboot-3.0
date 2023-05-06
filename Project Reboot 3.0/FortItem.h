@@ -1,7 +1,10 @@
 #pragma once
 
+#include <Windows.h>
+
 #include "NetSerialization.h"
 #include "Class.h"
+#include "GameplayAbilitySpec.h"
 
 #include "reboot.h"
 
@@ -101,6 +104,24 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return *(int*)(__int64(this) + LoadedAmmoOffset);
 	}
 
+	float& GetDurability()
+	{
+		static auto DurabilityOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "Durability");
+		return *(float*)(__int64(this) + DurabilityOffset);
+	}
+
+	FGameplayAbilitySpecHandle& GetGameplayAbilitySpecHandle()
+	{
+		static auto GameplayAbilitySpecHandleOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "GameplayAbilitySpecHandle");
+		return *(FGameplayAbilitySpecHandle*)(__int64(this) + GameplayAbilitySpecHandleOffset);
+	}
+
+	TWeakObjectPtr<class AFortInventory>& GetParentInventory()
+	{
+		static auto ParentInventoryOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "ParentInventory");
+		return *(TWeakObjectPtr<class AFortInventory>*)(__int64(this) + ParentInventoryOffset);
+	}
+
 	void CopyFromAnotherItemEntry(FFortItemEntry* OtherItemEntry, bool bCopyGuid = false)
 	{
 		// We can use FortItemEntryStruct->CopyScriptStruct
@@ -142,7 +163,7 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return StructSize;
 	}
 
-	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0)
+	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0, float Durability = 0x3F800000)
 	{
 		auto Entry = // (FFortItemEntry*)FMemory::Realloc(0, GetStructSize(), 0); 
 			Alloc<FFortItemEntry>(GetStructSize());
@@ -150,14 +171,18 @@ struct FFortItemEntry : FFastArraySerializerItem
 		if (!Entry)
 			return nullptr;
 
-		Entry->MostRecentArrayReplicationKey = -1;
+		Entry->MostRecentArrayReplicationKey = -1; // idk if we need to set this
 		Entry->ReplicationID = -1;
 		Entry->ReplicationKey = -1;
 
 		Entry->GetItemDefinition() = ItemDefinition;
 		Entry->GetCount() = Count;
 		Entry->GetLoadedAmmo() = LoadedAmmo;
-		// Entry->bUpdateStatsOnCollection = true; // Idk what this does but fortnite does it soo
+		Entry->GetDurability() = Durability;
+		Entry->GetGameplayAbilitySpecHandle() = FGameplayAbilitySpecHandle(-1);
+		Entry->GetParentInventory().ObjectIndex = -1;
+		// CoCreateGuid((GUID*)&Entry->GetItemGuid());
+		// Entry->bUpdateStatsOnCollection = true; // Idk what this does but fortnite does it i think
 
 		return Entry;
 	}

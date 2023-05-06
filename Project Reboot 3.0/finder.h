@@ -627,12 +627,26 @@ static inline uint64 FindUpdateTrackedAttributesLea() // kill me
 
 static inline uint64 FindCombinePickupLea() // kill me
 {
+	return 0;
+
 	/* uint64 OnRep_PickupLocationDataAddr = 0; // TODO (Idea: Find SetupCombinePickupDelegates from this).
 
 	if (!OnRep_PickupLocationDataAddr)
 		return 0; */
 	
-	uint64 SetupCombinePickupDelegatesAddr = Memcury::Scanner::FindPattern("48 89 AC 24 ? ? ? ? 48 89 B4 24 ? ? ? ? 48 89 BC 24 ? ? ? ? 0F 29 B4 24 ? ? ? ? 75").Get(); // Haha so funny thing, this isn't actually the start its the middle because it's in function chunks yay!
+	uint64 SetupCombinePickupDelegatesAddr = 0;
+	
+	bool bShouldCheckSafety = true;
+
+	if (Engine_Version <= 420)
+	{
+		SetupCombinePickupDelegatesAddr = Memcury::Scanner::FindPattern("49 89 73 10 49 89 7B 18 4D 89 73 20 4D 89 7B E8 41 0F 29 73 ? 75").Get(); // found on 4.1
+		bShouldCheckSafety = false; // it's like "corrupted" and not just return
+	}
+	else if (Engine_Version >= 421)
+	{
+		SetupCombinePickupDelegatesAddr = Memcury::Scanner::FindPattern("48 89 AC 24 ? ? ? ? 48 89 B4 24 ? ? ? ? 48 89 BC 24 ? ? ? ? 0F 29 B4 24 ? ? ? ? 75").Get(); // Haha so funny thing, this isn't actually the start its the middle because it's in function chunks yay!
+	}
 
 	if (!SetupCombinePickupDelegatesAddr)
 		return 0;
@@ -644,7 +658,7 @@ static inline uint64 FindCombinePickupLea() // kill me
 		{
 			auto loadAddress = Memcury::Scanner(SetupCombinePickupDelegatesAddr + i).RelativeOffset(3).Get();
 
-			if (IsNullSub(loadAddress)) // Safety
+			if (!bShouldCheckSafety || IsNullSub(loadAddress))
 				return SetupCombinePickupDelegatesAddr + i;
 		}
 	}

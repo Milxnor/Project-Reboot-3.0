@@ -48,8 +48,9 @@
 #define DUMP_TAB 7
 #define UNBAN_TAB 8
 #define DEVELOPER_TAB 9
-#define SETTINGS_TAB 10
-#define CREDITS_TAB 11
+#define DEBUGLOG_TAB 10
+#define SETTINGS_TAB 11
+#define CREDITS_TAB 12
 
 #define MAIN_PLAYERTAB 1
 #define INVENTORY_PLAYERTAB 2
@@ -61,6 +62,8 @@ extern inline bool bSwitchedInitialLevel = false;
 extern inline bool bIsInAutoRestart = false;
 extern inline float AutoBusStartSeconds = 60;
 extern inline int NumRequiredPlayersToStart = 2;
+extern inline bool bDebugPrintLooting = false;
+extern inline bool bDebugPrintSwapping = false;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -372,6 +375,14 @@ static inline void MainTabs()
 		if (ImGui::BeginTabItem("Developer"))
 		{
 			Tab = DEVELOPER_TAB;
+			PlayerTab = -1;
+			bInformationTab = false;
+			ImGui::EndTabItem();
+		}
+
+		if (ImGui::BeginTabItem("Debug Logs"))
+		{
+			Tab = DEBUGLOG_TAB;
 			PlayerTab = -1;
 			bInformationTab = false;
 			ImGui::EndTabItem();
@@ -953,6 +964,11 @@ static inline void MainUI()
 				}
 			} 
 			*/
+		}
+		else if (Tab == DEBUGLOG_TAB)
+		{
+			ImGui::Checkbox("Looting Debug Log", &bDebugPrintLooting);
+			ImGui::Checkbox("Swapping Debug Log", &bDebugPrintSwapping);
 		}
 		else if (Tab == SETTINGS_TAB)
 		{

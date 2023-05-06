@@ -134,7 +134,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 		for (int LootDropIt = 0; LootDropIt < LootDrops.size(); LootDropIt++)
 		{
-			auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(LootDrops[LootDropIt].ItemDefinition);
+			UFortWorldItemDefinition* WorldItemDefinition = Cast<UFortWorldItemDefinition>(LootDrops[LootDropIt]->GetItemDefinition());
 
 			if (!WorldItemDefinition)
 				continue;
@@ -182,7 +182,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 		for (int LootDropIt = 0; LootDropIt < LootDrops.size(); LootDropIt++)
 		{
-			auto ItemEntry = FFortItemEntry::MakeItemEntry(LootDrops[LootDropIt].ItemDefinition, LootDrops[LootDropIt].Count, LootDrops[LootDropIt].LoadedAmmo);
+			auto ItemEntry = FFortItemEntry::MakeItemEntry(LootDrops[LootDropIt]->GetItemDefinition(), LootDrops[LootDropIt]->GetCount(), LootDrops[LootDropIt]->GetLoadedAmmo());
 
 			if (!ItemEntry)
 				continue;

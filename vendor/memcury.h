@@ -1431,4 +1431,10 @@
         return PtrRef.ScanFor(Bytes, false).Get();
     }
 
-    inline bool IsNullSub(uint64 Addr) { return *(uint8_t*)(Addr) == 0xC3 || *(uint8_t*)(Addr) == 0xC2; }
+    inline bool IsNullSub(uint64 Addr) 
+    {
+        // if (*(uint8_t*)(Addr) == 0xEB && *(uint8_t*)(Addr + 1) == 0xF7) // positive sp value has been detected, the output may be wrong!
+           // return true;
+
+        return *(uint8_t*)(Addr) == 0xC3 || *(uint8_t*)(Addr) == 0xC2;
+    }
