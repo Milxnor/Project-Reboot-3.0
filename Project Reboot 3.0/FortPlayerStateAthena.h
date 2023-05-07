@@ -26,6 +26,20 @@ public:
 		return Get<int>(PlaceOffset);
 	}
 
+	bool IsInAircraft()
+	{
+		static auto bInAircraftOffset = GetOffset("bInAircraft");
+		static auto bInAircraftFieldMask = GetFieldMask(GetProperty("bInAircraft"));
+		return ReadBitfieldValue(bInAircraftOffset, bInAircraftFieldMask);
+	}
+
+	bool HasThankedBusDriver()
+	{
+		static auto bThankedBusDriverOffset = GetOffset("bThankedBusDriver");
+		static auto bThankedBusDriverFieldMask = GetFieldMask(GetProperty("bThankedBusDriver"));
+		return ReadBitfieldValue(bThankedBusDriverOffset, bThankedBusDriverFieldMask);
+	}
+
 	void ClientReportKill(AFortPlayerStateAthena* Player)
 	{
 		static auto ClientReportKillFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.ClientReportKill");

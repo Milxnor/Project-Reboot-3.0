@@ -30,6 +30,12 @@ public:
 		return ReadBitfieldValue(bDestroyGadgetWhenTrackedAttributesIsZeroOffset, bDestroyGadgetWhenTrackedAttributesIsZeroFieldMask);
 	}
 
+	TArray<FGameplayAttribute>& GetTrackedAttributes()
+	{
+		static auto TrackedAttributesOffset = GetOffset("TrackedAttributes");
+		return Get<TArray<FGameplayAttribute>>(TrackedAttributesOffset);
+	}
+
 	UAttributeSet* GetAttributeSet()
 	{
 		static auto AttributeSetOffset = this->GetOffset("AttributeSet", false);

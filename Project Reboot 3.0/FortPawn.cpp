@@ -48,6 +48,16 @@ void AFortPawn::SetHealth(float NewHealth)
 		this->ProcessEvent(SetHealthFn, &NewHealth);
 }
 
+void AFortPawn::SetMaxHealth(float NewHealthVal)
+{
+	static auto SetMaxHealthFn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.SetMaxHealth");
+
+	if (!SetMaxHealthFn)
+		return;
+
+	this->ProcessEvent(SetMaxHealthFn, &NewHealthVal);
+}
+
 void AFortPawn::SetShield(float NewShield)
 {
 	static auto SetShieldFn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.SetShield");

@@ -111,8 +111,12 @@ void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>
 		if (bRemoveIfNotDroppable && !WorldItemDefinition->CanBeDropped())
 			continue;
 	
-		AFortPickup::SpawnPickup(WorldItemDefinition, Location, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset,
-			ItemEntry->GetLoadedAmmo());
+		PickupCreateData CreateData;
+		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(WorldItemDefinition, ItemEntry->GetCount(), ItemEntry->GetLoadedAmmo());
+		CreateData.SpawnLocation = Location;
+		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
+
+		AFortPickup::SpawnPickup(CreateData);
 	}
 
 	for (auto& Pair : GuidAndCountsToRemove)
@@ -587,8 +591,12 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		{
 			auto Entry = ItemCollection->GetOutputItemEntry()->AtPtr(z, FFortItemEntry::GetStructSize());
 
-			AFortPickup::SpawnPickup(Entry->GetItemDefinition(), LocationToSpawnLoot, Entry->GetCount(), 
-				EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::Unset, Entry->GetLoadedAmmo(), PlayerController->GetMyFortPawn());
+			PickupCreateData CreateData;
+			CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(Entry->GetItemDefinition(), Entry->GetCount(), Entry->GetLoadedAmmo());
+			CreateData.SpawnLocation = LocationToSpawnLoot;
+			CreateData.PawnOwner = PlayerController->GetMyFortPawn(); // hmm
+
+			AFortPickup::SpawnPickup(CreateData);
 		}
 
 		static auto bCurrentInteractionSuccessOffset = ItemCollector->GetOffset("bCurrentInteractionSuccess", false);
@@ -840,6 +848,8 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	bool bBuildFree = PlayerController->DoesBuildFree();
 
+	LOG_INFO(LogDev, "MatInstance->GetItemEntry()->GetCount(): {}", MatInstance->GetItemEntry()->GetCount());
+
 	bool bShouldDestroy = MatInstance && MatInstance->GetItemEntry() ? MatInstance->GetItemEntry()->GetCount() < 10 : true;
 
 	if (bShouldDestroy && !bBuildFree)
@@ -950,6 +960,7 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 			return;
 	}
 
+	// TODO If the player is in a vehicle and has a vehicle weapon, don't let them drop.
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 	auto ReplicatedEntry = WorldInventory->FindReplicatedEntry(ItemGuid);
@@ -966,8 +977,25 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && (DropBehaviorOffset != -1 ? ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop : true))
 	{
+		/* if (auto GadgetItemDefintiion = Cast<UFortGadgetItemDefinition>(ItemDefinition))
+		{
+			for (int i = 0; i < GadgetItemDefintiion->GetTrackedAttributes().Num(); i++)
+			{
+				LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Name {}", i, GadgetItemDefintiion->GetTrackedAttributes().at(i).GetAttributePropertyName());
+
+				PadHexA8 StateValue{}; // Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize(), true);
+				((FFortItemEntryStateValue*)&StateValue)->GetIntValue() = 1;
+				((FFortItemEntryStateValue*)&StateValue)->GetStateType() = EFortItemEntryState::GenericAttributeValueSet;
+				((FFortItemEntryStateValue*)&StateValue)->GetNameValue() = FName(0);
+
+				ReplicatedEntry->GetStateValues().AddPtr((FFortItemEntryStateValue*)&StateValue, FFortItemEntryStateValue::GetStructSize());
+
+				ReplicatedEntry->GetGenericAttributeValues().Add(9);
+			}
+		} */
+
 		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(),
-			EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn, nullptr, true, Count);
+			EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn, nullptr, true, Count);
 
 		if (!Pickup)
 			return;
@@ -1338,8 +1366,13 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 					if (!ShouldBeDropped)
 						continue;
 
-					AFortPickup::SpawnPickup(WorldItemDefinition, DeathLocation, ItemEntry->GetCount(), EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination,
-						ItemEntry->GetLoadedAmmo());
+					PickupCreateData CreateData;
+					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(WorldItemDefinition, ItemEntry->GetCount(), ItemEntry->GetLoadedAmmo());
+					CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
+					CreateData.Source = EFortPickupSpawnSource::GetPlayerEliminationValue();
+					CreateData.SpawnLocation = DeathLocation;
+
+					AFortPickup::SpawnPickup(CreateData);
 
 					GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
 					// WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
@@ -1433,27 +1466,37 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		{
 			// wtf
 
-			auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
-
-			bool bDidSomeoneWin = AllPlayerStates.Num() == 0;
-
-			for (int i = 0; i < AllPlayerStates.Num(); i++)
+			if (GameState->GetGamePhase() > EAthenaGamePhase::Warmup)
 			{
-				if (((AFortPlayerStateAthena*)AllPlayerStates.at(i))->GetPlace() <= 1)
+				auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
+
+				bool bDidSomeoneWin = AllPlayerStates.Num() == 0;
+
+				for (int i = 0; i < AllPlayerStates.Num(); i++)
 				{
-					bDidSomeoneWin = true;
-					break;
+					auto CurrentPlayerState = (AFortPlayerStateAthena*)AllPlayerStates.at(i);
+
+					if (CurrentPlayerState->GetPlace() <= 1)
+					{
+						bDidSomeoneWin = true;
+						break;
+					}
+				}
+
+				LOG_INFO(LogDev, "bDidSomeoneWin: {}", bDidSomeoneWin);
+
+				// if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
+				if (bDidSomeoneWin)
+				{
+					CreateThread(0, 0, RestartThread, 0, 0, 0);
 				}
 			}
-
-			LOG_INFO(LogDev, "bDidSomeoneWin: {}", bDidSomeoneWin);
-
-			// if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
-			if (bDidSomeoneWin)
-			{
-				CreateThread(0, 0, RestartThread, 0, 0, 0);
-			}
 		}
+	}
+
+	if (DeadPlayerState->IsBot())
+	{
+		// AllPlayerBotsToTick.
 	}
 
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);

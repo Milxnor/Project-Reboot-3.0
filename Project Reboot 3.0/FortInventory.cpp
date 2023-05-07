@@ -110,7 +110,13 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		if (!Pawn)
 			return std::make_pair(NewItemInstances, ModifiedItemInstances);
 
-		AFortPickup::SpawnPickup(ItemDefinition, Pawn->GetActorLocation(), Count, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, Cast<AFortPawn>(Pawn));
+		PickupCreateData CreateData;
+		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, Count, -1);
+		CreateData.SpawnLocation = Pawn->GetActorLocation();
+		CreateData.PawnOwner = Cast<AFortPawn>(Pawn);
+		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
+
+		AFortPickup::SpawnPickup(CreateData);
 		return std::make_pair(NewItemInstances, ModifiedItemInstances);
 	}
 
@@ -126,21 +132,21 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 		NewItemInstances.push_back(NewItemInstance);
 
-		static auto FortItemEntryStruct = FindObject(L"/Script/FortniteGame.FortItemEntry");
-		static auto FortItemEntrySize = *(int*)(__int64(FortItemEntryStruct) + Offsets::PropertiesSize);
-
 		bool bEnableStateValues = false; // Addresses::FreeEntry;
 
 		if (bEnableStateValues)
 		{
-			FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize(), true);
-			StateValue->GetIntValue() = bShowItemToast;
-			StateValue->GetStateType() = EFortItemEntryState::ShouldShowItemToast;
-			NewItemInstance->GetItemEntry()->GetStateValues().AddPtr(StateValue, FFortItemEntryStateValue::GetStructSize());
+			// FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize(), true);
+			PadHexA8 StateValue{};
+			((FFortItemEntryStateValue*)&StateValue)->GetIntValue() = bShowItemToast;
+			((FFortItemEntryStateValue*)&StateValue)->GetStateType() = EFortItemEntryState::ShouldShowItemToast;
+			((FFortItemEntryStateValue*)&StateValue)->GetNameValue() = FName(0);
+
+			NewItemInstance->GetItemEntry()->GetStateValues().AddPtr((FFortItemEntryStateValue*)&StateValue, FFortItemEntryStateValue::GetStructSize());
 		}
 
 		ItemInstances.Add(NewItemInstance);
-		auto ReplicatedEntryIdx = GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FortItemEntrySize);
+		auto ReplicatedEntryIdx = GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FFortItemEntry::GetStructSize());
 		// GetItemList().GetReplicatedEntries().AtPtr(ReplicatedEntryIdx, FFortItemEntry::GetStructSize())->GetIsReplicatedCopy() = true;
 
 		if (FortPlayerController && WorldItemDefinition->IsValidLowLevel())
@@ -267,54 +273,60 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	int OldCount = Count;
 
+	bool bLikeReallyForce = false;
+
 	if (Count < 0) // idk why i have this
 	{
 		Count = 0;
 		bForceRemoval = true;
+		bLikeReallyForce = true;
 	}
-
-	auto NewCount = ReplicatedEntry->GetCount() - Count;
 
 	auto& ItemInstances = GetItemList().GetItemInstances();
 	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
 
-	bool bOverrideChangeStackSize = false;
-
-	if (ItemDefinition->ShouldPersistWhenFinalStackEmpty() && !bForceRemoval)
+	if (!bLikeReallyForce)
 	{
-		bool bIsFinalStack = true;
+		auto NewCount = ReplicatedEntry->GetCount() - Count;
 
-		for (int i = 0; i < ItemInstances.Num(); i++)
+		bool bOverrideChangeStackSize = false;
+
+		if (ItemDefinition->ShouldPersistWhenFinalStackEmpty())
 		{
-			auto ItemInstance = ItemInstances.at(i);
+			bool bIsFinalStack = true;
 
-			if (ItemInstance->GetItemEntry()->GetItemDefinition() == ItemDefinition && ItemInstance->GetItemEntry()->GetItemGuid() != ItemGuid)
+			for (int i = 0; i < ItemInstances.Num(); i++)
 			{
-				bIsFinalStack = false;
-				break;
+				auto ItemInstance = ItemInstances.at(i);
+
+				if (ItemInstance->GetItemEntry()->GetItemDefinition() == ItemDefinition && ItemInstance->GetItemEntry()->GetItemGuid() != ItemGuid)
+				{
+					bIsFinalStack = false;
+					break;
+				}
+			}
+
+			if (bIsFinalStack)
+			{
+				NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot
+				bOverrideChangeStackSize = true;
 			}
 		}
 
-		if (bIsFinalStack)
+		if (OldCount != -1 && (NewCount > 0 || bOverrideChangeStackSize))
 		{
-			NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot
-			bOverrideChangeStackSize = true;
+			ItemInstance->GetItemEntry()->GetCount() = NewCount;
+			ReplicatedEntry->GetCount() = NewCount;
+
+			GetItemList().MarkItemDirty(ItemInstance->GetItemEntry());
+			GetItemList().MarkItemDirty(ReplicatedEntry);
+
+			return true;
 		}
+
+		if (NewCount < 0) // Hm
+			return false;
 	}
-
-	if (OldCount != -1 && (NewCount > 0 || bOverrideChangeStackSize))
-	{
-		ItemInstance->GetItemEntry()->GetCount() = NewCount;
-		ReplicatedEntry->GetCount() = NewCount;
-
-		GetItemList().MarkItemDirty(ItemInstance->GetItemEntry());
-		GetItemList().MarkItemDirty(ReplicatedEntry);
-
-		return true;
-	}
-
-	if (NewCount < 0) // Hm
-		return false;
 
 	static auto FortItemEntryStruct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntry");
 	static auto FortItemEntrySize = FortItemEntryStruct->GetPropertiesSize();
@@ -557,3 +569,9 @@ FFortItemEntry* AFortInventory::FindReplicatedEntry(const FGuid& Guid)
 
 	return nullptr;
 }
+
+/* UClass* AFortInventory::StaticClass()
+{
+	static auto Class = FindObject<UClass>("/Script/FortniteGame.FortInventory");
+	return Class;
+} */

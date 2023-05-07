@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Object.h"
+#include "Vector.h"
 
 #include "DelegateCombinations.h"
 
@@ -17,6 +18,10 @@ struct FHitResult
 {
 	static class UStruct* GetStruct();
 	static int GetStructSize();
+
+	bool IsBlockingHit();
+	FVector& GetLocation();
+	void CopyFromHitResult(FHitResult* Other);
 };
 
 struct FTimerHandle

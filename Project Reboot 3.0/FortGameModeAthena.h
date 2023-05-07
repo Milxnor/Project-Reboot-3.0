@@ -8,6 +8,7 @@
 #include "FortSafeZoneIndicator.h"
 #include "GameplayStatics.h"
 #include "FortAbilitySet.h"
+#include "FortPlayerControllerAthena.h"
 #include "FortItemDefinition.h"
 
 struct FAircraftFlightInfo
@@ -231,6 +232,12 @@ public:
 	{
 		static auto StartingItemsOffset = GetOffset("StartingItems");
 		return Get<TArray<FItemAndCount>>(StartingItemsOffset);
+	}
+
+	TArray<AFortPlayerControllerAthena*>& GetAlivePlayers()
+	{
+		static auto AlivePlayersOffset = GetOffset("AlivePlayers");
+		return Get<TArray<AFortPlayerControllerAthena*>>(AlivePlayersOffset);
 	}
 
 	FName RedirectLootTier(const FName& LootTier);

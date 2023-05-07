@@ -4,6 +4,7 @@
 #include "Controller.h"
 #include "CheatManager.h"
 
+#include "UnrealString.h"
 #include "Rotator.h"
 
 class APlayerController : public AController
@@ -39,6 +40,7 @@ public:
 		return this->Get<UCheatManager*>(CheatManagerOffset);
 	}
 
+	void ServerChangeName(FString& S);
 	UCheatManager*& SpawnCheatManager(UClass* CheatManagerClass);
 	FRotator GetControlRotation();
 	void Possess(class APawn* Pawn);

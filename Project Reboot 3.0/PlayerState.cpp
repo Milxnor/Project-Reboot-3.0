@@ -29,3 +29,23 @@ int& APlayerState::GetPlayerID()
 
 	return Get<int>(PlayerIDOffset);
 }
+
+bool APlayerState::IsBot()
+{
+	static auto bIsABotOffset = GetOffset("bIsABot");
+	static auto bIsABotFieldMask = GetFieldMask(GetProperty("bIsABot"));
+	return ReadBitfieldValue(bIsABotOffset, bIsABotFieldMask);
+}
+
+void APlayerState::SetIsBot(bool NewValue)
+{
+	static auto bIsABotOffset = GetOffset("bIsABot");
+	static auto bIsABotFieldMask = GetFieldMask(GetProperty("bIsABot"));
+	return SetBitfieldValue(bIsABotOffset, bIsABotFieldMask, NewValue);
+}
+
+void APlayerState::OnRep_PlayerName()
+{
+	static auto OnRep_PlayerNameFn = FindObject<UFunction>("/Script/Engine.PlayerState.OnRep_PlayerName");
+	this->ProcessEvent(OnRep_PlayerNameFn);
+}

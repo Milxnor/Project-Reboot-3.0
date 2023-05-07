@@ -35,16 +35,16 @@ struct FSpawnItemVariantParams
 		return *(int*)(__int64(this) + NumberToSpawnOffset);
 	}
 
-	EFortPickupSourceTypeFlag& GetSourceType()
+	uint8& GetSourceType()
 	{
 		static auto SourceTypeOffset = FindOffsetStruct("/Script/FortniteGame.SpawnItemVariantParams", "SourceType");
-		return *(EFortPickupSourceTypeFlag*)(__int64(this) + SourceTypeOffset);
+		return *(uint8*)(__int64(this) + SourceTypeOffset);
 	}
 
-	EFortPickupSpawnSource& GetSource()
+	uint8& GetSource()
 	{
 		static auto SourceOffset = FindOffsetStruct("/Script/FortniteGame.SpawnItemVariantParams", "Source");
-		return *(EFortPickupSpawnSource*)(__int64(this) + SourceOffset);
+		return *(uint8*)(__int64(this) + SourceOffset);
 	}
 
 	FVector& GetDirection()

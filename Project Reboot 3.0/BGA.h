@@ -5,8 +5,9 @@
 #include "FortLootPackage.h"
 #include "FortPickup.h"
 #include "BuildingGameplayActor.h"
+#include "KismetSystemLibrary.h"
 
-void SpawnBGAs() // hahah not "proper", there's a function that we can hook and it gets called on each spawner whenever playlist gets set, but it's fine.
+static inline void SpawnBGAs() // hahah not "proper", there's a function that we can hook and it gets called on each spawner whenever playlist gets set, but it's fine.
 {
 	static auto BGAConsumableSpawnerClass = FindObject<UClass>("/Script/FortniteGame.BGAConsumableSpawner");
 
@@ -23,6 +24,9 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 	{
 		auto BGAConsumableSpawner = AllBGAConsumableSpawners.at(i);
 		auto SpawnLocation = BGAConsumableSpawner->GetActorLocation();
+		
+		static auto bAlignSpawnedActorsToSurfaceOffset = BGAConsumableSpawner->GetOffset("bAlignSpawnedActorsToSurface");
+		const bool bAlignSpawnedActorsToSurface = BGAConsumableSpawner->Get<bool>(bAlignSpawnedActorsToSurfaceOffset);
 
 		FTransform SpawnTransform{};
 		SpawnTransform.Translation = SpawnLocation;
@@ -55,20 +59,63 @@ void SpawnBGAs() // hahah not "proper", there's a function that we can hook and 
 				continue;
 			}
 
-			bool bDeferConstruction = false; // hm?
+			bool bDeferConstruction = true; // hm?
 
 			FActorSpawnParameters SpawnParameters{};
-			// SpawnParameters.ObjectFlags = RF_Transactional; // idk fortnite does this i think
+			// SpawnParameters.ObjectFlags = RF_Transactional; // idk fortnite does this i think // i think its acutally suppsoed to be |= RF_Transient
 			SpawnParameters.bDeferConstruction = bDeferConstruction;
 
 			auto ConsumableActor = GetWorld()->SpawnActor<ABuildingGameplayActor>(StrongConsumableClass, SpawnTransform, SpawnParameters);
 
 			if (ConsumableActor)
 			{
-				if (bDeferConstruction)
-					UGameplayStatics::FinishSpawningActor(ConsumableActor, SpawnTransform); // what
+				FTransform FinalSpawnTransform = SpawnTransform;
 
-				ConsumableActor->InitializeBuildingActor(nullptr, nullptr, true); // idk UFortKismetLibrary::SpawnBuildingGameplayActor does this
+				if (bAlignSpawnedActorsToSurface)
+				{
+					// I DONT KNOW
+
+					/* FHitResult* NewHit = Alloc<FHitResult>(FHitResult::GetStructSize());
+
+					FVector StartLocation = FinalSpawnTransform.Translation;
+					FVector EndLocation = StartLocation - FVector(0, 0, 1000);
+
+					bool bTraceComplex = true; // idk
+					FName ProfileName = UKismetStringLibrary::Conv_StringToName(L"FindGroundLocationAt");
+
+					UKismetSystemLibrary::LineTraceSingleByProfile(ConsumableActor, StartLocation, EndLocation, ProfileName, bTraceComplex,
+						TArray<AActor*>(), EDrawDebugTrace::None, &NewHit, true, FLinearColor(), FLinearColor(), 0);
+
+					// UKismetSystemLibrary::LineTraceSingle(ConsumableActor, StartLocation, EndLocation,
+						// ETraceTypeQuery::TraceTypeQuery1, bTraceComplex, TArray<AActor*>(), EDrawDebugTrace::None, true, FLinearColor(), FLinearColor(), 0, &NewHit);
+
+					bool IsBlockingHit = NewHit && NewHit->IsBlockingHit(); // Should we check ret of linetracesingle?
+
+					if (IsBlockingHit)
+					{
+						FinalSpawnTransform.Translation =  NewHit->GetLocation();
+					}
+					else
+					{
+						FinalSpawnTransform.Translation = FVector(0, 0, 0);
+					}
+
+					*/
+				} 
+
+				if (FinalSpawnTransform.Translation == FVector(0, 0, 0))
+				{
+					LOG_WARN(LogGame, "Invalid BGA spawn location!");
+					// ConsumableActor->K2_DestroyActor(); // ??
+					continue;
+				}
+
+				if (bDeferConstruction)
+					UGameplayStatics::FinishSpawningActor(ConsumableActor, FinalSpawnTransform);
+
+				// ConsumableActor->InitializeBuildingActor(nullptr, nullptr, true); // idk UFortKismetLibrary::SpawnBuildingGameplayActor does this
+
+				LOG_INFO(LogDev, "Spawned BGA {} at {} {} {}", ConsumableActor->GetName(), FinalSpawnTransform.Translation.X, FinalSpawnTransform.Translation.Y, FinalSpawnTransform.Translation.Z);
 			}
 		}
 	}

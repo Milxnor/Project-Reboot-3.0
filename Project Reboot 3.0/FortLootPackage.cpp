@@ -69,7 +69,7 @@ static T* PickWeightedElement(const std::map<FName, T*>& Elements, std::function
         TotalWeight = std::accumulate(Elements.begin(), Elements.end(), 0.0f, [&](float acc, const std::pair<FName, T*>& p) {
             auto Weight = GetWeightFn(p.second);
 
-            if (bPrint)
+            if (bPrint && Weight != 0)
             {
                 LOG_INFO(LogLoot, "Adding weight: {}", Weight);
             }
@@ -282,7 +282,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
         return;
 
     if (bPrint)
-        LOG_INFO(LogLoot, "PickLootDropsFromLootPackage selected package {} with loot package category {} from LootPackageIDMap of size: {}", PickedPackageRowName.ToString(), LootPackageCategory, LootPackageIDMap.size());
+        LOG_INFO(LogLoot, "PickLootDropsFromLootPackage selected package {} with loot package category {} with weight {} from LootPackageIDMap of size: {}", PickedPackageRowName.ToString(), LootPackageCategory, PickedPackage->GetWeight(), LootPackageIDMap.size());
 
     if (PickedPackage->GetLootPackageCall().Data.Num() > 1)
     {
@@ -358,10 +358,18 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
                 {
                     auto AmmoData = WeaponItemDefinition->GetAmmoData();
 
-                    int AmmoCount = AmmoData->GetDropCount(); // idk about this one
+                    if (AmmoData)
+                    {
+                        int AmmoCount = AmmoData->GetDropCount(); // idk about this one
 
-                    OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(WeaponItemDefinition->GetAmmoData(), AmmoCount)));
+                        OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(AmmoData, AmmoCount)));
+                    }
                 }
+            }
+
+            if (bPrint)
+            {
+                LOG_INFO(LogLoot, "Adding Item: {}", ItemDefinition->GetPathName());
             }
 
             FinalCount -= CurrentCountForEntry;

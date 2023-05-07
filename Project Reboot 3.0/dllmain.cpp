@@ -513,9 +513,6 @@ DWORD WINAPI Main(LPVOID)
                     break;
                 }
             }
-
-            // Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerGameplay.EndGhostMode"),
-               // AFortPlayerControllerAthena::EndGhostModeHook, (PVOID*)&AFortPlayerControllerAthena::EndGhostModeOriginal, false);
         }
     }
 

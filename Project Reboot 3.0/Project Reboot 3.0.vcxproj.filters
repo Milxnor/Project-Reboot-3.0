@@ -712,9 +712,6 @@
     <ClInclude Include="AttributeSet.h">
       <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public</Filter>
     </ClInclude>
-    <ClInclude Include="gui.h">
-      <Filter>Reboot\Public\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="FortWeaponRangedMountedCannon.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
@@ -850,6 +847,12 @@
     </ClInclude>
     <ClInclude Include="FortLootLevel.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="bots.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="gui.h">
+      <Filter>Reboot\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1050,9 +1053,6 @@
     </Filter>
     <Filter Include="Engine\Source\Runtime\Core\Public\Algo\Impl">
       <UniqueIdentifier>{74e42db4-bdac-4e42-bb7e-58f1ab17b738}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Reboot\Public\GUI">
-      <UniqueIdentifier>{15a7e32e-0505-49cc-9f6a-89d3e5c865b5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Libaries">
       <UniqueIdentifier>{c0586029-3b4a-48f9-8de9-5b48a972cb5e}</UniqueIdentifier>

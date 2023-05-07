@@ -110,4 +110,6 @@ public:
 
 	UFortItem* FindItemInstance(const FGuid& Guid);
 	FFortItemEntry* FindReplicatedEntry(const FGuid& Guid);
+
+	// static UClass* StaticClass();
 };

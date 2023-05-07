@@ -8,7 +8,7 @@
 
 #include "reboot.h"
 
-enum class EFortItemEntryState : uint8_t // idk if this changes
+enum class EFortItemEntryState : uint8_t // this changes but its fineee
 {
 	NoneState = 0,
 	NewItemCount = 1,
@@ -74,6 +74,13 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return *(bool*)(__int64(this) + bIsReplicatedCopyOffset);
 	}
 
+	bool& DoesUpdateStatsOnCollection()
+	{
+		// added like s8+ or somethingf idsk it was on 10.40 but not 7.40
+		static auto bUpdateStatsOnCollectionOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "bUpdateStatsOnCollection");
+		return *(bool*)(__int64(this) + bUpdateStatsOnCollectionOffset);
+	}
+
 	class UFortItemDefinition*& GetItemDefinition()
 	{
 		static auto ItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "ItemDefinition");
@@ -116,6 +123,12 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return *(FGameplayAbilitySpecHandle*)(__int64(this) + GameplayAbilitySpecHandleOffset);
 	}
 
+	TArray<float>& GetGenericAttributeValues()
+	{
+		static auto GenericAttributeValuesOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "GenericAttributeValues");
+		return *(TArray<float>*)(__int64(this) + GenericAttributeValuesOffset);
+	}
+
 	TWeakObjectPtr<class AFortInventory>& GetParentInventory()
 	{
 		static auto ParentInventoryOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "ParentInventory");
@@ -144,6 +157,20 @@ struct FFortItemEntry : FFastArraySerializerItem
 		if (!bCopyGuid)
 			this->GetItemGuid() = OldGuid;
 
+		static auto GenericAttributeValuesOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "GenericAttributeValues", false);
+
+		if (GenericAttributeValuesOffset != -1)
+		{
+			// proper copying
+			
+			this->GetGenericAttributeValues().CopyFromArray(OtherItemEntry->GetGenericAttributeValues());
+
+			/* for (int i = 0; i < OtherItemEntry->GetGenericAttributeValues().Num(); i++)
+			{
+				this->GetGenericAttributeValues().Add(OtherItemEntry->GetGenericAttributeValues().at(i));
+			} */
+		}
+
 		// should we do this?
 
 		this->MostRecentArrayReplicationKey = -1;
@@ -163,29 +190,7 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return StructSize;
 	}
 
-	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0, float Durability = 0x3F800000)
-	{
-		auto Entry = // (FFortItemEntry*)FMemory::Realloc(0, GetStructSize(), 0); 
-			Alloc<FFortItemEntry>(GetStructSize());
-
-		if (!Entry)
-			return nullptr;
-
-		Entry->MostRecentArrayReplicationKey = -1; // idk if we need to set this
-		Entry->ReplicationID = -1;
-		Entry->ReplicationKey = -1;
-
-		Entry->GetItemDefinition() = ItemDefinition;
-		Entry->GetCount() = Count;
-		Entry->GetLoadedAmmo() = LoadedAmmo;
-		Entry->GetDurability() = Durability;
-		Entry->GetGameplayAbilitySpecHandle() = FGameplayAbilitySpecHandle(-1);
-		Entry->GetParentInventory().ObjectIndex = -1;
-		// CoCreateGuid((GUID*)&Entry->GetItemGuid());
-		// Entry->bUpdateStatsOnCollection = true; // Idk what this does but fortnite does it i think
-
-		return Entry;
-	}
+	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0, float Durability = 0x3F800000);
 
 	// We need to find a better way for below... Especially since we can't do either method for season 5 or 6.
 
@@ -196,6 +201,19 @@ struct FFortItemEntry : FFastArraySerializerItem
 			static __int64 (*FreeEntryOriginal)(__int64 Entry) = decltype(FreeEntryOriginal)(Addresses::FreeEntry);
 			FreeEntryOriginal(__int64(Entry));
 		}
+		else
+		{
+			static auto GenericAttributeValuesOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "GenericAttributeValues", false);
+
+			if (GenericAttributeValuesOffset != -1)
+			{
+				Entry->GetGenericAttributeValues().Free();
+			}
+
+			Entry->GetStateValues().Free();
+		}
+
+		RtlZeroMemory(Entry, FFortItemEntry::GetStructSize());
 	}
 
 	static void FreeArrayOfEntries(TArray<FFortItemEntry>& tarray)

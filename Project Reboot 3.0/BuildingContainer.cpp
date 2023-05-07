@@ -6,10 +6,11 @@
 
 bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 {
+	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 	FVector LocationToSpawnLoot = this->GetActorLocation() + this->GetActorRightVector() * 70.f + FVector{ 0, 0, 50 };
 
 	static auto SearchLootTierGroupOffset = this->GetOffset("SearchLootTierGroup");
-	auto RedirectedLootTier = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode())->RedirectLootTier(this->Get<FName>(SearchLootTierGroupOffset));
+	auto RedirectedLootTier = GameMode->RedirectLootTier(this->Get<FName>(SearchLootTierGroupOffset));
 
 	// LOG_INFO(LogInteraction, "RedirectedLootTier: {}", RedirectedLootTier.ToString());
 
@@ -20,7 +21,17 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 	for (int i = 0; i < LootDrops.size(); i++)
 	{
 		auto& lootDrop = LootDrops.at(i);
-		AFortPickup::SpawnPickup(lootDrop->GetItemDefinition(), LocationToSpawnLoot, lootDrop->GetCount(), EFortPickupSourceTypeFlag::Container, EFortPickupSpawnSource::Unset, lootDrop->GetLoadedAmmo());
+
+		PickupCreateData CreateData{};
+		CreateData.bToss = true;
+		// CreateData.PawnOwner = Pawn;
+		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(lootDrop->GetItemDefinition(), lootDrop->GetCount(), lootDrop->GetLoadedAmmo());
+		CreateData.SpawnLocation = LocationToSpawnLoot;
+		CreateData.SourceType = EFortPickupSourceTypeFlag::GetContainerValue();
+		CreateData.bRandomRotation = true;
+		CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
+
+		auto NewPickup = AFortPickup::SpawnPickup(CreateData);
 	}
 
 	return true;

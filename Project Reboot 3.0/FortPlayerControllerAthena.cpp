@@ -105,6 +105,9 @@ void AFortPlayerControllerAthena::EndGhostModeHook(AFortPlayerControllerAthena* 
 	auto PickaxeInstance = PlayerController->AddPickaxeToInventory();
 	WorldInventory->Update();
 
+	WorldInventory->ForceNetUpdate();
+	PlayerController->ForceNetUpdate();
+
 	if (PickaxeInstance)
 	{
 		PlayerController->ClientEquipItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), true);

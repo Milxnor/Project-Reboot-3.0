@@ -240,6 +240,14 @@ inline std::vector<T*> GetAllObjectsOfClass(UClass* Class)
 	return Objects;
 }
 
+template<typename T = UObject>
+inline T* GetRandomObjectOfClass(UClass* Class)
+{
+	auto AllObjectsVec = GetAllObjectsOfClass<T>(Class);
+
+	return AllObjectsVec.size() > 0 ? AllObjectsVec.at(std::rand() % AllObjectsVec.size()) : nullptr;
+}
+
 inline void* FindPropertyStruct(const std::string& StructName, const std::string& MemberName, bool bWarnIfNotFound = true)
 {
 	UObject* Struct = FindObject(StructName);
@@ -377,9 +385,9 @@ static void CopyStruct(void* Dest, void* Src, size_t Size, UStruct* Struct = nul
 }
 
 template <typename T = __int64>
-static T* Alloc(size_t Size = sizeof(T), bool bUseRealloc = false)
+static T* Alloc(size_t Size = sizeof(T), bool bUseFMemoryRealloc = false)
 {
-	return bUseRealloc ? (T*)FMemory::Realloc(0, Size, 0) : (T*)VirtualAlloc(0, Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	return bUseFMemoryRealloc ? (T*)FMemory::Realloc(0, Size, 0) : (T*)VirtualAlloc(0, Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 }
 
 namespace MemberOffsets

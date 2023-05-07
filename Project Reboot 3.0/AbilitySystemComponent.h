@@ -54,10 +54,10 @@ public:
 		this->ProcessEvent(fn, &UAbilitySystemComponent_ClientActivateAbilityFailed_Params);
 	}
 
-	TArray<UObject*>& GetSpawnedAttributes()
+	TArray<UAttributeSet*>& GetSpawnedAttributes()
 	{
 		static auto SpawnedAttributesOffset = GetOffset("SpawnedAttributes");
-		return Get<TArray<UObject*>>(SpawnedAttributesOffset);
+		return Get<TArray<UAttributeSet*>>(SpawnedAttributesOffset);
 	}
 
 	FGameplayAbilitySpecContainer* GetActivatableAbilities()

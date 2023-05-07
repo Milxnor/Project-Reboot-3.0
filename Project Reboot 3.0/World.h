@@ -19,12 +19,12 @@ public:
 
 struct FActorSpawnParameters
 {
-	FName Name;
-	UObject* Template;
-	UObject* Owner;
-	UObject** Instigator;
-	UObject* OverrideLevel;
-	ESpawnActorCollisionHandlingMethod SpawnCollisionHandlingOverride;
+	FName Name = FName(0);
+	UObject* Template = nullptr;
+	UObject* Owner = nullptr;
+	UObject** Instigator = nullptr;
+	UObject* OverrideLevel = nullptr;
+	ESpawnActorCollisionHandlingMethod SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::Undefined;
 	uint16	bRemoteOwned : 1;
 	uint16	bNoFail : 1;
 	uint16	bDeferConstruction : 1;

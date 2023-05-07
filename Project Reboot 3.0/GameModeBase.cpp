@@ -23,9 +23,39 @@ UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InControlle
 	return AGameModeBase_GetDefaultPawnClassForController_Params.ReturnValue;
 }
 
+void AGameModeBase::ChangeName(AController* Controller, const FString& NewName, bool bNameChange)
+{
+	static auto ChangeNameFn = FindObject<UFunction>("/Script/Engine.GameModeBase.ChangeName");
+
+	struct
+	{
+		AController* Controller;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		struct FString                                     NewName;                                                  // (Parm, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		bool                                               bNameChange;                                              // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} AGameModeBase_ChangeName_Params{ Controller, NewName, bNameChange };
+
+	this->ProcessEvent(ChangeNameFn, &AGameModeBase_ChangeName_Params);
+}
+
+AActor* AGameModeBase::K2_FindPlayerStart(AController* Player, FString IncomingName)
+{
+	static auto K2_FindPlayerStartFn = FindObject<UFunction>("/Script/Engine.GameModeBase.K2_FindPlayerStart");
+
+	struct
+	{
+		AController* Player;                                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FString                                     IncomingName;                                             // (Parm, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		AActor* ReturnValue;                                              // (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} AGameModeBase_K2_FindPlayerStart_Params{ Player, IncomingName };
+
+	this->ProcessEvent(K2_FindPlayerStartFn, &AGameModeBase_K2_FindPlayerStart_Params);
+	
+	return AGameModeBase_K2_FindPlayerStart_Params.ReturnValue;
+}
+
 APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AController* NewPlayer, AActor* StartSpot)
 {
-	LOG_INFO(LogDev, "SpawnDefaultPawnFor: 0x{:x}!", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
+	// LOG_INFO(LogDev, "SpawnDefaultPawnFor: 0x{:x}!", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
 
 	// auto PawnClass = GameMode->GetDefaultPawnClassForController(NewPlayer);
 	// LOG_INFO(LogDev, "PawnClass: {}", PawnClass->GetFullName());

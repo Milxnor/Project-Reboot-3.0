@@ -7,6 +7,8 @@
 #include "FortAthenaMutator_Barrier.h"
 #include "FortWeaponMeleeItemDefinition.h"
 #include "builder.h"
+#include "FortLootPackage.h"
+#include "bots.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
@@ -200,6 +202,25 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
+		else if (Command == "printsimulatelootdrops")
+		{
+			if (NumArgs < 1)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a LootTierGroup!");
+				return;
+			}
+
+			auto& lootTierGroup = Arguments[1];
+
+			auto LootDrops = PickLootDrops(UKismetStringLibrary::Conv_StringToName(std::wstring(lootTierGroup.begin(), lootTierGroup.end()).c_str()), true);
+
+			for (int i = 0; i < LootDrops.size(); i++)
+			{
+				
+			}
+
+			SendMessageToConsole(PlayerController, L"Printed!");
+		}
 		else if (Command == "setpickaxe")
 		{
 			if (NumArgs < 1)
@@ -348,7 +369,12 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			}
 
 			auto Location = Pawn->GetActorLocation();
-			AFortPickup::SpawnPickup(WID, Location, count);
+
+			PickupCreateData CreateData;
+			CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(WID, count, -1);
+			CreateData.SpawnLocation = Location;
+
+			AFortPickup::SpawnPickup(CreateData);
 		}
 		else if (Command == "listplayers")
 		{
@@ -546,6 +572,60 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			{
 				SendMessageToConsole(PlayerController, L"Not a valid class!");
 			}
+		}
+		else if (Command == "spawnbot")
+		{
+			auto Pawn = ReceivingController->GetPawn();
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to spawn bot at!");
+				return;
+			}
+
+			int Count = 1;
+
+			if (Arguments.size() >= 2)
+			{
+				try { Count = std::stod(Arguments[1]); }
+				catch (...) {}
+			}
+
+			constexpr int Max = 99;
+
+			if (Count > Max)
+			{
+				SendMessageToConsole(PlayerController, (std::wstring(L"You went over the limit! Only spawning ") + std::to_wstring(Max) + L".").c_str());
+				Count = Max;
+			}
+
+			int AmountSpawned = 0;
+
+			for (int i = 0; i < Count; i++)
+			{
+				FActorSpawnParameters SpawnParameters{};
+				// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+				auto Loc = Pawn->GetActorLocation();
+				Loc.Z += 1000;
+
+				FTransform Transform;
+				Transform.Translation = Loc;
+				Transform.Scale3D = FVector(1, 1, 1);
+
+				auto NewActor = Bots::SpawnBot(Transform);
+
+				if (!NewActor)
+				{
+					SendMessageToConsole(PlayerController, L"Failed to spawn an actor!");
+				}
+				else
+				{
+					AmountSpawned++;
+				}
+			}
+
+			SendMessageToConsole(PlayerController, L"Summoned!");
 		}
 		else if (Command == "sethealth")
 		{

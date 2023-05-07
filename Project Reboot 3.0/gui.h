@@ -38,6 +38,7 @@
 #include "FortWeaponItemDefinition.h"
 #include "events.h"
 #include "FortAthenaMutator_Heist.h"
+#include "BGA.h"
 
 #define GAME_TAB 1
 #define PLAYERS_TAB 2
@@ -64,6 +65,9 @@ extern inline float AutoBusStartSeconds = 60;
 extern inline int NumRequiredPlayersToStart = 2;
 extern inline bool bDebugPrintLooting = false;
 extern inline bool bDebugPrintSwapping = false;
+extern inline bool bEnableBotTick = false;
+extern inline bool bEnableCombinePickup = false;
+extern inline int AmountOfBotsToSpawn = 0;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -279,6 +283,7 @@ static inline void StaticUI()
 
 #ifndef PROD
 	ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
+	ImGui::InputInt("Amount of bots to spawn", &AmountOfBotsToSpawn);
 #endif
 
 	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);
@@ -468,6 +473,11 @@ static inline void MainUI()
 					FString cmd = aa;
 
 					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
+				}
+
+				if (ImGui::Button("Spawn BGAs"))
+				{
+					SpawnBGAs();
 				}
 
 				/*
@@ -897,6 +907,8 @@ static inline void MainUI()
 			static std::string FunctionNameToDump;
 
 			ImGui::Checkbox("Fill Vending Machines", &Globals::bFillVendingMachines);
+			ImGui::Checkbox("Enable Bot Tick", &bEnableBotTick);
+			ImGui::Checkbox("Enable Combine Pickup", &bEnableCombinePickup);
 			ImGui::InputText("Class Name to mess with", &ClassNameToDump);
 
 			ImGui::InputText("Function Name to mess with", &FunctionNameToDump);
@@ -1000,8 +1012,9 @@ static inline void PregameUI()
 
 	if (!bSwitchedInitialLevel)
 		ImGui::SliderInt("Seconds until load into map", &SecondsUntilTravel, 1, 100);
-
-	ImGui::InputText("Playlist", &PlaylistName);
+	
+	if (!Globals::bCreative)
+		ImGui::InputText("Playlist", &PlaylistName);
 }
 
 static inline DWORD WINAPI GuiThread(LPVOID)

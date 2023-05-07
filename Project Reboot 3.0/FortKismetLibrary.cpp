@@ -135,8 +135,12 @@ void UFortKismetLibrary::SpawnItemVariantPickupInWorldHook(UObject* Context, FFr
 	auto& Position = ParamsPtr->GetPosition();
 
 	LOG_INFO(LogDev, "{} {} {}", Position.X, Position.Y, Position.Z);
-
-	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Position, ParamsPtr->GetNumberToSpawn(), ParamsPtr->GetSourceType(), ParamsPtr->GetSource());
+	
+	PickupCreateData CreateData{};
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, ParamsPtr->GetNumberToSpawn(), -1);
+	CreateData.SourceType = ParamsPtr->GetSourceType();
+	CreateData.Source = ParamsPtr->GetSource();
+	auto Pickup = AFortPickup::SpawnPickup(CreateData);
 
 	return SpawnItemVariantPickupInWorldOriginal(Context, Stack, Ret);
 }
@@ -165,7 +169,13 @@ bool UFortKismetLibrary::SpawnInstancedPickupInWorldHook(UObject* Context, FFram
 	Stack.StepCompiledIn(&bRandomRotation);
 	Stack.StepCompiledIn(&bBlockedFromAutoPickup);
 
-	auto Pickup = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::Unset, -1, nullptr, nullptr, bToss);
+	PickupCreateData CreateData;
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
+	CreateData.SpawnLocation = Position;
+	CreateData.bToss = bToss;
+	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
+
+	auto Pickup = AFortPickup::SpawnPickup(CreateData);
 
 	*Ret = Pickup;
 	return *Ret;
@@ -192,8 +202,8 @@ void UFortKismetLibrary::CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHo
 	UFortWeaponItemDefinition* WeaponItemDefinition; 
 	FGameplayTagContainer                 SourceTags; 
 	FVector                               Location; 
-	EFortPickupSourceTypeFlag         SourceTypeFlag; 
-	EFortPickupSpawnSource            SpawnSource;
+	uint8         SourceTypeFlag;
+	uint8            SpawnSource;
 
 	Stack.StepCompiledIn(&WorldContextObject);
 	Stack.StepCompiledIn(&WeaponItemDefinition);
@@ -213,7 +223,13 @@ void UFortKismetLibrary::CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHo
 	if (!AmmoDefinition)
 		return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
 
-	auto AmmoPickup = AFortPickup::SpawnPickup(AmmoDefinition, Location, Count, SourceTypeFlag, SpawnSource);
+	PickupCreateData CreateData;
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(AmmoDefinition, Count, 0);
+	CreateData.SourceType = SourceTypeFlag;
+	CreateData.Source = SpawnSource;
+	CreateData.SpawnLocation = Location;
+
+	auto AmmoPickup = AFortPickup::SpawnPickup(CreateData);
 
 	return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
 }
@@ -460,8 +476,8 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 	bool                                               bRandomRotation;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	bool                                               bBlockedFromAutoPickup;                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int                                                PickupInstigatorHandle;                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	EFortPickupSourceTypeFlag                          SourceType;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	EFortPickupSpawnSource                             Source;                                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8                          SourceType;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8                             Source;                                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	AFortPlayerController* OptionalOwnerPC;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	bool                                               bPickupOnlyRelevantToOwner;                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
@@ -487,12 +503,20 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 	LOG_INFO(LogDev, "PickupClass: {}", PickupClass ? PickupClass->GetFullName() : "InvalidObject");
 
 	LOG_INFO(LogDev, __FUNCTION__);
+	
+	PickupCreateData CreateData;
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
+	CreateData.Source = Source;
+	CreateData.SourceType = SourceType;
+	CreateData.OverrideClass = PickupClass;
+	CreateData.bToss = bToss;
+	CreateData.bRandomRotation = bRandomRotation;
 
-	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, nullptr, PickupClass, bToss);
+	auto NewPickup = AFortPickup::SpawnPickup(CreateData);
 
 	K2_SpawnPickupInWorldWithClassOriginal(Context, Stack, Ret);
 
-	*Ret = aa;
+	*Ret = NewPickup;
 	return *Ret;
 }
 
@@ -508,8 +532,8 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 	bool                                               bRandomRotation;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	bool                                               bBlockedFromAutoPickup;                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int                                                PickupInstigatorHandle;                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	EFortPickupSourceTypeFlag                          SourceType;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	EFortPickupSpawnSource                             Source;                                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8                          SourceType;                                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8                             Source;                                                   // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	AFortPlayerController* OptionalOwnerPC;                                          // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	bool                                               bPickupOnlyRelevantToOwner;                               // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
@@ -535,11 +559,19 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 
 	auto Pawn = OptionalOwnerPC ? OptionalOwnerPC->GetMyFortPawn() : nullptr;
 
-	auto aa = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, SourceType, Source, -1, Pawn, AFortPickup::StaticClass(), bToss);
+	PickupCreateData CreateData;
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
+	CreateData.SpawnLocation = Position;
+	CreateData.bToss = bToss;
+	CreateData.bRandomRotation = bRandomRotation;
+	CreateData.PawnOwner = Pawn;
+	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
+
+	auto NewPickup = AFortPickup::SpawnPickup(CreateData);
 
 	K2_SpawnPickupInWorldOriginal(Context, Stack, Ret);
 
-	*Ret = aa;
+	*Ret = NewPickup;
 	return *Ret;
 }
 

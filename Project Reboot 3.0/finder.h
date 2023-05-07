@@ -627,7 +627,7 @@ static inline uint64 FindUpdateTrackedAttributesLea() // kill me
 
 static inline uint64 FindCombinePickupLea() // kill me
 {
-	return 0;
+	// return 0;
 
 	/* uint64 OnRep_PickupLocationDataAddr = 0; // TODO (Idea: Find SetupCombinePickupDelegates from this).
 

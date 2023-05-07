@@ -3,6 +3,12 @@
 
 #include "reboot.h"
 
+void APlayerController::ServerChangeName(FString& S)
+{
+	static auto ServerChangeNameFn = FindObject<UFunction>("/Script/Engine.PlayerController.ServerChangeName");
+	this->ProcessEvent(ServerChangeNameFn, &S);
+}
+
 UCheatManager*& APlayerController::SpawnCheatManager(UClass* CheatManagerClass)
 {
 	GetCheatManager() = UGameplayStatics::SpawnObject<UCheatManager>(CheatManagerClass, this, true);

@@ -244,3 +244,13 @@ void AFortGameStateAthena::OnRep_CurrentPlaylistInfo()
 			this->ProcessEvent(OnRep_CurrentPlaylistInfo);
 	}
 }
+
+void AFortGameStateAthena::OnRep_PlayersLeft()
+{
+	static auto OnRep_PlayersLeftFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateAthena.OnRep_PlayersLeft");
+
+	if (!OnRep_PlayersLeftFn)
+		return;
+
+	this->ProcessEvent(OnRep_PlayersLeftFn);
+}

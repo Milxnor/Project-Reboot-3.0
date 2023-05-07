@@ -8,6 +8,7 @@
 #include "FortLootPackage.h"
 #include "FortPlayerPawn.h"
 #include "FortPickup.h"
+#include "bots.h"
 
 #include "FortAbilitySet.h"
 #include "NetSerialization.h"
@@ -553,6 +554,11 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		GetWorld()->Listen();
 
+		if (AmountOfBotsToSpawn != 0)
+		{
+			Bots::SpawnBotsAtPlayerStarts(AmountOfBotsToSpawn);
+		}
+
 		// GameState->OnRep_CurrentPlaylistInfo();
 
 		// return false;
@@ -698,6 +704,15 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller)
 {
+	bool bIsBot = false;
+
+	auto PlayerState = ((APlayerController*)Controller)->GetPlayerState();
+
+	if (PlayerState)
+	{
+		bIsBot = PlayerState->IsBot();
+	}
+
 	// VERY BASIC IMPLEMENTATION
 
 	LOG_INFO(LogTeams, "PickTeam called!");
@@ -939,7 +954,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			float UpZ = 50;
 
-			EFortPickupSourceTypeFlag SpawnFlag = EFortPickupSourceTypeFlag::Container;
+			uint8 SpawnFlag = EFortPickupSourceTypeFlag::GetContainerValue();
 
 			bool bTest = false;
 			bool bPrintWarmup = false;
@@ -947,25 +962,22 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
+				auto Location = CurrentActor->GetActorLocation();
+				Location.Z += UpZ;
 
+				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
+
+				for (auto& LootDrop : LootDrops)
 				{
-					auto Location = CurrentActor->GetActorLocation();
-					Location.Z += UpZ;
+					PickupCreateData CreateData;
+					CreateData.bToss = true;
+					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
+					CreateData.SpawnLocation = Location;
+					CreateData.SourceType = SpawnFlag;
+					CreateData.bRandomRotation = true;
+					CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
-					std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
-
-					if (bPrintWarmup)
-					{
-						std::cout << "\n\n";
-					}
-
-					if (LootDrops.size())
-					{
-						for (auto& LootDrop : LootDrops)
-						{
-							auto Pickup = AFortPickup::SpawnPickup(LootDrop->GetItemDefinition(), Location, LootDrop->GetCount(), SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop->GetLoadedAmmo());
-						}
-					}
+					auto Pickup = AFortPickup::SpawnPickup(CreateData);
 				}
 
 				if (!bTest)
@@ -979,33 +991,31 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			for (int i = 0; i < BRIsland_FloorLoot_Actors.Num(); i++)
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
-
-				// CurrentActor->K2_DestroyActor();
 				spawned++;
-				// continue;
-
 				auto Location = CurrentActor->GetActorLocation();
 				Location.Z += UpZ;
 
 				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
 
-				if (bPrint)
-					std::cout << "\n";
-
-				if (LootDrops.size())
+				for (auto& LootDrop : LootDrops)
 				{
-					for (auto& LootDrop : LootDrops)
-					{
-						auto Pickup = AFortPickup::SpawnPickup(LootDrop->GetItemDefinition(), Location, LootDrop->GetCount(), SpawnFlag, EFortPickupSpawnSource::Unset, LootDrop->GetLoadedAmmo());
-					}
+					PickupCreateData CreateData;
+					CreateData.bToss = true;
+					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
+					CreateData.SpawnLocation = Location;
+					CreateData.SourceType = SpawnFlag;
+					CreateData.bRandomRotation = true;
+					CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
+
+					auto Pickup = AFortPickup::SpawnPickup(CreateData);
 				}
 
 				if (!bTest)
 					CurrentActor->K2_DestroyActor();
 			}
 
-			// SpawnIsland_FloorLoot_Actors.Free();
-			// BRIsland_FloorLoot_Actors.Free();
+			SpawnIsland_FloorLoot_Actors.Free();
+			BRIsland_FloorLoot_Actors.Free();
 
 			LOG_INFO(LogDev, "Spawned loot!");
 		}
@@ -1058,7 +1068,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	static auto SquadIdOffset = PlayerStateAthena->GetOffset("SquadId", false);
 
 	if (SquadIdOffset != -1)
-		PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2;
+		PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2; // wrong place to do this
 
 	// idk if this is needed
 
@@ -1075,9 +1085,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	static auto OnRep_bHasStartedPlayingFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerState.OnRep_bHasStartedPlaying");
 	PlayerStateAthena->ProcessEvent(OnRep_bHasStartedPlayingFn);
 
-	LOG_INFO(LogDev, "Old ID: {}", PlayerStateAthena->GetWorldPlayerId());
-	LOG_INFO(LogDev, "PlayerID: {}", PlayerStateAthena->GetPlayerID());
-
 	PlayerStateAthena->GetWorldPlayerId() = PlayerStateAthena->GetPlayerID();
 
 	auto PlayerAbilitySet = GetPlayerAbilitySet();
@@ -1088,9 +1095,15 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
 	}
 
-	struct FUniqueNetIdReplExperimental
+	struct FUniqueNetIdWrapper
 	{
-		unsigned char ahh[0x0028];
+		unsigned char                                      UnknownData00[0x1];                                       // 0x0000(0x0001) MISSED OFFSET
+	};
+
+	struct FUniqueNetIdReplExperimental : public FUniqueNetIdWrapper
+	{
+		unsigned char                                      UnknownData00[0x17];                                      // 0x0001(0x0017) MISSED OFFSET
+		TArray<unsigned char>                              ReplicationBytes;                                         // 0x0018(0x0010) (ZeroConstructor, Transient, Protected, NativeAccessSpecifierProtected)
 	};
 
 	static auto PlayerCameraManagerOffset = NewPlayer->GetOffset("PlayerCameraManager");
@@ -1105,12 +1118,10 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerCameraManager->Get<float>(ViewRollMaxOffset) = 0;
 	}
 
-	/* FUniqueNetIdReplExperimental Bugha{}; */
 	static auto UniqueIdOffset = PlayerStateAthena->GetOffset("UniqueId");
 	auto PlayerStateUniqueId = PlayerStateAthena->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset);
 
 	{
-		LOG_INFO(LogDev, "bruh");
 		static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
 
 		// if (false)
@@ -1150,7 +1161,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				((FGameMemberInfo*)GameMemberInfo)->SquadId = PlayerStateAthena->GetSquadId();
 				((FGameMemberInfo*)GameMemberInfo)->TeamIndex = PlayerStateAthena->GetTeamIndex();
 				// GameMemberInfo->MemberUniqueId = PlayerStateUniqueId;
-				CopyStruct(&((FGameMemberInfo*)GameMemberInfo)->MemberUniqueId, PlayerStateUniqueId, FUniqueNetIdRepl::GetSizeOfStruct());
+				((FUniqueNetIdRepl*)&((FGameMemberInfo*)GameMemberInfo)->MemberUniqueId)->CopyFromAnotherUniqueId(PlayerStateUniqueId);
 			}
 
 			static auto GameMemberInfoArray_MembersOffset = FindOffsetStruct("/Script/FortniteGame.GameMemberInfoArray", "Members");
@@ -1260,7 +1271,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				if (LevelSaveComponent)
 				{
 					static auto AccountIdOfOwnerOffset = LevelSaveComponent->GetOffset("AccountIdOfOwner");
-					CopyStruct(LevelSaveComponent->GetPtr<FUniqueNetIdReplExperimental>(AccountIdOfOwnerOffset), PlayerStateUniqueId, FUniqueNetIdRepl::GetSizeOfStruct());
+					LevelSaveComponent->GetPtr<FUniqueNetIdRepl>(AccountIdOfOwnerOffset)->CopyFromAnotherUniqueId(PlayerStateUniqueId);
+					// CopyStruct(LevelSaveComponent->GetPtr<FUniqueNetIdReplExperimental>(AccountIdOfOwnerOffset), PlayerStateUniqueId, FUniqueNetIdRepl::GetSizeOfStruct());
 					// LevelSaveComponent->Get<FUniqueNetIdReplExperimental>(AccountIdOfOwnerOffset) = PlayerStateUniqueId;
 
 					static auto bIsLoadedOffset = LevelSaveComponent->GetOffset("bIsLoaded");

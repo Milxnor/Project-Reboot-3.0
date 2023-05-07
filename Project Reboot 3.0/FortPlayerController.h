@@ -108,6 +108,20 @@ public:
 		return NewAndModifiedInstances.first.size() > 0 ? NewAndModifiedInstances.first[0] : nullptr;
 	}
 
+	TSet<FGuid>& GetGadgetTrackedAttributeItemInstanceIds() // actually in zone
+	{
+		static auto GadgetTrackedAttributeItemInstanceIdsOffset = GetOffset("GadgetTrackedAttributeItemInstanceIds");
+		return Get<TSet<FGuid>>(GadgetTrackedAttributeItemInstanceIdsOffset);
+	}
+
+	bool IsPlayingEmote()
+	{
+		static auto IsPlayingEmoteFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.IsPlayingEmote");
+		bool Ret;
+		this->ProcessEvent(IsPlayingEmoteFn, &Ret);
+		return Ret;
+	}
+
 	bool& ShouldTryPickupSwap()
 	{
 		static auto bTryPickupSwapOffset = GetOffset("bTryPickupSwap");

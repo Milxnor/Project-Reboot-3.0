@@ -2,32 +2,98 @@
 
 #include "Actor.h"
 #include "FortPawn.h"
+#include "Class.h"
 
-enum class EFortPickupSourceTypeFlag : uint8_t
+namespace EFortPickupSourceTypeFlag
 {
-	Other = 0,
-	Player = 1,
-	Destruction = 2,
-	Container = 3,
-	AI = 4,
-	Tossed = 5,
-	FloorLoot = 6,
-	EFortPickupSourceTypeFlag_MAX = 7
+	static inline UEnum* GetEnum()
+	{
+		static auto Enum = FindObject<UEnum>("/Script/FortniteGame.EFortPickupSourceTypeFlag");
+		return Enum;
+	}
+
+	static inline int64 GetPlayerValue()
+	{
+		static auto PlayerValue = GetEnum() ? GetEnum()->GetValue("Player") : -1;
+		return PlayerValue;
+	}
+
+	static inline int64 GetContainerValue()
+	{
+		static auto ContainerValue = GetEnum() ? GetEnum()->GetValue("Container") : -1;
+		return ContainerValue;
+	}
+
+	static inline 	int64 GetFloorLootValue()
+	{
+		static auto FloorLootValue = GetEnum() ? GetEnum()->GetValue("FloorLoot") : -1;
+		return FloorLootValue;
+	}
+
+	static inline int64 GetOtherValue()
+	{
+		static auto OtherValue = GetEnum() ? GetEnum()->GetValue("Other") : -1;
+		return OtherValue;
+	}
+
+	static inline int64 GetTossedValue()
+	{
+		static auto TossedValue = GetEnum() ? GetEnum()->GetValue("Tossed") : -1;
+		return TossedValue;
+	}
+}
+
+namespace EFortPickupSpawnSource
+{
+	static inline UEnum* GetEnum()
+	{
+		static auto Enum = FindObject<UEnum>("/Script/FortniteGame.EFortPickupSpawnSource");
+		return Enum;
+	}
+
+	static inline int64 GetPlayerEliminationValue()
+	{
+		static auto PlayerEliminationValue = GetEnum() ? GetEnum()->GetValue("PlayerElimination") : -1;
+		return PlayerEliminationValue;
+	}
+
+	static inline int64 GetSupplyDropValue()
+	{
+		static auto SupplyDropValue = GetEnum() ? GetEnum()->GetValue("SupplyDrop") : -1;
+		return SupplyDropValue;
+	}
+}
+
+struct PickupCreateData
+{
+	FFortItemEntry* ItemEntry = nullptr;
+	AFortPawn* PawnOwner = nullptr;
+	int OverrideCount = -1;
+	UClass* OverrideClass = nullptr;
+	bool bToss = false;
+	class AFortPickup* IgnoreCombineTarget = nullptr;
+	bool bRandomRotation = false;
+	uint8 SourceType = 0;
+	uint8 Source = 0;
+	FVector SpawnLocation = FVector(0, 0, 0);
+	bool bShouldFreeItemEntryWhenDeconstructed = false;
+
+	~PickupCreateData()
+	{
+		if (bShouldFreeItemEntryWhenDeconstructed)
+		{
+
+		}
+	}
 };
 
-enum class EFortPickupSpawnSource : uint8_t
+enum class EFortPickupTossState : uint8
 {
-	Unset = 0,
-	PlayerElimination = 1,
-	Chest = 2,
-	SupplyDrop = 3,
-	AmmoBox = 4,
-	Drone = 5,
-	ItemSpawner = 6,
-	EFortPickupSpawnSource_MAX = 7
+	NotTossed = 0,
+	InProgress = 1,
+	AtRest = 2,
+	EFortPickupTossState_MAX = 3,
 };
-
-ENUM_CLASS_FLAGS(EFortPickupSourceTypeFlag)
 
 struct FFortPickupLocationData
 {
@@ -41,6 +107,12 @@ struct FFortPickupLocationData
 	{
 		static auto FlyTimeOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "FlyTime");
 		return *(float*)(__int64(this) + FlyTimeOffset);
+	}
+
+	EFortPickupTossState& GetTossState()
+	{
+		static auto TossStateOffset = FindOffsetStruct("/Script/FortniteGame.FortPickupLocationData", "TossState");
+		return *(EFortPickupTossState*)(__int64(this) + TossStateOffset);
 	}
 
 	AFortPawn*& GetItemOwner()
@@ -91,7 +163,7 @@ class AFortPickup : public AActor
 public:
 	static inline char (*CompletePickupAnimationOriginal)(AFortPickup* Pickup);
 
-	void TossPickup(FVector FinalLocation, class AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, EFortPickupSourceTypeFlag InPickupSourceTypeFlags, EFortPickupSpawnSource InPickupSpawnSource);
+	void TossPickup(FVector FinalLocation, class AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, uint8 InPickupSourceTypeFlags, uint8 InPickupSpawnSource);
 	void SpawnMovementComponent(); // BAD You probably don't wanna use unless absolutely necessary
 
 	void OnRep_PrimaryPickupItemEntry()
@@ -118,13 +190,11 @@ public:
 		this->ProcessEvent(OnRep_PickupLocationDataFn);
 	}
 
+	static AFortPickup* SpawnPickup(PickupCreateData& PickupData);
+	
 	static AFortPickup* SpawnPickup(FFortItemEntry* ItemEntry, FVector Location, 
-		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset,
+		uint8 PickupSource = 0, uint8 SpawnSource = 0,
 		class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true, int OverrideCount = -1, AFortPickup* IgnoreCombinePickup = nullptr);
-
-	static AFortPickup* SpawnPickup(class UFortItemDefinition* ItemDef, FVector Location, int Count,
-		EFortPickupSourceTypeFlag PickupSource = EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource SpawnSource = EFortPickupSpawnSource::Unset,
-		int LoadedAmmo = -1, class AFortPawn* Pawn = nullptr, UClass* OverrideClass = nullptr, bool bToss = true, AFortPickup* IgnoreCombinePickup = nullptr);
 
 	static void CombinePickupHook(AFortPickup* Pickup);
 	static char CompletePickupAnimationHook(AFortPickup* Pickup);

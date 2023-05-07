@@ -104,6 +104,7 @@ public:
 	bool IsPlayerBuildableClass(UClass* Class);
 	void OnRep_GamePhase();
 	void OnRep_CurrentPlaylistInfo();
+	void OnRep_PlayersLeft();
 };
 
 static void* ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep GamePhaseStep)

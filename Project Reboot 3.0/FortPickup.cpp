@@ -10,12 +10,12 @@
 #include "GameplayStatics.h"
 #include "gui.h"
 
-void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, EFortPickupSourceTypeFlag InPickupSourceTypeFlags, EFortPickupSpawnSource InPickupSpawnSource)
+void AFortPickup::TossPickup(FVector FinalLocation, AFortPawn* ItemOwner, int OverrideMaxStackCount, bool bToss, uint8 InPickupSourceTypeFlags, uint8 InPickupSpawnSource)
 {
 	static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortPickup.TossPickup");
 
 	struct { FVector FinalLocation; AFortPawn* ItemOwner; int OverrideMaxStackCount; bool bToss;
-	EFortPickupSourceTypeFlag InPickupSourceTypeFlags; EFortPickupSpawnSource InPickupSpawnSource; }
+	uint8 InPickupSourceTypeFlags; uint8 InPickupSpawnSource; }
 	AFortPickup_TossPickup_Params{FinalLocation, ItemOwner, OverrideMaxStackCount, bToss, InPickupSourceTypeFlags, InPickupSpawnSource};
 
 	this->ProcessEvent(fn, &AFortPickup_TossPickup_Params);
@@ -29,145 +29,151 @@ void AFortPickup::SpawnMovementComponent()
 	this->Get(MovementComponentOffset) = UGameplayStatics::SpawnObject(ProjectileMovementComponentClass, this);
 }
 
-AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Location,
-	EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
-	class AFortPawn* Pawn, UClass* OverrideClass, bool bToss, int OverrideCount, AFortPickup* IgnoreCombinePickup)
+AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 {
-	if (bToss)
-	{
-		PickupSource |= EFortPickupSourceTypeFlag::Tossed;
-	}
+	if (PickupData.Source == -1)
+		PickupData.Source = 0;
+	if (PickupData.SourceType == -1)
+		PickupData.SourceType = -1;
 
-	// static auto FortPickupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickup");
+	/* if (PickupData.bToss)
+	{
+		PickupData.SourceType |= EFortPickupSourceTypeFlag::Tossed;
+	} */
+
 	static auto FortPickupAthenaClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickupAthena");
-	auto PlayerState = Pawn ? Cast<AFortPlayerState>(Pawn->GetPlayerState()) : nullptr;
+	auto PlayerState = PickupData.PawnOwner ? Cast<AFortPlayerState>(PickupData.PawnOwner->GetPlayerState()) : nullptr;
 
 	FActorSpawnParameters SpawnParameters{};
 	// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	if (auto Pickup = GetWorld()->SpawnActor<AFortPickup>(OverrideClass ? OverrideClass : FortPickupAthenaClass, Location, FQuat(), FVector(1, 1, 1), SpawnParameters))
+	auto Pickup = GetWorld()->SpawnActor<AFortPickup>(PickupData.OverrideClass ? PickupData.OverrideClass : FortPickupAthenaClass, PickupData.SpawnLocation, FQuat(), FVector(1, 1, 1), SpawnParameters);
+
+	if (!Pickup)
+		return nullptr;
+
+	static auto bRandomRotationOffset = Pickup->GetOffset("bRandomRotation", false);
+
+	if (bRandomRotationOffset != -1)
+		Pickup->Get<bool>(bRandomRotationOffset) = PickupData.bRandomRotation;
+
+	static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
+	Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = PickupData.PawnOwner;
+
+	auto PrimaryPickupItemEntry = Pickup->GetPrimaryPickupItemEntry();
+
+	if (Addresses::PickupInitialize)
 	{
-		static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
-		Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = Pawn;
+		static void (*SetupPickup)(AFortPickup * Pickup, __int64 ItemEntry, TArray<FFortItemEntry> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
+			= decltype(SetupPickup)(Addresses::PickupInitialize);
 
-		auto PrimaryPickupItemEntry = Pickup->GetPrimaryPickupItemEntry();
+		TArray<FFortItemEntry> MultiItemPickupEntriesIGuess{};
+		SetupPickup(Pickup, __int64(PickupData.ItemEntry), MultiItemPickupEntriesIGuess, false);
+		FFortItemEntry::FreeArrayOfEntries(MultiItemPickupEntriesIGuess);
+	}
+	else
+	{
+		PrimaryPickupItemEntry->CopyFromAnotherItemEntry(PickupData.ItemEntry);
+	}
 
-		if (Addresses::PickupInitialize)
+	static auto PickupSourceTypeFlagsOffset = Pickup->GetOffset("PickupSourceTypeFlags", false);
+
+	if (PickupSourceTypeFlagsOffset != -1)
+	{
+		// Pickup->Get<int32>(PickupSourceTypeFlagsOffset) |= (int)PickupData.SourceType; // Assuming its the same enum on older versions. // (it is not the same)
+	}
+
+	if (Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset))
+	{
+		// TODO Add EFortItemEntryState::DroppedFromPickup or whatever if it isn't found already.
+	}
+
+	PrimaryPickupItemEntry->GetCount() = PickupData.OverrideCount == -1 ? PickupData.ItemEntry->GetCount() : PickupData.OverrideCount;
+
+	auto PickupLocationData = Pickup->GetPickupLocationData();
+
+	auto CanCombineWithPickup = [&](AActor* OtherPickupActor) -> bool
+	{
+		auto OtherPickup = (AFortPickup*)OtherPickupActor;
+
+		if (OtherPickup == PickupData.IgnoreCombineTarget || Pickup->GetPickupLocationData()->GetCombineTarget())
+			return false;
+
+		if (OtherPickup->GetPickupLocationData()->GetTossState() != EFortPickupTossState::AtRest)
+			return false;
+
+		if (PrimaryPickupItemEntry->GetItemDefinition() == OtherPickup->GetPrimaryPickupItemEntry()->GetItemDefinition())
 		{
-			static void (*SetupPickup)(AFortPickup* Pickup, __int64 ItemEntry, TArray<FFortItemEntry> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
-				= decltype(SetupPickup)(Addresses::PickupInitialize);
-
-			TArray<FFortItemEntry> MultiItemPickupEntriesIGuess{};
-			SetupPickup(Pickup, __int64(ItemEntry), MultiItemPickupEntriesIGuess, false);
-			FFortItemEntry::FreeArrayOfEntries(MultiItemPickupEntriesIGuess);
-		}
-		else
-		{
-			PrimaryPickupItemEntry->CopyFromAnotherItemEntry(ItemEntry);
-		}
-		
-		static auto PickupSourceTypeFlagsOffset = Pickup->GetOffset("PickupSourceTypeFlags", false);
-
-		if (PickupSourceTypeFlagsOffset != -1)
-			Pickup->Get<int32>(PickupSourceTypeFlagsOffset) |= (int)PickupSource; // Assuming its the same enum on older versions.
-
-		PrimaryPickupItemEntry->GetCount() = OverrideCount == -1 ? ItemEntry->GetCount() : OverrideCount;
-
-		// PrimaryPickupItemEntry->GetItemGuid() = OldGuid;
-
-		// Pickup->OnRep_PrimaryPickupItemEntry();
-
-		// static auto OptionalOwnerIDOffset = Pickup->GetOffset("OptionalOwnerID");
-		// Pickup->Get<int>(OptionalOwnerIDOffset) = PlayerState ? PlayerState->GetWorldPlayerId() : -1;
-		
-		auto PickupLocationData = Pickup->GetPickupLocationData();
-
-		auto CanCombineWithPickup = [&](AActor* OtherPickupActor) -> bool
-		{
-			auto OtherPickup = (AFortPickup*)OtherPickupActor;
-
-			if (OtherPickup == IgnoreCombinePickup || OtherPickup->GetPickupLocationData()->GetCombineTarget())
+			if (OtherPickup->GetPrimaryPickupItemEntry()->GetCount() >= PrimaryPickupItemEntry->GetItemDefinition()->GetMaxStackSize()) // Other pickup is already at the max size.
 				return false;
 
-			if (PrimaryPickupItemEntry->GetItemDefinition() == OtherPickup->GetPrimaryPickupItemEntry()->GetItemDefinition())
-			{
-				// auto IncomingCount = OtherPickup->GetPrimaryPickupItemEntry()->GetCount();
-
-				// if (PrimaryPickupItemEntry->GetCount() + IncomingCount == PrimaryPickupItemEntry->GetItemDefinition()->GetMaxStackSize())
-					// return false;
-
-				if (OtherPickup->GetPrimaryPickupItemEntry()->GetCount() == PrimaryPickupItemEntry->GetItemDefinition()->GetMaxStackSize()) // Other pickup is already at the max size.
-					return false;
-
-				return true;
-			}
-
-			return false;
-		};
-
-		if (Addresses::CombinePickupLea)
-		{
-			PickupLocationData->GetCombineTarget() = (AFortPickup*)Pickup->GetClosestActor(AFortPickup::StaticClass(), 4, CanCombineWithPickup);
+			return true;
 		}
 
-		if (!PickupLocationData->GetCombineTarget()) // I don't think we should call TossPickup for every pickup anyways.
-		{
-			Pickup->TossPickup(Location, Pawn, 0, bToss, PickupSource, SpawnSource);
-		}
-		else
-		{
-			auto ActorLocation = Pickup->GetActorLocation();
-			auto CurrentActorLocation = PickupLocationData->GetCombineTarget()->GetActorLocation();
+		return false;
+	};
 
-			int Dist = float(sqrtf(powf(CurrentActorLocation.X - ActorLocation.X, 2.0) + powf(CurrentActorLocation.Y - ActorLocation.Y, 2.0) + powf(CurrentActorLocation.Z - ActorLocation.Z, 2.0))) / 100.f;
-
-			// LOG_INFO(LogDev, "Distance: {}", Dist);
-
-			// our little remake of tosspickup
-
-			PickupLocationData->GetLootFinalPosition() = Location;
-			PickupLocationData->GetLootInitialPosition() = Pickup->GetActorLocation();
-			PickupLocationData->GetFlyTime() = 1.f / Dist; // Higher the dist quicker it should be. // not right
-			PickupLocationData->GetItemOwner() = Pawn;
-			PickupLocationData->GetFinalTossRestLocation() = PickupLocationData->GetCombineTarget()->GetActorLocation(); // Pickup->GetActorLocation() // ong ong proper
-
-			Pickup->OnRep_PickupLocationData();
-			Pickup->ForceNetUpdate();
-		}
-
-		if (PickupSource == EFortPickupSourceTypeFlag::Container) // crashes if we do this then tosspickup
-		{
-			static auto bTossedFromContainerOffset = Pickup->GetOffset("bTossedFromContainer");
-			Pickup->Get<bool>(bTossedFromContainerOffset) = true;
-			// Pickup->OnRep_TossedFromContainer();
-		}
-
-		if (Fortnite_Version < 6)
-		{
-			Pickup->SpawnMovementComponent();
-		}
-
-		return Pickup;
+	if (Addresses::CombinePickupLea && bEnableCombinePickup)
+	{
+		PickupLocationData->GetCombineTarget() = (AFortPickup*)Pickup->GetClosestActor(AFortPickup::StaticClass(), 4, CanCombineWithPickup);
 	}
 
-	return nullptr;
+	if (!PickupLocationData->GetCombineTarget()) // I don't think we should call TossPickup for every pickup anyways.
+	{
+		Pickup->TossPickup(PickupData.SpawnLocation, PickupData.PawnOwner, 0, PickupData.bToss, PickupData.SourceType, PickupData.Source);
+	}
+	else
+	{
+		auto ActorLocation = Pickup->GetActorLocation();
+		auto CurrentActorLocation = PickupLocationData->GetCombineTarget()->GetActorLocation();
+
+		int Dist = float(sqrtf(powf(CurrentActorLocation.X - ActorLocation.X, 2.0) + powf(CurrentActorLocation.Y - ActorLocation.Y, 2.0) + powf(CurrentActorLocation.Z - ActorLocation.Z, 2.0))) / 100.f;
+
+		// LOG_INFO(LogDev, "Distance: {}", Dist);
+
+		// our little remake of tosspickup
+
+		PickupLocationData->GetLootFinalPosition() = PickupData.SpawnLocation;
+		PickupLocationData->GetLootInitialPosition() = Pickup->GetActorLocation();
+		PickupLocationData->GetFlyTime() = 1.f / Dist; // Higher the dist quicker it should be. // not right
+		PickupLocationData->GetItemOwner() = PickupData.PawnOwner;
+		PickupLocationData->GetFinalTossRestLocation() = PickupLocationData->GetCombineTarget()->GetActorLocation();
+
+		Pickup->OnRep_PickupLocationData();
+		Pickup->ForceNetUpdate();
+	}
+
+	if (EFortPickupSourceTypeFlag::GetEnum() && PickupData.SourceType == EFortPickupSourceTypeFlag::GetContainerValue()) // crashes if we do this then tosspickup
+	{
+		static auto bTossedFromContainerOffset = Pickup->GetOffset("bTossedFromContainer");
+		Pickup->Get<bool>(bTossedFromContainerOffset) = true;
+		// Pickup->OnRep_TossedFromContainer();
+	}
+
+	if (Fortnite_Version < 6)
+	{
+		Pickup->SpawnMovementComponent();
+	}
+
+	return Pickup;
 }
 
-AFortPickup* AFortPickup::SpawnPickup(UFortItemDefinition* ItemDef, FVector Location, int Count, EFortPickupSourceTypeFlag PickupSource, EFortPickupSpawnSource SpawnSource,
-	int LoadedAmmo, AFortPawn* Pawn, UClass* OverrideClass, bool bToss, AFortPickup* IgnoreCombinePickup)
+AFortPickup* AFortPickup::SpawnPickup(FFortItemEntry* ItemEntry, FVector Location,
+	uint8 PickupSource, uint8 SpawnSource,
+	class AFortPawn* Pawn, UClass* OverrideClass, bool bToss, int OverrideCount, AFortPickup* IgnoreCombinePickup)
 {
-	if (LoadedAmmo == -1)
-	{
-		if (auto WeaponDef = Cast<UFortWeaponItemDefinition>(ItemDef)) // bPreventDefaultPreload ?
-			LoadedAmmo = WeaponDef->GetClipSize();
-		else
-			LoadedAmmo = 0;
-	}
+	PickupCreateData CreateData;
+	CreateData.ItemEntry = ItemEntry;
+	CreateData.SpawnLocation = Location;
+	CreateData.Source = SpawnSource;
+	CreateData.SourceType = PickupSource;
+	CreateData.PawnOwner = Pawn;
+	CreateData.OverrideClass = OverrideClass;
+	CreateData.bToss = bToss;
+	CreateData.IgnoreCombineTarget = IgnoreCombinePickup;
+	CreateData.OverrideCount = OverrideCount;
 
-	auto ItemEntry = FFortItemEntry::MakeItemEntry(ItemDef, Count, LoadedAmmo);
-	auto Pickup = SpawnPickup(ItemEntry, Location, PickupSource, SpawnSource, Pawn, OverrideClass, bToss, -1, IgnoreCombinePickup);
-	// VirtualFree(ItemEntry);
-	return Pickup;
+	return AFortPickup::SpawnPickup(CreateData);
 }
 
 void AFortPickup::CombinePickupHook(AFortPickup* Pickup)
@@ -195,8 +201,14 @@ void AFortPickup::CombinePickupHook(AFortPickup* Pickup)
 
 		auto ItemOwner = Pickup->GetPickupLocationData()->GetItemOwner();
 
-		auto NewOverStackPickup = AFortPickup::SpawnPickup(ItemDefinition, PickupToCombineInto->GetActorLocation(), OverStackCount,
-			EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, ItemOwner, nullptr, false, PickupToCombineInto);
+		PickupCreateData CreateData;
+		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, OverStackCount, 0);
+		CreateData.SpawnLocation = PickupToCombineInto->GetActorLocation();
+		CreateData.PawnOwner = ItemOwner;
+		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
+		CreateData.IgnoreCombineTarget = PickupToCombineInto;
+
+		auto NewOverStackPickup = AFortPickup::SpawnPickup(CreateData);
 	}
 
 	PickupToCombineInto->GetPrimaryPickupItemEntry()->GetCount() += CountToAdd;
@@ -300,7 +312,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 				if (ItemInstanceToSwap && ItemDefinitionToSwap->CanBeDropped() && !bHasSwapped && ItemDefGoingInPrimary) // swap
 				{
 					auto SwappedPickup = SpawnPickup(ItemEntryToSwap, PawnLoc,
-						EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn);
+						EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn);
 
 					auto CurrentWeapon = Pawn->GetCurrentWeapon();
 
@@ -373,7 +385,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 				int LoadedAmmo = 0;
 
 				// SpawnPickup(ItemDefinitionToSpawn, PawnLoc, AmountToSpawn, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, -1, Pawn);
-				SpawnPickup(PickupEntry, PawnLoc, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::Unset, Pawn, nullptr, true, AmountToSpawn);
+				SpawnPickup(PickupEntry, PawnLoc, EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn, nullptr, true, AmountToSpawn);
 				cpyCount -= AmountToSpawn;
 				bForceOverflow = false;
 			}

@@ -7,6 +7,7 @@
 #include "KismetStringLibrary.h"
 #include "DataTableFunctionLibrary.h"
 #include "FortPlaysetItemDefinition.h"
+#include "gui.h"
 
 static inline void (*SetZoneToIndexOriginal)(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK);
 
@@ -177,6 +178,11 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 {
 	if (!Object || !Function)
 		return;
+
+	if (bEnableBotTick)
+	{
+		Bots::Tick();
+	}
 
 	if (Globals::bLogProcessEvent)
 	{

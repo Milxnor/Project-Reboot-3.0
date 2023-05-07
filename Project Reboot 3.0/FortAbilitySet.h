@@ -83,7 +83,7 @@ public:
 			if (!AbilityClass)
 				continue;
 
-			LOG_INFO(LogDev, "Giving AbilityClass {}", AbilityClass->GetFullName());
+			// LOG_INFO(LogDev, "Giving AbilityClass {}", AbilityClass->GetFullName());
 
 			AbilitySystemComponent->GiveAbilityEasy(AbilityClass, SourceObject);
 		}

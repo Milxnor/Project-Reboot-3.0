@@ -6,7 +6,10 @@
 
 FFortAthenaLoadout* AFortPlayerPawn::GetCosmeticLoadout()
 {
-	static auto CosmeticLoadoutOffset = GetOffset("CosmeticLoadout");
+	static auto CosmeticLoadoutOffset = GetOffset("CosmeticLoadout", false);
+
+	if (CosmeticLoadoutOffset == -1)
+		CosmeticLoadoutOffset = GetOffset("CustomizationLoadout");
 
 	if (CosmeticLoadoutOffset == -1)
 		return nullptr;

@@ -44,7 +44,14 @@ AFortPickup* AFortAthenaSupplyDrop::SpawnGameModePickupHook(UObject* Context, FF
 
 	LOG_INFO(LogDev, "Spawning GameModePickup with ItemDefinition: {}", ItemDefinition->GetFullName());
 
-	*Ret = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::SupplyDrop, -1, TriggeringPawn, PickupClass);
+	PickupCreateData CreateData;
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
+	CreateData.SpawnLocation = Position;
+	CreateData.PawnOwner = TriggeringPawn;
+	CreateData.Source = EFortPickupSpawnSource::GetSupplyDropValue();
+	CreateData.OverrideClass = PickupClass;
+
+	*Ret = AFortPickup::SpawnPickup(CreateData);
 	return *Ret;
 }
 
@@ -67,7 +74,13 @@ AFortPickup* AFortAthenaSupplyDrop::SpawnPickupHook(UObject* Context, FFrame& St
 	if (!ItemDefinition)
 		return nullptr;
 
-	*Ret = AFortPickup::SpawnPickup(ItemDefinition, Position, NumberToSpawn, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::SupplyDrop, -1, TriggeringPawn);
+	PickupCreateData CreateData;
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
+	CreateData.SpawnLocation = Position;
+	CreateData.PawnOwner = TriggeringPawn;
+	CreateData.Source = EFortPickupSpawnSource::GetSupplyDropValue();
+
+	*Ret = AFortPickup::SpawnPickup(CreateData);
 	return *Ret;
 }
 

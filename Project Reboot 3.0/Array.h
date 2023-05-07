@@ -52,6 +52,37 @@ public:
 		return DefaultCalculateSlackReserve(NumElements, NumBytesPerElement, false);
 	}
 
+	void ResizeArray(SizeType NewNum, SIZE_T NumBytesPerElement)
+	{
+		const SizeType CurrentMax = ArrayMax;
+		SizeType v3 = NewNum;
+		if (NewNum)
+		{
+			/* SizeType v6 = (unsigned __int64)FMemory::QuantizeSize(4 * NewNum, 0) >> 2;
+			// if (v3 > (int)v6)
+				// LODWORD(v6) = 0x7FFFFFFF;
+			v3 = v6; */
+		}
+
+		if (v3 != CurrentMax && (Data || v3))
+			Data = (InElementType*)FMemory::Realloc(Data, NumBytesPerElement * v3, 0);
+
+		ArrayNum = v3; // ?
+		ArrayMax = v3;
+	}
+
+	void CopyFromArray(TArray<InElementType>& OtherArray, SIZE_T NumBytesPerElement = sizeof(InElementType))
+	{
+		if (!OtherArray.ArrayNum && !ArrayMax)
+		{
+			ArrayMax = 0;
+			return;
+		}
+
+		ResizeArray(OtherArray.ArrayNum, NumBytesPerElement);
+		memcpy(this->Data, OtherArray.Data, NumBytesPerElement * OtherArray.ArrayNum);
+	}
+
 	/*
 	FORCENOINLINE void ResizeForCopy(SizeType NewMax, SizeType PrevMax, int ElementSize = sizeof(InElementType))
 	{
@@ -303,6 +334,7 @@ public:
 			// VirtualFree(Data, 0, MEM_RELEASE);
 		}
 
+		Data = nullptr;
 		ArrayNum = 0;
 		ArrayMax = 0;
 	}
