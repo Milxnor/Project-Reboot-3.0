@@ -155,7 +155,7 @@ UPackage* UObject::GetOutermost() const
 	}
 }
 
-bool UObject::IsA(UClass* otherClass)
+bool UObject::IsA(UStruct* otherClass)
 {
 	UClass* super = ClassPrivate;
 

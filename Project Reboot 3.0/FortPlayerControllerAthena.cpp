@@ -46,9 +46,12 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 
 	auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
 
+	// LOG_INFO(LogDev, "PickaxeInstance: {}", __int64(PickaxeInstance));
+
 	if (PickaxeInstance)
 	{
-		WorldInventory->RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, PickaxeInstance->GetItemEntry()->GetCount(), true);
+		WorldInventory->RemoveItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), nullptr, REMOVE_ALL_ITEMS, true);
+		// WorldInventory->Update();
 	}
 
 	bool bShouldUpdate = false;
@@ -59,7 +62,10 @@ void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* S
 		return StartGhostModeOriginal(Context, Stack, Ret);
 
 	// if (bShouldUpdate)
-		WorldInventory->Update();
+	WorldInventory->Update();
+
+	PlayerController->AddPickaxeToInventory();
+	WorldInventory->Update();
 
 	PlayerController->ServerExecuteInventoryItemHook(PlayerController, GhostModeItemInstance->GetItemEntry()->GetItemGuid());
 	PlayerController->ClientEquipItem(GhostModeItemInstance->GetItemEntry()->GetItemGuid(), true);
@@ -103,15 +109,9 @@ void AFortPlayerControllerAthena::EndGhostModeHook(AFortPlayerControllerAthena* 
 		return EndGhostModeOriginal(PlayerController);
 
 	auto PickaxeInstance = PlayerController->AddPickaxeToInventory();
-	WorldInventory->Update();
 
 	WorldInventory->ForceNetUpdate();
 	PlayerController->ForceNetUpdate();
-
-	if (PickaxeInstance)
-	{
-		PlayerController->ClientEquipItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), true);
-	}
 
 	bool bShouldUpdate = false;
 	int Count = GhostModeItemInstance->GetItemEntry()->GetCount(); // 1
@@ -119,7 +119,12 @@ void AFortPlayerControllerAthena::EndGhostModeHook(AFortPlayerControllerAthena* 
 	WorldInventory->RemoveItem(GhostModeItemInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, Count, bForceRemoval);
 
 	// if (bShouldUpdate)
-		WorldInventory->Update();
+	WorldInventory->Update();
+
+	if (PickaxeInstance)
+	{
+		PlayerController->ClientEquipItem(PickaxeInstance->GetItemEntry()->GetItemGuid(), true);
+	}
 
 	return EndGhostModeOriginal(PlayerController);
 }

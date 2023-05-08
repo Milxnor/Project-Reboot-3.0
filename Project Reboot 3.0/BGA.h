@@ -45,8 +45,10 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 
 		auto LootDrops = PickLootDrops(SpawnLootTierGroup, false);
 
-		for (auto& LootDrop : LootDrops)
+		for (int z = 0; z < LootDrops.size(); z++)
 		{
+			auto& LootDrop = LootDrops.at(z);
+
 			static auto ConsumableClassOffset = LootDrop->GetItemDefinition()->GetOffset("ConsumableClass");
 			auto ConsumableClassSoft = LootDrop->GetItemDefinition()->GetPtr<TSoftObjectPtr<UClass>>(ConsumableClassOffset);
 
@@ -115,7 +117,8 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 
 				// ConsumableActor->InitializeBuildingActor(nullptr, nullptr, true); // idk UFortKismetLibrary::SpawnBuildingGameplayActor does this
 
-				LOG_INFO(LogDev, "Spawned BGA {} at {} {} {}", ConsumableActor->GetName(), FinalSpawnTransform.Translation.X, FinalSpawnTransform.Translation.Y, FinalSpawnTransform.Translation.Z);
+				LOG_INFO(LogDev, "[{}/{}] Spawned BGA {} at {} {} {}", z, LootDrops.size(), ConsumableActor->GetName(), FinalSpawnTransform.Translation.X, FinalSpawnTransform.Translation.Y, FinalSpawnTransform.Translation.Z);
+				break; // ?
 			}
 		}
 	}

@@ -9,6 +9,8 @@
 
 #include "reboot.h"
 
+#define REMOVE_ALL_ITEMS -1
+
 static bool IsPrimaryQuickbar(UFortItemDefinition* ItemDefinition)
 {
 	/* if (ItemDefinition->IsA(UFortDecoItemDefinition::StaticClass()))

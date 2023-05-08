@@ -118,9 +118,6 @@
     <ClCompile Include="FortPlaysetItemDefinition.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
-    <ClCompile Include="FortWeaponItemDefinition.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
-    </ClCompile>
     <ClCompile Include="FortInventoryInterface.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
@@ -267,6 +264,9 @@
     </ClCompile>
     <ClCompile Include="FortAthenaMapInfo.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortWeaponItemDefinition.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

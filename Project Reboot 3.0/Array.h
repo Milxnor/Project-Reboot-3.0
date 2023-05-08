@@ -71,6 +71,20 @@ public:
 		ArrayMax = v3;
 	}
 
+	int AddUnitialized2(SIZE_T NumBytesPerElement = sizeof(InElementType))
+	{
+		const int OldArrayNum = ArrayNum;
+
+		ArrayNum = OldArrayNum + 1;
+
+		if (ArrayNum > ArrayMax)
+		{
+			ResizeArray(ArrayNum, NumBytesPerElement);
+		}
+
+		return OldArrayNum;
+	}
+
 	void CopyFromArray(TArray<InElementType>& OtherArray, SIZE_T NumBytesPerElement = sizeof(InElementType))
 	{
 		if (!OtherArray.ArrayNum && !ArrayMax)
@@ -290,6 +304,18 @@ public:
 		}
 
 		return -1;
+	}
+
+	void FreeGood(SizeType Size = sizeof(InElementType))
+	{
+		static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(Addresses::Free);
+
+		if (FreeOriginal)
+			FreeOriginal(Data);
+
+		Data = nullptr;
+		ArrayNum = 0;
+		ArrayMax = 0;
 	}
 
 	void FreeReal(SizeType Size = sizeof(InElementType))

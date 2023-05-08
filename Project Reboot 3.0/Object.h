@@ -57,7 +57,7 @@ public:
 	FName GetFName() const { return NamePrivate; }
 
 	class UPackage* GetOutermost() const;
-	bool IsA(UClass* Other);
+	bool IsA(class UStruct* Other);
 	class UFunction* FindFunction(const std::string& ShortFunctionName);
 
 	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true);

@@ -1,11 +1,34 @@
 #include "FortItem.h"
 
 #include "FortWeaponItemDefinition.h"
+#include "AbilitySystemComponent.h"
+
+void FFortItemEntry::SetStateValue(EFortItemEntryState StateType, int IntValue)
+{
+	for (int i = 0; i < GetStateValues().Num(); i++)
+	{
+		if (GetStateValues().at(i).GetStateType() == StateType)
+		{
+			GetStateValues().at(i).GetIntValue() = IntValue;
+			return;
+		}
+	}
+
+	auto idx = GetStateValues().AddUnitialized2(FFortItemEntryStateValue::GetStructSize());
+
+	GetStateValues().AtPtr(idx, FFortItemEntryStateValue::GetStructSize())->GetIntValue() = IntValue;
+	GetStateValues().AtPtr(idx, FFortItemEntryStateValue::GetStructSize())->GetStateType() = StateType;
+	GetStateValues().AtPtr(idx, FFortItemEntryStateValue::GetStructSize())->GetNameValue() = FName(0);
+
+	// idk some parentinventory stuff here
+
+	// ItemEntry->bIsDirty = true;
+}
 
 FFortItemEntry* FFortItemEntry::MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count, int LoadedAmmo, float Durability)
 {
-	auto Entry = // (FFortItemEntry*)FMemory::Realloc(0, GetStructSize(), 0); 
-		Alloc<FFortItemEntry>(GetStructSize());
+	bool bUseFMemoryRealloc = false; // I don't think this works because sometimes we don't free it (oops).
+	auto Entry = Alloc<FFortItemEntry>(GetStructSize(), bUseFMemoryRealloc);
 
 	if (!Entry)
 		return nullptr;

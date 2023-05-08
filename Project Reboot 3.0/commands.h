@@ -221,6 +221,75 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, L"Printed!");
 		}
+		/* else if (Command == "debugattributes")
+		{
+			auto AbilitySystemComponent = ReceivingPlayerState->GetAbilitySystemComponent();
+
+			if (!AbilitySystemComponent)
+			{
+				SendMessageToConsole(PlayerController, L"No AbilitySystemComponent!");
+				return;
+			}
+
+			SendMessageToConsole(PlayerController, (L"AbilitySystemComponent->GetSpawnedAttributes().Num(): " + std::to_wstring(AbilitySystemComponent->GetSpawnedAttributes().Num())).c_str());
+
+			for (int i = 0; i < AbilitySystemComponent->GetSpawnedAttributes().Num(); i++)
+			{
+				auto CurrentAttributePathName = AbilitySystemComponent->GetSpawnedAttributes().at(i)->GetPathName();
+				SendMessageToConsole(PlayerController, (L"SpawnedAttribute Name: " + std::wstring(CurrentAttributePathName.begin(), CurrentAttributePathName.end())).c_str());
+			}
+		}
+		else if (Command == "debugcurrentitem")
+		{
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn!");
+				return;
+			}
+
+			auto CurrentWeapon = Pawn->GetCurrentWeapon();
+
+			if (!CurrentWeapon)
+			{
+				SendMessageToConsole(PlayerController, L"No CurrentWeapon!");
+				return;
+			}
+
+			auto WorldInventory = ReceivingController->GetWorldInventory();
+
+			if (!CurrentWeapon)
+			{
+				SendMessageToConsole(PlayerController, L"No WorldInventory!");
+				return;
+			}
+
+			auto ItemInstance = WorldInventory->FindItemInstance(CurrentWeapon->GetItemEntryGuid());
+			auto ReplicatedEntry = WorldInventory->FindReplicatedEntry(CurrentWeapon->GetItemEntryGuid());
+
+			if (!ItemInstance)
+			{
+				SendMessageToConsole(PlayerController, L"Failed to find ItemInstance!");
+				return;
+			}
+
+			if (!ReplicatedEntry)
+			{
+				SendMessageToConsole(PlayerController, L"Failed to find ReplicatedEntry!");
+				return;
+			}
+
+			SendMessageToConsole(PlayerController, (L"ReplicatedEntry->GetGenericAttributeValues().Num(): " + std::to_wstring(ReplicatedEntry->GetGenericAttributeValues().Num())).c_str());
+			SendMessageToConsole(PlayerController, (L"ReplicatedEntry->GetStateValues().Num(): " + std::to_wstring(ReplicatedEntry->GetStateValues().Num())).c_str());
+
+			for (int i = 0; i < ReplicatedEntry->GetStateValues().Num(); i++)
+			{
+				SendMessageToConsole(PlayerController, (L"[{}] StateValue Type: " 
+					+ std::to_wstring((int)ReplicatedEntry->GetStateValues().at(i, FFortItemEntryStateValue::GetStructSize()).GetStateType())).c_str()
+				);
+			}
+		} */
 		else if (Command == "setpickaxe")
 		{
 			if (NumArgs < 1)

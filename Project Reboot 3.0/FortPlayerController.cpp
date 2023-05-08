@@ -848,7 +848,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	bool bBuildFree = PlayerController->DoesBuildFree();
 
-	LOG_INFO(LogDev, "MatInstance->GetItemEntry()->GetCount(): {}", MatInstance->GetItemEntry()->GetCount());
+	// LOG_INFO(LogDev, "MatInstance->GetItemEntry()->GetCount(): {}", MatInstance->GetItemEntry()->GetCount());
 
 	bool bShouldDestroy = MatInstance && MatInstance->GetItemEntry() ? MatInstance->GetItemEntry()->GetCount() < 10 : true;
 
@@ -977,25 +977,73 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && (DropBehaviorOffset != -1 ? ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop : true))
 	{
-		/* if (auto GadgetItemDefintiion = Cast<UFortGadgetItemDefinition>(ItemDefinition))
+		if (false)
 		{
-			for (int i = 0; i < GadgetItemDefintiion->GetTrackedAttributes().Num(); i++)
+			if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition))
 			{
-				LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Name {}", i, GadgetItemDefintiion->GetTrackedAttributes().at(i).GetAttributePropertyName());
+				auto PlayerState = Cast<AFortPlayerState>(PlayerController->GetPlayerState());
+				auto ASC = PlayerState->GetAbilitySystemComponent();
 
-				PadHexA8 StateValue{}; // Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize(), true);
-				((FFortItemEntryStateValue*)&StateValue)->GetIntValue() = 1;
-				((FFortItemEntryStateValue*)&StateValue)->GetStateType() = EFortItemEntryState::GenericAttributeValueSet;
-				((FFortItemEntryStateValue*)&StateValue)->GetNameValue() = FName(0);
+				if (GadgetItemDefinition->GetTrackedAttributes().Num() > 0)
+				{
+					ReplicatedEntry->SetStateValue(EFortItemEntryState::GenericAttributeValueSet, 1);
+				}
 
-				ReplicatedEntry->GetStateValues().AddPtr((FFortItemEntryStateValue*)&StateValue, FFortItemEntryStateValue::GetStructSize());
+				std::vector<float> AttributeValueVector;
 
-				ReplicatedEntry->GetGenericAttributeValues().Add(9);
+				for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); i++)
+				{
+					auto& CurrentTrackedAttribute = GadgetItemDefinition->GetTrackedAttributes().at(i);
+
+					// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Property Name {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).GetAttributePropertyName());
+					// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Name {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).GetAttributeName());
+					// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Owner {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).AttributeOwner->GetPathName());
+
+					auto AbilitySystemComponent = PlayerState->GetAbilitySystemComponent();
+
+					int CurrentAttributeValue = -1;
+
+					for (int i = 0; i < AbilitySystemComponent->GetSpawnedAttributes().Num(); i++)
+					{
+						auto CurrentSpawnedAttribute = AbilitySystemComponent->GetSpawnedAttributes().at(i);
+
+						if (CurrentSpawnedAttribute->IsA(CurrentTrackedAttribute.AttributeOwner))
+						{
+							auto PropertyOffset = CurrentSpawnedAttribute->GetOffset(CurrentTrackedAttribute.GetAttributePropertyName());
+
+							if (PropertyOffset != -1)
+							{
+								CurrentAttributeValue = CurrentSpawnedAttribute->GetPtr<FFortGameplayAttributeData>(PropertyOffset)->GetCurrentValue();
+								break; // hm
+							}
+						}
+					}
+
+					// LOG_INFO(LogDev, "CurrentAttributeValue: {}", CurrentAttributeValue);
+
+					if (CurrentAttributeValue != -1) // Found the attribute.
+					{
+						// im so smart
+
+						AttributeValueVector.push_back(CurrentAttributeValue);
+					}
+				}
+
+				for (int z = 0; z < ReplicatedEntry->GetGenericAttributeValues().Num(); z++) // First value must be the current value // dont ask me why fortnite keeps the old values in it too..
+				{
+					AttributeValueVector.push_back(ReplicatedEntry->GetGenericAttributeValues().at(z));
+				}
+
+				ReplicatedEntry->GetGenericAttributeValues().Free();
+
+				for (auto& AttributeValue : AttributeValueVector)
+				{
+					ReplicatedEntry->GetGenericAttributeValues().Add(AttributeValue);
+				}
 			}
-		} */
+		}
 
-		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(),
-			EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn, nullptr, true, Count);
+		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(), EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn, nullptr, true, Count);
 
 		if (!Pickup)
 			return;
@@ -1337,7 +1385,6 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 			if (WorldInventory)
 			{
-
 				auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
 
 				std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;

@@ -64,7 +64,9 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 
 	if (Addresses::PickupInitialize)
 	{
-		static void (*SetupPickup)(AFortPickup * Pickup, __int64 ItemEntry, TArray<FFortItemEntry> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
+		// Honestly this is the god function, it automatically handles special actors and automatically adds to state values, who else knows what it does.
+
+		static void (*SetupPickup)(AFortPickup* Pickup, __int64 ItemEntry, TArray<FFortItemEntry> MultiItemPickupEntriesIGuess, bool bSplitOnPickup)
 			= decltype(SetupPickup)(Addresses::PickupInitialize);
 
 		TArray<FFortItemEntry> MultiItemPickupEntriesIGuess{};

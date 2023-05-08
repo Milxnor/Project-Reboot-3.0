@@ -190,7 +190,7 @@ namespace Bots
 		auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
-		auto AllBuildingContainers = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuildingContainer::StaticClass());
+		// auto AllBuildingContainers = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuildingContainer::StaticClass());
 
 		// for (int i = 0; i < GameMode->GetAlivePlayers().Num(); i++)
 		for (auto& PlayerBot : AllPlayerBotsToTick)
@@ -243,6 +243,6 @@ namespace Bots
 			} */
 		}
 
-		AllBuildingContainers.Free();
+		// AllBuildingContainers.Free();
 	}
 }

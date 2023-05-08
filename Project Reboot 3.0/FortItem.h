@@ -160,16 +160,11 @@ struct FFortItemEntry : FFastArraySerializerItem
 		static auto GenericAttributeValuesOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "GenericAttributeValues", false);
 
 		if (GenericAttributeValuesOffset != -1)
-		{
-			// proper copying
-			
+		{			
 			this->GetGenericAttributeValues().CopyFromArray(OtherItemEntry->GetGenericAttributeValues());
-
-			/* for (int i = 0; i < OtherItemEntry->GetGenericAttributeValues().Num(); i++)
-			{
-				this->GetGenericAttributeValues().Add(OtherItemEntry->GetGenericAttributeValues().at(i));
-			} */
 		}
+
+		this->GetStateValues().CopyFromArray(OtherItemEntry->GetStateValues(), FFortItemEntryStateValue::GetStructSize());
 
 		// should we do this?
 
@@ -177,6 +172,8 @@ struct FFortItemEntry : FFastArraySerializerItem
 		this->ReplicationID = -1;
 		this->ReplicationKey = -1;
 	}
+
+	void SetStateValue(EFortItemEntryState StateType, int IntValue);
 
 	static UStruct* GetStruct()
 	{
@@ -207,13 +204,13 @@ struct FFortItemEntry : FFastArraySerializerItem
 
 			if (GenericAttributeValuesOffset != -1)
 			{
-				Entry->GetGenericAttributeValues().Free();
+				Entry->GetGenericAttributeValues().FreeGood();
 			}
 
-			Entry->GetStateValues().Free();
+			Entry->GetStateValues().FreeGood();
 		}
 
-		RtlZeroMemory(Entry, FFortItemEntry::GetStructSize());
+		// RtlZeroMemory(Entry, FFortItemEntry::GetStructSize());
 	}
 
 	static void FreeArrayOfEntries(TArray<FFortItemEntry>& tarray)

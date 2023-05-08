@@ -24,7 +24,7 @@ namespace EFortPickupSourceTypeFlag
 		return ContainerValue;
 	}
 
-	static inline 	int64 GetFloorLootValue()
+	static inline int64 GetFloorLootValue()
 	{
 		static auto FloorLootValue = GetEnum() ? GetEnum()->GetValue("FloorLoot") : -1;
 		return FloorLootValue;
@@ -82,7 +82,7 @@ struct PickupCreateData
 	{
 		if (bShouldFreeItemEntryWhenDeconstructed)
 		{
-
+			// real
 		}
 	}
 };

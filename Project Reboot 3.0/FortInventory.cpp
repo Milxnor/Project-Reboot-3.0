@@ -132,19 +132,6 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 		NewItemInstances.push_back(NewItemInstance);
 
-		bool bEnableStateValues = false; // Addresses::FreeEntry;
-
-		if (bEnableStateValues)
-		{
-			// FFortItemEntryStateValue* StateValue = Alloc<FFortItemEntryStateValue>(FFortItemEntryStateValue::GetStructSize(), true);
-			PadHexA8 StateValue{};
-			((FFortItemEntryStateValue*)&StateValue)->GetIntValue() = bShowItemToast;
-			((FFortItemEntryStateValue*)&StateValue)->GetStateType() = EFortItemEntryState::ShouldShowItemToast;
-			((FFortItemEntryStateValue*)&StateValue)->GetNameValue() = FName(0);
-
-			NewItemInstance->GetItemEntry()->GetStateValues().AddPtr((FFortItemEntryStateValue*)&StateValue, FFortItemEntryStateValue::GetStructSize());
-		}
-
 		ItemInstances.Add(NewItemInstance);
 		auto ReplicatedEntryIdx = GetItemList().GetReplicatedEntries().Add(*NewItemInstance->GetItemEntry(), FFortItemEntry::GetStructSize());
 		// GetItemList().GetReplicatedEntries().AtPtr(ReplicatedEntryIdx, FFortItemEntry::GetStructSize())->GetIsReplicatedCopy() = true;
@@ -273,63 +260,54 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	int OldCount = Count;
 
-	bool bLikeReallyForce = false;
-
 	if (Count < 0) // idk why i have this
 	{
 		Count = 0;
 		bForceRemoval = true;
-		bLikeReallyForce = true;
 	}
 
 	auto& ItemInstances = GetItemList().GetItemInstances();
 	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
 
-	if (!bLikeReallyForce)
+	auto NewCount = ReplicatedEntry->GetCount() - Count;
+
+	bool bOverrideChangeStackSize = false;
+
+	if (ItemDefinition->ShouldPersistWhenFinalStackEmpty())
 	{
-		auto NewCount = ReplicatedEntry->GetCount() - Count;
+		bool bIsFinalStack = true;
 
-		bool bOverrideChangeStackSize = false;
-
-		if (ItemDefinition->ShouldPersistWhenFinalStackEmpty())
+		for (int i = 0; i < ItemInstances.Num(); i++)
 		{
-			bool bIsFinalStack = true;
+			auto ItemInstance = ItemInstances.at(i);
 
-			for (int i = 0; i < ItemInstances.Num(); i++)
+			if (ItemInstance->GetItemEntry()->GetItemDefinition() == ItemDefinition && ItemInstance->GetItemEntry()->GetItemGuid() != ItemGuid)
 			{
-				auto ItemInstance = ItemInstances.at(i);
-
-				if (ItemInstance->GetItemEntry()->GetItemDefinition() == ItemDefinition && ItemInstance->GetItemEntry()->GetItemGuid() != ItemGuid)
-				{
-					bIsFinalStack = false;
-					break;
-				}
-			}
-
-			if (bIsFinalStack)
-			{
-				NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot
-				bOverrideChangeStackSize = true;
+				bIsFinalStack = false;
+				break;
 			}
 		}
 
-		if (OldCount != -1 && (NewCount > 0 || bOverrideChangeStackSize))
+		if (bIsFinalStack)
 		{
-			ItemInstance->GetItemEntry()->GetCount() = NewCount;
-			ReplicatedEntry->GetCount() = NewCount;
-
-			GetItemList().MarkItemDirty(ItemInstance->GetItemEntry());
-			GetItemList().MarkItemDirty(ReplicatedEntry);
-
-			return true;
+			NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot
+			bOverrideChangeStackSize = true;
 		}
-
-		if (NewCount < 0) // Hm
-			return false;
 	}
 
-	static auto FortItemEntryStruct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntry");
-	static auto FortItemEntrySize = FortItemEntryStruct->GetPropertiesSize();
+	if (OldCount != -1 && (NewCount > 0 || bOverrideChangeStackSize))
+	{
+		ItemInstance->GetItemEntry()->GetCount() = NewCount;
+		ReplicatedEntry->GetCount() = NewCount;
+
+		GetItemList().MarkItemDirty(ItemInstance->GetItemEntry());
+		GetItemList().MarkItemDirty(ReplicatedEntry);
+
+		return true;
+	}
+
+	if (NewCount < 0) // Hm
+		return false;
 
 	auto FortPlayerController = Cast<AFortPlayerController>(GetOwner());
 
@@ -368,10 +346,10 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	for (int i = 0; i < ReplicatedEntries.Num(); i++)
 	{
-		if (ReplicatedEntries.at(i, FortItemEntrySize).GetItemGuid() == ItemGuid)
+		if (ReplicatedEntries.at(i, FFortItemEntry::GetStructSize()).GetItemGuid() == ItemGuid)
 		{
-			FFortItemEntry::FreeItemEntry(ReplicatedEntries.AtPtr(i, FortItemEntrySize));
-			ReplicatedEntries.Remove(i, FortItemEntrySize);
+			FFortItemEntry::FreeItemEntry(ReplicatedEntries.AtPtr(i, FFortItemEntry::GetStructSize()));
+			ReplicatedEntries.Remove(i, FFortItemEntry::GetStructSize());
 			break;
 		}
 	}

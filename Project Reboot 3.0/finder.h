@@ -424,7 +424,12 @@ static inline uint64 FindGetPlayerViewpoint()
 
 static inline uint64 FindFree()
 {
-	auto addr = Memcury::Scanner::FindPattern("48 85 C9 74 2E 53 48 83 EC 20 48 8B D9").Get();
+	return 0;
+
+	uint64 addr = 0;
+
+	if (Engine_Version >= 421 && Engine_Version <= 423)
+		addr = Memcury::Scanner::FindPattern("48 85 C9 74 2E 53 48 83 EC 20 48 8B D9").Get();
 
 	return addr;
 }
