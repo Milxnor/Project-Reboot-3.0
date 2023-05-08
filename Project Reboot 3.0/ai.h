@@ -6,7 +6,10 @@
 #include "KismetStringLibrary.h"
 #include "GameplayStatics.h"
 #include "FortPlayerPawn.h"
+#include "FortAthenaMutator.h"
 #include "FortPlayerController.h"
+#include "FortGameModeAthena.h"
+#include "FortGameStateAthena.h"
 #include "FortPlayerControllerAthena.h"
 
 using UNavigationSystemV1 = UObject;
@@ -68,7 +71,57 @@ static void SetNavigationSystem(AAthenaNavSystemConfigOverride* NavSystemOverrid
     AddNavigationSystemToWorldOriginal(*GetWorld(), EFNavigationSystemRunMode::GameMode, NavSystemOverride->Get("NavigationSystemConfig"), true, false);
 }
 
-static void SetupNavConfig()
+static void SetupServerBotManager()
+{
+    auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
+    static auto FortServerBotManagerClass = FindObject<UClass>("/Script/FortniteGame.FortServerBotManagerAthena"); // Is there a BP for this? // GameMode->ServerBotManagerClass
+
+    if (!FortServerBotManagerClass)
+        return;
+
+    static auto ServerBotManagerOffset = GameMode->GetOffset("ServerBotManager");
+    UObject*& ServerBotManager = GameMode->Get(ServerBotManagerOffset);
+
+    if (!ServerBotManager)
+        ServerBotManager = UGameplayStatics::SpawnObject(FortServerBotManagerClass, GetTransientPackage());
+
+    if (ServerBotManager)
+    {
+        static auto CachedGameModeOffset = ServerBotManager->GetOffset("CachedGameMode");
+        ServerBotManager->Get(CachedGameModeOffset) = GameMode;
+
+        static auto CachedGameStateOffset = ServerBotManager->GetOffset("CachedGameState");
+        ServerBotManager->Get(CachedGameStateOffset) = GameState;
+
+        static auto CachedBotMutatorOffset = ServerBotManager->GetOffset("CachedBotMutator");
+        ServerBotManager->Get(CachedBotMutatorOffset) = FindFirstMutator(FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator_Bots"));
+    }
+}
+
+static void SetupAIDirector()
+{
+    auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
+    static auto AIDirectorClass = FindObject<UClass>("/Script/FortniteGame.AthenaAIDirector"); // Probably wrong class
+
+    if (!AIDirectorClass)
+        return;
+
+    static auto AIDirectorOffset = GameMode->GetOffset("AIDirector");
+    
+    if (!GameMode->Get(AIDirectorOffset))
+        GameMode->Get(AIDirectorOffset) = GetWorld()->SpawnActor<AActor>(AIDirectorClass);
+
+    if (GameMode->Get(AIDirectorOffset))
+    {
+
+    }
+}
+
+static void SetupNavConfig(const FName& AgentName)
 {
     static auto AthenaNavSystemConfigOverrideClass = FindObject<UClass>("/Script/FortniteGame.AthenaNavSystemConfigOverride");
     auto NavSystemOverride = GetWorld()->SpawnActor<AActor>(AthenaNavSystemConfigOverrideClass);
@@ -85,7 +138,7 @@ static void SetupNavConfig()
     AthenaNavConfig->Get<bool>("bAutoSpawnMissingNavData") = true; // BITFIELD
     AthenaNavConfig->Get<bool>("bSpawnNavDataInNavBoundsLevel") = true; // BITFIELD
     AthenaNavConfig->Get<bool>("bUseNavigationInvokers") = false;
-    AthenaNavConfig->Get<FName>("DefaultAgentName") = UKismetStringLibrary::Conv_StringToName(L"Galileo");
+    AthenaNavConfig->Get<FName>("DefaultAgentName") = AgentName;
 
     // NavSystemOverride->Get<ENavSystemOverridePolicy>("OverridePolicy") = ENavSystemOverridePolicy::Append;
     NavSystemOverride->Get("NavigationSystemConfig") = AthenaNavConfig;

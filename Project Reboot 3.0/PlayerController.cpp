@@ -23,12 +23,6 @@ FRotator APlayerController::GetControlRotation()
 	return rot;
 }
 
-void APlayerController::Possess(class APawn* Pawn)
-{
-	static auto fn = FindObject<UFunction>(L"/Script/Engine.Controller.Possess");
-	this->ProcessEvent(fn, &Pawn);
-}
-
 void APlayerController::ServerRestartPlayer()
 {
 	static auto fn = FindObject<UFunction>(L"/Script/Engine.PlayerController.ServerRestartPlayer");

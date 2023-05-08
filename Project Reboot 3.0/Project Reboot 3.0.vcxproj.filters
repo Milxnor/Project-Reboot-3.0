@@ -232,15 +232,6 @@
     <ClCompile Include="FortSafeZoneIndicator.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
-    <ClCompile Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Mutators</Filter>
-    </ClCompile>
-    <ClCompile Include="FortAthenaMutator_Disco.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Mutators</Filter>
-    </ClCompile>
-    <ClCompile Include="FortAthenaMutator_Barrier.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Mutators</Filter>
-    </ClCompile>
     <ClCompile Include="GenericPlatformMath.cpp">
       <Filter>Engine\Source\Runtime\Core\Private\GenericPlatform</Filter>
     </ClCompile>
@@ -267,6 +258,15 @@
     </ClCompile>
     <ClCompile Include="FortWeaponItemDefinition.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="FortAthenaMutator_Barrier.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="FortAthenaMutator_Disco.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena\Modifiers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -745,38 +745,11 @@
     <ClInclude Include="FortSafeZoneIndicator.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
-    <ClInclude Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator_GG.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator_InventoryOverride_Bucket.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator_InventoryOverride.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator_ItemDropOnDeath.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator_Disco.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator_Heist.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
     <ClInclude Include="AthenaBarrierFlag.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors\Barrier</Filter>
     </ClInclude>
     <ClInclude Include="AthenaBarrierObjective.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors\Barrier</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator_Barrier.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
     </ClInclude>
     <ClInclude Include="AthenaBigBaseWall.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors\Barrier</Filter>
@@ -826,12 +799,6 @@
     <ClInclude Include="FortAthenaVehicleSpawner.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
-    <ClInclude Include="FortAthenaMutator_TDM.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
-    <ClInclude Include="FortAthenaMutator_LoadoutSwap.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Mutators</Filter>
-    </ClInclude>
     <ClInclude Include="discord.h" />
     <ClInclude Include="FortAthenaSupplyDrop.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building</Filter>
@@ -853,6 +820,39 @@
     </ClInclude>
     <ClInclude Include="gui.h">
       <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_Disco.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_Barrier.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_GG.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_Heist.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_InventoryOverride.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_ItemDropOnDeath.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_InventoryOverride_Bucket.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_TDM.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_LoadoutSwap.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1066,12 +1066,6 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena\Vehicle">
       <UniqueIdentifier>{b1cc2ad4-6196-455c-bda7-d0a2e7be2e70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="FortniteGame\Source\FortniteGame\Private\Mutators">
-      <UniqueIdentifier>{bfeeff9b-a86e-47a9-973c-47f6d0dfe5d5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="FortniteGame\Source\FortniteGame\Public\Mutators">
-      <UniqueIdentifier>{6efc7bff-2d7b-4fdb-bae8-3d2e736cc82e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Building\GameplayActors\Barrier">
       <UniqueIdentifier>{a633ca3f-f699-4c92-8522-e49a14157b95}</UniqueIdentifier>
     </Filter>
@@ -1089,6 +1083,15 @@
     </Filter>
     <Filter Include="Reboot\Private\Gameplay">
       <UniqueIdentifier>{52d438db-beaf-44be-bddd-9aeb07c2459f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena\Modifiers">
+      <UniqueIdentifier>{39656a6c-bfe1-4521-8652-aea0146564d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Athena">
+      <UniqueIdentifier>{411d5144-2703-4a96-a7b0-9f2a81abdead}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Athena\Modifiers">
+      <UniqueIdentifier>{ade44d65-f7a4-4fc9-ac38-637c84493b58}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -554,6 +554,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		GetWorld()->Listen();
 
+		SetupAIDirector();
+		SetupServerBotManager();
+
 		if (AmountOfBotsToSpawn != 0)
 		{
 			Bots::SpawnBotsAtPlayerStarts(AmountOfBotsToSpawn);

@@ -9,3 +9,9 @@ AActor* AController::GetViewTarget()
 	this->ProcessEvent(GetViewTargetFn, &ViewTarget);
 	return ViewTarget;
 }
+
+void AController::Possess(class APawn* Pawn)
+{
+	auto PossessFn = FindFunction("Possess");
+	this->ProcessEvent(PossessFn, &Pawn);
+}

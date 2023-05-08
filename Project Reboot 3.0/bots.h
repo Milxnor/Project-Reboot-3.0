@@ -7,22 +7,30 @@
 class PlayerBot
 {
 public:
-	AFortPlayerControllerAthena* PlayerController = nullptr;
+	AController* Controller = nullptr;
 	float NextJumpTime = 1.0f;
 
-	void Initialize(FTransform SpawnTransform)
+	void Initialize(const FTransform& SpawnTransform)
 	{
 		auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
+#if 0
 		static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+		static auto ControllerClass = AFortPlayerControllerAthena::StaticClass();
+#else
+		static auto PawnClass = FindObject<UClass>("/Game/Athena/AI/Phoebe/BP_PlayerPawn_Athena_Phoebe.BP_PlayerPawn_Athena_Phoebe_C");
+		static auto ControllerClass = FindObject<UClass>("/Game/Athena/AI/Phoebe/BP_PhoebePlayerController.BP_PhoebePlayerController_C");
+#endif
+
+		static auto FortAthenaAIBotControllerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAIBotController");
 
 		FActorSpawnParameters PawnSpawnParameters{};
 		PawnSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		PlayerController = GetWorld()->SpawnActor<AFortPlayerControllerAthena>(AFortPlayerControllerAthena::StaticClass());
+		Controller = GetWorld()->SpawnActor<AController>(ControllerClass);
 		AFortPlayerPawnAthena* Pawn = GetWorld()->SpawnActor<AFortPlayerPawnAthena>(PawnClass, SpawnTransform, PawnSpawnParameters);
-		AFortPlayerStateAthena* PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
+		AFortPlayerStateAthena* PlayerState = Cast<AFortPlayerStateAthena>(Controller->GetPlayerState());
 
 		if (!Pawn || !PlayerState)
 			return;
@@ -33,10 +41,12 @@ public:
 
 		FString NewName = (L"RebootBot" + BotNumWStr).c_str();
 
-		PlayerController->ServerChangeName(NewName);
+		if (auto PlayerController = Cast<APlayerController>(Controller))
+			PlayerController->ServerChangeName(NewName);
+
 		PlayerState->OnRep_PlayerName();
 
-		PlayerState->GetTeamIndex() = GameMode->Athena_PickTeamHook(GameMode, 0, PlayerController);
+		PlayerState->GetTeamIndex() = GameMode->Athena_PickTeamHook(GameMode, 0, Controller);
 
 		static auto SquadIdOffset = PlayerState->GetOffset("SquadId", false);
 
@@ -70,51 +80,84 @@ public:
 
 		*/
 
-		PlayerController->Possess(Pawn);
+		Controller->Possess(Pawn);
 
 		Pawn->SetHealth(100);
 		Pawn->SetMaxHealth(100);
 
-		FActorSpawnParameters WorldInventorySpawnParameters{};
-		WorldInventorySpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		WorldInventorySpawnParameters.Owner = PlayerController;
+		AFortInventory** Inventory = nullptr;
 
-		FTransform WorldInventorySpawnTransform{};
-
-		static auto FortInventoryClass = FindObject<UClass>("/Script/FortniteGame.FortInventory"); // AFortInventory::StaticClass()
-		PlayerController->GetWorldInventory() = GetWorld()->SpawnActor<AFortInventory>(FortInventoryClass, WorldInventorySpawnTransform, WorldInventorySpawnParameters);
-
-		if (!PlayerController->GetWorldInventory())
+		if (auto FortPlayerController = Cast<AFortPlayerController>(Controller))
 		{
-			LOG_ERROR(LogBots, "Failed to spawn WorldInventory!");
+			Inventory = &FortPlayerController->GetWorldInventory();
+		}
+		else
+		{
+			if (Controller->IsA(FortAthenaAIBotControllerClass))
+			{
+				static auto InventoryOffset = Controller->GetOffset("Inventory");
+				Inventory = Controller->GetPtr<AFortInventory*>(InventoryOffset);
+			}
+		}
+
+		if (!Inventory)
+		{
+			LOG_ERROR(LogBots, "No inventory pointer!");
 
 			Pawn->K2_DestroyActor();
-			PlayerController->K2_DestroyActor();
+			Controller->K2_DestroyActor();
 			return;
 		}
 
-		PlayerController->GetWorldInventory()->GetInventoryType() = EFortInventoryType::World;
+		FActorSpawnParameters InventorySpawnParameters{};
+		InventorySpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		InventorySpawnParameters.Owner = Controller;
 
-		static auto bHasInitializedWorldInventoryOffset = PlayerController->GetOffset("bHasInitializedWorldInventory");
-		PlayerController->Get<bool>(bHasInitializedWorldInventoryOffset) = true;
+		FTransform InventorySpawnTransform{};
 
-		auto& StartingItems = GameMode->GetStartingItems();
+		static auto FortInventoryClass = FindObject<UClass>("/Script/FortniteGame.FortInventory"); // AFortInventory::StaticClass()
+		*Inventory = GetWorld()->SpawnActor<AFortInventory>(FortInventoryClass, InventorySpawnTransform, InventorySpawnParameters);
 
-		auto PickaxeInstance = PlayerController->AddPickaxeToInventory();
-
-		for (int i = 0; i < StartingItems.Num(); i++)
+		if (!*Inventory)
 		{
-			auto& StartingItem = StartingItems.at(i);
+			LOG_ERROR(LogBots, "Failed to spawn Inventory!");
 
-			PlayerController->GetWorldInventory()->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
+			Pawn->K2_DestroyActor();
+			Controller->K2_DestroyActor();
+			return;
 		}
 
-		if (PickaxeInstance)
+		(*Inventory)->GetInventoryType() = EFortInventoryType::World;
+
+		if (auto FortPlayerController = Cast<AFortPlayerController>(Controller))
 		{
-			PlayerController->ServerExecuteInventoryItemHook(PlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid());
+			static auto bHasInitializedWorldInventoryOffset = FortPlayerController->GetOffset("bHasInitializedWorldInventory");
+			FortPlayerController->Get<bool>(bHasInitializedWorldInventoryOffset) = true;
 		}
 
-		PlayerController->GetWorldInventory()->Update();
+		if (false)
+		{
+			if (Inventory)
+			{
+				auto& StartingItems = GameMode->GetStartingItems();
+
+				UFortItem* PickaxeInstance = nullptr; // PlayerController->AddPickaxeToInventory();
+
+				for (int i = 0; i < StartingItems.Num(); i++)
+				{
+					auto& StartingItem = StartingItems.at(i);
+
+					(*Inventory)->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
+				}
+
+				if (PickaxeInstance)
+				{
+					// PlayerController->ServerExecuteInventoryItemHook(PlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid());
+				}
+
+				(*Inventory)->Update();
+			}
+		}
 
 		/* static auto HeroType = FindObject(L"/Game/Athena/Heroes/HID_115_Athena_Commando_M_CarbideBlue.HID_115_Athena_Commando_M_CarbideBlue");
 
@@ -131,15 +174,16 @@ public:
 			PlayerAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
 		}
 
-		PlayerController->GetCosmeticLoadout()->GetCharacter() = FindObject("/Game/Athena/Items/Cosmetics/Characters/CID_263_Athena_Commando_F_MadCommander.CID_263_Athena_Commando_F_MadCommander");
-		Pawn->GetCosmeticLoadout()->GetCharacter() = PlayerController->GetCosmeticLoadout()->GetCharacter();
+		// PlayerController->GetCosmeticLoadout()->GetCharacter() = FindObject("/Game/Athena/Items/Cosmetics/Characters/CID_263_Athena_Commando_F_MadCommander.CID_263_Athena_Commando_F_MadCommander");
+		// Pawn->GetCosmeticLoadout()->GetCharacter() = PlayerController->GetCosmeticLoadout()->GetCharacter();
 
-		PlayerController->ApplyCosmeticLoadout();
+		// PlayerController->ApplyCosmeticLoadout();
 
 		GameState->GetPlayersLeft()++;
 		GameState->OnRep_PlayersLeft();
 
-		GameMode->GetAlivePlayers().Add(PlayerController);
+		if (auto FortPlayerControllerAthena = Cast<AFortPlayerControllerAthena>(Controller))
+			GameMode->GetAlivePlayers().Add(FortPlayerControllerAthena);
 	}
 };
 
@@ -147,12 +191,12 @@ static std::vector<PlayerBot> AllPlayerBotsToTick;
 
 namespace Bots
 {
-	static AFortPlayerControllerAthena* SpawnBot(FTransform SpawnTransform)
+	static AController* SpawnBot(FTransform SpawnTransform)
 	{
 		auto playerBot = PlayerBot();
 		playerBot.Initialize(SpawnTransform);
 		AllPlayerBotsToTick.push_back(playerBot);
-		return playerBot.PlayerController;
+		return playerBot.Controller;
 	}
 
 	static void SpawnBotsAtPlayerStarts(int AmountOfBots)
@@ -195,12 +239,12 @@ namespace Bots
 		// for (int i = 0; i < GameMode->GetAlivePlayers().Num(); i++)
 		for (auto& PlayerBot : AllPlayerBotsToTick)
 		{
-			auto CurrentPlayer = PlayerBot.PlayerController;
+			auto CurrentPlayer = PlayerBot.Controller;
 
 			if (CurrentPlayer->IsActorBeingDestroyed())
 				continue;
 
-			auto CurrentPawn = CurrentPlayer->GetMyFortPawn();
+			auto CurrentPawn = CurrentPlayer->GetPawn();
 
 			auto CurrentPlayerState = Cast<AFortPlayerStateAthena>(CurrentPlayer->GetPlayerState());
 
