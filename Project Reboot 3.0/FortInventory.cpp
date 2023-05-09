@@ -115,6 +115,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 		CreateData.SpawnLocation = Pawn->GetActorLocation();
 		CreateData.PawnOwner = Cast<AFortPawn>(Pawn);
 		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
+		CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
 		AFortPickup::SpawnPickup(CreateData);
 		return std::make_pair(NewItemInstances, ModifiedItemInstances);
@@ -238,7 +239,13 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 
 	auto ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, Count, LoadedAmmo);
 	auto Ret = AddItem(ItemEntry, bShouldUpdate, bShowItemToast);
-	// VirtualFree(ItemEntry);
+
+	if (!bUseFMemoryRealloc)
+	{
+		FFortItemEntry::FreeItemEntry(ItemEntry);
+		VirtualFree(ItemEntry, 0, MEM_RELEASE);
+	}
+
 	return Ret;
 }
 

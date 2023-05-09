@@ -43,7 +43,7 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 		static auto SpawnLootTierGroupOffset = BGAConsumableSpawner->GetOffset("SpawnLootTierGroup");
 		auto& SpawnLootTierGroup = BGAConsumableSpawner->Get<FName>(SpawnLootTierGroupOffset);
 
-		auto LootDrops = PickLootDrops(SpawnLootTierGroup, false);
+		auto LootDrops = PickLootDrops(SpawnLootTierGroup);
 
 		for (int z = 0; z < LootDrops.size(); z++)
 		{

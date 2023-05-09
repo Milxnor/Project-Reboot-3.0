@@ -71,15 +71,31 @@ public:
 		ArrayMax = v3;
 	}
 
-	int AddUnitialized2(SIZE_T NumBytesPerElement = sizeof(InElementType))
+	void RefitArray(SIZE_T NumBytesPerElement = sizeof(InElementType))
+	{
+		auto newNum = ArrayNum;
+
+		// newNum = FMemory::QuantizeSize(NumBytesPerElement * newNum, 0) >> 4
+
+		ArrayMax = newNum;
+
+		if (Data || ArrayNum)
+		{
+			Data = false ? (InElementType*)VirtualAlloc(0, newNum * NumBytesPerElement, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE) :
+				(InElementType*)FMemory::Realloc(Data, newNum * NumBytesPerElement, 0);
+		}
+	}
+
+	int AddUninitialized2(SIZE_T NumBytesPerElement = sizeof(InElementType))
 	{
 		const int OldArrayNum = ArrayNum;
 
 		ArrayNum = OldArrayNum + 1;
 
-		if (ArrayNum > ArrayMax)
+		if (OldArrayNum + 1 > ArrayMax)
 		{
-			ResizeArray(ArrayNum, NumBytesPerElement);
+			RefitArray(NumBytesPerElement);
+			// ResizeArray(ArrayNum, NumBytesPerElement);
 		}
 
 		return OldArrayNum;
@@ -87,7 +103,7 @@ public:
 
 	void CopyFromArray(TArray<InElementType>& OtherArray, SIZE_T NumBytesPerElement = sizeof(InElementType))
 	{
-		if (!OtherArray.ArrayNum && !ArrayMax)
+		if (!OtherArray.ArrayNum && !ArrayMax) // so if the new array has nothing, and we currently have nothing allocated, then we can just return
 		{
 			ArrayMax = 0;
 			return;
@@ -235,7 +251,7 @@ public:
 		ArrayMax = ArrayNum; // CalculateSlackGrow(/* ArrayNum */ OldNum, ArrayMax, Size);
 		// AllocatorInstance.ResizeAllocation(OldNum, ArrayMax, sizeof(ElementType));
 		// LOG_INFO(LogMemory, "ArrayMax: {} Size: {}", ArrayMax, Size);
-		Data = (InElementType*)FMemory::Realloc(Data, ArrayMax * Size, 0);
+		Data = (InElementType*)FMemory::Realloc(Data, ArrayNum * Size, 0);
 	}
 
 	FORCEINLINE int32 AddUninitialized(int32 Count = 1, size_t Size = sizeof(InElementType))
@@ -308,10 +324,17 @@ public:
 
 	void FreeGood(SizeType Size = sizeof(InElementType))
 	{
-		static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(Addresses::Free);
+		if (true)
+		{
+			static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(Addresses::Free);
 
-		if (FreeOriginal)
-			FreeOriginal(Data);
+			if (FreeOriginal)
+				FreeOriginal(Data);
+		}
+		else
+		{
+			VirtualFree(Data, 0, MEM_RELEASE);
+		}
 
 		Data = nullptr;
 		ArrayNum = 0;

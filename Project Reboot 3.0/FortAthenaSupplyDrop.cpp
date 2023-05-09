@@ -79,6 +79,7 @@ AFortPickup* AFortAthenaSupplyDrop::SpawnPickupHook(UObject* Context, FFrame& St
 	CreateData.SpawnLocation = Position;
 	CreateData.PawnOwner = TriggeringPawn;
 	CreateData.Source = EFortPickupSpawnSource::GetSupplyDropValue();
+	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
 	*Ret = AFortPickup::SpawnPickup(CreateData);
 	return *Ret;

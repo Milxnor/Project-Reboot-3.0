@@ -212,7 +212,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			auto& lootTierGroup = Arguments[1];
 
-			auto LootDrops = PickLootDrops(UKismetStringLibrary::Conv_StringToName(std::wstring(lootTierGroup.begin(), lootTierGroup.end()).c_str()), true);
+			auto LootDrops = PickLootDrops(UKismetStringLibrary::Conv_StringToName(std::wstring(lootTierGroup.begin(), lootTierGroup.end()).c_str()), -1, true);
 
 			for (int i = 0; i < LootDrops.size(); i++)
 			{
@@ -442,6 +442,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			PickupCreateData CreateData;
 			CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(WID, count, -1);
 			CreateData.SpawnLocation = Location;
+			CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
 			AFortPickup::SpawnPickup(CreateData);
 		}

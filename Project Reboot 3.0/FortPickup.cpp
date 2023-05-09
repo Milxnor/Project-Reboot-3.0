@@ -78,6 +78,72 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 		PrimaryPickupItemEntry->CopyFromAnotherItemEntry(PickupData.ItemEntry);
 	}
 
+	if (false && PlayerState)
+	{
+		if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(PrimaryPickupItemEntry->GetItemDefinition()))
+		{
+			auto ASC = PlayerState->GetAbilitySystemComponent();
+
+			if (GadgetItemDefinition->GetTrackedAttributes().Num() > 0)
+			{
+				PrimaryPickupItemEntry->SetStateValue(EFortItemEntryState::GenericAttributeValueSet, 1);
+			}
+
+			std::vector<float> AttributeValueVector;
+
+			for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); i++)
+			{
+				auto& CurrentTrackedAttribute = GadgetItemDefinition->GetTrackedAttributes().at(i);
+
+				// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Property Name {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).GetAttributePropertyName());
+				// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Name {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).GetAttributeName());
+				// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Owner {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).AttributeOwner->GetPathName());
+
+				if (!ASC)
+					break;
+
+				int CurrentAttributeValue = -1;
+
+				for (int i = 0; i < ASC->GetSpawnedAttributes().Num(); i++)
+				{
+					auto CurrentSpawnedAttribute = ASC->GetSpawnedAttributes().at(i);
+
+					if (CurrentSpawnedAttribute->IsA(CurrentTrackedAttribute.AttributeOwner))
+					{
+						auto PropertyOffset = CurrentSpawnedAttribute->GetOffset(CurrentTrackedAttribute.GetAttributePropertyName());
+
+						if (PropertyOffset != -1)
+						{
+							CurrentAttributeValue = CurrentSpawnedAttribute->GetPtr<FFortGameplayAttributeData>(PropertyOffset)->GetCurrentValue();
+							break; // hm
+						}
+					}
+				}
+
+				// LOG_INFO(LogDev, "CurrentAttributeValue: {}", CurrentAttributeValue);
+
+				if (CurrentAttributeValue != -1) // Found the attribute.
+				{
+					// im so smart
+
+					AttributeValueVector.push_back(CurrentAttributeValue);
+				}
+			}
+
+			for (int z = 0; z < PrimaryPickupItemEntry->GetGenericAttributeValues().Num(); z++) // First value must be the current value // dont ask me why fortnite keeps the old values in it too..
+			{
+				AttributeValueVector.push_back(PrimaryPickupItemEntry->GetGenericAttributeValues().at(z));
+			}
+
+			PrimaryPickupItemEntry->GetGenericAttributeValues().Free();
+
+			for (auto& AttributeValue : AttributeValueVector)
+			{
+				// ReplicatedEntry->GetGenericAttributeValues().Add(AttributeValue);
+			}
+		}
+	}
+
 	static auto PickupSourceTypeFlagsOffset = Pickup->GetOffset("PickupSourceTypeFlags", false);
 
 	if (PickupSourceTypeFlagsOffset != -1)
@@ -209,6 +275,7 @@ void AFortPickup::CombinePickupHook(AFortPickup* Pickup)
 		CreateData.PawnOwner = ItemOwner;
 		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
 		CreateData.IgnoreCombineTarget = PickupToCombineInto;
+		CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
 		auto NewOverStackPickup = AFortPickup::SpawnPickup(CreateData);
 	}

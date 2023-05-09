@@ -7,10 +7,6 @@
 #include "GameplayTagContainer.h"
 #include "FortGameModeAthena.h"
 
-#include <random>
-#include <map>
-#include <numeric>
-
 struct FFortGameFeatureLootTableData
 {
     TSoftObjectPtr<UDataTable> LootTierData;
@@ -18,10 +14,6 @@ struct FFortGameFeatureLootTableData
 };
 
 #ifdef EXPERIMENTAL_LOOTING
-float RandomFloatForLoot(float AllWeightsSum)
-{
-    return (rand() * 0.000030518509) * AllWeightsSum;
-}
 
 template <typename RowStructType = uint8>
 void CollectDataTablesRows(std::vector<UDataTable*> DataTables, std::map<FName, RowStructType*>* OutMap, std::function<bool(FName, RowStructType*)> Check = []() { return true; })
@@ -57,54 +49,6 @@ void CollectDataTablesRows(std::vector<UDataTable*> DataTables, std::map<FName, 
                 (*OutMap)[CurrentPair.Key()] = (RowStructType*)CurrentPair.Value();
         }
     }
-}
-
-template <typename T>
-static T* PickWeightedElement(const std::map<FName, T*>& Elements, std::function<float(T*)> GetWeightFn, float TotalWeightParam = -1, bool bCheckIfWeightIsZero = false, int RandMultiplier = 1, FName* OutName = nullptr, bool bPrint = false)
-{
-    float TotalWeight = TotalWeightParam;
-
-    if (TotalWeight == -1)
-    {
-        TotalWeight = std::accumulate(Elements.begin(), Elements.end(), 0.0f, [&](float acc, const std::pair<FName, T*>& p) {
-            auto Weight = GetWeightFn(p.second);
-
-            if (bPrint && Weight != 0)
-            {
-                LOG_INFO(LogLoot, "Adding weight: {}", Weight);
-            }
-
-            return acc + Weight;
-            });
-    }
-
-    float RandomNumber = // UKismetMathLibrary::RandomFloatInRange(0, TotalWeight);
-        RandMultiplier * RandomFloatForLoot(TotalWeight);
-
-    if (bPrint)
-    {
-        LOG_INFO(LogLoot, "RandomNumber: {} TotalWeight: {}", RandomNumber, TotalWeight);
-    }
-
-    for (auto& Element : Elements)
-    {
-        float Weight = GetWeightFn(Element.second);
-
-        if (bCheckIfWeightIsZero && Weight == 0)
-            continue;
-
-        if (RandomNumber <= Weight)
-        {           
-            if (OutName)
-                *OutName = Element.first;
-
-            return  Element.second;
-        }
-
-        RandomNumber -= Weight;
-    }
-
-    return nullptr;
 }
 
 int GetItemLevel(const FDataTableCategoryHandle& LootLevelData, int WorldLevel)
@@ -200,18 +144,20 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
 
 FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int WorldLevel = 0, int ForcedLootTier = -1, FName* OutRowName = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
 {
+    // This like isn't right, at all.
+
     float LootTier = ForcedLootTier;
 
     if (LootTier == -1)
     {
-        LootTier = 0;
+        // LootTier = 0;
     }
     else
     {
         // buncha code im too lazy to reverse
     }
 
-    LootTier = 1; // ONG PROPER
+    // IDIakuuyg8712u091fj120gvik
 
     // if (fabs(LootTier) <= 0.0000000099999999)
       //  return 0;
@@ -219,7 +165,7 @@ FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, F
     std::map<FName, FFortLootTierData*> TierGroupLTDs;
 
     CollectDataTablesRows<FFortLootTierData>(LTDTables, &TierGroupLTDs, [&](FName RowName, FFortLootTierData* TierData) -> bool {
-        if (LootTierGroup == TierData->GetTierGroup())
+        if (LootTierGroup == TierData->GetTierGroup() && (LootTier == -1 ? true : LootTier == TierData->GetLootTier()))
         {
             return true;
         }
@@ -227,9 +173,9 @@ FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, F
         return false;
         });
 
-    FFortLootTierData* ChosenRowLootTierData = PickWeightedElement<FFortLootTierData>(TierGroupLTDs,
-        [](FFortLootTierData* LootTierData) -> float { return LootTierData->GetWeight(); }, -1,
-        true, LootTier, OutRowName);
+    FFortLootTierData* ChosenRowLootTierData = PickWeightedElement<FName, FFortLootTierData*>(TierGroupLTDs,
+        [](FFortLootTierData* LootTierData) -> float { return LootTierData->GetWeight(); }, RandomFloatForLoot, -1,
+        true, LootTier == -1 ? 1 : LootTier, OutRowName);
 
     if (!ChosenRowLootTierData)
         return nullptr;
@@ -274,8 +220,8 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
     }
 
     FName PickedPackageRowName;
-    FFortLootPackageData* PickedPackage = PickWeightedElement<FFortLootPackageData>(LootPackageIDMap,
-        [](FFortLootPackageData* LootPackageData) -> float { return LootPackageData->GetWeight(); },
+    FFortLootPackageData* PickedPackage = PickWeightedElement<FName, FFortLootPackageData*>(LootPackageIDMap,
+        [](FFortLootPackageData* LootPackageData) -> float { return LootPackageData->GetWeight(); }, RandomFloatForLoot,
         -1, true, 1, &PickedPackageRowName, bPrint);
 
     if (!PickedPackage)
@@ -377,7 +323,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
     }
 }
 
-std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recursive)
+std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, bool bPrint, int recursive)
 {
     std::vector<LootDrop> LootDrops;
 
@@ -659,7 +605,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, bool bPrint, int recurs
     }
     
     FName LootTierRowName;
-    auto ChosenRowLootTierData = PickLootTierData(LTDTables, TierGroupName, 0, -1, &LootTierRowName);
+    auto ChosenRowLootTierData = PickLootTierData(LTDTables, TierGroupName, 0, ForcedLootTier, &LootTierRowName);
 
     if (!ChosenRowLootTierData)
     {

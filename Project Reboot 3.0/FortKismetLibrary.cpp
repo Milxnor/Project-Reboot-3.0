@@ -140,6 +140,8 @@ void UFortKismetLibrary::SpawnItemVariantPickupInWorldHook(UObject* Context, FFr
 	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, ParamsPtr->GetNumberToSpawn(), -1);
 	CreateData.SourceType = ParamsPtr->GetSourceType();
 	CreateData.Source = ParamsPtr->GetSource();
+	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
+
 	auto Pickup = AFortPickup::SpawnPickup(CreateData);
 
 	return SpawnItemVariantPickupInWorldOriginal(Context, Stack, Ret);
@@ -228,6 +230,7 @@ void UFortKismetLibrary::CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHo
 	CreateData.SourceType = SourceTypeFlag;
 	CreateData.Source = SpawnSource;
 	CreateData.SpawnLocation = Location;
+	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
 	auto AmmoPickup = AFortPickup::SpawnPickup(CreateData);
 
@@ -511,6 +514,7 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 	CreateData.OverrideClass = PickupClass;
 	CreateData.bToss = bToss;
 	CreateData.bRandomRotation = bRandomRotation;
+	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
 	auto NewPickup = AFortPickup::SpawnPickup(CreateData);
 
@@ -597,7 +601,7 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 
 	LOG_INFO(LogDev, "Picking loot for {}.", TierGroupName.ComparisonIndex.Value ? TierGroupName.ToString() : "InvalidName");
 
-	auto LootDrops = PickLootDrops(TierGroupName, true);
+	auto LootDrops = PickLootDrops(TierGroupName, -1, true);
 
 	for (int i = 0; i < LootDrops.size(); i++)
 	{

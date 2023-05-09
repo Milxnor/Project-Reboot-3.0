@@ -112,7 +112,7 @@ void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>
 			continue;
 	
 		PickupCreateData CreateData;
-		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(WorldItemDefinition, ItemEntry->GetCount(), ItemEntry->GetLoadedAmmo());
+		CreateData.ItemEntry = ItemEntry;
 		CreateData.SpawnLocation = Location;
 		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
 
@@ -595,6 +595,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 			CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(Entry->GetItemDefinition(), Entry->GetCount(), Entry->GetLoadedAmmo());
 			CreateData.SpawnLocation = LocationToSpawnLoot;
 			CreateData.PawnOwner = PlayerController->GetMyFortPawn(); // hmm
+			CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
 			AFortPickup::SpawnPickup(CreateData);
 		}
@@ -977,72 +978,6 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && (DropBehaviorOffset != -1 ? ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop : true))
 	{
-		if (false)
-		{
-			if (auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemDefinition))
-			{
-				auto PlayerState = Cast<AFortPlayerState>(PlayerController->GetPlayerState());
-				auto ASC = PlayerState->GetAbilitySystemComponent();
-
-				if (GadgetItemDefinition->GetTrackedAttributes().Num() > 0)
-				{
-					ReplicatedEntry->SetStateValue(EFortItemEntryState::GenericAttributeValueSet, 1);
-				}
-
-				std::vector<float> AttributeValueVector;
-
-				for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); i++)
-				{
-					auto& CurrentTrackedAttribute = GadgetItemDefinition->GetTrackedAttributes().at(i);
-
-					// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Property Name {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).GetAttributePropertyName());
-					// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Name {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).GetAttributeName());
-					// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Owner {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).AttributeOwner->GetPathName());
-
-					auto AbilitySystemComponent = PlayerState->GetAbilitySystemComponent();
-
-					int CurrentAttributeValue = -1;
-
-					for (int i = 0; i < AbilitySystemComponent->GetSpawnedAttributes().Num(); i++)
-					{
-						auto CurrentSpawnedAttribute = AbilitySystemComponent->GetSpawnedAttributes().at(i);
-
-						if (CurrentSpawnedAttribute->IsA(CurrentTrackedAttribute.AttributeOwner))
-						{
-							auto PropertyOffset = CurrentSpawnedAttribute->GetOffset(CurrentTrackedAttribute.GetAttributePropertyName());
-
-							if (PropertyOffset != -1)
-							{
-								CurrentAttributeValue = CurrentSpawnedAttribute->GetPtr<FFortGameplayAttributeData>(PropertyOffset)->GetCurrentValue();
-								break; // hm
-							}
-						}
-					}
-
-					// LOG_INFO(LogDev, "CurrentAttributeValue: {}", CurrentAttributeValue);
-
-					if (CurrentAttributeValue != -1) // Found the attribute.
-					{
-						// im so smart
-
-						AttributeValueVector.push_back(CurrentAttributeValue);
-					}
-				}
-
-				for (int z = 0; z < ReplicatedEntry->GetGenericAttributeValues().Num(); z++) // First value must be the current value // dont ask me why fortnite keeps the old values in it too..
-				{
-					AttributeValueVector.push_back(ReplicatedEntry->GetGenericAttributeValues().at(z));
-				}
-
-				ReplicatedEntry->GetGenericAttributeValues().Free();
-
-				for (auto& AttributeValue : AttributeValueVector)
-				{
-					ReplicatedEntry->GetGenericAttributeValues().Add(AttributeValue);
-				}
-			}
-		}
-
 		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(), EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn, nullptr, true, Count);
 
 		if (!Pickup)
@@ -1414,7 +1349,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 						continue;
 
 					PickupCreateData CreateData;
-					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(WorldItemDefinition, ItemEntry->GetCount(), ItemEntry->GetLoadedAmmo());
+					CreateData.ItemEntry = ItemEntry;
 					CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
 					CreateData.Source = EFortPickupSpawnSource::GetPlayerEliminationValue();
 					CreateData.SpawnLocation = DeathLocation;

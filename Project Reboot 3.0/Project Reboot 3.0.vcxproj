@@ -234,6 +234,7 @@
     <ClCompile Include="GameplayStatics.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="GenericPlatformMath.cpp" />
+    <ClCompile Include="inc.cpp" />
     <ClCompile Include="InventoryManagementLibrary.cpp" />
     <ClCompile Include="KismetMathLibrary.cpp" />
     <ClCompile Include="KismetStringLibrary.cpp" />

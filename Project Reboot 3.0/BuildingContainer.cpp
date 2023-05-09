@@ -14,7 +14,7 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 
 	// LOG_INFO(LogInteraction, "RedirectedLootTier: {}", RedirectedLootTier.ToString());
 
-	auto LootDrops = PickLootDrops(RedirectedLootTier, bDebugPrintLooting);
+	auto LootDrops = PickLootDrops(RedirectedLootTier, -1, bDebugPrintLooting);
 
 	// LOG_INFO(LogInteraction, "LootDrops.size(): {}", LootDrops.size());
 

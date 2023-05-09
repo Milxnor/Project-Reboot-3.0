@@ -15,13 +15,30 @@ public:
 		auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
-#if 0
-		static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
-		static auto ControllerClass = AFortPlayerControllerAthena::StaticClass();
-#else
-		static auto PawnClass = FindObject<UClass>("/Game/Athena/AI/Phoebe/BP_PlayerPawn_Athena_Phoebe.BP_PlayerPawn_Athena_Phoebe_C");
-		static auto ControllerClass = FindObject<UClass>("/Game/Athena/AI/Phoebe/BP_PhoebePlayerController.BP_PhoebePlayerController_C");
-#endif
+		static UClass* PawnClass = nullptr;
+		static UClass* ControllerClass = nullptr;
+
+		if (!PawnClass)
+		{
+			if (true)
+				PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+			else
+				PawnClass = FindObject<UClass>("/Game/Athena/AI/Phoebe/BP_PlayerPawn_Athena_Phoebe.BP_PlayerPawn_Athena_Phoebe_C");
+		}
+
+		if (!ControllerClass)
+		{
+			if (true)
+				ControllerClass = AFortPlayerControllerAthena::StaticClass();
+			else
+				ControllerClass = FindObject<UClass>("/Game/Athena/AI/Phoebe/BP_PhoebePlayerController.BP_PhoebePlayerController_C");
+		}
+
+		if (!ControllerClass || !PawnClass)
+		{
+			LOG_ERROR(LogBots, "Failed to find a class for the bots!");
+			return;
+		}
 
 		static auto FortAthenaAIBotControllerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAIBotController");
 
@@ -135,13 +152,11 @@ public:
 			FortPlayerController->Get<bool>(bHasInitializedWorldInventoryOffset) = true;
 		}
 
-		if (false)
+		// if (false)
 		{
 			if (Inventory)
 			{
 				auto& StartingItems = GameMode->GetStartingItems();
-
-				UFortItem* PickaxeInstance = nullptr; // PlayerController->AddPickaxeToInventory();
 
 				for (int i = 0; i < StartingItems.Num(); i++)
 				{
@@ -150,9 +165,15 @@ public:
 					(*Inventory)->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
 				}
 
-				if (PickaxeInstance)
+				if (auto FortPlayerController = Cast<AFortPlayerController>(Controller))
 				{
-					// PlayerController->ServerExecuteInventoryItemHook(PlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid());
+					UFortItem* PickaxeInstance = FortPlayerController->AddPickaxeToInventory();
+
+					if (PickaxeInstance)
+					{
+						FortPlayerController->ServerExecuteInventoryItemHook(FortPlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid());
+					}
+
 				}
 
 				(*Inventory)->Update();

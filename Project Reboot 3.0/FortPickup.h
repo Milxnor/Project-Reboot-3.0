@@ -83,6 +83,20 @@ struct PickupCreateData
 		if (bShouldFreeItemEntryWhenDeconstructed)
 		{
 			// real
+
+			FFortItemEntry::FreeItemEntry(ItemEntry);
+
+			if (bUseFMemoryRealloc)
+			{
+				static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(Addresses::Free);
+
+				if (FreeOriginal)
+					FreeOriginal(ItemEntry);
+			}
+			else
+			{
+				VirtualFree(ItemEntry, 0, MEM_RELEASE);
+			}
 		}
 	}
 };

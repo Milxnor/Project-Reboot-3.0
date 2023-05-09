@@ -968,7 +968,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				auto Location = CurrentActor->GetActorLocation();
 				Location.Z += UpZ;
 
-				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, bPrintWarmup);
+				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, -1, bPrintWarmup);
 
 				for (auto& LootDrop : LootDrops)
 				{
@@ -998,7 +998,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				auto Location = CurrentActor->GetActorLocation();
 				Location.Z += UpZ;
 
-				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, bPrint);
+				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, -1, bPrint);
 
 				for (auto& LootDrop : LootDrops)
 				{

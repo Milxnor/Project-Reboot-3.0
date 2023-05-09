@@ -14,7 +14,7 @@ void FFortItemEntry::SetStateValue(EFortItemEntryState StateType, int IntValue)
 		}
 	}
 
-	auto idx = GetStateValues().AddUnitialized2(FFortItemEntryStateValue::GetStructSize());
+	auto idx = GetStateValues().AddUninitialized2(FFortItemEntryStateValue::GetStructSize()); // AddUninitialized?
 
 	GetStateValues().AtPtr(idx, FFortItemEntryStateValue::GetStructSize())->GetIntValue() = IntValue;
 	GetStateValues().AtPtr(idx, FFortItemEntryStateValue::GetStructSize())->GetStateType() = StateType;
@@ -27,7 +27,6 @@ void FFortItemEntry::SetStateValue(EFortItemEntryState StateType, int IntValue)
 
 FFortItemEntry* FFortItemEntry::MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count, int LoadedAmmo, float Durability)
 {
-	bool bUseFMemoryRealloc = false; // I don't think this works because sometimes we don't free it (oops).
 	auto Entry = Alloc<FFortItemEntry>(GetStructSize(), bUseFMemoryRealloc);
 
 	if (!Entry)

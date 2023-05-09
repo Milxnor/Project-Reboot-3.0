@@ -8,6 +8,8 @@
 
 #include "reboot.h"
 
+constexpr inline bool bUseFMemoryRealloc = false; // This is for allocating our own Item entries, I don't know why this doesn't work
+
 enum class EFortItemEntryState : uint8_t // this changes but its fineee
 {
 	NoneState = 0,
@@ -32,7 +34,7 @@ struct FFortItemEntryStateValue
 {
 	static UStruct* GetStruct()
 	{
-		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortItemEntryStateValue");
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntryStateValue");
 		return Struct;
 	}
 
@@ -161,10 +163,10 @@ struct FFortItemEntry : FFastArraySerializerItem
 
 		if (GenericAttributeValuesOffset != -1)
 		{			
-			this->GetGenericAttributeValues().CopyFromArray(OtherItemEntry->GetGenericAttributeValues());
+			// this->GetGenericAttributeValues().CopyFromArray(OtherItemEntry->GetGenericAttributeValues());
 		}
 
-		this->GetStateValues().CopyFromArray(OtherItemEntry->GetStateValues(), FFortItemEntryStateValue::GetStructSize());
+		// this->GetStateValues().CopyFromArray(OtherItemEntry->GetStateValues(), FFortItemEntryStateValue::GetStructSize()); // broooooooooooooooooooo
 
 		// should we do this?
 
@@ -177,7 +179,7 @@ struct FFortItemEntry : FFastArraySerializerItem
 
 	static UStruct* GetStruct()
 	{
-		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortItemEntry");
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.FortItemEntry");
 		return Struct;
 	}
 

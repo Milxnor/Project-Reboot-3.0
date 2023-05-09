@@ -56,3 +56,26 @@ inline bool IsRestartingSupported()
 {
 	return Engine_Version >= 419 && Engine_Version < 424;
 }
+
+/*
+
+enum class AllocatorType
+{
+	VIRTUALALLOC,
+	FMEMORY
+};
+
+class InstancedAllocator
+{
+public:
+	AllocatorType allocatorType;
+
+	static void* Allocate(AllocatorType type, size_t Size);
+
+	void* Allocate(size_t Size)
+	{
+		return Allocate(allocatorType, Size);
+	}
+};
+
+*/

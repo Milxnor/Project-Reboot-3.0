@@ -353,6 +353,8 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "EnterAircraft: 0x{:x}", EnterAircraft - Base);
 	LOG_INFO(LogDev, "SetTimer: 0x{:x}", SetTimer - Base);
 	LOG_INFO(LogDev, "PickupInitialize: 0x{:x}", PickupInitialize - Base);
+	LOG_INFO(LogDev, "FreeEntry: 0x{:x}", FreeEntry - Base);
+	LOG_INFO(LogDev, "FreeArrayOfEntries: 0x{:x}", FreeArrayOfEntries - Base);
 	LOG_INFO(LogDev, "UpdateTrackedAttributesLea: 0x{:x}", UpdateTrackedAttributesLea - Base);
 	LOG_INFO(LogDev, "CombinePickupLea: 0x{:x}", CombinePickupLea - Base);
 	LOG_INFO(LogDev, "CreateBuildingActorCallForDeco: 0x{:x}", CreateBuildingActorCallForDeco - Base);

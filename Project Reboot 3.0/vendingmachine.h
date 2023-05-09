@@ -5,6 +5,7 @@
 #include "GameplayStatics.h"
 #include "FortLootPackage.h"
 #include "GameplayAbilityTypes.h"
+#include "KismetMathLibrary.h"
 
 using ABuildingItemCollectorActor = ABuildingGameplayActor;
 
@@ -12,7 +13,7 @@ struct FCollectorUnitInfo
 {
 	static std::string GetStructName()
 	{
-		static std::string StructName = FindObject<UStruct>("/Script/FortniteGame.CollectorUnitInfo") ? "/Script/FortniteGame.CollectorUnitInfo" : "/Script/FortniteGame.ColletorUnitInfo"; // nice one fortnite
+		static std::string StructName = FindObject<UStruct>(L"/Script/FortniteGame.CollectorUnitInfo") ? "/Script/FortniteGame.CollectorUnitInfo" : "/Script/FortniteGame.ColletorUnitInfo"; // nice one fortnite
 		return StructName;
 	}
 
@@ -52,16 +53,9 @@ struct FCollectorUnitInfo
 	}
 };
 
-static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector, FName& LootTierGroup, bool bUseInstanceLootValueOverrides, bool bEnsureRarity = false, int recursive = 0)
+static inline UCurveTable* GetGameData()
 {
-	if (recursive >= 10)
-		return;
-
-	auto GameModeAthena = (AFortGameModeAthena*)GetWorld()->GetGameMode();
-	auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
-
-	static auto ItemCollectionsOffset = ItemCollector->GetOffset("ItemCollections");
-	auto& ItemCollections = ItemCollector->Get<TArray<FCollectorUnitInfo>>(ItemCollectionsOffset);
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 
 	UCurveTable* FortGameData = nullptr;
 
@@ -74,7 +68,23 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 	}
 
 	if (!FortGameData)
-		FortGameData = FindObject<UCurveTable>("/Game/Athena/Balance/AthenaGameData.AthenaGameData"); // uhm so theres one without athena and on newer versions that has it so idk
+		FortGameData = FindObject<UCurveTable>(L"/Game/Athena/Balance/DataTables/AthenaGameData.AthenaGameData"); // uhm so theres one without athena and on newer versions that has it so idk // after i wrote this cokmment idk what i meant
+
+	return FortGameData;
+}
+
+static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector, FName& LootTierGroup, bool bUseInstanceLootValueOverrides, int LootTier, int recursive = 0)
+{
+	if (recursive >= 10)
+		return;
+
+	auto GameModeAthena = (AFortGameModeAthena*)GetWorld()->GetGameMode();
+	auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
+
+	static auto ItemCollectionsOffset = ItemCollector->GetOffset("ItemCollections");
+	auto& ItemCollections = ItemCollector->Get<TArray<FCollectorUnitInfo>>(ItemCollectionsOffset);
+
+	UCurveTable* FortGameData = GetGameData();
 
 	auto WoodName = UKismetStringLibrary::Conv_StringToName(L"Default.VendingMachine.Cost.Wood");
 	auto StoneName = UKismetStringLibrary::Conv_StringToName(L"Default.VendingMachine.Cost.Stone");
@@ -82,8 +92,6 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 	static auto StoneItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
 	static auto MetalItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
-
-	uint8_t RarityToUse = 69;
 
 	// TODO: Pull prices from datatables.
 
@@ -116,18 +124,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 		constexpr bool bPrint = false;
 
-		std::vector<LootDrop> LootDrops = PickLootDrops(LootTierGroup, bPrint);
-
-		int tries = 0;
-
-		while (LootDrops.size() == 0)
-		{
-			tries++;
-			LootDrops = PickLootDrops(LootTierGroup, bPrint);
-
-			if (tries >= 10)
-				break;
-		}
+		std::vector<LootDrop> LootDrops = PickLootDrops(LootTierGroup, LootTier, bPrint);
 
 		if (LootDrops.size() == 0)
 			continue;
@@ -139,19 +136,8 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 			if (!WorldItemDefinition)
 				continue;
 
-			if (!IsPrimaryQuickbar(WorldItemDefinition))
+			if (!IsPrimaryQuickbar(WorldItemDefinition)) // i dont think we need this check
 				continue;
-
-			if (bEnsureRarity)
-			{
-				static auto RarityOffset = WorldItemDefinition->GetOffset("Rarity");
-
-				if (RarityToUse == 69)
-					RarityToUse = WorldItemDefinition->Get<uint8_t>(RarityOffset);
-
-				if (WorldItemDefinition->Get<uint8_t>(RarityOffset) != RarityToUse)
-					continue;
-			}
 
 			bool bItemAlreadyInCollector = false;
 
@@ -196,11 +182,11 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 		ItemCollection->GetInputCount()->GetCurve().CurveTable = bShouldBeNullTable ? nullptr : FortGameData; // scuffed idc
 		ItemCollection->GetInputCount()->GetCurve().RowName = bShouldBeNullTable ? FName(0) : WoodName; // Scuffed idc 
-		ItemCollection->GetInputCount()->GetValue() = RarityToUse == 0 ? CommonPrice 
-			: RarityToUse == 1 ? UncommonPrice 
-			: RarityToUse == 2 ? RarePrice 
-			: RarityToUse == 3 ? EpicPrice
-			: RarityToUse == 4 ? LegendaryPrice
+		ItemCollection->GetInputCount()->GetValue() = LootTier == 0 ? CommonPrice 
+			: LootTier == 1 ? UncommonPrice
+			: LootTier == 2 ? RarePrice
+			: LootTier == 3 ? EpicPrice
+			: LootTier == 4 ? LegendaryPrice
 			: -1;
 	}
 
@@ -209,12 +195,12 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 	if (bUseInstanceLootValueOverridesOffset != -1)
 		ItemCollector->Get<bool>(bUseInstanceLootValueOverridesOffset) = bUseInstanceLootValueOverrides;
 
-	LOG_INFO(LogDev, "RarityToUse: {}", (int)RarityToUse);
+	// LOG_INFO(LogDev, "LootTier: {}", LootTier);
 
 	static auto StartingGoalLevelOffset = ItemCollector->GetOffset("StartingGoalLevel");
 
 	if (StartingGoalLevelOffset != -1)
-		ItemCollector->Get<int32>(StartingGoalLevelOffset) = (int)RarityToUse;
+		ItemCollector->Get<int32>(StartingGoalLevelOffset) = LootTier;
 
 	static auto VendingMachineClass = FindObject<UClass>("/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C");
 
@@ -223,17 +209,17 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		static auto OverrideVendingMachineRarityOffset = ItemCollector->GetOffset("OverrideVendingMachineRarity", false);
 
 		if (OverrideVendingMachineRarityOffset != -1)
-			ItemCollector->Get<uint8_t>(OverrideVendingMachineRarityOffset) = RarityToUse;
+			ItemCollector->Get<uint8_t>(OverrideVendingMachineRarityOffset) = LootTier;
 
 		static auto OverrideGoalOffset = ItemCollector->GetOffset("OverrideGoal", false);
 		
 		if (OverrideGoalOffset != -1)
 		{
-			ItemCollector->Get<int32>(OverrideGoalOffset) = RarityToUse == 0 ? CommonPrice
-				: RarityToUse == 1 ? UncommonPrice
-				: RarityToUse == 2 ? RarePrice
-				: RarityToUse == 3 ? EpicPrice
-				: RarityToUse == 4 ? LegendaryPrice
+			ItemCollector->Get<int32>(OverrideGoalOffset) = LootTier == 0 ? CommonPrice
+				: LootTier == 1 ? UncommonPrice
+				: LootTier == 2 ? RarePrice
+				: LootTier == 3 ? EpicPrice
+				: LootTier == 4 ? LegendaryPrice
 				: -1;
 		}
 	}
@@ -246,6 +232,28 @@ static inline void FillVendingMachines()
 
 	auto OverrideLootTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaVending"); // ItemCollector->GetLootTierGroupOverride();
 
+	std::map<int, float> ThingAndWeights; // Bro IDK WHat to name it!
+
+	auto RarityWeightsName = UKismetStringLibrary::Conv_StringToName(L"Default.VendingMachine.RarityWeights");
+
+	auto FortGameData = GetGameData();
+
+	float WeightSum = 0;
+
+	for (int i = 0; i < 6; i++)
+	{
+		auto Weight = UDataTableFunctionLibrary::EvaluateCurveTableRow(FortGameData, RarityWeightsName, i);
+		ThingAndWeights[i] = Weight;
+		WeightSum += Weight;
+	}
+
+	for (int i = 0; i < ThingAndWeights.size(); i++)
+	{
+		LOG_INFO(LogDev, "[{}] bruh: {}", i, ThingAndWeights.at(i));
+	}
+
+	std::map<int, int> PickedRarities;
+
 	for (int i = 0; i < AllVendingMachines.Num(); i++)
 	{
 		auto VendingMachine = (ABuildingItemCollectorActor*)AllVendingMachines.at(i);
@@ -253,8 +261,39 @@ static inline void FillVendingMachines()
 		if (!VendingMachine)
 			continue;
 
-		FillItemCollector(VendingMachine, OverrideLootTierGroup, true, true);
+		auto randomFloatGenerator = [&](float Max) -> float { return UKismetMathLibrary::RandomFloatInRange(0, Max); };
+
+		int Out;
+		PickWeightedElement<int, float>(ThingAndWeights, [&](float Weight) -> float { return Weight; }, randomFloatGenerator, WeightSum, false, 1, &Out, false, true);
+
+		PickedRarities[Out]++;
+
+		if (Out == 0)
+		{
+			VendingMachine->K2_DestroyActor();
+			continue;
+		}
+
+		FillItemCollector(VendingMachine, OverrideLootTierGroup, Out - 1, true, true);
 	}
 
+	auto AllVendingMachinesNum = AllVendingMachines.Num();
+
 	AllVendingMachines.Free();
+
+	bool bPrintDebug = true;
+
+	if (bPrintDebug)
+	{
+		LOG_INFO(LogGame, "Destroyed {}/{} vending machines.", PickedRarities[0], AllVendingMachinesNum);
+		LOG_INFO(LogGame, "Filled {}/{} vending machines with common items.", PickedRarities[1], AllVendingMachinesNum);
+		LOG_INFO(LogGame, "Filled {}/{} vending machines with uncommon items.", PickedRarities[2], AllVendingMachinesNum);
+		LOG_INFO(LogGame, "Filled {}/{} vending machines with rare items.", PickedRarities[3], AllVendingMachinesNum);
+		LOG_INFO(LogGame, "Filled {}/{} vending machines with epic items.", PickedRarities[4], AllVendingMachinesNum);
+		LOG_INFO(LogGame, "Filled {}/{} vending machines with legendary items.", PickedRarities[5], AllVendingMachinesNum);
+	}
+	else
+	{
+		LOG_INFO(LogGame, "Filled {} vending machines!", AllVendingMachinesNum);
+	}
 }
