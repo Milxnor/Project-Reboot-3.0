@@ -4,8 +4,6 @@
 
 class UFortLootLevel
 {
-	int GetItemLevel(FDataTableCategoryHandle LootLevelData, int WorldLevel)
-	{
-		return 0;
-	}
+public:
+	static int GetItemLevel(const FDataTableCategoryHandle& LootLevelData, int WorldLevel);
 };

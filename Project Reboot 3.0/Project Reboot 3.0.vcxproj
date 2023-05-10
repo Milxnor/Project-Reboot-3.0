@@ -214,6 +214,7 @@
     <ClCompile Include="FortItem.cpp" />
     <ClCompile Include="FortItemDefinition.cpp" />
     <ClCompile Include="FortKismetLibrary.cpp" />
+    <ClCompile Include="FortLootLevel.cpp" />
     <ClCompile Include="FortLootPackage.cpp" />
     <ClCompile Include="FortMinigame.cpp" />
     <ClCompile Include="FortOctopusVehicle.cpp" />
@@ -287,6 +288,7 @@
     <ClInclude Include="Channel.h" />
     <ClInclude Include="CheatManager.h" />
     <ClInclude Include="Class.h" />
+    <ClInclude Include="objectviewer.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />
     <ClInclude Include="Controller.h" />

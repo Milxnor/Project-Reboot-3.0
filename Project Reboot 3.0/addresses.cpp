@@ -386,6 +386,9 @@ void Offsets::FindAll()
 		Engine_Version == 424 ? (Fortnite_Version >= 11.00 && Fortnite_Version <= 11.10 ? 0x57 :
 			(Fortnite_Version == 11.30 || Fortnite_Version == 11.31 ? 0x59 : 0x5A)) : 0x56;
 
+	if (Engine_Version == 421)
+		Offsets::PropertyClass = 0x70;
+
 	// ^ I know this makes no sense, 7.40-8.40 is 0x57, other 7-10 is 0x56, 11.00-11.10 = 0x57, 11.30-11.31 = 0x59, other S11 is 0x5A
 
 	else if (std::floor(Fortnite_Version) == 12 || std::floor(Fortnite_Version) == 13)
@@ -437,18 +440,23 @@ void Offsets::FindAll()
 	}
 
 	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();
+	Offsets::UnderlyingType = Offsets::PropertyClass;
 }
 
 void Offsets::Print()
 {
-	LOG_INFO(LogDev, "Offset_Internal: 0x{:x}", Offset_Internal);
-	LOG_INFO(LogDev, "SuperStruct: 0x{:x}", SuperStruct);
-	LOG_INFO(LogDev, "Children: 0x{:x}", Children);
-	LOG_INFO(LogDev, "PropertiesSize: 0x{:x}", PropertiesSize);
 	LOG_INFO(LogDev, "Func: 0x{:x}", Func);
+	LOG_INFO(LogDev, "PropertiesSize: 0x{:x}", PropertiesSize);
+	LOG_INFO(LogDev, "Children: 0x{:x}", Children);
+	LOG_INFO(LogDev, "SuperStruct: 0x{:x}", SuperStruct);
+	LOG_INFO(LogDev, "PropertyClass: 0x{:x}", PropertyClass);
+	LOG_INFO(LogDev, "UnderlyingType: 0x{:x}", UnderlyingType);
+	LOG_INFO(LogDev, "Offset_Internal: 0x{:x}", Offset_Internal);
 	LOG_INFO(LogDev, "ServerReplicateActors: 0x{:x}", ServerReplicateActors);
 	LOG_INFO(LogDev, "ReplicationFrame: 0x{:x}", ReplicationFrame);
 	LOG_INFO(LogDev, "IsNetRelevantFor: 0x{:x}", IsNetRelevantFor);
+	LOG_INFO(LogDev, "NetworkObjectList: 0x{:x}", NetworkObjectList);
+	LOG_INFO(LogDev, "ClientWorldPackageName: 0x{:x}", ClientWorldPackageName);
 }
 
 void Addresses::Init()

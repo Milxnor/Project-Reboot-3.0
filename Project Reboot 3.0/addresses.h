@@ -84,6 +84,8 @@ namespace Offsets
 	extern inline uint64 PropertiesSize = 0;
 	extern inline uint64 Children = 0;
 	extern inline uint64 SuperStruct = 0;
+	extern inline uint64 PropertyClass = 0;
+	extern inline uint64 UnderlyingType = 0;
 	extern inline uint64 Offset_Internal = 0;
 	extern inline uint64 ServerReplicateActors = 0;
 	extern inline uint64 ReplicationFrame = 0;

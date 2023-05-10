@@ -68,6 +68,12 @@ public:
 		return Get<EAthenaGamePhase>(GamePhaseOffset);
 	}
 
+	int& GetWorldLevel() // Actually in AFortGameState
+	{
+		static auto WorldLevelOffset = GetOffset("WorldLevel");
+		return Get<int>(WorldLevelOffset);
+	}
+
 	UBuildingStructuralSupportSystem* GetStructuralSupportSystem() // actually in FortGameModeZone
 	{
 		static auto StructuralSupportSystemOffset = GetOffset("StructuralSupportSystem");
@@ -99,6 +105,7 @@ public:
 
 	// void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
 
+	void SetPlaylistId(UFortPlaylist* Playlist);
 	int GetAircraftIndex(AFortPlayerState* PlayerState);
 	bool IsRespawningAllowed(AFortPlayerState* PlayerState); // actually in zone
 	bool IsPlayerBuildableClass(UClass* Class);

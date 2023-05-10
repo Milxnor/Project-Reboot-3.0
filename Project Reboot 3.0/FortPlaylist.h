@@ -9,6 +9,7 @@
 #include "BuildingActor.h"
 #include "FortPlayerPawnAthena.h"
 #include "GameplayAbilityTypes.h"
+#include "FortPlayerState.h"
 
 struct FGameplayTagRequirements
 {
@@ -275,6 +276,12 @@ struct FWinConditionScoreData
 class UFortPlaylist : public UObject
 {
 public:
+	int& GetPlaylistId()
+	{
+		static auto PlaylistIdOffset = GetOffset("PlaylistId");
+		return Get<int>(PlaylistIdOffset);
+	}
+
 	TArray<TSoftObjectPtr<UFortGameplayModifierItemDefinition>>& GetModifierList()
 	{
 		static auto ModifierListOffset = this->GetOffset("ModifierList");

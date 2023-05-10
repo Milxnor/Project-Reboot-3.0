@@ -45,6 +45,18 @@ public:
 		return *(int*)(__int64(this) + CountOffset);
 	}
 
+	int& GetMinWorldLevel()
+	{
+		static auto MinWorldLevelOffset = FindOffsetStruct("/Script/FortniteGame.FortLootPackageData", "MinWorldLevel");
+		return *(int*)(__int64(this) + MinWorldLevelOffset);
+	}
+
+	int& GetMaxWorldLevel()
+	{
+		static auto MaxWorldLevelOffset = FindOffsetStruct("/Script/FortniteGame.FortLootPackageData", "MaxWorldLevel");
+		return *(int*)(__int64(this) + MaxWorldLevelOffset);
+	}
+
 	int& GetLootPackageCategory()
 	{
 		static auto LootPackageCategoryOffset = FindOffsetStruct("/Script/FortniteGame.FortLootPackageData", "LootPackageCategory");
@@ -183,4 +195,4 @@ FORCEINLINE static ValueType PickWeightedElement(const std::map<KeyType, ValueTy
 	return ValueType();
 }
 
-std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier = -1, bool bPrint = false, int recursive = 0);
+std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int ForcedLootTier = -1, bool bPrint = false, int recursive = 0);

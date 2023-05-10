@@ -271,6 +271,9 @@
     <ClCompile Include="inc.cpp">
       <Filter>Reboot\Private</Filter>
     </ClCompile>
+    <ClCompile Include="FortLootLevel.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -857,6 +860,9 @@
       <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
     </ClInclude>
     <ClInclude Include="inc.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="objectviewer.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
   </ItemGroup>

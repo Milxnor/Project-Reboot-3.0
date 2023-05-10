@@ -39,6 +39,7 @@
 #include "events.h"
 #include "FortAthenaMutator_Heist.h"
 #include "BGA.h"
+#include "objectviewer.h"
 
 #define GAME_TAB 1
 #define PLAYERS_TAB 2
@@ -283,7 +284,7 @@ static inline void StaticUI()
 
 #ifndef PROD
 	ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
-	ImGui::InputInt("Amount of bots to spawn", &AmountOfBotsToSpawn);
+	// ImGui::InputInt("Amount of bots to spawn", &AmountOfBotsToSpawn);
 #endif
 
 	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);
@@ -480,40 +481,6 @@ static inline void MainUI()
 					SpawnBGAs();
 				}
 
-				/*
-				if (ImGui::Button("New"))
-				{
-					static auto NextFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.Next");
-					static auto NewFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");					
-					auto Loader = GetEventLoader("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C");
-
-					LOG_INFO(LogDev, "Loader: {}", __int64(Loader));
-
-					if (Loader)
-					{
-						int32 NewParam = 1;
-						// Loader->ProcessEvent(NextFn, &NewParam);
-						Loader->ProcessEvent(NewFn, &NewParam);
-					}
-				}
-
-				if (ImGui::Button("Next"))
-				{
-					static auto NextFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.Next");
-					static auto NewFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");
-					auto Loader = GetEventLoader("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C");
-
-					LOG_INFO(LogDev, "Loader: {}", __int64(Loader));
-
-					if (Loader)
-					{
-						int32 NewParam = 1;
-						Loader->ProcessEvent(NextFn, &NewParam);
-						// Loader->ProcessEvent(NewFn, &NewParam);
-					}
-				}
-				*/
-
 				if (!bIsInAutoRestart && (Engine_Version < 424 && ImGui::Button("Restart")))
 				{
 					if (Engine_Version < 424)
@@ -526,45 +493,6 @@ static inline void MainUI()
 						LOG_ERROR(LogGame, "Restarting is not supported on chapter 2 and above!");
 					}
 				}
-				/*
-				if (ImGui::Button("TEST"))
-				{
-					auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
-					auto GameState = GameMode->GetGameState();
-
-					static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
-					auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
-
-					for (int i = 0; i < AllMutators.Num(); i++)
-					{
-						auto Mutator = AllMutators.at(i);
-
-						LOG_INFO(LogDev, "[{}] Mutator: {}", i, Mutator->GetFullName());
-
-						if (auto DiscoMutator = Cast<AFortAthenaMutator_Disco>(Mutator))
-						{
-							auto& ControlPointSpawnData = DiscoMutator->GetControlPointSpawnData();
-
-							LOG_INFO(LogDev, "ControlPointSpawnData.Num(): {}", ControlPointSpawnData.Num());
-						}
-						else if (auto HeistMutator = Cast<AFortAthenaMutator_Heist>(Mutator))
-						{
-							auto& HeistExitCraftSpawnData = HeistMutator->GetHeistExitCraftSpawnData();
-
-							LOG_INFO(LogDev, "HeistExitCraftSpawnData.Num(): {}", HeistExitCraftSpawnData.Num());
-
-							for (int j = 0; j < HeistExitCraftSpawnData.Num(); j++)
-							{
-								auto& CurrentHeistExitCraftSpawnData = HeistExitCraftSpawnData.at(j);
-								auto CurveTable = CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().CurveTable;
-
-								// LOG_INFO(LogDev, "{} {}", CurveTable ? CurveTable->GetFullName() : "InvalidTable",
-									// CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().RowName.IsValid() ? CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().RowName.ToString() : "InvalidName");
-							}
-						}
-					}
-				}
-				*/
 
 				if (!bStartedBus)
 				{
@@ -905,13 +833,29 @@ static inline void MainUI()
 		{
 			static std::string ClassNameToDump;
 			static std::string FunctionNameToDump;
+			static std::string ObjectToDump;
+			static std::string FileNameToDumpTo;
+			static bool bExcludeUnhandled;
 
 			ImGui::Checkbox("Fill Vending Machines", &Globals::bFillVendingMachines);
 			ImGui::Checkbox("Enable Bot Tick", &bEnableBotTick);
 			ImGui::Checkbox("Enable Combine Pickup", &bEnableCombinePickup);
 			ImGui::InputText("Class Name to mess with", &ClassNameToDump);
-
+			ImGui::InputText("Object to dump", &ObjectToDump);
 			ImGui::InputText("Function Name to mess with", &FunctionNameToDump);
+			ImGui::InputText("File name to dump to", &FileNameToDumpTo);
+			ImGui::Checkbox("Exclude unhandled", &bExcludeUnhandled);
+
+			if (ImGui::Button("Dump Object Info"))
+			{
+				auto Object = FindObject(ObjectToDump);
+
+				LOG_INFO(LogDev, "r: {}", __int64(Object));
+
+				// null check is already handled
+
+				ObjectViewer::DumpContentsToFile(Object, FileNameToDumpTo, bExcludeUnhandled);
+			}
 
 			if (ImGui::Button("Print Class VFT"))
 			{

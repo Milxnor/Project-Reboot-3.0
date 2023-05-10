@@ -81,7 +81,7 @@ static void SetFoundationTransform(AActor* BuildingFoundation, const FTransform&
 
 static inline UFortAbilitySet* GetPlayerAbilitySet()
 {
-	// There are some variables that contain this but it changes through versions soo..
+	// There are some variables that contain this but it changes through versions soo.. // GenericPlayerAbilitySet and PlayerAbilitySetBR
 
 	static auto GameplayAbilitySet = (UFortAbilitySet*)(Fortnite_Version >= 8.30
 		? LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer", UFortAbilitySet::StaticClass()) 

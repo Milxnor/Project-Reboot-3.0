@@ -80,6 +80,12 @@ UFortPlaylist*& AFortGameStateAthena::GetCurrentPlaylist()
 	return *(UFortPlaylist**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset);
 }
 
+void AFortGameStateAthena::SetPlaylistId(UFortPlaylist* Playlist)
+{
+	static auto CurrentPlaylistIdOffset = GetOffset("CurrentPlaylistId");
+	this->Get<int>(CurrentPlaylistIdOffset) = Playlist->GetPlaylistId();
+}
+
 int AFortGameStateAthena::GetAircraftIndex(AFortPlayerState* PlayerState)
 {
 	// The function has a string in it but we can just remake lol

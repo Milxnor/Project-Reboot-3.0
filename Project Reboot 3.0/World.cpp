@@ -85,7 +85,7 @@ void UWorld::Listen()
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;
 
-	LOG_INFO(LogNet, "Listening on port {}!", Port + Globals::AmountOfListens - 1);
+	LOG_INFO(LogNet, "Listening on port {}{}!", Port + Globals::AmountOfListens - 1, Engine_Version <= 419 ? " (Wait like 10 seconds before joining though)" : "");
 }
 
 AWorldSettings* UWorld::GetWorldSettings(const bool bCheckStreamingPersistent, const bool bChecked) const

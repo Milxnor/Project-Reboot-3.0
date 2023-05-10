@@ -430,15 +430,11 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 	FVector LocationToSpawnLoot = ReceivingActor->GetActorLocation() + ReceivingActor->GetActorRightVector() * 70.f + FVector{ 0, 0, 50 };
 
 	static auto FortAthenaVehicleClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaVehicle");
-	static auto SearchAnimationCountOffset = FindOffsetStruct("/Script/FortniteGame.FortSearchBounceData", "SearchAnimationCount");
 
 	if (auto BuildingContainer = Cast<ABuildingContainer>(ReceivingActor))
 	{
 		static auto bAlreadySearchedOffset = BuildingContainer->GetOffset("bAlreadySearched");
-		static auto SearchBounceDataOffset = BuildingContainer->GetOffset("SearchBounceData");
 		static auto bAlreadySearchedFieldMask = GetFieldMask(BuildingContainer->GetProperty("bAlreadySearched"));
-		
-		auto SearchBounceData = BuildingContainer->GetPtr<void>(SearchBounceDataOffset);
 
 		if (BuildingContainer->ReadBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask))
 			return;
@@ -446,10 +442,6 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		// LOG_INFO(LogInteraction, "bAlreadySearchedFieldMask: {}", bAlreadySearchedFieldMask);
 
 		BuildingContainer->SetBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask, true);
-		(*(int*)(__int64(SearchBounceData) + SearchAnimationCountOffset))++;
-
-		static auto OnRep_bAlreadySearchedFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingContainer.OnRep_bAlreadySearched");
-		BuildingContainer->ProcessEvent(OnRep_bAlreadySearchedFn);
 
 		BuildingContainer->SpawnLoot(PlayerController->GetMyFortPawn());
 
