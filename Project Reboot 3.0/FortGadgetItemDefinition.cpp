@@ -25,8 +25,54 @@ void UFortGadgetItemDefinition::UpdateTrackedAttributesHook(UFortGadgetItemDefin
 {
 	// LOG_INFO(LogDev, "UpdateTrackedAttributesHook Return: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
 
+	return;
+
+	AFortPlayerState* PlayerState = nullptr; // how do we get it bro....
+	UAbilitySystemComponent* ASC = PlayerState->GetAbilitySystemComponent();
+
 	if (GadgetItemDefinition->ShouldDestroyGadgetWhenTrackedAttributesIsZero())
 	{
-		// PlayerState->MulticastTriggerOnGadgetTrackedAttributeDestroyedFX
+		bool bIsEveryTrackedAttributeZero = true;
+
+		for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); i++)
+		{
+			auto& CurrentTrackedAttribute = GadgetItemDefinition->GetTrackedAttributes().at(i);
+
+			// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Property Name {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).GetAttributePropertyName());
+			// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Name {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).GetAttributeName());
+			// LOG_INFO(LogDev, "[{}] TrackedAttribute Attribute Owner {}", i, GadgetItemDefinition->GetTrackedAttributes().at(i).AttributeOwner->GetPathName());
+
+			if (!ASC)
+				break;
+
+			int CurrentAttributeValue = -1;
+
+			for (int i = 0; i < ASC->GetSpawnedAttributes().Num(); i++)
+			{
+				auto CurrentSpawnedAttribute = ASC->GetSpawnedAttributes().at(i);
+
+				if (CurrentSpawnedAttribute->IsA(CurrentTrackedAttribute.AttributeOwner))
+				{
+					auto PropertyOffset = CurrentSpawnedAttribute->GetOffset(CurrentTrackedAttribute.GetAttributePropertyName());
+
+					if (PropertyOffset != -1)
+					{
+						if (CurrentSpawnedAttribute->GetPtr<FFortGameplayAttributeData>(PropertyOffset)->GetCurrentValue() != 0)
+						{
+							bIsEveryTrackedAttributeZero = false;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (bIsEveryTrackedAttributeZero)
+		{
+			// REMOVE THE ITEM
+
+			static auto MulticastTriggerOnGadgetTrackedAttributeDestroyedFXFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateZone.MulticastTriggerOnGadgetTrackedAttributeDestroyedFX");
+			PlayerState->ProcessEvent(MulticastTriggerOnGadgetTrackedAttributeDestroyedFXFn, &GadgetItemDefinition);
+		}
 	}
 }

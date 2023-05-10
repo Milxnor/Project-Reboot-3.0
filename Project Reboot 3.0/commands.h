@@ -201,12 +201,6 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			if (bShouldUpdate)
 				WorldInventory->Update();
 
-			auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
-
-			auto ItemLevel = UFortLootLevel::GetItemLevel(WID->GetLootLevelData(), GameState->GetWorldLevel());
-
-			LOG_INFO(LogDev, "ItemLevel: {}", ItemLevel);
-			LOG_INFO(LogDev, "PickLevel: {}", WID->PickLevel(ItemLevel));
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
 		else if (Command == "printsimulatelootdrops")

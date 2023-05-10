@@ -17,14 +17,19 @@ struct FFortGameFeatureLootTableData
 #ifdef EXPERIMENTAL_LOOTING
 
 template <typename RowStructType = uint8>
-void CollectDataTablesRows(std::vector<UDataTable*> DataTables, std::map<FName, RowStructType*>* OutMap, std::function<bool(FName, RowStructType*)> Check = []() { return true; })
+void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, std::map<FName, RowStructType*>* OutMap, std::function<bool(FName, RowStructType*)> Check = []() { return true; })
 {
     std::vector<UDataTable*> DataTablesToIterate;
 
-    static auto CompositeDataTableClass = FindObject<UClass>("/Script/Engine.CompositeDataTable");
+    static auto CompositeDataTableClass = FindObject<UClass>(L"/Script/Engine.CompositeDataTable");
 
-    for (auto DataTable : DataTables)
+    for (UDataTable* DataTable : DataTables)
     {
+        if (!DataTable->IsValidLowLevel())
+        {
+            continue; // Remove from vector?
+        }
+
         // if (auto CompositeDataTable = Cast<UCompositeDataTable>(DataTable))
         if (DataTable->IsA(CompositeDataTableClass))
         {
