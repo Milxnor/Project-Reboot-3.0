@@ -323,6 +323,8 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
     }
 }
 
+// #define brudda
+
 std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, bool bPrint, int recursive)
 {
     std::vector<LootDrop> LootDrops;
@@ -361,6 +363,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, boo
 
             if (LootTierDataSoft.IsValid() && LootPackagesSoft.IsValid())
             {
+#ifndef brudda
                 auto LootTierDataStr = LootTierDataSoft.SoftObjectPtr.ObjectID.AssetPathName.ToString();
                 auto LootPackagesStr = LootPackagesSoft.SoftObjectPtr.ObjectID.AssetPathName.ToString();
                 auto LootTierDataTableIsComposite = LootTierDataStr.contains("Composite");
@@ -368,6 +371,10 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, boo
 
                 auto StrongLootTierData = LootTierDataSoft.Get(LootTierDataTableIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
                 auto StrongLootPackage = LootPackagesSoft.Get(LootPackageTableIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
+#else
+                auto StrongLootTierData = (UDataTable*)Assets::LoadAsset(LootTierDataSoft.SoftObjectPtr.ObjectID.AssetPathName);
+                auto StrongLootPackage = (UDataTable*)Assets::LoadAsset(LootPackagesSoft.SoftObjectPtr.ObjectID.AssetPathName);
+#endif
 
                 if (StrongLootTierData && StrongLootPackage)
                 {
@@ -381,8 +388,13 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, boo
 
         if (!bFoundPlaylistTable)
         {
+#ifdef brudda
+            LTDTables.push_back((UDataTable*)Assets::LoadAsset(UKismetStringLibrary::Conv_StringToName(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client")));
+            LPTables.push_back((UDataTable*)Assets::LoadAsset(UKismetStringLibrary::Conv_StringToName(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client")));
+#else
             LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootTierData_Client.AthenaLootTierData_Client"));
             LPTables.push_back(LoadObject<UDataTable>(L"/Game/Items/Datatables/AthenaLootPackages_Client.AthenaLootPackages_Client"));
+#endif
         }
 
         // LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Athena/Playlists/Playground/AthenaLootTierData_Client.AthenaLootTierData_Client"));

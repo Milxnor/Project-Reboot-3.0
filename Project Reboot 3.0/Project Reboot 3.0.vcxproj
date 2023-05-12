@@ -249,6 +249,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerState.cpp" />
+    <ClCompile Include="reboot.cpp" />
     <ClCompile Include="SavePackage.cpp" />
     <ClCompile Include="UnrealMath.cpp" />
     <ClCompile Include="UnrealNames.cpp" />

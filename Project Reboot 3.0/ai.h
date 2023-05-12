@@ -92,7 +92,9 @@ static void SetupServerBotManager()
         static auto CachedGameModeOffset = ServerBotManager->GetOffset("CachedGameMode");
         ServerBotManager->Get(CachedGameModeOffset) = GameMode;
 
-        static auto CachedGameStateOffset = ServerBotManager->GetOffset("CachedGameState");
+        static auto CachedGameStateOffset = ServerBotManager->GetOffset("CachedGameState", false);
+
+        if (CachedGameStateOffset != -1)
         ServerBotManager->Get(CachedGameStateOffset) = GameState;
 
         static auto CachedBotMutatorOffset = ServerBotManager->GetOffset("CachedBotMutator");

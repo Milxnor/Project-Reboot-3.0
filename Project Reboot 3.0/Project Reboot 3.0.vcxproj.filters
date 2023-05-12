@@ -106,9 +106,6 @@
     <ClCompile Include="FortPlayerPawn.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Pawns</Filter>
     </ClCompile>
-    <ClCompile Include="events.cpp">
-      <Filter>Reboot\Private\Gameplay</Filter>
-    </ClCompile>
     <ClCompile Include="FortPlayerControllerAthena.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
@@ -269,6 +266,12 @@
       <Filter>FortniteGame\Source\FortniteGame\Private\Athena\Modifiers</Filter>
     </ClCompile>
     <ClCompile Include="inc.cpp">
+      <Filter>Reboot\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="events.cpp">
+      <Filter>Reboot\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="reboot.cpp">
       <Filter>Reboot\Private</Filter>
     </ClCompile>
   </ItemGroup>
@@ -545,9 +548,6 @@
     </ClInclude>
     <ClInclude Include="commands.h">
       <Filter>Reboot\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="ai.h">
-      <Filter>Reboot\Public\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
@@ -859,6 +859,9 @@
     <ClInclude Include="inc.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
+    <ClInclude Include="ai.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -1011,9 +1014,6 @@
     <Filter Include="Reboot\Public">
       <UniqueIdentifier>{ad1c6299-9a6d-4eba-a1f8-66642a8afd21}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Reboot\Public\Gameplay">
-      <UniqueIdentifier>{9923af6f-0a65-43f7-ad58-8a66e83814ba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Creative">
       <UniqueIdentifier>{51b57917-fec7-41b7-bdc8-ad284a5385a4}</UniqueIdentifier>
     </Filter>
@@ -1085,9 +1085,6 @@
     </Filter>
     <Filter Include="Reboot\Private">
       <UniqueIdentifier>{563ca89b-be74-42a6-a995-f87ac7a532e4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Reboot\Private\Gameplay">
-      <UniqueIdentifier>{52d438db-beaf-44be-bddd-9aeb07c2459f}</UniqueIdentifier>
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena\Modifiers">
       <UniqueIdentifier>{39656a6c-bfe1-4521-8652-aea0146564d6}</UniqueIdentifier>

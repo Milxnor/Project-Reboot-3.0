@@ -168,6 +168,22 @@ static inline uint64 FindCreateNetDriver()
 	return 0;
 }
 
+static inline uint64 FindLoadAsset()
+{
+	auto Addrr = Memcury::Scanner::FindStringRef(L"Loaded delay-load asset %s").Get();
+
+	for (int i = 0; i < 2000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 &&
+			(*(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x74 || *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x6C))
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
+}
+
 static inline uint64 FindKickPlayer()
 {
 	if (Engine_Version == 416)
