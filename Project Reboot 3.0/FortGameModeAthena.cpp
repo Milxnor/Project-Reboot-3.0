@@ -161,12 +161,21 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			(*(int*)(__int64(CurrentPlaylistInfo) + PlaylistReplicationKeyOffset))++;
 			CurrentPlaylistInfo->MarkArrayDirty();
 
-			auto currentBasePlaylist = *(UFortPlaylist**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset);
+			auto aeuh = *(UObject**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset);
 
-			if (currentBasePlaylist)
+			if (aeuh)
 			{
-				GameMode->SetCurrentPlaylistName(currentBasePlaylist);
-				GameState->SetPlaylistId(currentBasePlaylist);
+				GameMode->SetCurrentPlaylistName(aeuh);
+
+				/* if (Fortnite_Version >= 13)
+				{
+					static auto LastSafeZoneIndexOffset = aeuh->GetOffset("LastSafeZoneIndex");
+
+					if (LastSafeZoneIndexOffset != -1)
+					{
+						*(int*)(__int64(aeuh) + LastSafeZoneIndexOffset) = 0;
+					}
+				} */
 			}
 		}
 		else
@@ -174,15 +183,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
 			if (CurrentPlaylistDataOffset != -1)
-			{
 				GameState->Get(CurrentPlaylistDataOffset) = Playlist;
-
-				if (GameState->Get(CurrentPlaylistDataOffset))
-				{
-					GameMode->SetCurrentPlaylistName(GameState->Get<UFortPlaylist*>(CurrentPlaylistDataOffset));
-					GameState->SetPlaylistId(GameState->Get<UFortPlaylist*>(CurrentPlaylistDataOffset));
-				}
-			}
 		}
 
 		if (bOnRep)
@@ -549,22 +550,12 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		LastNum3 = AmountOfRestarts;
 		++Globals::AmountOfListens;
 
-		// LOG_INFO(LogNet, "Attempting to listen!");
+		LOG_INFO(LogNet, "Attempting to listen!");
 
 		GetWorld()->Listen();
 
-		LOG_INFO(LogDev, "WorldLevel: {}", GameState->GetWorldLevel());
-
 		SetupAIDirector();
 		SetupServerBotManager();
-
-		bool bPrintCommonObjectPaths = true;
-
-		if (bPrintCommonObjectPaths)
-		{
-			LOG_INFO(LogGame, "GameState PathName: {}", GetWorld()->GetGameState()->GetPathName());
-			LOG_INFO(LogGame, "GameMode PathName: {}", GetWorld()->GetGameMode()->GetPathName());
-		}
 
 		if (AmountOfBotsToSpawn != 0)
 		{
@@ -977,13 +968,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				auto Location = CurrentActor->GetActorLocation();
 				Location.Z += UpZ;
 
-				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, GameState->GetWorldLevel(), -1, bPrintWarmup);
+				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, -1, bPrintWarmup);
 
 				for (auto& LootDrop : LootDrops)
 				{
 					PickupCreateData CreateData;
 					CreateData.bToss = true;
-					CreateData.ItemEntry = LootDrop.ItemEntry;
+					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
 					CreateData.SpawnLocation = Location;
 					CreateData.SourceType = SpawnFlag;
 					CreateData.bRandomRotation = true;
@@ -1007,13 +998,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				auto Location = CurrentActor->GetActorLocation();
 				Location.Z += UpZ;
 
-				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, GameState->GetWorldLevel(), -1, bPrint);
+				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, -1, bPrint);
 
 				for (auto& LootDrop : LootDrops)
 				{
 					PickupCreateData CreateData;
 					CreateData.bToss = true;
-					CreateData.ItemEntry = LootDrop.ItemEntry;
+					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
 					CreateData.SpawnLocation = Location;
 					CreateData.SourceType = SpawnFlag;
 					CreateData.bRandomRotation = true;

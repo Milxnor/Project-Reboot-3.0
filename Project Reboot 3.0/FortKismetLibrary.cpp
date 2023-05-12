@@ -3,7 +3,6 @@
 #include "FortPickup.h"
 #include "FortLootPackage.h"
 #include "AbilitySystemComponent.h"
-#include "FortGameStateAthena.h"
 
 UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EFortResourceType ResourceType)
 {
@@ -602,15 +601,13 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 
 	LOG_INFO(LogDev, "Picking loot for {}.", TierGroupName.ComparisonIndex.Value ? TierGroupName.ToString() : "InvalidName");
 
-	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
-
-	auto LootDrops = PickLootDrops(TierGroupName, GameState->GetWorldLevel(), -1, true);
+	auto LootDrops = PickLootDrops(TierGroupName, -1, true);
 
 	for (int i = 0; i < LootDrops.size(); i++)
 	{
 		auto& LootDrop = LootDrops.at(i);
 
-		auto NewEntry = LootDrop.ItemEntry;
+		auto NewEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
 
 		OutLootToDrop.AddPtr(NewEntry, FFortItemEntry::GetStructSize());
 	}

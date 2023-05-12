@@ -144,8 +144,6 @@ static inline uint64 FindObjectArray()
 
 static inline uint64 FindPickupInitialize()
 {
-	if (Engine_Version == 419)
-		return Memcury::Scanner::FindPattern("48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 80 B9 ? ? ? ? ? 41 0F B6 E9").Get(); // 1.11
 	if (Engine_Version == 420)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 41 56 48 83 EC 20 80 B9 ? ? ? ? ? 45 0F B6 F1 49 8B E8").Get(); // 4.1
 	if (Engine_Version == 421)

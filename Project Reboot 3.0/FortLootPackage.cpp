@@ -6,7 +6,6 @@
 #include "UObjectArray.h"
 #include "GameplayTagContainer.h"
 #include "FortGameModeAthena.h"
-#include "FortLootLevel.h"
 
 struct FFortGameFeatureLootTableData
 {
@@ -50,6 +49,11 @@ void CollectDataTablesRows(std::vector<UDataTable*> DataTables, std::map<FName, 
                 (*OutMap)[CurrentPair.Key()] = (RowStructType*)CurrentPair.Value();
         }
     }
+}
+
+int GetItemLevel(const FDataTableCategoryHandle& LootLevelData, int WorldLevel)
+{
+    return 0;
 }
 
 float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int OriginalNumberLootDrops)
@@ -179,7 +183,7 @@ FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, F
     return ChosenRowLootTierData;
 }
 
-void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, const FName& LootPackageName, std::vector<LootDrop>* OutEntries, int LootPackageCategory = -1, int WorldLevel = 0, bool bPrint = false)
+void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, const FName& LootPackageName, std::vector<LootDrop>* OutEntries, int LootPackageCategory = -1, bool bPrint = false)
 {
     if (!OutEntries)
         return;
@@ -197,16 +201,14 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
             return false;
         }
 
-        // todo add required tag?
-
-        if (WorldLevel >= 0)
+        /* if (WorldLevel >= 0)
         {
-            if (LootPackage->GetMaxWorldLevel() >= 0 && WorldLevel > LootPackage->GetMaxWorldLevel())
+            if (LootPackage->MaxWorldLevel >= 0 && WorldLevel > LootPackage->MaxWorldLevel)
                 return 0;
 
-            if (LootPackage->GetMinWorldLevel() >= 0 && WorldLevel < LootPackage->GetMinWorldLevel())
+            if (LootPackage->MinWorldLevel >= 0 && WorldLevel < LootPackage->MinWorldLevel)
                 return 0;
-        }
+        } */
 
         return true;
         });
@@ -240,7 +242,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
                 
                 PickLootDropsFromLootPackage(LPTables,
                     PickedPackage->GetLootPackageCall().Data.Data ? UKismetStringLibrary::Conv_StringToName(PickedPackage->GetLootPackageCall()) : FName(0),
-                    OutEntries, LootPackageCategoryToUseForLPCall, WorldLevel, bPrint
+                    OutEntries, LootPackageCategoryToUseForLPCall, bPrint
                 );
 
                 v9++;
@@ -258,15 +260,15 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
         return;
     }
 
+    int ItemLevel = 0;
+
     auto WeaponItemDefinition = Cast<UFortWeaponItemDefinition>(ItemDefinition);
     int LoadedAmmo = WeaponItemDefinition ? WeaponItemDefinition->GetClipSize() : 0; // we shouldnt set loaded ammo here techinally
 
-    auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemDefinition);
-
-    if (!WorldItemDefinition) // hahahah not proper!!
-        return;
-
-    int ItemLevel = UFortLootLevel::GetItemLevel(WorldItemDefinition->GetLootLevelData(), WorldLevel);
+    if (auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemDefinition))
+    {
+        ItemLevel = 0; // GetItemLevel(WorldItemDefinition->LootLevelData, 0);
+    }
 
     int CountMultiplier = 1;
     int FinalCount = CountMultiplier * PickedPackage->GetCount();
@@ -280,30 +282,15 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
 
         while (FinalCount > 0)
         {
-            int MaxStackSize = ItemDefinition->GetMaxStackSize();
+            int CurrentCountForEntry = PickedPackage->GetCount(); // Idk calls some itemdefinition vfunc
 
-            int CurrentCountForEntry = MaxStackSize;
-            
-            if (FinalCount <= MaxStackSize)
-                CurrentCountForEntry = FinalCount;
-
-            if (CurrentCountForEntry <= 0)
-                CurrentCountForEntry = 0;
-
-            auto ActualItemLevel = WorldItemDefinition->PickLevel(FinalItemLevel);
-
-            OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(ItemDefinition, CurrentCountForEntry, LoadedAmmo, 0x3F800000, ActualItemLevel)));
-
-            /* if (bPrint)
-            {
-                LOG_INFO(LogDev, "ActualItemLevel: {} FinalItemLevel: {} ItemLevel: {}", ActualItemLevel, FinalItemLevel, ItemLevel);
-            } */
+            OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(ItemDefinition, CurrentCountForEntry, LoadedAmmo)));
 
             if (Engine_Version >= 424)
             {
                 /*
                 
-                Alright, so Fortnite literally doesn't reference the first loot package category for chests and floor loot on chapter two and above (didnt check rest).
+                Alright, so Fortnite literally doesn't reference the first loot package category for chests and floor loot (didnt check rest).
                 Usually the first loot package category in our case is ammo, so this is quite weird.
                 I have no clue how Fortnite would actually add the ammo.
 
@@ -319,7 +306,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
 
                     if (AmmoData)
                     {
-                        int AmmoCount = AmmoData->GetDropCount(); // uhh???
+                        int AmmoCount = AmmoData->GetDropCount(); // idk about this one
 
                         OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(AmmoData, AmmoCount)));
                     }
@@ -336,7 +323,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
     }
 }
 
-std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int ForcedLootTier, bool bPrint, int recursive)
+std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, bool bPrint, int recursive)
 {
     std::vector<LootDrop> LootDrops;
 
@@ -672,7 +659,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 
                 int LootPackageCategory = i;
 
-                PickLootDropsFromLootPackage(LPTables, ChosenRowLootTierData->GetLootPackage(), &LootDrops, LootPackageCategory, WorldLevel, bPrint);
+                PickLootDropsFromLootPackage(LPTables, ChosenRowLootTierData->GetLootPackage(), &LootDrops, LootPackageCategory, bPrint);
             }
         }
     }

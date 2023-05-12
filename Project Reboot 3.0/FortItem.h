@@ -143,12 +143,18 @@ struct FFortItemEntry : FFastArraySerializerItem
 
 		FGuid OldGuid = this->GetItemGuid();
 
-		this->GetCount() = OtherItemEntry->GetCount();
-		this->GetItemDefinition() = OtherItemEntry->GetItemDefinition();
-		this->GetDurability() = OtherItemEntry->GetDurability();
-		this->GetLevel() = OtherItemEntry->GetLevel();
-		this->GetLoadedAmmo() = OtherItemEntry->GetLoadedAmmo();
-		this->GetItemGuid() = OtherItemEntry->GetItemGuid();
+		if (false)
+		{
+			CopyStruct(this, OtherItemEntry, FFortItemEntry::GetStructSize(), FFortItemEntry::GetStruct());
+		}
+		else
+		{
+			this->GetItemDefinition() = OtherItemEntry->GetItemDefinition();
+			this->GetCount() = OtherItemEntry->GetCount();
+			this->GetLoadedAmmo() = OtherItemEntry->GetLoadedAmmo();
+			this->GetItemGuid() = OtherItemEntry->GetItemGuid();
+			this->GetLevel() = OtherItemEntry->GetLevel();
+		}
 
 		if (!bCopyGuid)
 			this->GetItemGuid() = OldGuid;
@@ -183,7 +189,7 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return StructSize;
 	}
 
-	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0, float Durability = 0x3F800000, int Level = 0);
+	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0, float Durability = 0x3F800000);
 
 	// We need to find a better way for below... Especially since we can't do either method for season 5 or 6.
 

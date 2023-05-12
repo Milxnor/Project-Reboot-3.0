@@ -124,7 +124,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 		constexpr bool bPrint = false;
 
-		std::vector<LootDrop> LootDrops = PickLootDrops(LootTierGroup, GameState->GetWorldLevel(), LootTier, bPrint);
+		std::vector<LootDrop> LootDrops = PickLootDrops(LootTierGroup, LootTier, bPrint);
 
 		if (LootDrops.size() == 0)
 			continue;

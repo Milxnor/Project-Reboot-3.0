@@ -81,20 +81,6 @@ static __int64 DispatchRequestHook(__int64 a1, __int64* a2, int a3)
     return DispatchRequestOriginal(a1, a2, 3);
 }
 
-static inline bool (*CanCreateInCurrentContextOriginal)(UObject* Template);
-
-bool CanCreateInCurrentContextHook(UObject* Template)
-{
-    auto Original = CanCreateInCurrentContextOriginal(Template);
-
-    if (!Original)
-    {
-        LOG_INFO(LogDev, "CanCreateInCurrentContext returned false, but we will return true.");
-    }
-
-    return true;
-}
-
 void (*ApplyHomebaseEffectsOnPlayerSetupOriginal)(
     __int64* GameState,
     __int64 a2,
@@ -439,8 +425,6 @@ DWORD WINAPI Main(LPVOID)
             AFortPlayerControllerAthena::ServerRestartPlayerHook,
             nullptr, false);
     }
-
-    // Hooking::MinHook::Hook(FortPlayerControllerZoneDefault->VFTable[0xD0 / 8], CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
 
     HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)UFortGadgetItemDefinition::UpdateTrackedAttributesHook, "/Script/FortniteGame.FortPlayerController.Suicide", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
     HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);

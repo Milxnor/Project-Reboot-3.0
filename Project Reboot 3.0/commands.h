@@ -9,7 +9,6 @@
 #include "builder.h"
 #include "FortLootPackage.h"
 #include "bots.h"
-#include "FortLootLevel.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
@@ -201,12 +200,6 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			if (bShouldUpdate)
 				WorldInventory->Update();
 
-			auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
-
-			auto ItemLevel = UFortLootLevel::GetItemLevel(WID->GetLootLevelData(), GameState->GetWorldLevel());
-
-			LOG_INFO(LogDev, "ItemLevel: {}", ItemLevel);
-			LOG_INFO(LogDev, "PickLevel: {}", WID->PickLevel(ItemLevel));
 			SendMessageToConsole(PlayerController, L"Granted item!");
 		}
 		else if (Command == "printsimulatelootdrops")
@@ -218,9 +211,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			}
 
 			auto& lootTierGroup = Arguments[1];
-			auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 
-			auto LootDrops = PickLootDrops(UKismetStringLibrary::Conv_StringToName(std::wstring(lootTierGroup.begin(), lootTierGroup.end()).c_str()), GameState->GetWorldLevel(), -1, true);
+			auto LootDrops = PickLootDrops(UKismetStringLibrary::Conv_StringToName(std::wstring(lootTierGroup.begin(), lootTierGroup.end()).c_str()), -1, true);
 
 			for (int i = 0; i < LootDrops.size(); i++)
 			{
