@@ -76,7 +76,7 @@ static void SetupServerBotManager()
     auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
     auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
-    static auto FortServerBotManagerClass = FindObject<UClass>("/Script/FortniteGame.FortServerBotManagerAthena"); // Is there a BP for this? // GameMode->ServerBotManagerClass
+    static auto FortServerBotManagerClass = FindObject<UClass>(L"/Script/FortniteGame.FortServerBotManagerAthena"); // Is there a BP for this? // GameMode->ServerBotManagerClass
 
     if (!FortServerBotManagerClass)
         return;
@@ -92,11 +92,13 @@ static void SetupServerBotManager()
         static auto CachedGameModeOffset = ServerBotManager->GetOffset("CachedGameMode");
         ServerBotManager->Get(CachedGameModeOffset) = GameMode;
 
-        static auto CachedGameStateOffset = ServerBotManager->GetOffset("CachedGameState");
-        ServerBotManager->Get(CachedGameStateOffset) = GameState;
+        static auto CachedGameStateOffset = ServerBotManager->GetOffset("CachedGameState", false);
+
+        if (CachedGameStateOffset != -1)
+            ServerBotManager->Get(CachedGameStateOffset) = GameState;
 
         static auto CachedBotMutatorOffset = ServerBotManager->GetOffset("CachedBotMutator");
-        ServerBotManager->Get(CachedBotMutatorOffset) = FindFirstMutator(FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator_Bots"));
+        ServerBotManager->Get(CachedBotMutatorOffset) = FindFirstMutator(FindObject<UClass>(L"/Script/FortniteGame.FortAthenaMutator_Bots"));
     }
 }
 
@@ -105,7 +107,7 @@ static void SetupAIDirector()
     auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
     auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
-    static auto AIDirectorClass = FindObject<UClass>("/Script/FortniteGame.AthenaAIDirector"); // Probably wrong class
+    static auto AIDirectorClass = FindObject<UClass>(L"/Script/FortniteGame.AthenaAIDirector"); // Probably wrong class
 
     if (!AIDirectorClass)
         return;

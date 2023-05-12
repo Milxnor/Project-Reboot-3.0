@@ -406,7 +406,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
         // LTDTables.push_back(LoadObject<UDataTable>(L"/Game/Athena/Playlists/Playground/AthenaLootTierData_Client.AthenaLootTierData_Client"));
         // LPTables.push_back(LoadObject<UDataTable>(L"/Game/Athena/Playlists/Playground/AthenaLootPackages_Client.AthenaLootPackages_Client"));
 
-        static auto FortGameFeatureDataClass = FindObject<UClass>("/Script/FortniteGame.FortGameFeatureData");
+        static auto FortGameFeatureDataClass = FindObject<UClass>(L"/Script/FortniteGame.FortGameFeatureData");
 
         if (FortGameFeatureDataClass)
         {

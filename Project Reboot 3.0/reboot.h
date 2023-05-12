@@ -384,6 +384,12 @@ static void CopyStruct(void* Dest, void* Src, size_t Size, UStruct* Struct = nul
 	}
 }
 
+class Assets
+{
+	static inline UObject* LoadAsset(FName Name, bool ShowDelayTimes = false);
+	static inline UObject* LoadSoftObject(void* SoftObjectPtr);
+};
+
 template <typename T = __int64>
 static T* Alloc(size_t Size = sizeof(T), bool bUseFMemoryRealloc = false)
 {

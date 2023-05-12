@@ -403,7 +403,7 @@ DWORD WINAPI Main(LPVOID)
     }
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameMode.ReadyToStartMatch"), AFortGameModeAthena::Athena_ReadyToStartMatchHook,
-       (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false, false, true);
+        (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false, false, true);
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnFor"),
         AGameModeBase::SpawnDefaultPawnForHook, nullptr, false);
@@ -442,8 +442,11 @@ DWORD WINAPI Main(LPVOID)
 
     // Hooking::MinHook::Hook(FortPlayerControllerZoneDefault->VFTable[0xD0 / 8], CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
 
-    HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)UFortGadgetItemDefinition::UpdateTrackedAttributesHook, "/Script/FortniteGame.FortPlayerController.Suicide", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
-    HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
+    if (false)
+    {
+        HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)UFortGadgetItemDefinition::UpdateTrackedAttributesHook, "/Script/FortniteGame.FortPlayerController.Suicide", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
+        HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
+    }
 
     Hooking::MinHook::Hook(FortWeaponDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortWeapon.ServerReleaseWeaponAbility"),
         AFortWeapon::ServerReleaseWeaponAbilityHook, (PVOID*)&AFortWeapon::ServerReleaseWeaponAbilityOriginal, false, true);

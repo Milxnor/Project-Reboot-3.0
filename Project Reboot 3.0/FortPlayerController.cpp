@@ -433,17 +433,12 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 	if (auto BuildingContainer = Cast<ABuildingContainer>(ReceivingActor))
 	{
-		static auto bAlreadySearchedOffset = BuildingContainer->GetOffset("bAlreadySearched");
-		static auto bAlreadySearchedFieldMask = GetFieldMask(BuildingContainer->GetProperty("bAlreadySearched"));
-
-		if (BuildingContainer->ReadBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask))
+		if (BuildingContainer->IsAlreadySearched())
 			return;
 
-		// LOG_INFO(LogInteraction, "bAlreadySearchedFieldMask: {}", bAlreadySearchedFieldMask);
-
-		BuildingContainer->SetBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask, true);
-
 		BuildingContainer->SpawnLoot(PlayerController->GetMyFortPawn());
+
+		BuildingContainer->SetAlreadySearched(true);
 
 		// if (BuildingContainer->ShouldDestroyOnSearch())
 			// BuildingContainer->K2_DestroyActor();
@@ -1473,6 +1468,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		// AllPlayerBotsToTick.
 	}
 
+	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 }
 

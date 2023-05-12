@@ -31,6 +31,7 @@
 #include "calendar.h"
 #include "gui.h"
 #include <random>
+#include "die.h"
 
 static UFortPlaylist* GetPlaylistToUse()
 {
@@ -165,8 +166,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 			if (currentBasePlaylist)
 			{
-				GameMode->SetCurrentPlaylistName(currentBasePlaylist);
-				GameState->SetPlaylistId(currentBasePlaylist);
+				// GameMode->SetCurrentPlaylistName(currentBasePlaylist);
+				// GameState->SetPlaylistId(currentBasePlaylist);
 			}
 		}
 		else
@@ -179,8 +180,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 				if (GameState->Get(CurrentPlaylistDataOffset))
 				{
-					GameMode->SetCurrentPlaylistName(GameState->Get<UFortPlaylist*>(CurrentPlaylistDataOffset));
-					GameState->SetPlaylistId(GameState->Get<UFortPlaylist*>(CurrentPlaylistDataOffset));
+					// GameMode->SetCurrentPlaylistName(GameState->Get<UFortPlaylist*>(CurrentPlaylistDataOffset));
+					// GameState->SetPlaylistId(GameState->Get<UFortPlaylist*>(CurrentPlaylistDataOffset));
 				}
 			}
 		}
@@ -416,7 +417,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 
 		static auto bWorldIsReadyOffset = GameMode->GetOffset("bWorldIsReady");
-		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>(bWorldIsReadyOffset), 1, true); // idk when we actually set this
+		static auto bWorldIsReadyFieldMask = GetFieldMask(GameMode->GetProperty("bWorldIsReady"));
+		GameMode->SetBitfieldValue(bWorldIsReadyOffset, bWorldIsReadyFieldMask, true); // idk when we actually set this
 
 		// Calendar::SetSnow(1000);
 
@@ -553,10 +555,15 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		GetWorld()->Listen();
 
+		FixBuildingContainers();
+
 		LOG_INFO(LogDev, "WorldLevel: {}", GameState->GetWorldLevel());
 
-		SetupAIDirector();
-		SetupServerBotManager();
+		if (false)
+		{
+			SetupAIDirector();
+			SetupServerBotManager();
+		}
 
 		bool bPrintCommonObjectPaths = true;
 
@@ -635,7 +642,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				{
 					if (CurrentObject->GetFullName().contains(WorldNamesToStreamAllFoundationsIn.at(z)))
 					{
-						// I think we only have to set bServerStreamedInLevel.
+						// I think we only have to set bServerStreamedInLevel but whatever.
 						ShowFoundation((AActor*)CurrentObject);
 						continue;
 					}
@@ -644,6 +651,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 
 		Globals::bStartedListening = true;
+		// LOG_INFO(LogDev, "Finished listening!");
 	}
 
 	bool Ret = false;

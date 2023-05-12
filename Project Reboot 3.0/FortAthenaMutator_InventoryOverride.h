@@ -98,7 +98,7 @@ public:
 			if (LoadoutTeam.TeamIndex == TeamIndex)
 			{
 				if (LoadoutTeam.UpdateOverrideType != EAthenaInventorySpawnOverride::NoOverride)
-					return LoadoutTeam.UpdateOverrideType;
+					return LoadoutTeam.UpdateOverrideType; // this is temporary!
 			}
 		}
 
@@ -115,7 +115,7 @@ public:
 			if (LoadoutTeam.TeamIndex == TeamIndex)
 			{
 				if (LoadoutTeam.DropAllItemsOverride != EAthenaLootDropOverride::NoOverride)
-					return LoadoutTeam.DropAllItemsOverride;
+					return LoadoutTeam.DropAllItemsOverride; // this is temporary!
 			}
 		}
 
