@@ -21,11 +21,6 @@ public:
 		return (A <= B) ? A : B;
 	}
 
-	static FORCEINLINE float InvSqrt(float F)
-	{
-		return 1.0f / sqrtf(F);
-	}
-
 	static FORCENOINLINE float Fmod(float X, float Y);
 
 	static FORCEINLINE int32 FloorToInt(float F)

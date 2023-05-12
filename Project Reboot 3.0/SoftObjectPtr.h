@@ -32,14 +32,6 @@ public:
 		}
 	}
 
-	T* GetByWeakObject()
-	{
-		if (SoftObjectPtr.ObjectID.AssetPathName.ComparisonIndex.Value <= 0)
-			return nullptr;
-		
-		return GetObjectByIndex(SoftObjectPtr.WeakPtr.ObjectIndex);
-	}
-
 	T* Get(UClass* ClassToLoad = nullptr, bool bTryToLoad = false)
 	{
 		if (Engine_Version <= 416)

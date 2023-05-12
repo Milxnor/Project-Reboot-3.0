@@ -20,9 +20,6 @@ public:
 		return FVector{ this->X - A.X, this->Y - A.Y, this->Z - A.Z };
 	}
 
-
-	FORCEINLINE FVector operator*(float Scale) const;
-
 	FORCEINLINE float SizeSquared() const
 	{
 		return X * X + Y * Y + Z * Z;
@@ -53,8 +50,3 @@ public:
 		*this = *this - A;
 	}
 };
-
-FORCEINLINE FVector FVector::operator*(float Scale) const
-{
-	return FVector(X * Scale, Y * Scale, Z * Scale);
-}

@@ -274,9 +274,6 @@
     <ClCompile Include="FortLootLevel.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
-    <ClCompile Include="reboot.cpp">
-      <Filter>Reboot\Private</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />

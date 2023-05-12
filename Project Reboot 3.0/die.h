@@ -174,7 +174,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 	SafeZoneIndicator->Get<float>(SafeZoneFinishShrinkTimeOffset) = SafeZoneIndicator->Get<float>(SafeZoneStartShrinkTimeOffset) + ZoneDuration;
 }
 
-static inline void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
+void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 {
 	if (!Object || !Function)
 		return;
@@ -330,23 +330,4 @@ static inline void ProcessEventHook(UObject* Object, UFunction* Function, void* 
 	}
 
 	return Object->ProcessEvent(Function, Parameters);
-}
-
-static inline void FixBuildingContainers()
-{
-	if (Fortnite_Version > 2)
-		return;
-
-	auto AllBuildingContainers = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuildingContainer::StaticClass());
-
-	for (int i = 0; i < AllBuildingContainers.size(); i++)
-	{
-		auto BuildingContainer = (ABuildingContainer*)AllBuildingContainers.at(i);
-
-		// TODO Figure it out proper (i think its something like this)
-
-		// BuildingContainer->GetAltMeshIdx() = BuildingContainer->GetAlternateMeshes().Num() > 0 ? BuildingContainer->GetAlternateMeshes().Num() - 1 : 0;
-	}
-
-	AllBuildingContainers.Free();
 }
