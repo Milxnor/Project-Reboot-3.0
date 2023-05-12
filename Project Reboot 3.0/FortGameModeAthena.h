@@ -120,8 +120,10 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 	static auto StartEnabled_Dynamic = 2;
 	static auto Static = 0;
 
-	static auto DynamicFoundationTypeOffset = BuildingFoundation->GetOffset("DynamicFoundationType");
-	BuildingFoundation->Get<uint8_t>(DynamicFoundationTypeOffset) = bShow ? Static : StartDisabled;
+	static auto DynamicFoundationTypeOffset = BuildingFoundation->GetOffset("DynamicFoundationType", false);
+
+	if (DynamicFoundationTypeOffset != -1)
+		BuildingFoundation->Get<uint8_t>(DynamicFoundationTypeOffset) = bShow ? Static : StartDisabled;
 
 	/* static auto bShowHLODWhenDisabledOffset = BuildingFoundation->GetOffset("bShowHLODWhenDisabled", false);
 

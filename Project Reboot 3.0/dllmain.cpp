@@ -183,7 +183,7 @@ DWORD WINAPI Main(LPVOID)
     static auto FortKismetLibraryDefault = FindObject<UFortKismetLibrary>(L"/Script/FortniteGame.Default__FortKismetLibrary");
     static auto AthenaMarkerComponentDefault = FindObject<UAthenaMarkerComponent>(L"/Script/FortniteGame.Default__AthenaMarkerComponent");
     static auto FortWeaponDefault = FindObject<AFortWeapon>(L"/Script/FortniteGame.Default__FortWeapon");
-    static auto FortOctopusVehicleDefault = FindObject<AFortOctopusVehicle>("/Script/FortniteGame.Default__FortOctopusVehicle");
+    static auto FortOctopusVehicleDefault = FindObject<AFortOctopusVehicle>(L"/Script/FortniteGame.Default__FortOctopusVehicle");
 
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetPackageMap VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetTraffic VeryVerbose", nullptr);
@@ -546,7 +546,7 @@ DWORD WINAPI Main(LPVOID)
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
     Hooking::MinHook::Hook((PVOID)GetFunctionIdxOrPtr(FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerOnExitVehicle"), true), AFortPlayerPawn::ServerOnExitVehicleHook, (PVOID*)&AFortPlayerPawn::ServerOnExitVehicleOriginal);
 
-    static auto FortGameplayAbilityAthena_PeriodicItemGrantDefault = FindObject<UFortGameplayAbilityAthena_PeriodicItemGrant>("/Script/FortniteGame.Default__FortGameplayAbilityAthena_PeriodicItemGrant");
+    static auto FortGameplayAbilityAthena_PeriodicItemGrantDefault = FindObject<UFortGameplayAbilityAthena_PeriodicItemGrant>(L"/Script/FortniteGame.Default__FortGameplayAbilityAthena_PeriodicItemGrant");
 
     if (FortGameplayAbilityAthena_PeriodicItemGrantDefault)
     {
@@ -650,7 +650,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(InventoryManagementLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.InventoryManagementLibrary.SwapItems"),
         UInventoryManagementLibrary::SwapItemsHook, (PVOID*)&UInventoryManagementLibrary::SwapItemsOriginal, false, true);
 
-    Hooking::MinHook::Hook(FindObject("/Script/FortniteGame.Default__FortAthenaVehicleSpawner"), FindObject<UFunction>(L"/Script/FortniteGame.FortAthenaVehicleSpawner.SpawnVehicle"),
+    Hooking::MinHook::Hook(FindObject(L"/Script/FortniteGame.Default__FortAthenaVehicleSpawner"), FindObject<UFunction>(L"/Script/FortniteGame.FortAthenaVehicleSpawner.SpawnVehicle"),
         AFortAthenaVehicleSpawner::SpawnVehicleHook, nullptr, false);
 
     static auto ServerHandlePickupInfoFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickupInfo");
@@ -785,7 +785,7 @@ DWORD WINAPI Main(LPVOID)
 
     LOG_INFO(LogDev, "PredictionKeySize: 0x{:x} {}", PredictionKeySize, PredictionKeySize);
 
-    static auto GameplayEventDataSize = FindObject<UStruct>("/Script/GameplayAbilities.GameplayEventData")->GetPropertiesSize();
+    static auto GameplayEventDataSize = FindObject<UStruct>(L"/Script/GameplayAbilities.GameplayEventData")->GetPropertiesSize();
     LOG_INFO(LogDev, "GameplayEventDataSize: 0x{:x} {}", GameplayEventDataSize, GameplayEventDataSize);
 
     {

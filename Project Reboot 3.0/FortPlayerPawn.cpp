@@ -259,7 +259,7 @@ void AFortPlayerPawn::ServerHandlePickupHook(AFortPlayerPawn* Pawn, AFortPickup*
 
 	static auto bPickedUpOffset = Pickup->GetOffset("bPickedUp");
 
-	LOG_INFO(LogDev, "InFlyTime: {}", InFlyTime);
+	// LOG_INFO(LogDev, "InFlyTime: {}", InFlyTime);
 
 	if (Pickup->Get<bool>(bPickedUpOffset))
 	{
