@@ -1476,65 +1476,9 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 }
 
-bool IsBuildingOkForEditing(ABuildingSMActor* BuildingActorToEdit)
-{
-	// we should check if these are valid ptrs but idk if it exists on every version and im too lazy to check
-	static auto EditModeSupportOffset = BuildingActorToEdit->GetOffset("EditModeSupport");
-	static auto EditModePatternDataOffset = BuildingActorToEdit->GetOffset("EditModePatternData");
-
-	bool idkSomeAttachmentCheck = false;
-
-	if (false)
-	{
-		// again idk if this is the same for every build
-
-		static auto AttachmentPlacementBlockingActorsOffset = BuildingActorToEdit->GetOffset("AttachmentPlacementBlockingActors");
-		auto& AttachmentPlacementBlockingActors = BuildingActorToEdit->Get<TArray<ABuildingSMActor*>>(AttachmentPlacementBlockingActorsOffset);
-
-		// bro what
-
-		/* auto AttachmentPlacementBlockingActorsIt = *AttachmentPlacementBlockingActors.Data; // hm?
-		auto v3 = &AttachmentPlacementBlockingActorsIt[AttachmentPlacementBlockingActors.Num()];
-		if (AttachmentPlacementBlockingActors.Data == v3)
-		{
-			idkSomeAttachmentCheck = false;
-		} 
-		else
-		{
-			bool bdid = false;
-
-			while (!*AttachmentPlacementBlockingActors)
-			{
-				if (++AttachmentPlacementBlockingActors == v3)
-				{
-					idkSomeAttachmentCheck = false;
-					bdid = true;
-					break;
-				}
-			}
-
-			if (!bdid)
-				idkSomeAttachmentCheck = true;
-		} */
-	}
-
-	// some other stuff to but too much
-
-	return BuildingActorToEdit->IsPlayerBuildable() && !idkSomeAttachmentCheck;
-}
-
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)
 {
 	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced()) // We need more checks.
-		return;
-
-	if (BuildingActorToEdit->GetEditingPlayer() && BuildingActorToEdit->GetEditingPlayer() != PlayerController->GetPlayerState())
-		return;
-
-	if (BuildingActorToEdit->IsDestroyed() /* || !BuildingActorToEdit->GetWorld() */)
-		return;
-
-	if (!IsBuildingOkForEditing(BuildingActorToEdit))
 		return;
 
 	auto Pawn = PlayerController->GetMyFortPawn();
@@ -1592,10 +1536,10 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 
 	// LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
 
-	if (!BuildingActorToEdit /* || !BuildingActorToEdit->GetWorld() */ || BuildingActorToEdit->GetEditingPlayer() != PlayerState || BuildingActorToEdit->IsDestroyed())
+	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
 	{
-		// LOG_INFO(LogDev, "Cheater?");
-		// LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
+		LOG_INFO(LogDev, "Cheater?");
+		LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
 		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 	}
 
@@ -1613,7 +1557,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 		BuildingActor->SetPlayerPlaced(true);
 	}
 
-	// we should do more things here but it might just be challenge related things
+	// we should do more things here
 
 	return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 }
@@ -1644,6 +1588,9 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
 
 	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+
+	BuildingActorToStopEditing->GetEditingPlayer() = nullptr;
+	// BuildingActorToStopEditing->OnRep_EditingPlayer();
 
 	if (EditTool)
 	{
