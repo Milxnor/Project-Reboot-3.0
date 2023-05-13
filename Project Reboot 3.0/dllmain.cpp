@@ -14,6 +14,8 @@
 #include <fstream>
 #include "GenericPlatformTime.h"
 #include "FortAthenaMutator_GiveItemsAtGamePhaseStep.h"
+#include "FortGameStateAthena.h"
+#include "BuildingGameplayActorSpawnMachine.h"
 
 #include "BuildingFoundation.h"
 #include "Map.h"
@@ -41,6 +43,7 @@
 
 #include "PlaysetLevelStreamComponent.h"
 #include "FortAthenaVehicleSpawner.h"
+#include "FortGameSessionDedicatedAthena.h"
 
 enum ENetMode
 {
@@ -191,10 +194,11 @@ DWORD WINAPI Main(LPVOID)
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogBuilding VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortQuest VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortUIDirector NoLogging", nullptr);
-    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
+    // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogDataTable VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFort VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogGameMode VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogPlayerController VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortCustomization VeryVerbose", nullptr);
 
     Hooking::MinHook::Hook((PVOID)Addresses::NoMCP, (PVOID)NoMCPHook, nullptr);
@@ -328,6 +332,12 @@ DWORD WINAPI Main(LPVOID)
         VirtualProtect((PVOID)func, 1, dwProtection, &dwTemp);
     }
 
+    if (bEnableRebooting)
+    {
+        auto GameSessionDedicatedAthenaPatch = Memcury::Scanner::FindPattern("3B 41 38 7F 27 48 8B D0 48 8B 41 30 4C 39 04 D0 75 1A 48 8D 96").Get();
+        PatchBytes(GameSessionDedicatedAthenaPatch, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+    }
+
     if (Fortnite_Version != 22.4)
     {
         auto matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? 01 7F 18 49 8D 4D D8 48 8B D6 E8 ? ? ? ? 48").Get();
@@ -426,11 +436,18 @@ DWORD WINAPI Main(LPVOID)
             nullptr, false);
     }
 
-    HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)UFortGadgetItemDefinition::UpdateTrackedAttributesHook, "/Script/FortniteGame.FortPlayerController.Suicide", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
-    HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
+    // HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)UFortGadgetItemDefinition::UpdateTrackedAttributesHook, "/Script/FortniteGame.FortPlayerController.Suicide", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
+    // HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
+   
+    if (false)
+    {
+        HookInstruction(Addresses::RebootingDelegate, (PVOID)ABuildingGameplayActorSpawnMachine::RebootingDelegateHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FindObject("/Script/FortniteGame.Default__BuildingGameplayActorSpawnMachine"));
+    }
 
     Hooking::MinHook::Hook(FortWeaponDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortWeapon.ServerReleaseWeaponAbility"),
         AFortWeapon::ServerReleaseWeaponAbilityHook, (PVOID*)&AFortWeapon::ServerReleaseWeaponAbilityOriginal, false, true);
+
+    Hooking::MinHook::Hook((PVOID)Addresses::GetSquadIdForCurrentPlayer, (PVOID)AFortGameSessionDedicatedAthena::GetSquadIdForCurrentPlayerHook);
 
     auto OnPlayImpactFXStringRef = Memcury::Scanner::FindStringRef(L"OnPlayImpactFX", true, 0);
     __int64 OnPlayImpactFXAddr = 0;

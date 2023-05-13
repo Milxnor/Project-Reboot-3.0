@@ -17,6 +17,7 @@
 #include "KismetStringLibrary.h"
 #include "SoftObjectPtr.h"
 #include "discord.h"
+#include "BuildingGameplayActorSpawnMachine.h"
 
 #include "vehicles.h"
 #include "globals.h"
@@ -458,8 +459,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	// if (!Globals::bCreative)
 	{
-		static auto FortPlayerStartCreativeClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartCreative");
-		static auto FortPlayerStartWarmupClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartWarmup");
+		static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
+		static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
 		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
 
 		int ActorsNum = Actors.Num();
@@ -557,23 +558,64 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		SetupAIDirector();
 		SetupServerBotManager();
 
+		if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
+		{
+			TeamsArrayContainer->TeamIndexesArray.Free();
+
+			for (int i = 0; i < 100; i++)
+			{
+				TeamsArrayContainer->TeamIndexesArray.Add(INT_MAX); // Bro what
+			}
+
+			TeamsArrayContainer->SquadIdsArray.Free();
+
+			for (int i = 0; i < 100; i++)
+			{
+				TeamsArrayContainer->SquadIdsArray.Add(INT_MAX); // Bro what
+			}
+
+			// We aren't "freeing", it's just not zero'd I guess?
+
+			for (int i = 0; i < TeamsArrayContainer->TeamsArray.Num(); i++)
+			{
+				TeamsArrayContainer->TeamsArray.at(i).Free();
+			}
+
+			for (int i = 0; i < TeamsArrayContainer->SquadsArray.Num(); i++)
+			{
+				TeamsArrayContainer->SquadsArray.at(i).Free();
+			}
+		}
+
+		auto AllRebootVans = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuildingGameplayActorSpawnMachine::StaticClass());
+
+		for (int i = 0; i < AllRebootVans.Num(); i++)
+		{
+			auto CurrentRebootVan = (ABuildingGameplayActorSpawnMachine*)AllRebootVans.at(i);
+			static auto FortPlayerStartClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStart");
+			CurrentRebootVan->GetResurrectLocation() = CurrentRebootVan->GetClosestActor(FortPlayerStartClass, 100);
+		}
+
+		AllRebootVans.Free();
+
+		static auto DefaultRebootMachineHotfixOffset = GameState->GetOffset("DefaultRebootMachineHotfix", false);
+
+		if (DefaultRebootMachineHotfixOffset != -1)
+		{
+			// LOG_INFO(LogDev, "Beraau: {}", GameState->Get<float>(DefaultRebootMachineHotfixOffset));
+			GameState->Get<float>(DefaultRebootMachineHotfixOffset) = 1; // idk i dont think we need to set
+		}
+
 		if (AmountOfBotsToSpawn != 0)
 		{
 			Bots::SpawnBotsAtPlayerStarts(AmountOfBotsToSpawn);
 		}
 
-		// GameState->OnRep_CurrentPlaylistInfo();
-
-		// return false;
-
-		if (!UptimeWebHook.send_message(std::format("Server up! {} {}", Fortnite_Version, PlaylistName))) // PlaylistName sometimes isn't always what we use.
-		{
-			// Sleep(-1); // what why did i have this here i honestly forgot
-		}
+		UptimeWebHook.send_message(std::format("Server up! {} {}", Fortnite_Version, PlaylistName)); // PlaylistName sometimes isn't always what we use!
 
 		if (std::floor(Fortnite_Version) == 5)
 		{
-			auto NewFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");
+			auto NewFn = FindObject<UFunction>(L"/Game/Athena/Prototype/Blueprints/Cube/CUBE.CUBE_C.New");
 
 			if (NewFn && (Fortnite_Version == 5.30 ? !Globals::bGoingToPlayEvent : true))
 			{
@@ -615,7 +657,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				if (!CurrentObject)
 					continue;
 
-				static auto BuildingFoundationClass = FindObject<UClass>("/Script/FortniteGame.BuildingFoundation");
+				static auto BuildingFoundationClass = FindObject<UClass>(L"/Script/FortniteGame.BuildingFoundation");
 
 				if (!CurrentObject->IsA(BuildingFoundationClass))
 					continue;
@@ -651,7 +693,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 				// if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum > 0)
 				{
-					LOG_INFO(LogDev, "ReadyToStartMatch Return Address: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
+					// LOG_INFO(LogDev, "ReadyToStartMatch Return Address: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
 					Ret = true;
 				}
 			}
@@ -680,7 +722,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			{
 				// On newer versions there is a second param.
 
-				LOG_INFO(LogDev, "FunctionToCallPair.second: {}", __int64(FunctionToCallPair.second));
+				// LOG_INFO(LogDev, "FunctionToCallPair.second: {}", __int64(FunctionToCallPair.second));
 
 				if (FunctionToCallPair.second)
 				{
@@ -711,6 +753,12 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	auto PlayerState = ((APlayerController*)Controller)->GetPlayerState();
 
+	if (!PlayerState)
+	{
+		LOG_ERROR(LogGame, "Player has no playerstate!");
+		return 0;
+	}
+
 	if (PlayerState)
 	{
 		bIsBot = PlayerState->IsBot();
@@ -718,7 +766,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	// VERY BASIC IMPLEMENTATION
 
-	LOG_INFO(LogTeams, "PickTeam called!");
+	// LOG_INFO(LogTeams, "PickTeam called!");
 
 	auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
 
@@ -770,7 +818,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		if (!Playlist)
 		{
 			CurrentTeamMembers = 0;
-			LOG_INFO(LogTeams, "Player is going on team {} with {} members (No Playlist).", Current, CurrentTeamMembers);
+			// LOG_INFO(LogTeams, "Player is going on team {} with {} members (No Playlist).", Current, CurrentTeamMembers);
 			CurrentTeamMembers++;
 			return Current++;
 		}
@@ -801,7 +849,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		TeamsNum = 100;
 	}
 
-	LOG_INFO(LogTeams, "Before team assigning NextTeamIndex: {} CurrentTeamMembers: {}", NextTeamIndex, CurrentTeamMembers);
+	// LOG_INFO(LogTeams, "Before team assigning NextTeamIndex: {} CurrentTeamMembers: {}", NextTeamIndex, CurrentTeamMembers);
 
 	if (!bShouldSpreadTeams)
 	{
@@ -831,6 +879,19 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	LOG_INFO(LogTeams, "Spreading Teams {} [{}] Player is going on team {} with {} members.", bShouldSpreadTeams, TeamsNum, NextTeamIndex, CurrentTeamMembers);
 
 	CurrentTeamMembers++;
+
+	TWeakObjectPtr<AFortPlayerStateAthena> WeakPlayerState{};
+	WeakPlayerState.ObjectIndex = PlayerState->InternalIndex;
+	WeakPlayerState.ObjectSerialNumber = GetItemByIndex(PlayerState->InternalIndex)->SerialNumber;
+
+	if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
+	{
+		auto& TeamArray = TeamsArrayContainer->TeamsArray.at(NextTeamIndex);
+		LOG_INFO(LogDev, "TeamsArrayContainer->TeamsArray.Num(): {}", TeamsArrayContainer->TeamsArray.Num());
+		LOG_INFO(LogDev, "TeamArray.Num(): {}", TeamArray.Num());
+
+		TeamArray.Add(WeakPlayerState);
+	}
 
 	return NextTeamIndex;
 }
@@ -1044,13 +1105,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		return Athena_HandleStartingNewPlayerOriginal(GameMode, NewPlayerActor);
 
 	static auto CharacterPartsOffset = PlayerStateAthena->GetOffset("CharacterParts", false);
-	static auto CustomCharacterPartsStruct = FindObject<UStruct>("/Script/FortniteGame.CustomCharacterParts");
+	static auto CustomCharacterPartsStruct = FindObject<UStruct>(L"/Script/FortniteGame.CustomCharacterParts");
 	auto CharacterParts = PlayerStateAthena->GetPtr<__int64>("CharacterParts");
 
 	static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts", false);
 	auto Parts = (UObject**)(__int64(CharacterParts) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
 
-	static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
+	static auto CustomCharacterPartClass = FindObject<UClass>(L"/Script/FortniteGame.CustomCharacterPart");
 
 	if (Globals::bNoMCP)
 	{
@@ -1063,7 +1124,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			Parts[(int)EFortCustomPartType::Head] = headPart;
 			Parts[(int)EFortCustomPartType::Body] = bodyPart;
 
-			static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
+			static auto OnRep_CharacterPartsFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
 			PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);
 		}
 	}
@@ -1071,7 +1132,19 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	static auto SquadIdOffset = PlayerStateAthena->GetOffset("SquadId", false);
 
 	if (SquadIdOffset != -1)
-		PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 2; // wrong place to do this
+		PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 3; // wrong place to do this
+
+	TWeakObjectPtr<AFortPlayerStateAthena> WeakPlayerState{};
+	WeakPlayerState.ObjectIndex = PlayerStateAthena->InternalIndex;
+	WeakPlayerState.ObjectSerialNumber = GetItemByIndex(PlayerStateAthena->InternalIndex)->SerialNumber;
+
+	if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
+	{
+		auto& SquadArray = TeamsArrayContainer->SquadsArray.at(PlayerStateAthena->GetSquadId());
+		SquadArray.Add(WeakPlayerState);
+	}
+
+	LOG_INFO(LogDev, "New player going on TeamIndex {} with SquadId {}", PlayerStateAthena->GetTeamIndex(), SquadIdOffset != -1 ? PlayerStateAthena->GetSquadId() : -1);
 
 	// idk if this is needed
 

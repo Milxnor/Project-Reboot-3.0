@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameState.h"
-#include "FortPlayerState.h"
+#include "FortPlayerStateAthena.h"
 #include "FortPlaylist.h"
 #include "BuildingStructuralSupportSystem.h"
 #include "ScriptInterface.h"
@@ -43,9 +43,22 @@ class UFortSafeZoneInterface : public UInterface
 public:
 	static UClass* StaticClass()
 	{
-		static auto Struct = FindObject<UClass>("/Script/FortniteGame.FortSafeZoneInterface");
+		static auto Struct = FindObject<UClass>(L"/Script/FortniteGame.FortSafeZoneInterface");
 		return Struct;
 	}
+};
+
+struct TeamsArrayContainer // THANK ANDROIDDD!!!!
+{
+	TArray<TArray<TWeakObjectPtr<AFortPlayerStateAthena>>> TeamsArray; // 13D0
+	TArray<int> TeamIdk1; // 13E0
+	TArray<int> TeamIndexesArray; // 13F0
+
+	uintptr_t idfk; //(or 2 ints) // 1400
+
+	TArray<TArray<TWeakObjectPtr<AFortPlayerStateAthena>>> SquadsArray; // Index = SquadId // 1408
+	TArray<int> SquadIdk1; // 1418
+	TArray<int> SquadIdsArray; // 0x1428
 };
 
 struct FPlayerBuildableClassContainer
@@ -86,6 +99,14 @@ public:
 		return Get<AFortAthenaMapInfo*>(MapInfoOffset);
 	}
 
+	bool IsResurrectionEnabled(AFortPlayerPawn* PlayerPawn)
+	{
+		static auto IsResurrectionEnabledFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateAthena.IsResurrectionEnabled");
+		struct { AFortPlayerPawn* PlayerPawn; bool Ret; } Params{PlayerPawn};
+		this->ProcessEvent(IsResurrectionEnabledFn, &Params);
+		return Params.Ret;
+	}
+
 	EAthenaGamePhaseStep& GetGamePhaseStep()
 	{
 		static auto GamePhaseStepOffset = GetOffset("GamePhaseStep");
@@ -105,6 +126,9 @@ public:
 	void OnRep_GamePhase();
 	void OnRep_CurrentPlaylistInfo();
 	void OnRep_PlayersLeft();
+	TeamsArrayContainer* GetTeamsArrayContainer();
+
+	static UClass* StaticClass();
 };
 
 static void* ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep GamePhaseStep)

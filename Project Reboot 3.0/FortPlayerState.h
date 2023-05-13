@@ -1,5 +1,6 @@
 #pragma once
 
+#include "OnlineReplStructs.h"
 #include "PlayerState.h"
 #include "AbilitySystemComponent.h"
 
@@ -17,6 +18,8 @@ public:
 		static auto WorldPlayerIdOffset = GetOffset("WorldPlayerId");
 		return this->Get<int>(WorldPlayerIdOffset);
 	}
+
+	static bool AreUniqueIDsIdentical(FUniqueNetIdRepl* A, FUniqueNetIdRepl* B);
 
 	static UClass* StaticClass()
 	{

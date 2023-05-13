@@ -133,7 +133,7 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 		BuildingFoundation->SetBitfieldValue(bShowHLODWhenDisabledOffset, bShowHLODWhenDisabledFieldMask, true);
 	} */
 
-	static auto OnRep_ServerStreamedInLevelFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_ServerStreamedInLevel");
+	static auto OnRep_ServerStreamedInLevelFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.OnRep_ServerStreamedInLevel");
 	BuildingFoundation->ProcessEvent(OnRep_ServerStreamedInLevelFn);
 
 	static auto DynamicFoundationRepDataOffset = BuildingFoundation->GetOffset("DynamicFoundationRepData", false);
@@ -151,7 +151,7 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 
 		*(uint8_t*)(__int64(DynamicFoundationRepData) + EnabledStateOffset) = bShow ? Enabled : Disabled;
 
-		static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
+		static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
 		BuildingFoundation->ProcessEvent(OnRep_DynamicFoundationRepDataFn);
 	}
 
@@ -182,7 +182,7 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 
 static void StreamLevel(const std::string& LevelName, FVector Location = {})
 {
-	static auto BuildingFoundation3x3Class = FindObject<UClass>("/Script/FortniteGame.BuildingFoundation3x3");
+	static auto BuildingFoundation3x3Class = FindObject<UClass>(L"/Script/FortniteGame.BuildingFoundation3x3");
 	FTransform Transform{};
 	Transform.Scale3D = { 1, 1, 1 };
 	Transform.Translation = Location;
@@ -206,7 +206,7 @@ static void StreamLevel(const std::string& LevelName, FVector Location = {})
 
 	*(FName*)(__int64(BuildingFoundation) + LevelToStreamOffset) = UKismetStringLibrary::Conv_StringToName(std::wstring(LevelName.begin(), LevelName.end()).c_str());
 
-	static auto OnRep_LevelToStreamFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_LevelToStream");
+	static auto OnRep_LevelToStreamFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.OnRep_LevelToStream");
 	BuildingFoundation->ProcessEvent(OnRep_LevelToStreamFn);
 
 	ShowFoundation(BuildingFoundation);
@@ -245,9 +245,7 @@ public:
 	FName RedirectLootTier(const FName& LootTier);
 	UClass* GetVehicleClassOverride(UClass* DefaultClass);
 
-	// Idk where to put these 3 functions.
-
-	static void HandleSpawnRateForActorClass(UClass* ActorClass, float SpawnPercentage);
+	static void HandleSpawnRateForActorClass(UClass* ActorClass, float SpawnPercentage); // idk where to put
 
 	static bool Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode);
 	static int Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller);

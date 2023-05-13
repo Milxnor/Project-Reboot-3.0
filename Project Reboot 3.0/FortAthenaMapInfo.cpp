@@ -47,7 +47,8 @@ void AFortAthenaMapInfo::SpawnLlamas()
 
 	for (int i = 0; i < AmountOfLlamasToSpawn; i++)
 	{
-		FVector Location = PickSupplyDropLocation(FVector(1, 1, 10000), 30000);
+		int Radius = 100000;
+		FVector Location = PickSupplyDropLocation(FVector(1, 1, 10000), Radius);
 
 		// LOG_INFO(LogDev, "Initial Llama at {} {} {}", Location.X, Location.Y, Location.Z);
 

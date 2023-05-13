@@ -247,10 +247,29 @@ void AFortGameStateAthena::OnRep_CurrentPlaylistInfo()
 
 void AFortGameStateAthena::OnRep_PlayersLeft()
 {
-	static auto OnRep_PlayersLeftFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateAthena.OnRep_PlayersLeft");
+	static auto OnRep_PlayersLeftFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameStateAthena.OnRep_PlayersLeft");
 
 	if (!OnRep_PlayersLeftFn)
 		return;
 
 	this->ProcessEvent(OnRep_PlayersLeftFn);
+}
+
+TeamsArrayContainer* AFortGameStateAthena::GetTeamsArrayContainer()
+{
+	static auto FriendlyFireTypeOffset = GetOffset("FriendlyFireType");
+	static int Offset = -1;
+
+	if (Offset == -1)
+	{
+		Offset = FriendlyFireTypeOffset + 0x5;
+	}
+
+	return Offset != -1 ? (TeamsArrayContainer*)(__int64(this) + Offset) : nullptr;
+}
+
+UClass* AFortGameStateAthena::StaticClass()
+{
+	static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortGameStateAthena");
+	return Class;
 }

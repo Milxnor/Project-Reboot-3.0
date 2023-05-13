@@ -132,6 +132,12 @@ public:
 	static inline void (*StartGhostModeOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 	static inline void (*EndGhostModeOriginal)(AFortPlayerControllerAthena* PlayerController);
 
+	class UAthenaResurrectionComponent*& GetResurrectionComponent()
+	{
+		static auto ResurrectionComponentOffset = GetOffset("ResurrectionComponent");
+		return Get<class UAthenaResurrectionComponent*>(ResurrectionComponentOffset);
+	}
+
 	AFortPlayerStateAthena* GetPlayerStateAthena()
 	{
 		return (AFortPlayerStateAthena*)GetPlayerState();
@@ -183,7 +189,7 @@ public:
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerControllerAthena");
+		static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerControllerAthena");
 		return Class;
 	}
 };

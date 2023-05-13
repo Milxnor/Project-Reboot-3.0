@@ -294,6 +294,18 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding LoadAsset");
 	Addresses::LoadAsset = FindLoadAsset();
 
+	LOG_INFO(LogDev, "Finding RebootingDelegate");
+	Addresses::RebootingDelegate = FindRebootingDelegate();
+
+	LOG_INFO(LogDev, "Finding GetSquadIdForCurrentPlayer");
+	Addresses::GetSquadIdForCurrentPlayer = FindGetSquadIdForCurrentPlayer();
+
+	LOG_INFO(LogDev, "Finding FinishResurrection");
+	Addresses::FinishResurrection = FindFinishResurrection();
+
+	LOG_INFO(LogDev, "Finding AddToAlivePlayers");
+	Addresses::AddToAlivePlayers = FindAddToAlivePlayers();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
@@ -362,7 +374,11 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "CombinePickupLea: 0x{:x}", CombinePickupLea - Base);
 	LOG_INFO(LogDev, "CreateBuildingActorCallForDeco: 0x{:x}", CreateBuildingActorCallForDeco - Base);
 	LOG_INFO(LogDev, "PickSupplyDropLocation: 0x{:x}", PickSupplyDropLocation - Base);
-	LOG_INFO(LogDev, "LoadAsset: 0x{:x}", LoadAsset - Base)
+	LOG_INFO(LogDev, "LoadAsset: 0x{:x}", LoadAsset - Base);
+	LOG_INFO(LogDev, "RebootingDelegate: 0x{:x}", RebootingDelegate - Base);
+	LOG_INFO(LogDev, "GetSquadIdForCurrentPlayer: 0x{:x}", GetSquadIdForCurrentPlayer - Base);
+	LOG_INFO(LogDev, "FinishResurrection: 0x{:x}", FinishResurrection - Base);
+	LOG_INFO(LogDev, "AddToAlivePlayers: 0x{:x}", AddToAlivePlayers - Base);
 }
 
 void Offsets::FindAll()

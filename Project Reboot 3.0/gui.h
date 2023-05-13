@@ -68,6 +68,7 @@ extern inline bool bDebugPrintSwapping = false;
 extern inline bool bEnableBotTick = false;
 extern inline bool bEnableCombinePickup = false;
 extern inline int AmountOfBotsToSpawn = 0;
+extern inline bool bEnableRebooting = false;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -738,7 +739,8 @@ static inline void MainUI()
 								}
 							}
 
-							GameState->Get<float>("WarmupCountdownEndTime") = UGameplayStatics::GetTimeSeconds(GetWorld()) + 10;
+							static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
+							GameState->Get<float>(WarmupCountdownEndTimeOffset) = UGameplayStatics::GetTimeSeconds(GetWorld()) + 10;
 						}
 					}
 				}

@@ -77,7 +77,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 		for (int i = 0; i < ClientConnections.Num(); i++)
 		{
-			auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get("PlayerController"));
+			static auto PlayerControllerOffset = ClientConnections.at(i)->GetOffset("PlayerController");
+			auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get(PlayerControllerOffset));
 
 			if (!CurrentPlayerController)
 				continue;
@@ -452,7 +453,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			for (int i = 0; i < ClientConnections.Num(); i++)
 			{
-				auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get("PlayerController"));
+				static auto PlayerControllerOffset = ClientConnections.at(i)->GetOffset("PlayerController");
+				auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get(PlayerControllerOffset));
 
 				if (!CurrentPlayerController)
 					continue;
@@ -790,7 +792,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			}
 			
 			LOG_INFO(LogDev, "Pawn: 0x{:x}", __int64(Pawn));
-		 }
+		}
 		else { bSendHelpMessage = true; };
 	}
 	else { bSendHelpMessage = true; };

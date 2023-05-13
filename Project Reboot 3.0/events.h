@@ -591,9 +591,17 @@ static inline bool CallOnReadys(bool* bWereAllSuccessful = nullptr)
 
 	auto EventPlaylist = GetEventPlaylist();
 
-	struct { UObject* GameState; UObject* Playlist; FGameplayTagContainer PlaylistContextTags; } OnReadyParams{ 
-		((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena(), EventPlaylist,
-		EventPlaylist ? EventPlaylist->Get<FGameplayTagContainer>("GameplayTagContainer") : FGameplayTagContainer()};
+	struct { UObject* GameState; UObject* Playlist; FGameplayTagContainer PlaylistContextTags; } OnReadyParams{ Cast<AFortGameStateAthena>(GetWorld()->GetGameState()), EventPlaylist };
+
+	if (EventPlaylist)
+	{
+		static auto GameplayTagContainerOffset = EventPlaylist->GetOffset("GameplayTagContainer");
+		OnReadyParams.PlaylistContextTags = EventPlaylist->Get<FGameplayTagContainer>(GameplayTagContainerOffset);
+	}
+	else
+	{
+		OnReadyParams.PlaylistContextTags = FGameplayTagContainer();
+	}
 
 	for (auto& OnReadyFunc : OurEvent.OnReadyFunctions)
 	{

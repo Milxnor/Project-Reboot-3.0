@@ -24,9 +24,34 @@ struct FUniqueNetIdRepl // : public FUniqueNetIdWrapper
 		return *(TArray<uint8>*)(__int64(this) + ReplicationBytesOffset);
 	}
 
+	bool IsIdentical(FUniqueNetIdRepl* OtherUniqueId)
+	{
+		// idk if this is right but whatever
+
+		bool bTest = true;
+
+		if (this->GetReplicationBytes().Num() > this->GetReplicationBytes().Num()) // != ?
+			bTest = false;
+
+		for (int i = 0; i < this->GetReplicationBytes().Num(); i++)
+		{
+			if (this->GetReplicationBytes().at(i) != OtherUniqueId->GetReplicationBytes().at(i))
+			{
+				bTest = false;
+				break;
+			}
+		}
+
+		// LOG_INFO(LogDev, "btest: {}", bTest);
+
+		return bTest;
+	}
+
 	void CopyFromAnotherUniqueId(FUniqueNetIdRepl* OtherUniqueId)
 	{
 		CopyStruct(this, OtherUniqueId, GetSizeOfStruct(), GetStruct());
+
+		return;
 
 		auto& ReplicationBytes = GetReplicationBytes();
 

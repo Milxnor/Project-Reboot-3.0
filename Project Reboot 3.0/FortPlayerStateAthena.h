@@ -3,6 +3,35 @@
 #include "FortPlayerState.h"
 #include "Stack.h"
 
+struct FFortRespawnData
+{
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.FortRespawnData");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
+
+	bool& IsRespawnDataAvailable()
+	{
+		static auto bRespawnDataAvailableOffset = FindOffsetStruct("/Script/FortniteGame.FortRespawnData", "bRespawnDataAvailable");
+		return *(bool*)(__int64(this) + bRespawnDataAvailableOffset);
+	}
+
+	bool& IsClientReady()
+	{
+		static auto bClientIsReadyOffset = FindOffsetStruct("/Script/FortniteGame.FortRespawnData", "bClientIsReady");
+		return *(bool*)(__int64(this) + bClientIsReadyOffset);
+	}
+
+	bool& IsServerReady()
+	{
+		static auto bServerIsReadyOffset = FindOffsetStruct("/Script/FortniteGame.FortRespawnData", "bServerIsReady");
+		return *(bool*)(__int64(this) + bServerIsReadyOffset);
+	}
+};
+
 class AFortPlayerStateAthena : public AFortPlayerState
 {
 public:
@@ -26,6 +55,12 @@ public:
 		return Get<int>(PlaceOffset);
 	}
 
+	FFortRespawnData* GetRespawnData()
+	{
+		static auto RespawnDataOffset = GetOffset("RespawnData");
+		return GetPtr<FFortRespawnData>(RespawnDataOffset);
+	}
+
 	bool IsInAircraft()
 	{
 		static auto bInAircraftOffset = GetOffset("bInAircraft");
@@ -38,6 +73,16 @@ public:
 		static auto bThankedBusDriverOffset = GetOffset("bThankedBusDriver");
 		static auto bThankedBusDriverFieldMask = GetFieldMask(GetProperty("bThankedBusDriver"));
 		return ReadBitfieldValue(bThankedBusDriverOffset, bThankedBusDriverFieldMask);
+	}
+
+	bool& IsResurrectingNow()
+	{
+		static auto bResurrectingNowOffset = GetOffset("bResurrectingNow", false);
+
+		// if (bResurrectingNowOffset == -1)
+			// return false;
+
+		return Get<bool>(bResurrectingNowOffset);
 	}
 
 	void ClientReportKill(AFortPlayerStateAthena* Player)

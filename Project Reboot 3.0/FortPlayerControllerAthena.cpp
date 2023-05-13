@@ -8,6 +8,7 @@
 #include "hooking.h"
 #include "FortAthenaMutator_GiveItemsAtGamePhaseStep.h"
 #include "DataTableFunctionLibrary.h"
+#include "AthenaResurrectionComponent.h"
 #include "FortAthenaMutator_InventoryOverride.h"
 
 void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret)
@@ -480,7 +481,7 @@ void AFortPlayerControllerAthena::ServerReadyToStartMatchHook(AFortPlayerControl
 		{
 			auto& QuickBars = PlayerController->Get<AActor*>(QuickBarsOffset);
 
-			LOG_INFO(LogDev, "QuickBarsOld: {}", __int64(QuickBars));
+			// LOG_INFO(LogDev, "QuickBarsOld: {}", __int64(QuickBars));
 
 			if (QuickBars)
 				return ServerReadyToStartMatchOriginal(PlayerController);
@@ -489,7 +490,7 @@ void AFortPlayerControllerAthena::ServerReadyToStartMatchHook(AFortPlayerControl
 
 			QuickBars = GetWorld()->SpawnActor<AActor>(FortQuickBarsClass);
 
-			LOG_INFO(LogDev, "QuickBarsNew: {}", __int64(QuickBars));
+			// LOG_INFO(LogDev, "QuickBarsNew: {}", __int64(QuickBars));
 
 			if (!QuickBars)
 				return ServerReadyToStartMatchOriginal(PlayerController);

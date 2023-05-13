@@ -180,6 +180,7 @@
     <ClCompile Include="BuildingActor.cpp" />
     <ClCompile Include="BuildingContainer.cpp" />
     <ClCompile Include="BuildingFoundation.cpp" />
+    <ClCompile Include="BuildingGameplayActorSpawnMachine.cpp" />
     <ClCompile Include="BuildingSMActor.cpp" />
     <ClCompile Include="BuildingStructuralSupportSystem.cpp" />
     <ClCompile Include="BuildingTrap.cpp" />
@@ -207,6 +208,7 @@
     <ClCompile Include="FortGameModeAthena.cpp" />
     <ClCompile Include="FortGameModeZone.cpp" />
     <ClCompile Include="FortGameplayAbilityAthena_PeriodicItemGrant.cpp" />
+    <ClCompile Include="FortGameSessionDedicatedAthena.cpp" />
     <ClCompile Include="FortGameStateAthena.cpp" />
     <ClCompile Include="FortInventory.cpp" />
     <ClCompile Include="FortInventory.h" />
@@ -223,6 +225,7 @@
     <ClCompile Include="FortPlayerControllerAthena.cpp" />
     <ClCompile Include="FortPlayerPawn.cpp" />
     <ClCompile Include="FortPlayerPawnAthena.cpp" />
+    <ClCompile Include="FortPlayerState.cpp" />
     <ClCompile Include="FortPlayerStateAthena.cpp" />
     <ClCompile Include="FortPlaysetItemDefinition.cpp" />
     <ClCompile Include="FortSafeZoneIndicator.cpp" />
@@ -272,6 +275,7 @@
     <ClInclude Include="AthenaBarrierObjective.h" />
     <ClInclude Include="AthenaBigBaseWall.h" />
     <ClInclude Include="AthenaMarkerComponent.h" />
+    <ClInclude Include="AthenaResurrectionComponent.h" />
     <ClInclude Include="AttributeSet.h" />
     <ClInclude Include="BGA.h" />
     <ClInclude Include="BinaryHeap.h" />
@@ -333,6 +337,7 @@
     <ClInclude Include="FortGameModePvPBase.h" />
     <ClInclude Include="FortGameModeZone.h" />
     <ClInclude Include="FortGameplayAbilityAthena_PeriodicItemGrant.h" />
+    <ClInclude Include="FortGameSessionDedicatedAthena.h" />
     <ClInclude Include="FortGameStateAthena.h" />
     <ClInclude Include="FortInventoryInterface.h" />
     <ClInclude Include="FortItem.h" />

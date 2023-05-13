@@ -274,6 +274,15 @@
     <ClCompile Include="reboot.cpp">
       <Filter>Reboot\Private</Filter>
     </ClCompile>
+    <ClCompile Include="FortGameSessionDedicatedAthena.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
+    </ClCompile>
+    <ClCompile Include="FortPlayerState.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="BuildingGameplayActorSpawnMachine.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -861,6 +870,12 @@
     </ClInclude>
     <ClInclude Include="ai.h">
       <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortGameSessionDedicatedAthena.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena</Filter>
+    </ClInclude>
+    <ClInclude Include="AthenaResurrectionComponent.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

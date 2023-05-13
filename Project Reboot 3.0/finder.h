@@ -142,6 +142,65 @@ static inline uint64 FindObjectArray()
 	return addr;
 }
 
+static inline uint64 FindAddToAlivePlayers()
+{
+	auto Addrr = Memcury::Scanner::FindStringRef(L"FortGameModeAthena: Player [%s] doesn't have a valid PvP team, and won't be added to the alive players list.").Get();
+
+	if (!Addrr)
+		return 0;
+
+	for (int i = 0; i < 4000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x85 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xD2)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
+}
+
+static inline uint64 FindFinishResurrection()
+{
+	auto Addrr = FindFunctionCall(L"OnResurrectionCompleted");
+
+	if (!Addrr)
+		return 0;
+
+	auto addr = Memcury::Scanner::FindPattern("40 53 48 83 EC 20 0F B6 81 ? ? ? ? 83 C2 03 48 8B D9 3B D0 0F 85").Get();
+
+	return addr;
+
+	LOG_INFO(LogDev, "WTF: 0x{:x}", Addrr - __int64(GetModuleHandleW(0)));
+
+	for (int i = 0; i < 2000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x53)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
+}
+
+static inline uint64 FindGetSquadIdForCurrentPlayer()
+{
+	auto addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 40 48 8D 99 ? ? ? ? 48 8B FA 4C 8B C2 48 8B CB").Get();
+
+	return addr;
+}
+
+static inline uint64 FindRebootingDelegate()
+{
+	if (Fortnite_Version < 8.3)
+		return 0;
+
+	auto addr = Memcury::Scanner::FindPattern("48 8D 05 ? ? ? ? 33 F6 48 89 44 24 ? 49 8B CE 49 8B 06 89 74 24 60 FF 90 ? ? ? ? 4C 8B A4 24 ? ? ? ? 48 8B 88 ? ? ? ? 48 85 C9").Get();
+
+	return addr;
+}
+
 static inline uint64 FindPickupInitialize()
 {
 	if (Engine_Version == 419)

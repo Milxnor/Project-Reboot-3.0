@@ -18,6 +18,17 @@ struct FunctionHooks
 
 static inline std::vector<FunctionHooks> AllFunctionHooks;
 
+inline void PatchBytes(uint64 addr, const std::vector<uint8_t>& Bytes)
+{
+    if (!addr)
+        return;
+
+    for (int i = 0; i < Bytes.size(); i++)
+    {
+        *(uint8_t*)(addr + i) = Bytes.at(i);
+    }
+}
+
 inline __int64 GetFunctionIdxOrPtr2(UFunction* Function)
 {
     auto NativeAddr = __int64(Function->GetFunc());

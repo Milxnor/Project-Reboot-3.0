@@ -9,6 +9,38 @@
 #include "FortAthenaMutator_GG.h"
 #include "FortAthenaMutator_InventoryOverride.h"
 
+void AGameModeBase::RestartPlayerAtTransform(AController* NewPlayer, FTransform SpawnTransform)
+{
+	static auto RestartPlayerAtTransformFn = FindObject<UFunction>("/Script/Engine.GameModeBase.RestartPlayerAtTransform");
+
+	struct
+	{
+		AController* NewPlayer;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FTransform                                  SpawnTransform;                                           // (ConstParm, Parm, OutParm, ReferenceParm, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
+	} AGameModeBase_RestartPlayerAtTransform_Params{ NewPlayer, SpawnTransform };
+
+	this->ProcessEvent(RestartPlayerAtTransformFn, &AGameModeBase_RestartPlayerAtTransform_Params);
+}
+
+void AGameModeBase::RestartPlayerAtPlayerStart(AController* NewPlayer, AActor* StartSpot)
+{
+	static auto RestartPlayerAtPlayerStartFn = FindObject<UFunction>("/Script/Engine.GameModeBase.RestartPlayerAtPlayerStart");
+
+	struct
+	{
+		AController* NewPlayer;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		AActor* StartSpot;                                                // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} AGameModeBase_RestartPlayerAtPlayerStart_Params{ NewPlayer, StartSpot };
+
+	this->ProcessEvent(RestartPlayerAtPlayerStartFn, &AGameModeBase_RestartPlayerAtPlayerStart_Params);
+}
+
+void AGameModeBase::RestartPlayer(AController* NewPlayer)
+{
+	static auto RestartPlayerFn = FindObject<UFunction>("/Script/Engine.GameModeBase.RestartPlayer");
+	this->ProcessEvent(RestartPlayerFn, &NewPlayer);
+}
+
 UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InController)
 {
 	static auto GetDefaultPawnClassForControllerFn = FindObject<UFunction>("/Script/Engine.GameModeBase.GetDefaultPawnClassForController");
@@ -55,6 +87,8 @@ AActor* AGameModeBase::K2_FindPlayerStart(AController* Player, FString IncomingN
 
 APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AController* NewPlayer, AActor* StartSpot)
 {
+	LOG_INFO(LogDev, "SpawnDefaultPawnForHook!");
+
 	auto NewPlayerAsAthena = Cast<AFortPlayerControllerAthena>(NewPlayer);
 
 	if (!NewPlayerAsAthena)
@@ -71,7 +105,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 	constexpr bool bUseSpawnActor = false;
 
-	static auto fn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
+	static auto SpawnDefaultPawnAtTransformFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
 
 	FTransform SpawnTransform = StartSpot->GetTransform();
 	APawn* NewPawn = nullptr;
@@ -88,7 +122,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
 		AGameModeBase_SpawnDefaultPawnAtTransform_Params{ NewPlayer, SpawnTransform };
 
-		GameMode->ProcessEvent(fn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+		GameMode->ProcessEvent(SpawnDefaultPawnAtTransformFn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
 
 		NewPawn = AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
 	}
@@ -102,16 +136,10 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 	if (RespawnDataOffset != -1)
 	{
-		static auto bServerIsReadyOffset = FindOffsetStruct("/Script/FortniteGame.FortRespawnData", "bServerIsReady");
-		static auto bRespawnDataAvailableOffset = FindOffsetStruct("/Script/FortniteGame.FortRespawnData", "bRespawnDataAvailable");
+		auto RespawnDataPtr = PlayerStateAthena->GetRespawnData();
 
-		auto RespawnDataPtr = PlayerStateAthena->GetPtr<__int64>(RespawnDataOffset);
-
-		if (*(bool*)(__int64(RespawnDataPtr) + bServerIsReadyOffset) && *(bool*)(__int64(RespawnDataPtr) + bRespawnDataAvailableOffset)) // && GameState->IsRespawningAllowed(PlayerState);
+		if (RespawnDataPtr->IsServerReady() && RespawnDataPtr->IsClientReady()) // && GameState->IsRespawningAllowed(PlayerState);
 		{
-			// SpawnTransform.Translation = PlayerState->RespawnData.RespawnLocation;
-			// SpawnTransform.Rotation = Quaternion(PlayerState->RespawnData.RespawnRotation);
-
 			bIsRespawning = true;
 		}
 	}
@@ -197,6 +225,8 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	}
 	else
 	{
+		LOG_INFO(LogDev, "Player is respawning!");
+
 		auto DeathInfo = (void*)(__int64(PlayerStateAthena) + MemberOffsets::FortPlayerStateAthena::DeathInfo);
 
 		static auto DeathInfoStruct = FindObject<UStruct>(L"/Script/FortniteGame.DeathInfo");

@@ -1371,6 +1371,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
+		LOG_INFO(LogDev, "PlayersLeft: {} IsDBNO: {}", GameState->GetPlayersLeft(), DeadPawn->IsDBNO());
+
 		if (!DeadPawn->IsDBNO())
 		{
 			if (Fortnite_Version > 1.8 || Fortnite_Version == 1.11)
@@ -1460,12 +1462,12 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 					if (CurrentPlayerState->GetPlace() <= 1)
 					{
-						bDidSomeoneWin = true;
+						// bDidSomeoneWin = true;
 						break;
 					}
 				}
 
-				LOG_INFO(LogDev, "bDidSomeoneWin: {}", bDidSomeoneWin);
+				// LOG_INFO(LogDev, "bDidSomeoneWin: {}", bDidSomeoneWin);
 
 				// if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
 				if (bDidSomeoneWin)
@@ -1478,7 +1480,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	if (DeadPlayerState->IsBot())
 	{
-		// AllPlayerBotsToTick.
+		// AllPlayerBotsToTick.remov3lbah
 	}
 
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
