@@ -700,7 +700,7 @@ static inline void StartEvent()
 
 	if (Fortnite_Version == 17.30)
 	{
-		static bool (*IsServerOrSomething)(UObject * SpecialEventScript) = decltype(IsServerOrSomething)(__int64(GetModuleHandleW(0)) + 0x3DECFC8);
+		static bool (*IsServerOrSomething)(UObject* SpecialEventScript) = decltype(IsServerOrSomething)(__int64(GetModuleHandleW(0)) + 0x3DECFC8);
 		LOG_INFO(LogDev, "IsServerOrSomething {}", IsServerOrSomething(EventScripting));
 
 		static auto OnRep_RootStartTimeFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.OnRep_RootStartTime");
@@ -714,12 +714,16 @@ static inline void StartEvent()
 
 			if (SpecialEventScriptMeshActor)
 			{
-				static bool (*sub_7FF7E556D158)(UObject * MeshScriptActor) = decltype(sub_7FF7E556D158)(__int64(GetModuleHandleW(0)) + 0x3DED158);
+				static bool (*sub_7FF7E556D158)(UObject* MeshScriptActor) = decltype(sub_7FF7E556D158)(__int64(GetModuleHandleW(0)) + 0x3DED158);
 				LOG_INFO(LogDev, "sub_7FF7E556D158 {}", sub_7FF7E556D158(SpecialEventScriptMeshActor));
 
-				SpecialEventScriptMeshActor->ProcessEvent(MeshRootStartEventFn);
-				SpecialEventScriptMeshActor->ProcessEvent(OnRep_RootStartTimeFn);
-				return;
+				// if (false)
+				{
+					SpecialEventScriptMeshActor->ProcessEvent(MeshRootStartEventFn);
+					SpecialEventScriptMeshActor->ProcessEvent(OnRep_RootStartTimeFn);
+
+					return;
+				}
 			}
 			else
 			{

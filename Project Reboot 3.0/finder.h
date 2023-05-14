@@ -186,9 +186,20 @@ static inline uint64 FindFinishResurrection()
 
 static inline uint64 FindGetSquadIdForCurrentPlayer()
 {
-	auto addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 40 48 8D 99 ? ? ? ? 48 8B FA 4C 8B C2 48 8B CB").Get();
+	auto Addrr = Memcury::Scanner::FindStringRef(L"GetSquadIdForCurrentPlayer failed to find a squad id for player %s").Get();
 
-	return addr;
+	if (!Addrr)
+		return 0;
+
+	for (int i = 0; i < 2000; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
 }
 
 static inline uint64 FindRebootingDelegate()
@@ -196,7 +207,21 @@ static inline uint64 FindRebootingDelegate()
 	if (Fortnite_Version < 8.3)
 		return 0;
 
-	auto addr = Memcury::Scanner::FindPattern("48 8D 05 ? ? ? ? 33 F6 48 89 44 24 ? 49 8B CE 49 8B 06 89 74 24 60 FF 90 ? ? ? ? 4C 8B A4 24 ? ? ? ? 48 8B 88 ? ? ? ? 48 85 C9").Get();
+	auto ServerOnAttemptInteractAddr = Memcury::Scanner::FindStringRef(L"[SCM] ABuildingGameplayActorSpawnMachine::ServerOnAttemptInteract - Start Rebooting").Get();
+	
+	for (int i = 0; i < 10000; i++)
+	{
+		if ((*(uint8_t*)(uint8_t*)(ServerOnAttemptInteractAddr + i) == 0x48 && *(uint8_t*)(uint8_t*)(ServerOnAttemptInteractAddr + i + 1) == 0x8D
+			&& *(uint8_t*)(uint8_t*)(ServerOnAttemptInteractAddr + i + 2) == 0x05))
+		{
+			auto loadAddress = Memcury::Scanner(ServerOnAttemptInteractAddr + i).RelativeOffset(3).Get();
+
+			if (IsNullSub(loadAddress)) // Safety
+				return ServerOnAttemptInteractAddr + i;
+		}
+	}
+
+	auto addr = 0; // Memcury::Scanner::FindPattern("48 8D 05 ? ? ? ? 33 F6 48 89 44 24 ? 49 8B CE 49 8B 06 89 74 24 60 FF 90 ? ? ? ? 4C 8B A4 24 ? ? ? ? 48 8B 88 ? ? ? ? 48 85 C9").Get();
 
 	return addr;
 }
@@ -231,6 +256,8 @@ static inline uint64 FindCreateNetDriver()
 
 static inline uint64 FindLoadAsset()
 {
+	return 0;
+
 	auto Addrr = Memcury::Scanner::FindStringRef(L"Loaded delay-load asset %s").Get();
 
 	for (int i = 0; i < 2000; i++)
@@ -687,7 +714,7 @@ static inline uint64 FindUpdateTrackedAttributesLea() // kill me
 
 	// So we keep going until we find a lea with nullsub..
 
-	uint64 ApplyGadgetAttributesAddr = 0;
+	uint64 ApplyGadgetAttributesAddr = Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 55 41 54 41 55 41 57 48 8D 6C 24").Get();
 
 	if (!ApplyGadgetAttributesAddr)
 		return 0;

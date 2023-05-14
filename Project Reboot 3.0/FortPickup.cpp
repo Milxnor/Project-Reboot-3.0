@@ -32,7 +32,7 @@ void AFortPickup::SpawnMovementComponent()
 AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 {
 	if (PickupData.Source == -1)
-		PickupData.Source = 0;
+		PickupData.Source = -1;
 	if (PickupData.SourceType == -1)
 		PickupData.SourceType = -1;
 
@@ -139,7 +139,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 
 			for (auto& AttributeValue : AttributeValueVector)
 			{
-				// ReplicatedEntry->GetGenericAttributeValues().Add(AttributeValue);
+				PrimaryPickupItemEntry->GetGenericAttributeValues().Add(AttributeValue);
 			}
 		}
 	}

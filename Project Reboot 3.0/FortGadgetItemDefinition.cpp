@@ -20,13 +20,3 @@ void UFortGadgetItemDefinition::UnequipGadgetData(AFortPlayerController* PlayerC
 		}
 	}
 }
-
-void UFortGadgetItemDefinition::UpdateTrackedAttributesHook(UFortGadgetItemDefinition* GadgetItemDefinition)
-{
-	// LOG_INFO(LogDev, "UpdateTrackedAttributesHook Return: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
-
-	if (GadgetItemDefinition->ShouldDestroyGadgetWhenTrackedAttributesIsZero())
-	{
-		// PlayerState->MulticastTriggerOnGadgetTrackedAttributeDestroyedFX
-	}
-}

@@ -10,8 +10,6 @@
 #include "SoftObjectPtr.h"
 #include "FortItem.h"
 
-#define EXPERIMENTAL_LOOTING
-
 struct FFortLootPackageData
 {
 public:

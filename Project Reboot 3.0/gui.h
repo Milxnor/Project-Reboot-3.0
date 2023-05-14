@@ -284,7 +284,7 @@ static inline void StaticUI()
 
 #ifndef PROD
 	ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
-	ImGui::InputInt("Amount of bots to spawn", &AmountOfBotsToSpawn);
+	// ImGui::InputInt("Amount of bots to spawn", &AmountOfBotsToSpawn);
 #endif
 
 	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);

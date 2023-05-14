@@ -489,7 +489,19 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "GameMode 0x{:x}", __int64(GameMode));
 
-		float Duration = 100000.f;
+		bool bShouldSkipAircraft = false;
+
+		GET_PLAYLIST(GameState);
+
+		if (CurrentPlaylist)
+		{
+			static auto bSkipAircraftOffset = CurrentPlaylist->GetOffset("bSkipAircraft", false);
+
+			if (bSkipAircraftOffset != -1)
+				bShouldSkipAircraft = CurrentPlaylist->Get<bool>(bSkipAircraftOffset);
+		}
+
+		float Duration = bShouldSkipAircraft ? 0 : 100000;
 		float EarlyDuration = Duration;
 
 		float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
@@ -522,8 +534,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		if (GameState_AirCraftBehaviorOffset != -1)
 		{
-			GET_PLAYLIST(GameState);
-
 			if (CurrentPlaylist)
 			{
 				static auto Playlist_AirCraftBehaviorOffset = CurrentPlaylist->GetOffset("AirCraftBehavior", false);

@@ -6,7 +6,7 @@
 
 UObject* Assets::LoadAsset(FName Name, bool ShowDelayTimes)
 {
-	static UObject* (*LoadAssetOriginal)(FName a1, bool a2);
+	static UObject* (*LoadAssetOriginal)(FName a1, bool a2) = decltype(LoadAssetOriginal)(Assets::LoadAsset);
 
 	return LoadAssetOriginal(Name, ShowDelayTimes);
 }

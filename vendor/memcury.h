@@ -1417,7 +1417,12 @@
     // Finds a string ref, then goes searches xref of the function that it's in and returns that address.
     inline uintptr_t FindFunctionCall(const wchar_t* Name, const std::vector<uint8_t>& Bytes = std::vector<uint8_t>{ 0x48, 0x89, 0x5C }, int skip = 0) // credit ender & me
     {
-        auto FunctionPtr = Memcury::Scanner::FindStringRef(Name, true, skip).ScanFor({ 0x48, 0x8D, 0x0D }).RelativeOffset(3).GetAs<void*>();
+        auto StringRef = Memcury::Scanner::FindStringRef(Name, true, skip);
+
+        if (!StringRef.Get())
+            return 0;
+
+        auto FunctionPtr = StringRef.ScanFor({ 0x48, 0x8D, 0x0D }).RelativeOffset(3).GetAs<void*>();
 
         auto PtrRef = Memcury::Scanner::FindPointerRef(FunctionPtr);
 

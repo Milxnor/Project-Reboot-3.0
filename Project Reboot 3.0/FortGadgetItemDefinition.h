@@ -51,8 +51,6 @@ public:
 
 	void UnequipGadgetData(AFortPlayerController* PlayerController, UFortItem* Item);
 
-	static void UpdateTrackedAttributesHook(UFortGadgetItemDefinition* GadgetItemDefinition);
-
 	static UClass* StaticClass()
 	{
 		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortGadgetItemDefinition");

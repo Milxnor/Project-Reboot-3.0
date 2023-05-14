@@ -45,6 +45,16 @@
 #include "FortAthenaVehicleSpawner.h"
 #include "FortGameSessionDedicatedAthena.h"
 
+enum class EMeshNetworkNodeType : uint8_t
+{
+    Root = 0,
+    Inner = 1,
+    Edge = 2,
+    Client = 3,
+    Unknown = 4,
+    EMeshNetworkNodeType_MAX = 5
+};
+
 enum ENetMode
 {
     NM_Standalone,
@@ -54,12 +64,19 @@ enum ENetMode
     NM_MAX,
 };
 
+static EMeshNetworkNodeType GetMeshNetworkNodeTypeHook(__int64 a1)
+{
+    LOG_INFO(LogDev, "GetMeshNetworkNodeTypeHook Ret: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
+    return EMeshNetworkNodeType::Edge;
+}
+
 constexpr ENetMode NetMode = ENetMode::NM_DedicatedServer;
 
 static ENetMode GetNetModeHook() { return NetMode; }
 static ENetMode GetNetModeHook2() { return NetMode; }
 
 static bool ReturnTrueHook() { return true; }
+static bool ReturnFalseHook() { return false; }
 static int Return2Hook() { return 2; }
 
 static bool NoMCPHook() { return Globals::bNoMCP; }
@@ -134,6 +151,56 @@ void __fastcall ApplyHomebaseEffectsOnPlayerSetupHook(
     return ApplyHomebaseEffectsOnPlayerSetupOriginal(GameState, a2, a3, a4, Hero, a6, a7);
 }
 
+/*
+
+static unsigned __int8 (*SpecialEventScript_ActivatePhaseOriginal)(UObject* SpecialEventScript, int NewPhase);
+
+unsigned __int8 SpecialEventScript_ActivatePhaseHook(UObject* SpecialEventScript, int NewPhase)
+{
+    LOG_INFO(LogDev, "SpecialEventScript_ActivatePhaseHook {}!", NewPhase);
+
+    static auto ReplicatedActivePhaseIndexOffset = SpecialEventScript->GetOffset("ReplicatedActivePhaseIndex");
+    SpecialEventScript->Get<int32>(ReplicatedActivePhaseIndexOffset) = NewPhase;
+
+    static auto OnRep_ReplicatedActivePhaseIndexFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScript.OnRep_ReplicatedActivePhaseIndex");
+    SpecialEventScript->ProcessEvent(OnRep_ReplicatedActivePhaseIndexFn);
+
+    return SpecialEventScript_ActivatePhaseOriginal(SpecialEventScript, NewPhase);
+}
+
+*/
+
+static void (*ActivatePhaseAtIndexOriginal)(UObject* SpecialEventScript, int Index);
+
+void ActivatePhaseAtIndexHook(UObject* SpecialEventScript, int Index)
+{
+    LOG_INFO(LogDev, "ActivatePhaseAtIndexHook {}!", Index);
+
+    static auto ReplicatedActivePhaseIndexOffset = SpecialEventScript->GetOffset("ReplicatedActivePhaseIndex");
+    SpecialEventScript->Get<int32>(ReplicatedActivePhaseIndexOffset) = Index;
+
+    static auto OnRep_ReplicatedActivePhaseIndexFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScript.OnRep_ReplicatedActivePhaseIndex");
+    SpecialEventScript->ProcessEvent(OnRep_ReplicatedActivePhaseIndexFn);
+
+    return ActivatePhaseAtIndexOriginal(SpecialEventScript, Index);
+}
+
+static __int64 (*FlowStep_SetPhaseToActiveOriginal)(AActor* SpecialEventPhase);
+
+__int64 FlowStep_SetPhaseToActiveHook(AActor* SpecialEventPhase)
+{
+    LOG_INFO(LogDev, "FlowStep_SetPhaseToActiveHook!");
+
+    auto ret = FlowStep_SetPhaseToActiveOriginal(SpecialEventPhase); // idk if three actually is a ret
+
+    static auto OnRep_PhaseState = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventPhase.OnRep_PhaseState");
+    SpecialEventPhase->ProcessEvent(OnRep_PhaseState);
+
+    SpecialEventPhase->ForceNetUpdate();
+
+    return ret;
+}
+
 DWORD WINAPI Main(LPVOID)
 {
     InitLogger();
@@ -179,6 +246,7 @@ DWORD WINAPI Main(LPVOID)
 
     static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
     static auto FortPlayerControllerZoneDefault = FindObject<AFortPlayerController>(L"/Script/FortniteGame.Default__FortPlayerControllerZone");
+    static auto FortPlayerControllerDefault = FindObject<AFortPlayerController>(L"/Script/FortniteGame.Default__FortPlayerController");
     static auto FortPlayerControllerAthenaDefault = FindObject<AFortPlayerControllerAthena>(L"/Script/FortniteGame.Default__FortPlayerControllerAthena"); // FindObject<UClass>(L"/Game/Athena/Athena_PlayerController.Default__Athena_PlayerController_C");
     static auto FortPlayerPawnAthenaDefault = FindObject<AFortPlayerPawn>(L"/Script/FortniteGame.Default__FortPlayerPawnAthena"); // FindObject<AFortPlayerPawn>(L"/Game/Athena/PlayerPawn_Athena.Default__PlayerPawn_Athena_C");
     static auto FortAbilitySystemComponentAthenaDefault = FindObject<UObject>(L"/Script/FortniteGame.Default__FortAbilitySystemComponentAthena");
@@ -196,10 +264,14 @@ DWORD WINAPI Main(LPVOID)
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortUIDirector NoLogging", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogDataTable VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogMeshNetwork VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFort VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogGameMode VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogSpecialEvent VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogPlayerController VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogSpecialEventPhase VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortCustomization VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogSpecialEventScriptMeshActor VeryVerbose", nullptr);
 
     Hooking::MinHook::Hook((PVOID)Addresses::NoMCP, (PVOID)NoMCPHook, nullptr);
     Hooking::MinHook::Hook((PVOID)Addresses::GetNetMode, (PVOID)GetNetModeHook, nullptr);
@@ -231,9 +303,27 @@ DWORD WINAPI Main(LPVOID)
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationEnabled"),
         ABuildingFoundation::SetDynamicFoundationEnabledHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationEnabledOriginal, false, true); */
 
+    if (Fortnite_Version == 17.30)
+    {
+        // if (false)
+        {
+            Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+            // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED12C), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D12C
+            Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D158    
+        }
+
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DECFC8), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556CFC8
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED050), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D050
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DECF40), (PVOID)ReturnFalseHook, nullptr); // 7FF7E556CF40
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DE5CE8), (PVOID)ActivatePhaseAtIndexHook, (PVOID*)&ActivatePhaseAtIndexOriginal); // 7FF7E5565CE8
+        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DE9268), (PVOID)FlowStep_SetPhaseToActiveHook, (PVOID*)&FlowStep_SetPhaseToActiveOriginal); // 7FF7E5569268
+        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DE5998), (PVOID)SpecialEventScript_ActivatePhaseHook, (PVOID*)&SpecialEventScript_ActivatePhaseOriginal); // 7FF7E5565998
+    }
+
     if (bUseSwitchLevel)
     {
         static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
+
         FString Level = Engine_Version < 424
             ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
             ? L"Asteria_Terrain"
@@ -284,13 +374,6 @@ DWORD WINAPI Main(LPVOID)
     }
 
     LOG_INFO(LogPlayer, "Switched level.");
-
-    if (Fortnite_Version == 17.30)
-    {
-        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)Return2Hook, nullptr);
-        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED12C), (PVOID)ReturnTrueHook, nullptr);
-        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr);
-    }
 
     if (bUseSwitchLevel)
     {
@@ -436,10 +519,15 @@ DWORD WINAPI Main(LPVOID)
             nullptr, false);
     }
 
-    // HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)UFortGadgetItemDefinition::UpdateTrackedAttributesHook, "/Script/FortniteGame.FortPlayerController.Suicide", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
+    static auto ServerReturnToMainMenuFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerReturnToMainMenu");
+    static auto ServerReturnToMainMenuIdx = GetFunctionIdxOrPtr(ServerReturnToMainMenuFn) / 8;
+    auto FortServerRestartPlayer = FortPlayerControllerDefault->VFTable[ServerReturnToMainMenuIdx];
+    VirtualSwap(FortPlayerControllerAthenaDefault->VFTable, ServerReturnToMainMenuIdx, FortServerRestartPlayer);
+
+    HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)AFortPlayerControllerAthena::UpdateTrackedAttributesHook, "/Script/Engine.PlayerController.EnableCheats", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
     // HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
    
-    if (false)
+    if (bEnableRebooting)
     {
         HookInstruction(Addresses::RebootingDelegate, (PVOID)ABuildingGameplayActorSpawnMachine::RebootingDelegateHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FindObject("/Script/FortniteGame.Default__BuildingGameplayActorSpawnMachine"));
     }

@@ -562,6 +562,11 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindPattern("40 55 57 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 80 3D ? ? ? ? ? 0F B6 FA 44 8B F9 74 3B 80 3D ? ? ? ? ? 0F").Get());
 	}
 
+	if (std::floor(Fortnite_Version) == 17)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 70 08 48 89 78 10 55 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 ED").Get()); // collectgarbage
+	}
+
 	if (Engine_Version == 500)
 	{
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 F6 0F 29 70 A8 44 38 35").Get()); // zone

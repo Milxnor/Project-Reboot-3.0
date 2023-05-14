@@ -97,7 +97,7 @@ struct FFortGameplayEffectDeliveryInfo
 {
 	static UStruct* GetStruct()
 	{
-		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortGameplayEffectDeliveryInfo");
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.FortGameplayEffectDeliveryInfo");
 		return Struct;
 	}
 
@@ -123,7 +123,7 @@ struct FFortAbilitySetDeliveryInfo
 {
 	static UStruct* GetStruct()
 	{
-		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.FortAbilitySetDeliveryInfo");
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.FortAbilitySetDeliveryInfo");
 		return Struct;
 	}
 
@@ -164,6 +164,8 @@ public:
 	{
 		if (!Actor)
 			return;
+
+		// TODO Use the UAbilitySystemInterface or whatever
 
 		UAbilitySystemComponent* AbilitySystemComponent = nullptr;
 
@@ -230,7 +232,7 @@ public:
 				if (!CurrentGameplayEffect)
 					continue;
 
-				LOG_INFO(LogDev, "Giving GameplayEffect {}", CurrentGameplayEffect->GetFullName());
+				// LOG_INFO(LogDev, "Giving GameplayEffect {}", CurrentGameplayEffect->GetFullName());
 				AbilitySystemComponent->ApplyGameplayEffectToSelf(CurrentGameplayEffect, CurrentGameplayEffectInfo.Level);
 			}
 		}

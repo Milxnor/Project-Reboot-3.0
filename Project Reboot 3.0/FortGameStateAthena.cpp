@@ -4,6 +4,7 @@
 #include "FortPlayerStateAthena.h"
 #include "FortGameModeAthena.h"
 #include "FortAthenaMutator.h"
+#include "gui.h"
 
 /* void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState)
 {
@@ -257,6 +258,9 @@ void AFortGameStateAthena::OnRep_PlayersLeft()
 
 TeamsArrayContainer* AFortGameStateAthena::GetTeamsArrayContainer()
 {
+	if (!bEnableRebooting) // todo (milxnor) remove
+		return nullptr;
+
 	static auto FriendlyFireTypeOffset = GetOffset("FriendlyFireType");
 	static int Offset = -1;
 

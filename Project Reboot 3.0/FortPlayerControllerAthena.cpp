@@ -10,6 +10,7 @@
 #include "DataTableFunctionLibrary.h"
 #include "AthenaResurrectionComponent.h"
 #include "FortAthenaMutator_InventoryOverride.h"
+#include "FortGadgetItemDefinition.h"
 
 void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret)
 {
@@ -500,4 +501,89 @@ void AFortPlayerControllerAthena::ServerReadyToStartMatchHook(AFortPlayerControl
 	}
 
 	return ServerReadyToStartMatchOriginal(PlayerController);
+}
+
+
+void AFortPlayerControllerAthena::UpdateTrackedAttributesHook(AFortPlayerControllerAthena* PlayerController)
+{
+	LOG_INFO(LogDev, "UpdateTrackedAttributesHook Return: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
+
+	// IDK IF GADGET IS A PARAM OR WHAT
+
+	auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState()); // really we only need zone
+
+	if (!PlayerState)
+		return;
+
+	auto ASC = PlayerState->GetAbilitySystemComponent();
+
+	if (!ASC)
+		return;
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return;
+
+	auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
+
+	std::vector<UFortItem*> ItemInstancesToRemove;
+
+	for (int i = 0; i < ItemInstances.Num(); i++)
+	{
+		auto ItemInstance = ItemInstances.at(i);
+		auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemInstance->GetItemEntry()->GetItemDefinition());
+
+		if (!GadgetItemDefinition)
+			continue;
+
+		if (!GadgetItemDefinition->ShouldDestroyGadgetWhenTrackedAttributesIsZero())
+			continue;
+
+		bool bIsTrackedAttributesZero = true;
+
+		for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); i++)
+		{
+			auto& CurrentTrackedAttribute = GadgetItemDefinition->GetTrackedAttributes().at(i);
+
+			int CurrentAttributeValue = -1;
+
+			for (int i = 0; i < ASC->GetSpawnedAttributes().Num(); i++)
+			{
+				auto CurrentSpawnedAttribute = ASC->GetSpawnedAttributes().at(i);
+
+				if (CurrentSpawnedAttribute->IsA(CurrentTrackedAttribute.AttributeOwner))
+				{
+					auto PropertyOffset = CurrentSpawnedAttribute->GetOffset(CurrentTrackedAttribute.GetAttributePropertyName());
+
+					if (PropertyOffset != -1)
+					{
+						if (CurrentSpawnedAttribute->GetPtr<FFortGameplayAttributeData>(PropertyOffset)->GetCurrentValue() > 0)
+						{
+							bIsTrackedAttributesZero = false;
+							break; // hm
+						}
+					}
+				}
+			}
+		}
+
+		if (bIsTrackedAttributesZero)
+		{
+			ItemInstancesToRemove.push_back(ItemInstance);
+		}
+	}
+
+	for (auto ItemInstanceToRemove : ItemInstancesToRemove)
+	{
+		auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemInstanceToRemove->GetItemEntry()->GetItemDefinition());
+
+		WorldInventory->RemoveItem(ItemInstanceToRemove->GetItemEntry()->GetItemGuid(), nullptr, ItemInstanceToRemove->GetItemEntry()->GetCount(), true);
+
+		static auto MulticastTriggerOnGadgetTrackedAttributeDestroyedFXFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateZone.MulticastTriggerOnGadgetTrackedAttributeDestroyedFX");
+		PlayerState->ProcessEvent(MulticastTriggerOnGadgetTrackedAttributeDestroyedFXFn, &GadgetItemDefinition);
+	}
+
+	if (ItemInstancesToRemove.size() > 0)
+		WorldInventory->Update();
 }
