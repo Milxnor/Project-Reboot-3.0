@@ -490,7 +490,6 @@ void Addresses::Init()
 	Addresses::SetWorld = Engine_Version < 426 ? Addresses::SetWorld : __int64(DefaultNetDriver->VFTable[Addresses::SetWorld]);
 	UNetDriver::SetWorldOriginal = decltype(UNetDriver::SetWorldOriginal)(SetWorld);
 
-	AddNavigationSystemToWorldOriginal = decltype(AddNavigationSystemToWorldOriginal)(AddNavigationSystemToWorld);
 	NavSystemCleanUpOriginal = decltype(NavSystemCleanUpOriginal)(Addresses::NavSystemCleanUp);
 	LoadPlaysetOriginal = decltype(LoadPlaysetOriginal)(Addresses::LoadPlayset);
 	AFortGameModeAthena::SetZoneToIndexOriginal = decltype(AFortGameModeAthena::SetZoneToIndexOriginal)(Addresses::SetZoneToIndex);

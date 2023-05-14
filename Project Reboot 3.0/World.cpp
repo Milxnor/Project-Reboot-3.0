@@ -7,7 +7,7 @@
 
 AWorldSettings* UWorld::K2_GetWorldSettings()
 {
-	static auto fn = FindObject<UFunction>("/Script/Engine.World.K2_GetWorldSettings");
+	static auto fn = FindObject<UFunction>(L"/Script/Engine.World.K2_GetWorldSettings");
 	AWorldSettings* WorldSettings;
 	this->ProcessEvent(fn, &WorldSettings);
 	return WorldSettings;
@@ -94,7 +94,7 @@ AWorldSettings* UWorld::GetWorldSettings(const bool bCheckStreamingPersistent, c
 	AWorldSettings* WorldSettings = nullptr;
 	static auto PersistentLevelOffset = GetOffset("PersistentLevel");
 
-	if (Get(PersistentLevelOffset))
+	if (this->Get<ULevel*>(PersistentLevelOffset))
 	{
 		WorldSettings = Get<ULevel*>(PersistentLevelOffset)->GetWorldSettings(bChecked);
 
@@ -103,7 +103,7 @@ AWorldSettings* UWorld::GetWorldSettings(const bool bCheckStreamingPersistent, c
 			static auto StreamingLevelsOffset = GetOffset("StreamingLevels");
 			auto& StreamingLevels = Get<TArray<UObject*>>(StreamingLevelsOffset);
 
-			static auto LevelStreamingPersistentClass = FindObject<UClass>("/Script/Engine.LevelStreamingPersistent");
+			static auto LevelStreamingPersistentClass = FindObject<UClass>(L"/Script/Engine.LevelStreamingPersistent");
 
 			if (StreamingLevels.Num() > 0 &&
 				StreamingLevels.at(0) &&
@@ -118,5 +118,6 @@ AWorldSettings* UWorld::GetWorldSettings(const bool bCheckStreamingPersistent, c
 			}
 		}
 	}
+
 	return WorldSettings;
 }

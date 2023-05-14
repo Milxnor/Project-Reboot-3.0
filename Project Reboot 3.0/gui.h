@@ -69,6 +69,7 @@ extern inline bool bEnableBotTick = false;
 extern inline bool bEnableCombinePickup = false;
 extern inline int AmountOfBotsToSpawn = 0;
 extern inline bool bEnableRebooting = false;
+extern inline bool bEngineDebugLogs = false;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -514,6 +515,22 @@ static inline void MainUI()
 					}
 				}
 				*/
+
+				if (ImGui::Button("aaa"))
+				{
+					static auto Clasda = FindObject<UClass>(L"/Script/FortniteGame.FortMission_RiftSpawners");
+					auto AllMissions = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Clasda);
+
+					LOG_INFO(LogDev, "AllMissions.Num(): {}", AllMissions.Num());
+
+					for (int i = 0; i < AllMissions.Num(); i++)
+					{
+						auto Mission = AllMissions.at(i);
+
+						static auto bCalendarAllowsSpawningOffset = Mission->GetOffset("bCalendarAllowsSpawning");
+						Mission->Get<bool>(bCalendarAllowsSpawningOffset) = true;
+					}
+				}
 
 				if (!bIsInAutoRestart && (Engine_Version < 424 && ImGui::Button("Restart")))
 				{
@@ -983,6 +1000,7 @@ static inline void MainUI()
 		{
 			ImGui::Checkbox("Looting Debug Log", &bDebugPrintLooting);
 			ImGui::Checkbox("Swapping Debug Log", &bDebugPrintSwapping);
+			ImGui::Checkbox("Engine Debug Log", &bEngineDebugLogs);
 		}
 		else if (Tab == SETTINGS_TAB)
 		{

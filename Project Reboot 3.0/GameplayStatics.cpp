@@ -76,7 +76,7 @@ void UGameplayStatics::RemovePlayer(APlayerController* Player, bool bDestroyPawn
 
 AActor* UGameplayStatics::BeginDeferredActorSpawnFromClass(const UObject* WorldContextObject, UClass* ActorClass, const FTransform& SpawnTransform, ESpawnActorCollisionHandlingMethod CollisionHandlingOverride, AActor* Owner)
 {
-	static auto fn = FindObject<UFunction>("/Script/Engine.GameplayStatics.BeginDeferredActorSpawnFromClass");
+	static auto fn = FindObject<UFunction>(L"/Script/Engine.GameplayStatics.BeginDeferredActorSpawnFromClass");
 
 	struct
 	{
@@ -96,7 +96,7 @@ AActor* UGameplayStatics::BeginDeferredActorSpawnFromClass(const UObject* WorldC
 
 AActor* UGameplayStatics::FinishSpawningActor(AActor* Actor, const FTransform& SpawnTransform)
 {
-	static auto FinishSpawningActorFn = FindObject<UFunction>("/Script/Engine.GameplayStatics.FinishSpawningActor");
+	static auto FinishSpawningActorFn = FindObject<UFunction>(L"/Script/Engine.GameplayStatics.FinishSpawningActor");
 
 	struct
 	{
@@ -113,7 +113,7 @@ AActor* UGameplayStatics::FinishSpawningActor(AActor* Actor, const FTransform& S
 
 void UGameplayStatics::LoadStreamLevel(UObject* WorldContextObject, FName LevelName, bool bMakeVisibleAfterLoad, bool bShouldBlockOnLoad, const FLatentActionInfo& LatentInfo)
 {
-	static auto LoadStreamLevelFn = FindObject<UFunction>("/Script/Engine.GameplayStatics.LoadStreamLevel");
+	static auto LoadStreamLevelFn = FindObject<UFunction>(L"/Script/Engine.GameplayStatics.LoadStreamLevel");
 
 	struct
 	{
@@ -130,7 +130,7 @@ void UGameplayStatics::LoadStreamLevel(UObject* WorldContextObject, FName LevelN
 
 void UGameplayStatics::UnloadStreamLevel(UObject* WorldContextObject, FName LevelName, const FLatentActionInfo& LatentInfo, bool bShouldBlockOnUnload)
 {
-	static auto UnloadStreamLevelFn = FindObject<UFunction>("/Script/Engine.GameplayStatics.UnloadStreamLevel");
+	static auto UnloadStreamLevelFn = FindObject<UFunction>(L"/Script/Engine.GameplayStatics.UnloadStreamLevel");
 	struct
 	{
 		UObject* WorldContextObject;                                       // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)

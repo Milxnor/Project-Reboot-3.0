@@ -1221,17 +1221,37 @@ static inline uint64 FindTickFlush()
 
 static inline uint64 FindAddNavigationSystemToWorld()
 {
-	return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 ED 41", false).Get();
+	uint64 addr = 0;
+
+	if (Engine_Version == 421)
+		addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 83 B9 ? ? ? ? ? 41 0F B6 F1 0F B6 FA 48", false).Get();
+	if (Engine_Version == 423)
+		addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 ED 41", false).Get();
+
+	return addr;
 }
 
 static inline uint64 FindNavSystemCleanUp()
 {
-	auto Addr = Memcury::Scanner::FindStringRef(L"UNavigationSystemV1::CleanUp", false);
+	auto Addrr = Memcury::Scanner::FindStringRef(L"UNavigationSystemV1::CleanUp", false).Get();
 
-	if (!Addr.Get())
+	if (!Addrr)
 		return 0;
 
-	return FindBytes(Addr, { 0x48, 0x89, 0x5C }, 500, 0, true);
+	for (int i = 0; i < 500; i++)
+	{
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x53)
+		{
+			return Addrr - i;
+		}
+	}
+
+	return 0;
 }
 
 static inline uint64 FindLoadPlayset(const std::vector<uint8_t>& Bytes = std::vector<uint8_t>({ 0x48, 0x89, 0x5C }), int recursive = 0)

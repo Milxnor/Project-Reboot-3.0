@@ -88,7 +88,7 @@ public:
 	}
 
 	AWorldSettings* GetWorldSettings(bool bCheckStreamingPersistent = false, bool bChecked = true) const;
-	AWorldSettings* K2_GetWorldSettings();
+	AWorldSettings* K2_GetWorldSettings(); // DONT USE WHEN POSSIBLE
 
 	void Listen();
 };

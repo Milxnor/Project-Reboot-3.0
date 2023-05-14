@@ -232,6 +232,13 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		static auto DeathInfoStruct = FindObject<UStruct>(L"/Script/FortniteGame.DeathInfo");
 		static auto DeathInfoStructSize = DeathInfoStruct->GetPropertiesSize();
 		RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize);
+
+		static auto OnRep_DeathInfoFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
+
+		if (OnRep_DeathInfoFn)
+		{
+			PlayerStateAthena->ProcessEvent(OnRep_DeathInfoFn);
+		}
 	}
 
 	return NewPawn;

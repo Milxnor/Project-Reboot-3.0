@@ -44,6 +44,7 @@
 #include "PlaysetLevelStreamComponent.h"
 #include "FortAthenaVehicleSpawner.h"
 #include "FortGameSessionDedicatedAthena.h"
+#include "AthenaDeimosRift.h"
 
 enum class EMeshNetworkNodeType : uint8_t
 {
@@ -99,6 +100,20 @@ static __int64 DispatchRequestHook(__int64 a1, __int64* a2, int a3)
     *(int*)(__int64(a2) + Offset) = 3;
 
     return DispatchRequestOriginal(a1, a2, 3);
+}
+
+static bool (*CanCreateInCurrentContextOriginal)(UObject* Template);
+
+bool CanCreateInCurrentContextHook(UObject* Template)
+{
+    auto originalRet = CanCreateInCurrentContextOriginal(Template);
+
+    if (!originalRet)
+    {
+        LOG_INFO(LogDev, "CanCreateInCurrentContextHook false but returning true for {}!", Template->IsValidLowLevel() ? Template->GetPathName() : "BadRead");
+    }
+
+    return true;
 }
 
 void (*ApplyHomebaseEffectsOnPlayerSetupOriginal)(
@@ -259,7 +274,9 @@ DWORD WINAPI Main(LPVOID)
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetPackageMap VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetTraffic VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNet VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNavigation VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogBuilding VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortAIDirector VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortQuest VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortUIDirector NoLogging", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
@@ -319,6 +336,11 @@ DWORD WINAPI Main(LPVOID)
         // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DE9268), (PVOID)FlowStep_SetPhaseToActiveHook, (PVOID*)&FlowStep_SetPhaseToActiveOriginal); // 7FF7E5569268
         // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DE5998), (PVOID)SpecialEventScript_ActivatePhaseHook, (PVOID*)&SpecialEventScript_ActivatePhaseOriginal); // 7FF7E5565998
     }
+
+    if (Fortnite_Version == 6.21)
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x191D2E0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
+    else if (Fortnite_Version == 10.40)
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x22A30C0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
 
     if (bUseSwitchLevel)
     {
@@ -534,6 +556,9 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook(FortWeaponDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortWeapon.ServerReleaseWeaponAbility"),
         AFortWeapon::ServerReleaseWeaponAbilityHook, (PVOID*)&AFortWeapon::ServerReleaseWeaponAbilityOriginal, false, true);
+
+    Hooking::MinHook::Hook(FindObject<UKismetSystemLibrary>("/Script/Engine.Default__KismetSystemLibrary"), FindObject<UFunction>(L"/Script/Engine.KismetSystemLibrary.PrintString"),
+        UKismetSystemLibrary::PrintStringHook, (PVOID*)&UKismetSystemLibrary::PrintStringOriginal, false, true);
 
     Hooking::MinHook::Hook((PVOID)Addresses::GetSquadIdForCurrentPlayer, (PVOID)AFortGameSessionDedicatedAthena::GetSquadIdForCurrentPlayerHook);
 
@@ -754,6 +779,9 @@ DWORD WINAPI Main(LPVOID)
         UInventoryManagementLibrary::SwapItemHook, (PVOID*)&UInventoryManagementLibrary::SwapItemOriginal, false, true);
     Hooking::MinHook::Hook(InventoryManagementLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.InventoryManagementLibrary.SwapItems"),
         UInventoryManagementLibrary::SwapItemsHook, (PVOID*)&UInventoryManagementLibrary::SwapItemsOriginal, false, true);
+
+    Hooking::MinHook::Hook(FindObject<AAthenaDeimosRift>(L"/Script/FortniteGame.Default__AthenaDeimosRift"), FindObject<UFunction>(L"/Script/FortniteGame.AthenaDeimosRift.QueueActorsToSpawn"),
+        AAthenaDeimosRift::QueueActorsToSpawnHook, (PVOID*)&AAthenaDeimosRift::QueueActorsToSpawnOriginal, false, true);
 
     Hooking::MinHook::Hook(FindObject(L"/Script/FortniteGame.Default__FortAthenaVehicleSpawner"), FindObject<UFunction>(L"/Script/FortniteGame.FortAthenaVehicleSpawner.SpawnVehicle"),
         AFortAthenaVehicleSpawner::SpawnVehicleHook, nullptr, false);

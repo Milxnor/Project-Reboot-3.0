@@ -4,6 +4,7 @@
 #include "UnrealString.h"
 
 #include "reboot.h"
+#include "Stack.h"
 
 enum class EDrawDebugTrace : uint8_t
 {
@@ -75,6 +76,8 @@ struct FLinearColor
 class UKismetSystemLibrary : public UObject
 {
 public:
+	static inline void (*PrintStringOriginal)(UObject* Context, FFrame* Stack, void* Ret);
+
 	static FString GetPathName(UObject* Object)
 	{
 		static auto GetPathNameFunction = FindObject<UFunction>("/Script/Engine.KismetSystemLibrary.GetPathName");
@@ -207,4 +210,6 @@ public:
 
 		return *(bool*)(__int64(Params) + ReturnValueOffset);
 	}
+
+	static void PrintStringHook(UObject* Context, FFrame* Stack, void* Ret);
 };

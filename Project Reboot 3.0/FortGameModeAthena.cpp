@@ -14,10 +14,12 @@
 #include "NetSerialization.h"
 #include "GameplayStatics.h"
 #include "DataTableFunctionLibrary.h"
+#include "LevelStreamingDynamic.h"
 #include "KismetStringLibrary.h"
 #include "SoftObjectPtr.h"
 #include "discord.h"
 #include "BuildingGameplayActorSpawnMachine.h"
+#include "BP_IslandScripting.h"
 
 #include "vehicles.h"
 #include "globals.h"
@@ -324,18 +326,41 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 				if (AdditionalLevelsOffset != -1)
 				{
-					auto& AdditionalLevels = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UClass>>>(AdditionalLevelsOffset);
+					auto& AdditionalLevels = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UWorld>>>(AdditionalLevelsOffset);
 
 					LOG_INFO(LogPlaylist, "Loading {} playlist levels.", AdditionalLevels.Num());
 
 					for (int i = 0; i < AdditionalLevels.Num(); i++)
 					{
-						// auto World = Cast<UWorld>(Playlist->AdditionalLevels[i].Get());
-						// StreamLevel(UKismetSystemLibrary::GetPathName(World->PersistentLevel).ToString());
-						auto LevelName = AdditionalLevels.at(i).SoftObjectPtr.ObjectID.AssetPathName.ToString();
-						LOG_INFO(LogPlaylist, "Loading level {}.", LevelName);
-						StreamLevel(LevelName);
+						FName LevelFName = AdditionalLevels.at(i).SoftObjectPtr.ObjectID.AssetPathName;
+						auto LevelNameStr = LevelFName.ToString();
+						LOG_INFO(LogPlaylist, "Loading level {}.", LevelNameStr);
+						auto LevelNameWStr = std::wstring(LevelNameStr.begin(), LevelNameStr.end());
+						 
+						// bruh the onrep automatically streams if no levelstreamingdynamci found
+
+						// StreamLevel(LevelNameStr);
+						// FLatentActionInfo LatentInfo{};
+						// UGameplayStatics::LoadStreamLevel(GetWorld(), LevelFName, true, false, LatentInfo);
+
+						// ULevelStreamingDynamic::LoadLevelInstance(GetWorld(), LevelNameWStr.c_str(), FVector(), FRotator());
+
+						static auto AdditionalPlaylistLevelsStreamedOffset = GameState->GetOffset("AdditionalPlaylistLevelsStreamed", false);
+
+						if (AdditionalPlaylistLevelsStreamedOffset != -1) // i think its valid on every version but idgaf
+						{
+							if (Fortnite_Version < 11) // IDK What verison it actually wsa but they chnaged it to a struct
+							{
+								auto& AdditionalPlaylistLevelsStreamed = GameState->Get<TArray<FName>>(AdditionalPlaylistLevelsStreamedOffset);
+								AdditionalPlaylistLevelsStreamed.Add(LevelFName);
+							}
+						}
 					}
+
+					static auto OnRep_AdditionalPlaylistLevelsStreamedFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameState.OnRep_AdditionalPlaylistLevelsStreamed");
+
+					if (OnRep_AdditionalPlaylistLevelsStreamedFn)
+						GameState->ProcessEvent(OnRep_AdditionalPlaylistLevelsStreamedFn);
 				}
 			}
 		}
@@ -344,12 +369,12 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		{
 			if (true) // idfk if the stage only showed on marshmello playlist
 			{
-				auto PleasantParkIdk = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkFestivus"));
+				auto PleasantParkIdk = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkFestivus");
 				ShowFoundation(PleasantParkIdk);
 			}
 			else
 			{
-				auto PleasantParkGround = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkDefault");
+				auto PleasantParkGround = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.PleasentParkDefault");
 				ShowFoundation(PleasantParkGround);
 			}
 		}
@@ -358,44 +383,36 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		{
 			if (Fortnite_Version != 6.10)
 			{
-				auto Lake = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake1"));
-				auto Lake2 = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake2");
+				auto Lake = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake1");
+				auto Lake2 = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake2");
 
 				Fortnite_Version <= 6.21 ? ShowFoundation(Lake) : ShowFoundation(Lake2);
 			}
 			else
 			{
-				auto Lake = FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_StreamingTest12"));
+				auto Lake = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_StreamingTest12");
 				ShowFoundation(Lake);
 			}
 
-			auto FloatingIsland = Fortnite_Version == 6.10 ? FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_StreamingTest13")) :
-				FindObject<AActor>(("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_FloatingIsland"));
+			auto FloatingIsland = Fortnite_Version == 6.10 ? FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_StreamingTest13") :
+				FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_FloatingIsland");
 
 			ShowFoundation(FloatingIsland);
 
-			UObject* Scripting = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.BP_IslandScripting3"); // bruh
+			auto IslandScripting = ABP_IslandScripting_C::GetIslandScripting();
 
-			if (Scripting)
+			if (IslandScripting)
 			{
-				static auto UpdateMapOffset = Scripting->GetOffset("UpdateMap", false);
-
-				if (UpdateMapOffset != -1)
-				{
-					Scripting->Get<bool>(UpdateMapOffset) = true;
-
-					static auto OnRep_UpdateMap = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Island/BP_IslandScripting.BP_IslandScripting_C.OnRep_UpdateMap");
-					Scripting->ProcessEvent(OnRep_UpdateMap);
-				}
+				IslandScripting->Initialize();
 			}
 		}
 
 		if (Fortnite_Version == 14.60 && Globals::bGoingToPlayEvent)
 		{
-			ShowFoundation(FindObject<AActor>("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation3")); // Aircraft Carrier
+			ShowFoundation(FindObject<AActor>(L"/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation3")); // Aircraft Carrier
 		}
 
-		auto TheBlock = FindObject<AActor>("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.SLAB_2"); // SLAB_3 is blank
+		auto TheBlock = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.SLAB_2"); // SLAB_3 is blank
 
 		if (TheBlock)
 			ShowFoundation(TheBlock);
@@ -567,6 +584,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		SetupAIDirector();
 		SetupServerBotManager();
+		// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"Deimos"));
 
 		if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
 		{

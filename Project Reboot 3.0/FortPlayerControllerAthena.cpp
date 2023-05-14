@@ -391,6 +391,8 @@ void AFortPlayerControllerAthena::ServerGiveCreativeItemHook(AFortPlayerControll
 
 void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFortPlayerControllerAthena* Controller)
 {
+	LOG_INFO(LogDev, "ServerTeleportToPlaygroundLobbyIslandHook!");
+
 	auto Pawn = Controller->GetMyFortPawn();
 
 	if (!Pawn)
@@ -398,7 +400,7 @@ void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFor
 
 	// TODO IsTeleportToCreativeHubAllowed
 
-	static auto FortPlayerStartCreativeClass = FindObject<UClass>("/Script/FortniteGame.FortPlayerStartCreative");
+	static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
 	auto AllCreativePlayerStarts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartCreativeClass);
 
 	for (int i = 0; i < AllCreativePlayerStarts.Num(); i++)
@@ -447,8 +449,10 @@ void AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessageHook(AFortPlaye
 {
 	using UAthenaEmojiItemDefinition = UFortItemDefinition;
 
-	static auto EmojiComm = FindObject<UAthenaEmojiItemDefinition>("/Game/Athena/Items/Cosmetics/Dances/Emoji/Emoji_Comm.Emoji_Comm");
+	static auto EmojiComm = FindObject<UAthenaEmojiItemDefinition>(L"/Game/Athena/Items/Cosmetics/Dances/Emoji/Emoji_Comm.Emoji_Comm");
 	PlayerController->ServerPlayEmoteItemHook(PlayerController, EmojiComm);
+
+	// idk what else we are supposed to do here
 }
 
 void AFortPlayerControllerAthena::GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation)

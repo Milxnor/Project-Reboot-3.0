@@ -30,6 +30,7 @@ AWorldSettings* ULevel::GetWorldSettings(bool bChecked) const
 	{
 		// checkf(WorldSettings != nullptr, TEXT("%s"), *GetPathName());
 	}
+
 	static auto WorldSettingsOffset = GetOffset("WorldSettings");
 	return Get<AWorldSettings*>(WorldSettingsOffset);
 }
