@@ -328,6 +328,24 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				{
 					auto& AdditionalLevels = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UWorld>>>(AdditionalLevelsOffset);
 
+					static auto AdditionalLevelsServerOnlyOffset = CurrentPlaylist->GetOffset("AdditionalLevelsServerOnly", false);
+
+					if (AdditionalLevelsServerOnlyOffset != -1)
+					{
+						TArray<TSoftObjectPtr<UWorld>>& AdditionalLevelsServerOnly = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UWorld>>>(AdditionalLevelsServerOnlyOffset);
+						LOG_INFO(LogPlaylist, "Loading {} playlist server levels.", AdditionalLevelsServerOnly.Num());
+
+						for (int i = 0; i < AdditionalLevelsServerOnly.Num(); i++)
+						{
+							FName LevelFName = AdditionalLevelsServerOnly.at(i).SoftObjectPtr.ObjectID.AssetPathName;
+							auto LevelNameStr = LevelFName.ToString();
+							LOG_INFO(LogPlaylist, "Loading server level {}.", LevelNameStr);
+							auto LevelNameWStr = std::wstring(LevelNameStr.begin(), LevelNameStr.end());
+
+							GameState->AddToAdditionalPlaylistLevelsStreamed(LevelFName, true);
+						}
+					}
+
 					LOG_INFO(LogPlaylist, "Loading {} playlist levels.", AdditionalLevels.Num());
 
 					for (int i = 0; i < AdditionalLevels.Num(); i++)
@@ -336,25 +354,20 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 						auto LevelNameStr = LevelFName.ToString();
 						LOG_INFO(LogPlaylist, "Loading level {}.", LevelNameStr);
 						auto LevelNameWStr = std::wstring(LevelNameStr.begin(), LevelNameStr.end());
-						 
-						// bruh the onrep automatically streams if no levelstreamingdynamci found
 
-						// StreamLevel(LevelNameStr);
-						// FLatentActionInfo LatentInfo{};
-						// UGameplayStatics::LoadStreamLevel(GetWorld(), LevelFName, true, false, LatentInfo);
+						GameState->AddToAdditionalPlaylistLevelsStreamed(LevelFName);
 
-						// ULevelStreamingDynamic::LoadLevelInstance(GetWorld(), LevelNameWStr.c_str(), FVector(), FRotator());
+						/*
 
-						static auto AdditionalPlaylistLevelsStreamedOffset = GameState->GetOffset("AdditionalPlaylistLevelsStreamed", false);
+						Alright so us calling the OnRep for the level to stream I believe is a bit scuffy, but it's fine.
+						On newer versions there is another array of ULevelStreaming, and this gets used to see if all the playlist levels are visible.
+						That array doesn't get filled with the OnRep as I think the array is server only.
+						I am not sure if this array does anything, but theres a function that checks the array and it gets used especially in mutators.
+						Funny thing, AFortGameModeAthena::ReadyToStartMatch does not return true unless all of the levels in the array is fully streamed in, but since it's empty it passes.
 
-						if (AdditionalPlaylistLevelsStreamedOffset != -1) // i think its valid on every version but idgaf
-						{
-							if (Fortnite_Version < 11) // IDK What verison it actually wsa but they chnaged it to a struct
-							{
-								auto& AdditionalPlaylistLevelsStreamed = GameState->Get<TArray<FName>>(AdditionalPlaylistLevelsStreamedOffset);
-								AdditionalPlaylistLevelsStreamed.Add(LevelFName);
-							}
-						}
+						*/
+
+						// There is another array of the ULevelStreaming, and I don't think this gets filled by the OnRep (since really our way is hacky as the OnRep has the implementation)
 					}
 
 					static auto OnRep_AdditionalPlaylistLevelsStreamedFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameState.OnRep_AdditionalPlaylistLevelsStreamed");
@@ -435,7 +448,11 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 
 		static auto bWorldIsReadyOffset = GameMode->GetOffset("bWorldIsReady");
-		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>(bWorldIsReadyOffset), 1, true); // idk when we actually set this
+		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>(bWorldIsReadyOffset), 1, true); // idk when we actually set this (probably after we listen)
+
+		SetupAIDirector();
+		SetupServerBotManager();
+		// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"MANG"));
 
 		// Calendar::SetSnow(1000);
 
@@ -536,13 +553,11 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		static auto GameSessionOffset = GameMode->GetOffset("GameSession");
 		auto GameSession = GameMode->Get<AActor*>(GameSessionOffset);
-		static auto MaxPlayersOffset = GameSession->GetOffset("MaxPlayers");
 
+		static auto MaxPlayersOffset = GameSession->GetOffset("MaxPlayers");
 		GameSession->Get<int>(MaxPlayersOffset) = 100;
 
 		GameState->OnRep_CurrentPlaylistInfo(); // ?
-
-		// SetupNavConfig();
 
 		static auto bAlwaysDBNOOffset = GameMode->GetOffset("bAlwaysDBNO");
 		// GameMode->Get<bool>(bAlwaysDBNOOffset) = true;
@@ -581,10 +596,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		LOG_INFO(LogNet, "Attempting to listen!");
 
 		GetWorld()->Listen();
-
-		SetupAIDirector();
-		SetupServerBotManager();
-		// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"Deimos"));
 
 		if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
 		{
@@ -733,6 +744,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	if (Ret)
 	{
+		LOG_INFO(LogDev, "Athena_ReadyToStartMatchOriginal RET!"); // if u dont see this, not good
+
 		// We are assuming it successfully became warmup.
 
 		std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
@@ -1160,7 +1173,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	static auto SquadIdOffset = PlayerStateAthena->GetOffset("SquadId", false);
 
 	if (SquadIdOffset != -1)
-		PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - 3; // wrong place to do this
+		PlayerStateAthena->GetSquadId() = PlayerStateAthena->GetTeamIndex() - NumToSubtractFromSquadId; // wrong place to do this
 
 	TWeakObjectPtr<AFortPlayerStateAthena> WeakPlayerState{};
 	WeakPlayerState.ObjectIndex = PlayerStateAthena->InternalIndex;

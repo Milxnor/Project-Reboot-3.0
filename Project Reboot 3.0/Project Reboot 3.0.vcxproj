@@ -176,7 +176,6 @@
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ActorComponent.cpp" />
     <ClCompile Include="addresses.cpp" />
-    <ClCompile Include="AthenaDeimosRift.cpp" />
     <ClCompile Include="AthenaMarkerComponent.cpp" />
     <ClCompile Include="BP_IslandScripting.cpp" />
     <ClCompile Include="BuildingActor.cpp" />
@@ -277,7 +276,6 @@
     <ClInclude Include="AthenaBarrierFlag.h" />
     <ClInclude Include="AthenaBarrierObjective.h" />
     <ClInclude Include="AthenaBigBaseWall.h" />
-    <ClInclude Include="AthenaDeimosRift.h" />
     <ClInclude Include="AthenaMarkerComponent.h" />
     <ClInclude Include="AthenaResurrectionComponent.h" />
     <ClInclude Include="AttributeSet.h" />
@@ -322,6 +320,7 @@
     <ClInclude Include="FortAthenaMapInfo.h" />
     <ClInclude Include="FortAthenaMutator.h" />
     <ClInclude Include="FortAthenaMutator_Barrier.h" />
+    <ClInclude Include="FortAthenaMutator_Bots.h" />
     <ClInclude Include="FortAthenaMutator_Disco.h" />
     <ClInclude Include="FortAthenaMutator_GG.h" />
     <ClInclude Include="FortAthenaMutator_GiveItemsAtGamePhaseStep.h" />
@@ -331,6 +330,8 @@
     <ClInclude Include="FortAthenaMutator_ItemDropOnDeath.h" />
     <ClInclude Include="FortAthenaMutator_LoadoutSwap.h" />
     <ClInclude Include="FortAthenaMutator_TDM.h" />
+    <ClInclude Include="FortAthenaNpcPatrollingComponent.h" />
+    <ClInclude Include="FortAthenaPatrolPath.h" />
     <ClInclude Include="FortAthenaSKPushCannon.h" />
     <ClInclude Include="FortAthenaSupplyDrop.h" />
     <ClInclude Include="FortAthenaVehicle.h" />

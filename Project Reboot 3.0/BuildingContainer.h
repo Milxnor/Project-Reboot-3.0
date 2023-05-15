@@ -13,6 +13,38 @@ public:
 		return this->ReadBitfieldValue(bDestroyContainerOnSearchOffset, bDestroyContainerOnSearchFieldMask);
 	}
 
+	bool IsAlreadySearched()
+	{
+		static auto bAlreadySearchedOffset = this->GetOffset("bAlreadySearched");
+		static auto bAlreadySearchedFieldMask = GetFieldMask(this->GetProperty("bAlreadySearched"));
+		return this->ReadBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask);
+	}
+
+	void SetAlreadySearched(bool bNewValue, bool bOnRep = true)
+	{
+		static auto bAlreadySearchedOffset = this->GetOffset("bAlreadySearched");
+		static auto bAlreadySearchedFieldMask = GetFieldMask(this->GetProperty("bAlreadySearched"));
+		this->SetBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask, bNewValue);
+
+		if (bOnRep)
+		{
+			static auto OnRep_bAlreadySearchedFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingContainer.OnRep_bAlreadySearched");
+			this->ProcessEvent(OnRep_bAlreadySearchedFn);
+		}
+	}
+
+	FVector& GetLootSpawnLocation()
+	{
+		static auto LootSpawnLocationOffset = GetOffset("LootSpawnLocation");
+		return Get<FVector>(LootSpawnLocationOffset);
+	}
+
+	float& GetLootNoiseRange()
+	{
+		static auto LootNoiseRangeOffset = GetOffset("LootNoiseRange");
+		return Get<float>(LootNoiseRangeOffset);
+	}
+
 	bool SpawnLoot(AFortPawn* Pawn);
 
 	static UClass* StaticClass()

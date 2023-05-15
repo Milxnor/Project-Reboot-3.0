@@ -50,7 +50,7 @@ void AFortGameStateAthena::SetGamePhaseStep(EAthenaGamePhaseStep NewGamePhaseSte
 	{
 		// On newer versions there is a second param.
 
-		LOG_INFO(LogDev, "A1: {} FunctionToCallPair.second: {}", FunctionToCallPair.first->IsValidLowLevel() ? FunctionToCallPair.first->GetFullName() : "BadRead", __int64(FunctionToCallPair.second));
+		// LOG_INFO(LogDev, "A1: {} FunctionToCallPair.second: {}", FunctionToCallPair.first->IsValidLowLevel() ? FunctionToCallPair.first->GetFullName() : "BadRead", __int64(FunctionToCallPair.second));
 
 		if (FunctionToCallPair.second->IsValidLowLevel() && FunctionToCallPair.first->IsValidLowLevel())
 		{
@@ -270,6 +270,26 @@ TeamsArrayContainer* AFortGameStateAthena::GetTeamsArrayContainer()
 	}
 
 	return Offset != -1 ? (TeamsArrayContainer*)(__int64(this) + Offset) : nullptr;
+}
+
+void AFortGameStateAthena::AddToAdditionalPlaylistLevelsStreamed(const FName& Name, bool bServerOnly)
+{
+	static auto AdditionalPlaylistLevelsStreamedOffset = this->GetOffset("AdditionalPlaylistLevelsStreamed", false);
+
+	if (!FAdditionalLevelStreamed::GetStruct())
+	{
+		auto& AdditionalPlaylistLevelsStreamed = this->Get<TArray<FName>>(AdditionalPlaylistLevelsStreamedOffset);
+		AdditionalPlaylistLevelsStreamed.Add(Name);
+	}
+	else
+	{
+		auto& AdditionalPlaylistLevelsStreamed = this->Get<TArray<FAdditionalLevelStreamed>>(AdditionalPlaylistLevelsStreamedOffset);
+		auto NewLevelStreamed = Alloc<FAdditionalLevelStreamed>(FAdditionalLevelStreamed::GetStructSize());
+		NewLevelStreamed->GetLevelName() = Name;
+		NewLevelStreamed->IsServerOnly() = bServerOnly;
+
+		AdditionalPlaylistLevelsStreamed.AddPtr(NewLevelStreamed, FAdditionalLevelStreamed::GetStructSize());
+	}
 }
 
 UClass* AFortGameStateAthena::StaticClass()

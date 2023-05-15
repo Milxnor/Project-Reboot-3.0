@@ -9,6 +9,7 @@
 #include "builder.h"
 #include "FortLootPackage.h"
 #include "bots.h"
+#include "FortAthenaMutator_Bots.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {

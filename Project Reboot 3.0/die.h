@@ -108,7 +108,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		FortGameData = CurrentPlaylist ? CurrentPlaylist->Get<TSoftObjectPtr<UCurveTable>>(GameDataOffset).Get() : nullptr;
 
 		if (!FortGameData)
-			FortGameData = FindObject<UCurveTable>("/Game/Balance/AthenaGameData.AthenaGameData");
+			FortGameData = FindObject<UCurveTable>(L"/Game/Balance/AthenaGameData.AthenaGameData");
 
 		LOG_INFO(LogDev, "FortGameData: {}", FortGameData ? FortGameData->GetFullName() : "InvalidObject");
 

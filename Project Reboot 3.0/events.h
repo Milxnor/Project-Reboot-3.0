@@ -133,6 +133,31 @@ static inline std::vector<Event> Events =
 	),
 	Event
 	(
+		"The End Event Chapter 2",
+		"",
+		"",
+		0,
+		{
+
+		},
+		{
+			{
+				{
+					false,
+					// "/Buffet/Gameplay/Blueprints/BP_Buffet_Master_Scripting.BP_Buffet_Master_Scripting_C.startevent"
+					"/Script/SpecialEventGameplayRuntime.SpecialEventScript.StartEventAtIndex"
+				},
+
+				0
+			}
+		},
+
+		"/Guava/Gameplay/BP_Guava_SpecialEventScript.BP_Guava_SpecialEventScript_C", // what
+		"/GuavaPlaylist/Playlist/Playlist_Guava.Playlist_Guava",
+		18.40
+	),
+	Event
+	(
 		"The Showdown",
 		"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C",
 		"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C.LoadCattusLevel", 
@@ -698,11 +723,8 @@ static inline void StartEvent()
 
 	CallOnReadys();
 
-	if (Fortnite_Version == 17.30)
+	if (Fortnite_Version >= 17.30)
 	{
-		static bool (*IsServerOrSomething)(UObject* SpecialEventScript) = decltype(IsServerOrSomething)(__int64(GetModuleHandleW(0)) + 0x3DECFC8);
-		LOG_INFO(LogDev, "IsServerOrSomething {}", IsServerOrSomething(EventScripting));
-
 		static auto OnRep_RootStartTimeFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.OnRep_RootStartTime");
 		static auto MeshRootStartEventFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.MeshRootStartEvent");
 		auto SpecialEventScriptMeshActorClass = FindObject<UClass>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor");
@@ -714,11 +736,9 @@ static inline void StartEvent()
 
 			if (SpecialEventScriptMeshActor)
 			{
-				static bool (*sub_7FF7E556D158)(UObject* MeshScriptActor) = decltype(sub_7FF7E556D158)(__int64(GetModuleHandleW(0)) + 0x3DED158);
-				LOG_INFO(LogDev, "sub_7FF7E556D158 {}", sub_7FF7E556D158(SpecialEventScriptMeshActor));
-
 				// if (false)
 				{
+					LOG_INFO(LogDev, "MeshRootStartEventFn!");
 					SpecialEventScriptMeshActor->ProcessEvent(MeshRootStartEventFn);
 					SpecialEventScriptMeshActor->ProcessEvent(OnRep_RootStartTimeFn);
 

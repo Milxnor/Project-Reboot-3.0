@@ -46,9 +46,6 @@
     <ClCompile Include="FortInventory.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
     </ClCompile>
-    <ClCompile Include="FortPawn.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Pawns</Filter>
-    </ClCompile>
     <ClCompile Include="AbilitySystemComponent_Abilities.cpp">
       <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private</Filter>
     </ClCompile>
@@ -283,14 +280,14 @@
     <ClCompile Include="BuildingGameplayActorSpawnMachine.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
     </ClCompile>
-    <ClCompile Include="AthenaDeimosRift.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Deimos</Filter>
-    </ClCompile>
     <ClCompile Include="BP_IslandScripting.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Athena\Island</Filter>
     </ClCompile>
     <ClCompile Include="KismetSystemLibrary.cpp">
       <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortPawn.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -741,9 +738,6 @@
     <ClInclude Include="FortAthenaSKPushCannon.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
-    <ClInclude Include="FortAthenaVehicle.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
-    </ClInclude>
     <ClInclude Include="MemoryOps.h">
       <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
     </ClInclude>
@@ -886,9 +880,6 @@
     <ClInclude Include="AthenaResurrectionComponent.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
-    <ClInclude Include="AthenaDeimosRift.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public\Deimos</Filter>
-    </ClInclude>
     <ClInclude Include="BuildingRift.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building</Filter>
     </ClInclude>
@@ -900,6 +891,18 @@
     </ClInclude>
     <ClInclude Include="LevelStreaming.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaMutator_Bots.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaNpcPatrollingComponent.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaPatrolPath.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaVehicle.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1134,17 +1137,17 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Athena\Modifiers">
       <UniqueIdentifier>{ade44d65-f7a4-4fc9-ac38-637c84493b58}</UniqueIdentifier>
     </Filter>
-    <Filter Include="FortniteGame\Source\FortniteGame\Public\Deimos">
-      <UniqueIdentifier>{ac17e75e-ef4a-44f8-9b69-f55b6cde947d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="FortniteGame\Source\FortniteGame\Private\Deimos">
-      <UniqueIdentifier>{aadf4f37-b2b9-4ce2-bebb-35719ef0aab1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena\Island">
       <UniqueIdentifier>{7df06629-6271-4cd1-8f2c-ad8d6829b069}</UniqueIdentifier>
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Athena\Island">
       <UniqueIdentifier>{2d9beb55-a616-440e-8861-6a05f0ee2ef3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\AI">
+      <UniqueIdentifier>{d4816986-6cba-4c02-aab1-19108664cbb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\AI\Navigation">
+      <UniqueIdentifier>{8953303f-bfb2-4d61-945e-994fb1761cd8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

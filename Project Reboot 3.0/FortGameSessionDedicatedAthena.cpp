@@ -4,6 +4,7 @@
 
 #include "FortPlayerControllerAthena.h"
 #include "OnlineReplStructs.h"
+#include "gui.h"
 
 uint8 AFortGameSessionDedicatedAthena::GetSquadIdForCurrentPlayerHook(AFortGameSessionDedicatedAthena* GameSessionDedicated, __int64 UniqueId)
 {
@@ -23,7 +24,7 @@ uint8 AFortGameSessionDedicatedAthena::GetSquadIdForCurrentPlayerHook(AFortGameS
 
 		if (PlayerState->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset)->IsIdentical((FUniqueNetIdRepl*)&UniqueId))
 		{
-			return PlayerState->GetTeamIndex() - 3;
+			return PlayerState->GetTeamIndex() - NumToSubtractFromSquadId;
 		}
 	}
 

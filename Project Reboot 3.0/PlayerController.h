@@ -16,6 +16,7 @@ public:
 		return this->Get<UCheatManager*>(CheatManagerOffset);
 	}
 
+	void SetPlayerIsWaiting(bool NewValue);
 	void ServerChangeName(FString& S);
 	UCheatManager*& SpawnCheatManager(UClass* CheatManagerClass);
 	FRotator GetControlRotation();

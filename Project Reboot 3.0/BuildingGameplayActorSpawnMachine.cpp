@@ -86,13 +86,16 @@ void ABuildingGameplayActorSpawnMachine::RebootingDelegateHook(ABuildingGameplay
 
 	auto StrongResurrectionLocation = ResurrectionComponent->GetResurrectionLocation().Get();
 
-	LOG_INFO(LogDev, "StrongResurrectionLocation: {} IsClientReady: {}", __int64(StrongResurrectionLocation), PlayerState->GetRespawnData()->IsClientReady());
+	LOG_INFO(LogDev, "StrongResurrectionLocation: {} IsRespawnDataAvailable: {}", __int64(StrongResurrectionLocation), PlayerState->GetRespawnData()->IsRespawnDataAvailable());
 
 	if (!StrongResurrectionLocation)
 		return;
 
-	GameMode->RestartPlayerAtPlayerStart(PlayerController, StrongResurrectionLocation);
-	// PlayerController->ServerRestartPlayer();
+	// GameMode->RestartPlayerAtPlayerStart(PlayerController, StrongResurrectionLocation);
+
+	PlayerState->GetRespawnData()->IsRespawnDataAvailable() = false;
+	PlayerController->SetPlayerIsWaiting(true);
+	PlayerController->ServerRestartPlayer();
 
 	/* static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 	auto NewPawn = GetWorld()->SpawnActor<AFortPlayerPawnAthena>(PawnClass, StrongResurrectionLocation->GetTransform());
@@ -104,6 +107,11 @@ void ABuildingGameplayActorSpawnMachine::RebootingDelegateHook(ABuildingGameplay
 
 	if (!NewPawn) // Failed to restart player
 		return;
+
+	bool bEnterSkydiving = false; // TODO get from like curve table iirc idk or the variable
+
+	PlayerController->ClientClearDeathNotification();
+	// PlayerController->RespawnPlayerAfterDeath(bEnterSkydiving);
 
 	NewPawn->SetHealth(100);
 	NewPawn->SetMaxHealth(100);

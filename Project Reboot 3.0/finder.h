@@ -1225,8 +1225,10 @@ static inline uint64 FindAddNavigationSystemToWorld()
 
 	if (Engine_Version == 421)
 		addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 83 B9 ? ? ? ? ? 41 0F B6 F1 0F B6 FA 48", false).Get();
-	if (Engine_Version == 423)
+	else if (Engine_Version == 423)
 		addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 ED 41", false).Get();
+	else if (Engine_Version == 425)
+		addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 ED 41 0F B6 F1").Get();
 
 	return addr;
 }

@@ -175,6 +175,28 @@ public:
 		return Get<AFortVolume*>(CreativePlotLinkedVolumeOffset);
 	}
 
+	void ClientClearDeathNotification() // actually in zone
+	{
+		auto ClientClearDeathNotificationFn = FindFunction("ClientClearDeathNotification");
+
+		if (ClientClearDeathNotificationFn)
+			this->ProcessEvent(ClientClearDeathNotificationFn);
+	}
+
+	void RespawnPlayerAfterDeath(bool bEnterSkydiving)
+	{
+		static auto RespawnPlayerAfterDeathFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.RespawnPlayerAfterDeath");
+
+		if (RespawnPlayerAfterDeathFn)
+		{
+			this->ProcessEvent(RespawnPlayerAfterDeathFn, &bEnterSkydiving);
+		}
+		else
+		{
+			// techinally we can remake this as all it really does on older versions is clear deathinfo
+		}
+	}
+
 	static void StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret); // we could native hook this but eh
 	static void EndGhostModeHook(AFortPlayerControllerAthena* PlayerController);
 	static void EnterAircraftHook(UObject* PC, AActor* Aircraft);

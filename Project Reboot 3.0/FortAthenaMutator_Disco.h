@@ -23,7 +23,7 @@ public:
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator_Disco");
+		static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaMutator_Disco");
 		return Class;
 	}
 

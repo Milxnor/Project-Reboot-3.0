@@ -66,6 +66,30 @@ struct FPlayerBuildableClassContainer
 	TArray<UClass*>                              BuildingClasses;                                          // 0x0000(0x0010) (ZeroConstructor, Transient, UObjectWrapper, NativeAccessSpecifierPublic)
 };
 
+struct FAdditionalLevelStreamed
+{
+public:
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.AdditionalLevelStreamed");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
+
+	FName& GetLevelName()
+	{
+		static auto LevelNameOffset = FindOffsetStruct("/Script/FortniteGame.AdditionalLevelStreamed", "LevelName");
+		return *(FName*)(__int64(this) + LevelNameOffset);
+	}
+	
+	bool& IsServerOnly()
+	{
+		static auto bIsServerOnlyOffset = FindOffsetStruct("/Script/FortniteGame.AdditionalLevelStreamed", "bIsServerOnly");
+		return *(bool*)(__int64(this) + bIsServerOnlyOffset);
+	}
+};
+
 class AFortGameStateAthena : public AGameState
 {
 public:
@@ -127,6 +151,7 @@ public:
 	void OnRep_CurrentPlaylistInfo();
 	void OnRep_PlayersLeft();
 	TeamsArrayContainer* GetTeamsArrayContainer();
+	void AddToAdditionalPlaylistLevelsStreamed(const FName& Name, bool bServerOnly = false);
 
 	static UClass* StaticClass();
 };

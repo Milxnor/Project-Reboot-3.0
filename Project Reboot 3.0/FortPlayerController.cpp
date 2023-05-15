@@ -747,6 +747,11 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	if (!PlayerController) // ??
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+
 	auto PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
 
 	if (!PlayerStateAthena)
@@ -816,7 +821,38 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	if (!bCanBuild)
 	{
-		// LOG_INFO(LogDev, "cant build");
+		ExistingBuildings.Free();
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+	}
+
+	FTransform Transform{};
+	Transform.Translation = BuildLocation;
+	Transform.Rotation = BuildRotator.Quaternion();
+	Transform.Scale3D = { 1, 1, 1 };
+
+	auto BuildingActor = GetWorld()->SpawnActor<ABuildingSMActor>(BuildingClass, Transform);
+
+	if (!BuildingActor)
+	{
+		ExistingBuildings.Free();
+		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+	}
+
+	auto MatDefinition = UFortKismetLibrary::K2_GetResourceItemDefinition(BuildingActor->GetResourceType());
+
+	auto MatInstance = WorldInventory->FindItemInstance(MatDefinition);
+
+	bool bBuildFree = PlayerController->DoesBuildFree();
+
+	// LOG_INFO(LogDev, "MatInstance->GetItemEntry()->GetCount(): {}", MatInstance->GetItemEntry()->GetCount());
+
+	int MinimumMaterial = 10;
+	bool bShouldDestroy = MatInstance && MatInstance->GetItemEntry() ? MatInstance->GetItemEntry()->GetCount() < MinimumMaterial : true;
+
+	if (bShouldDestroy && !bBuildFree)
+	{
+		ExistingBuildings.Free();
+		BuildingActor->SilentDie();
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 	}
 
@@ -828,36 +864,6 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	}
 
 	ExistingBuildings.Free();
-
-	FTransform Transform{};
-	Transform.Translation = BuildLocation;
-	Transform.Rotation = BuildRotator.Quaternion();
-	Transform.Scale3D = { 1, 1, 1 };
-
-	auto BuildingActor = GetWorld()->SpawnActor<ABuildingSMActor>(BuildingClass, Transform);
-
-	if (!BuildingActor)
-		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
-
-	auto MatDefinition = UFortKismetLibrary::K2_GetResourceItemDefinition(BuildingActor->GetResourceType());
-	auto WorldInventory = PlayerController->GetWorldInventory();
-
-	if (!WorldInventory)
-		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
-
-	auto MatInstance = WorldInventory->FindItemInstance(MatDefinition);
-
-	bool bBuildFree = PlayerController->DoesBuildFree();
-
-	// LOG_INFO(LogDev, "MatInstance->GetItemEntry()->GetCount(): {}", MatInstance->GetItemEntry()->GetCount());
-
-	bool bShouldDestroy = MatInstance && MatInstance->GetItemEntry() ? MatInstance->GetItemEntry()->GetCount() < 10 : true;
-
-	if (bShouldDestroy && !bBuildFree)
-	{
-		BuildingActor->SilentDie();
-		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
-	}
 
 	BuildingActor->SetPlayerPlaced(true);
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
@@ -1212,7 +1218,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	if (Fortnite_Version > 1.8 || Fortnite_Version == 1.11)
 	{
 		auto DeathInfo = (void*)(__int64(DeadPlayerState) + MemberOffsets::FortPlayerStateAthena::DeathInfo); // Alloc<void>(DeathInfoStructSize);
-		RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize);
+		RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize); // TODO FREE THE DEATHTAGS
 
 		auto/*&*/ Tags = MemberOffsets::FortPlayerPawn::CorrectTags == 0 ? FGameplayTagContainer()
 			: DeadPawn->Get<FGameplayTagContainer>(MemberOffsets::FortPlayerPawn::CorrectTags);

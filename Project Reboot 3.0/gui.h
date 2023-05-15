@@ -58,6 +58,7 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
+extern inline int NumToSubtractFromSquadId = 2;
 extern inline int SecondsUntilTravel = 5;
 extern inline bool bSwitchedInitialLevel = false;
 extern inline bool bIsInAutoRestart = false;
@@ -528,6 +529,7 @@ static inline void MainUI()
 						auto Mission = AllMissions.at(i);
 
 						static auto bCalendarAllowsSpawningOffset = Mission->GetOffset("bCalendarAllowsSpawning");
+						LOG_INFO(LogDev, "Mission->Get<bool>(bCalendarAllowsSpawningOffset) Original: {}", Mission->Get<bool>(bCalendarAllowsSpawningOffset));
 						Mission->Get<bool>(bCalendarAllowsSpawningOffset) = true;
 					}
 				}
@@ -544,6 +546,7 @@ static inline void MainUI()
 						LOG_ERROR(LogGame, "Restarting is not supported on chapter 2 and above!");
 					}
 				}
+
 				/*
 				if (ImGui::Button("TEST"))
 				{

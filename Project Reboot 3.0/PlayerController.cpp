@@ -9,6 +9,13 @@ void APlayerController::ServerChangeName(FString& S)
 	this->ProcessEvent(ServerChangeNameFn, &S);
 }
 
+void APlayerController::SetPlayerIsWaiting(bool NewValue)
+{
+	static auto bPlayerIsWaitingOffset = GetOffset("bPlayerIsWaiting");
+	static auto bPlayerIsWaitingFieldMask = GetFieldMask(this->GetProperty("bPlayerIsWaiting"));
+	this->SetBitfieldValue(bPlayerIsWaitingOffset, bPlayerIsWaitingFieldMask, NewValue);
+}
+
 UCheatManager*& APlayerController::SpawnCheatManager(UClass* CheatManagerClass)
 {
 	GetCheatManager() = UGameplayStatics::SpawnObject<UCheatManager>(CheatManagerClass, this, true);

@@ -132,6 +132,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 	bool bIsRespawning = false;
 
+	/*
 	static auto RespawnDataOffset = PlayerStateAthena->GetOffset("RespawnData", false);
 
 	if (RespawnDataOffset != -1)
@@ -142,7 +143,12 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		{
 			bIsRespawning = true;
 		}
-	}
+	} */
+
+	/* auto DeathInfo = (void*)(__int64(PlayerStateAthena) + MemberOffsets::FortPlayerStateAthena::DeathInfo);
+	FVector DeathLocation = MemberOffsets::DeathInfo::DeathLocation != -1 ? *(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) : FVector(0, 0, 0);
+
+	bIsRespawning = !(DeathLocation == FVector(0, 0, 0)); // bro kms */
 
 	auto ASC = PlayerStateAthena->GetAbilitySystemComponent();
 	auto GameState = ((AFortGameModeAthena*)GameMode)->GetGameStateAthena();
@@ -225,13 +231,13 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	}
 	else
 	{
-		LOG_INFO(LogDev, "Player is respawning!");
+		// TODO I DONT KNOW WHEN TO DO THIS
 
-		auto DeathInfo = (void*)(__int64(PlayerStateAthena) + MemberOffsets::FortPlayerStateAthena::DeathInfo);
+		/*
 
 		static auto DeathInfoStruct = FindObject<UStruct>(L"/Script/FortniteGame.DeathInfo");
 		static auto DeathInfoStructSize = DeathInfoStruct->GetPropertiesSize();
-		RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize);
+		RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize); // TODO FREE THE DEATHTAGS
 
 		static auto OnRep_DeathInfoFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
 
@@ -239,6 +245,11 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		{
 			PlayerStateAthena->ProcessEvent(OnRep_DeathInfoFn);
 		}
+
+		*/
+
+		// NewPlayerAsAthena->ClientClearDeathNotification();
+		// NewPlayerAsAthena->RespawnPlayerAfterDeath(true);
 	}
 
 	return NewPawn;

@@ -44,7 +44,6 @@
 #include "PlaysetLevelStreamComponent.h"
 #include "FortAthenaVehicleSpawner.h"
 #include "FortGameSessionDedicatedAthena.h"
-#include "AthenaDeimosRift.h"
 
 enum class EMeshNetworkNodeType : uint8_t
 {
@@ -320,27 +319,31 @@ DWORD WINAPI Main(LPVOID)
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationEnabled"),
         ABuildingFoundation::SetDynamicFoundationEnabledHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationEnabledOriginal, false, true); */
 
-    if (Fortnite_Version == 17.30)
+    if (Fortnite_Version == 17.30) // Rift Tour stuff
     {
-        // if (false)
-        {
-            Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
-            // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED12C), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D12C
-            Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D158    
-        }
-
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D158  
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DECFC8), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556CFC8
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED050), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D050
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DECF40), (PVOID)ReturnFalseHook, nullptr); // 7FF7E556CF40
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DE5CE8), (PVOID)ActivatePhaseAtIndexHook, (PVOID*)&ActivatePhaseAtIndexOriginal); // 7FF7E5565CE8
-        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DE9268), (PVOID)FlowStep_SetPhaseToActiveHook, (PVOID*)&FlowStep_SetPhaseToActiveOriginal); // 7FF7E5569268
-        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DE5998), (PVOID)SpecialEventScript_ActivatePhaseHook, (PVOID*)&SpecialEventScript_ActivatePhaseOriginal); // 7FF7E5565998
+    }
+    else if (Fortnite_Version == 18.40)
+    {
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x416AAB8), (PVOID)ReturnTrueHook, nullptr); // 7FF79E3EAAB8  
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x416A840), (PVOID)ReturnTrueHook, nullptr); // 7FF79E3EA840
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x416A93C), (PVOID)ReturnTrueHook, nullptr); // 7FF79E3EA93C
+        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + ), (PVOID)ReturnFalseHook, nullptr); // 7FF7E556CF40
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x41624C8), (PVOID)ActivatePhaseAtIndexHook, (PVOID*)&ActivatePhaseAtIndexOriginal); // 7FF79E3E24C8  
     }
 
     if (Fortnite_Version == 6.21)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x191D2E0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
     else if (Fortnite_Version == 10.40)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x22A30C0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
+    else if (Fortnite_Version == 12.41)
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x2DBCBA0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
 
     if (bUseSwitchLevel)
     {
@@ -779,9 +782,6 @@ DWORD WINAPI Main(LPVOID)
         UInventoryManagementLibrary::SwapItemHook, (PVOID*)&UInventoryManagementLibrary::SwapItemOriginal, false, true);
     Hooking::MinHook::Hook(InventoryManagementLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.InventoryManagementLibrary.SwapItems"),
         UInventoryManagementLibrary::SwapItemsHook, (PVOID*)&UInventoryManagementLibrary::SwapItemsOriginal, false, true);
-
-    Hooking::MinHook::Hook(FindObject<AAthenaDeimosRift>(L"/Script/FortniteGame.Default__AthenaDeimosRift"), FindObject<UFunction>(L"/Script/FortniteGame.AthenaDeimosRift.QueueActorsToSpawn"),
-        AAthenaDeimosRift::QueueActorsToSpawnHook, (PVOID*)&AAthenaDeimosRift::QueueActorsToSpawnOriginal, false, true);
 
     Hooking::MinHook::Hook(FindObject(L"/Script/FortniteGame.Default__FortAthenaVehicleSpawner"), FindObject<UFunction>(L"/Script/FortniteGame.FortAthenaVehicleSpawner.SpawnVehicle"),
         AFortAthenaVehicleSpawner::SpawnVehicleHook, nullptr, false);
