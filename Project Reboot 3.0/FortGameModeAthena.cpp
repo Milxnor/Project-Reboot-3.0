@@ -208,6 +208,11 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "Presetup!");
 
+		SetupAIGoalManager();
+		SetupAIDirector();
+		SetupServerBotManager();
+		// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"MANG"));
+
 		static auto WarmupRequiredPlayerCountOffset = GameMode->GetOffset("WarmupRequiredPlayerCount");
 		GameMode->Get<int>(WarmupRequiredPlayerCountOffset) = 1;
 
@@ -332,7 +337,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 					if (AdditionalLevelsServerOnlyOffset != -1)
 					{
-						TArray<TSoftObjectPtr<UWorld>>& AdditionalLevelsServerOnly = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UWorld>>>(AdditionalLevelsServerOnlyOffset);
+						/* TArray<TSoftObjectPtr<UWorld>>& AdditionalLevelsServerOnly = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UWorld>>>(AdditionalLevelsServerOnlyOffset);
 						LOG_INFO(LogPlaylist, "Loading {} playlist server levels.", AdditionalLevelsServerOnly.Num());
 
 						for (int i = 0; i < AdditionalLevelsServerOnly.Num(); i++)
@@ -343,7 +348,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 							auto LevelNameWStr = std::wstring(LevelNameStr.begin(), LevelNameStr.end());
 
 							GameState->AddToAdditionalPlaylistLevelsStreamed(LevelFName, true);
-						}
+						} */
 					}
 
 					LOG_INFO(LogPlaylist, "Loading {} playlist levels.", AdditionalLevels.Num());
@@ -449,10 +454,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		static auto bWorldIsReadyOffset = GameMode->GetOffset("bWorldIsReady");
 		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>(bWorldIsReadyOffset), 1, true); // idk when we actually set this (probably after we listen)
-
-		SetupAIDirector();
-		SetupServerBotManager();
-		// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"MANG"));
 
 		// Calendar::SetSnow(1000);
 

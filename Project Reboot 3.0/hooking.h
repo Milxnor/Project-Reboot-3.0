@@ -381,7 +381,7 @@ static inline void HookInstruction(uint64 instrAddr, void* Detour, const std::st
 
     if (__int64(instrAddr) - FunctionAddr < 0) // We do not want the FunctionAddr (detour) to be less than where we are replacing.
     {
-        LOG_INFO(LogDev, "Hooking Instruction will not work! Function is after ({})!", FunctionToReplace);
+        LOG_ERROR(LogDev, "Hooking Instruction will not work! Function is after ({})!", FunctionToReplace);
         return;
     }
 

@@ -132,6 +132,26 @@ static void SetupServerBotManager()
     }
 }
 
+static void SetupAIGoalManager()
+{
+    // There is some virtual function in the gamemode that calls a spawner for this, it gets the class from GameData, not sure why this doesn't work automatically or if we should even spawn this.
+
+    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+    static auto AIGoalManagerOffset = GameMode->GetOffset("AIGoalManager");
+
+    static auto AIGoalManagerClass = FindObject<UClass>(L"/Script.FortniteGame.FortAIGoalManager");
+
+    LOG_INFO(LogDev, "AIGoalManager Before: {}", __int64(GameMode->Get(AIGoalManagerOffset)));
+
+    if (!GameMode->Get(AIGoalManagerOffset))
+        GameMode->Get(AIGoalManagerOffset) = GetWorld()->SpawnActor<AActor>(AIGoalManagerClass);
+
+    if (GameMode->Get(AIGoalManagerOffset))
+    {
+        LOG_INFO(LogAI, "Successfully spawned AIGoalManager!");
+    }
+}
+
 static void SetupAIDirector()
 {
     auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
@@ -144,6 +164,8 @@ static void SetupAIDirector()
 
     static auto AIDirectorOffset = GameMode->GetOffset("AIDirector");
     
+    LOG_INFO(LogDev, "AIDirector Before: {}", __int64(GameMode->Get(AIDirectorOffset)));
+
     if (!GameMode->Get(AIDirectorOffset))
         GameMode->Get(AIDirectorOffset) = GetWorld()->SpawnActor<AActor>(AIDirectorClass);
 
@@ -151,7 +173,14 @@ static void SetupAIDirector()
     {
         LOG_INFO(LogAI, "Successfully spawned AIDirector!");
 
-        static auto ActivateFn = FindObject<UFunction>("/Script/FortniteGame.FortAIDirector.Activate");
+        // we have to set so much more from data tables..
+        
+        static auto OurEncounterClass = FindObject<UClass>(L"/Script/FortniteGame.FortAIEncounterInfo"); // ???
+        static auto BaseEncounterClassOffset = GameMode->Get(AIDirectorOffset)->GetOffset("BaseEncounterClass");
+
+        GameMode->Get(AIDirectorOffset)->Get(BaseEncounterClassOffset) = OurEncounterClass;
+
+        static auto ActivateFn = FindObject<UFunction>(L"/Script/FortniteGame.FortAIDirector.Activate");
 
         if (ActivateFn) // ?
             GameMode->Get(AIDirectorOffset)->ProcessEvent(ActivateFn); // ?

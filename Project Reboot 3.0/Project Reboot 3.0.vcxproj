@@ -313,9 +313,12 @@
     <ClInclude Include="EnableIf.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="EngineTypes.h" />
+    <ClInclude Include="EnvQuery.h" />
+    <ClInclude Include="EnvQueryTypes.h" />
     <ClInclude Include="events.h" />
     <ClInclude Include="finder.h" />
     <ClInclude Include="FortAbilitySet.h" />
+    <ClInclude Include="FortAIEncounterInfo.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
     <ClInclude Include="FortAthenaMapInfo.h" />
     <ClInclude Include="FortAthenaMutator.h" />

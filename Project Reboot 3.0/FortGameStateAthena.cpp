@@ -5,6 +5,7 @@
 #include "FortGameModeAthena.h"
 #include "FortAthenaMutator.h"
 #include "gui.h"
+#include "LevelStreamingDynamic.h"
 
 /* void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState)
 {
@@ -274,6 +275,12 @@ TeamsArrayContainer* AFortGameStateAthena::GetTeamsArrayContainer()
 
 void AFortGameStateAthena::AddToAdditionalPlaylistLevelsStreamed(const FName& Name, bool bServerOnly)
 {
+	auto NameStr = Name.ToString();
+	auto NameWStr = std::wstring(NameStr.begin(), NameStr.end());
+
+	StreamLevel(Name.ToString()); // skunke bozo (I didn't test the next code too much soo)
+	/* ULevelStreamingDynamic::LoadLevelInstance(GetWorld(), NameWStr.c_str(), FVector(), FRotator());
+
 	static auto AdditionalPlaylistLevelsStreamedOffset = this->GetOffset("AdditionalPlaylistLevelsStreamed", false);
 
 	if (!FAdditionalLevelStreamed::GetStruct())
@@ -289,7 +296,7 @@ void AFortGameStateAthena::AddToAdditionalPlaylistLevelsStreamed(const FName& Na
 		NewLevelStreamed->IsServerOnly() = bServerOnly;
 
 		AdditionalPlaylistLevelsStreamed.AddPtr(NewLevelStreamed, FAdditionalLevelStreamed::GetStructSize());
-	}
+	} */
 }
 
 UClass* AFortGameStateAthena::StaticClass()

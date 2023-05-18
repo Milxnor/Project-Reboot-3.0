@@ -81,6 +81,8 @@ public:
 	static inline void (*SpawnItemVariantPickupInWorldOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline void (*K2_GiveBuildingResourceOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline void (*PickLootDropsWithNamedWeightsOriginal)(UObject* Context, FFrame& Stack, void* Ret);
+	static inline UObject* (*GetAIDirectorOriginal)(UObject* Context, FFrame& Stack, UObject** Ret);
+	static inline UObject* (*GetAIGoalManagerOriginal)(UObject* Context, FFrame& Stack, UObject** Ret);
 
 	static UFortResourceItemDefinition* K2_GetResourceItemDefinition(EFortResourceType ResourceType);
 	static void ApplyCharacterCosmetics(UObject* WorldContextObject, const TArray<UObject*>& CharacterParts, UObject* PlayerState, bool* bSuccess);
@@ -99,6 +101,8 @@ public:
 	static void K2_RemoveFortItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
 	static AFortPickup* K2_SpawnPickupInWorldHook(UObject* Context, FFrame& Stack, AFortPickup** Ret);
 	static AFortPickup* K2_SpawnPickupInWorldWithClassHook(UObject* Context, FFrame& Stack, AFortPickup** Ret);
+	static UObject* GetAIDirectorHook(UObject* Context, FFrame& Stack, UObject** Ret);
+	static UObject* GetAIGoalManagerHook(UObject* Context, FFrame& Stack, UObject** Ret);
 	static bool PickLootDropsHook(UObject* Context, FFrame& Stack, bool* Ret);
 
 	static UClass* StaticClass();

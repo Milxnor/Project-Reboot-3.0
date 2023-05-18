@@ -3,6 +3,7 @@
 #include "FortPickup.h"
 #include "FortLootPackage.h"
 #include "AbilitySystemComponent.h"
+#include "FortGameModeAthena.h"
 
 UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EFortResourceType ResourceType)
 {
@@ -521,6 +522,32 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 	K2_SpawnPickupInWorldWithClassOriginal(Context, Stack, Ret);
 
 	*Ret = NewPickup;
+	return *Ret;
+}
+
+UObject* UFortKismetLibrary::GetAIDirectorHook(UObject* Context, FFrame& Stack, UObject** Ret)
+{
+	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+	static auto AIDirectorOffset = GameMode->GetOffset("AIDirector");
+
+	auto AIDirector = GameMode->Get(AIDirectorOffset);
+
+	GetAIDirectorOriginal(Context, Stack, Ret);
+
+	*Ret = AIDirector;
+	return *Ret;
+}
+
+UObject* UFortKismetLibrary::GetAIGoalManagerHook(UObject* Context, FFrame& Stack, UObject** Ret)
+{
+	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+	static auto AIGoalManagerOffset = GameMode->GetOffset("AIGoalManager");
+
+	auto GoalManager = GameMode->Get(AIGoalManagerOffset);
+
+	GetAIGoalManagerOriginal(Context, Stack, Ret);
+
+	*Ret = GoalManager;
 	return *Ret;
 }
 

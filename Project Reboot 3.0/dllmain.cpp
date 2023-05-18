@@ -44,6 +44,7 @@
 #include "PlaysetLevelStreamComponent.h"
 #include "FortAthenaVehicleSpawner.h"
 #include "FortGameSessionDedicatedAthena.h"
+#include "FortAIEncounterInfo.h"
 
 enum class EMeshNetworkNodeType : uint8_t
 {
@@ -81,6 +82,20 @@ static int Return2Hook() { return 2; }
 
 static bool NoMCPHook() { return Globals::bNoMCP; }
 static void CollectGarbageHook() { return; }
+
+static __int64 (*ConstructEmptyQueryInfoOriginal)(FEncounterEnvironmentQueryInfo* a1);
+
+static __int64 ConstructEmptyQueryInfoHook(FEncounterEnvironmentQueryInfo* a1)
+{
+    auto ret = ConstructEmptyQueryInfoOriginal(a1);
+
+    a1->GetEnvironmentQuery() = FindObject<UEnvQuery>(L"/Game/Athena/Deimos/AIDirector/EQS/Deimos_EQS_RiftSlots.Deimos_EQS_RiftSlots");
+    a1->IsDirectional() = true;
+
+    LOG_INFO(LogDev, "ConstructEmptyQueryInfoHook!");
+
+    return ret;
+}
 
 static __int64 (*DispatchRequestOriginal)(__int64 a1, __int64* a2, int a3);
 
@@ -207,12 +222,32 @@ __int64 FlowStep_SetPhaseToActiveHook(AActor* SpecialEventPhase)
 
     auto ret = FlowStep_SetPhaseToActiveOriginal(SpecialEventPhase); // idk if three actually is a ret
 
-    static auto OnRep_PhaseState = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventPhase.OnRep_PhaseState");
+    static auto OnRep_PhaseState = FindObject<UFunction>(L"/Script/SpecialEventGameplayRuntime.SpecialEventPhase.OnRep_PhaseState");
     SpecialEventPhase->ProcessEvent(OnRep_PhaseState);
 
     SpecialEventPhase->ForceNetUpdate();
 
     return ret;
+}
+
+UObject* GetGoalManagerHook(UObject* WorldContextObject)
+{
+    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+    static auto AIGoalManagerOffset = GameMode->GetOffset("AIGoalManager");
+
+    LOG_INFO(LogDev, "WHAT A BOZO GetGoalManagerHook RET: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
+
+    return GameMode->Get(AIGoalManagerOffset);
+}
+
+UObject* GetAIDirectorHook()
+{
+    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+    static auto AIDirectorOffset = GameMode->GetOffset("AIDirector");
+
+    LOG_INFO(LogDev, "WHAT A BOZO GetAIDirectorHook RET: 0x{:x}", __int64(_ReturnAddress()) - __int64(GetModuleHandleW(0)));
+
+    return GameMode->Get(AIDirectorOffset);
 }
 
 DWORD WINAPI Main(LPVOID)
@@ -273,14 +308,18 @@ DWORD WINAPI Main(LPVOID)
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetPackageMap VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetTraffic VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNet VeryVerbose", nullptr);
-    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNavigation VeryVerbose", nullptr);
+    // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNavigation VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortMission VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortAIGoalSelection VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogBuilding VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortAI VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortAIDirector VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortQuest VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortUIDirector NoLogging", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogDataTable VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogMeshNetwork VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogEQS VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFort VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogGameMode VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogSpecialEvent VeryVerbose", nullptr);
@@ -319,6 +358,39 @@ DWORD WINAPI Main(LPVOID)
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationEnabled"),
         ABuildingFoundation::SetDynamicFoundationEnabledHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationEnabledOriginal, false, true); */
 
+    /*
+    if (Fortnite_Version == 6.21) // ur trolling
+    {
+        std::string AIDirectorFuncName = "/Script/Engine.PlayerController.FOV"; // "/Script/Engine.PlayerController.ClientVoiceHandshakeComplete";
+        std::string GoalManagerFuncName = "/Script/Engine.PlayerController.EnableCheats";
+
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0xAADD50), (PVOID)ConstructEmptyQueryInfoHook, (PVOID*)&ConstructEmptyQueryInfoOriginal); // 7FF7E556D158  
+
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xB10480, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xABBAB9, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xB1E2BC, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xB25EAA, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xABFDC1, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xAEC76D, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xA9C62C, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xAA1165, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xA9F5C0, (PVOID)GetGoalManagerHook, GoalManagerFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0x10975EE, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xAC1C15, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xB2096E, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0x107B6A5, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xB213DC, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xAB51D2, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xB21BB8, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xABE6AC, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0xB2247D, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0x10988B7, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0x107C7B6, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0x1096D21, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+        HookInstruction(__int64(GetModuleHandleW(0)) + 0x1097982, (PVOID)GetAIDirectorHook, AIDirectorFuncName, ERelativeOffsets::CALL, FortPlayerControllerAthenaDefault);
+    }
+    */
+
     if (Fortnite_Version == 17.30) // Rift Tour stuff
     {
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
@@ -330,7 +402,7 @@ DWORD WINAPI Main(LPVOID)
     }
     else if (Fortnite_Version == 18.40)
     {
-        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+        // Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + ), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x416AAB8), (PVOID)ReturnTrueHook, nullptr); // 7FF79E3EAAB8  
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x416A840), (PVOID)ReturnTrueHook, nullptr); // 7FF79E3EA840
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x416A93C), (PVOID)ReturnTrueHook, nullptr); // 7FF79E3EA93C
@@ -549,7 +621,7 @@ DWORD WINAPI Main(LPVOID)
     auto FortServerRestartPlayer = FortPlayerControllerDefault->VFTable[ServerReturnToMainMenuIdx];
     VirtualSwap(FortPlayerControllerAthenaDefault->VFTable, ServerReturnToMainMenuIdx, FortServerRestartPlayer);
 
-    HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)AFortPlayerControllerAthena::UpdateTrackedAttributesHook, "/Script/Engine.PlayerController.EnableCheats", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
+    // HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)AFortPlayerControllerAthena::UpdateTrackedAttributesHook, "/Script/Engine.PlayerController.EnableCheats", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
     // HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
    
     if (bEnableRebooting)
@@ -696,6 +768,10 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(FindObject<AFortAthenaMutator_GiveItemsAtGamePhaseStep>(L"/Script/FortniteGame.Default__FortAthenaMutator_GiveItemsAtGamePhaseStep"), FindObject<UFunction>(L"/Script/FortniteGame.FortAthenaMutator_GiveItemsAtGamePhaseStep.OnGamePhaseStepChanged"),
         AFortAthenaMutator_GiveItemsAtGamePhaseStep::OnGamePhaseStepChangedHook, (PVOID*)&AFortAthenaMutator_GiveItemsAtGamePhaseStep::OnGamePhaseStepChangedOriginal, false, true);
 
+    Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.GetAIDirector"),
+        UFortKismetLibrary::GetAIDirectorHook, (PVOID*)&UFortKismetLibrary::GetAIDirectorOriginal, false, true);
+    Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.GetAIGoalManager"),
+        UFortKismetLibrary::GetAIGoalManagerHook, (PVOID*)&UFortKismetLibrary::GetAIGoalManagerOriginal, false, true);
     Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_GiveItemToPlayer"),
         UFortKismetLibrary::K2_GiveItemToPlayerHook, (PVOID*)&UFortKismetLibrary::K2_GiveItemToPlayerOriginal, false, true);
     Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.K2_GiveBuildingResource"),

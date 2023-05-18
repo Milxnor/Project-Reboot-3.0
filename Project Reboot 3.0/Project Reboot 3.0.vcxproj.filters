@@ -904,6 +904,15 @@
     <ClInclude Include="FortAthenaVehicle.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Athena</Filter>
     </ClInclude>
+    <ClInclude Include="FortAIEncounterInfo.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="EnvQuery.h">
+      <Filter>Engine\Source\Runtime\AIModule\Classes\EnvironmentQuery</Filter>
+    </ClInclude>
+    <ClInclude Include="EnvQueryTypes.h">
+      <Filter>Engine\Source\Runtime\AIModule\Classes\EnvironmentQuery</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -1148,6 +1157,15 @@
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\AI\Navigation">
       <UniqueIdentifier>{8953303f-bfb2-4d61-945e-994fb1761cd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\AIModule">
+      <UniqueIdentifier>{7442549c-8d75-4bdb-a44a-df55140720c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\AIModule\Classes">
+      <UniqueIdentifier>{ababaf56-50f2-4d78-baa6-bad1b5ca1cf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\AIModule\Classes\EnvironmentQuery">
+      <UniqueIdentifier>{9b5483b5-3984-4fe1-96d2-e37d72642efd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

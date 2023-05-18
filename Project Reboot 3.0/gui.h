@@ -275,7 +275,7 @@ static inline void StaticUI()
 {
 	if (IsRestartingSupported())
 	{
-		ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
+		// ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
 
 		if (Globals::bAutoRestart)
 		{
@@ -516,23 +516,6 @@ static inline void MainUI()
 					}
 				}
 				*/
-
-				if (ImGui::Button("aaa"))
-				{
-					static auto Clasda = FindObject<UClass>(L"/Script/FortniteGame.FortMission_RiftSpawners");
-					auto AllMissions = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Clasda);
-
-					LOG_INFO(LogDev, "AllMissions.Num(): {}", AllMissions.Num());
-
-					for (int i = 0; i < AllMissions.Num(); i++)
-					{
-						auto Mission = AllMissions.at(i);
-
-						static auto bCalendarAllowsSpawningOffset = Mission->GetOffset("bCalendarAllowsSpawning");
-						LOG_INFO(LogDev, "Mission->Get<bool>(bCalendarAllowsSpawningOffset) Original: {}", Mission->Get<bool>(bCalendarAllowsSpawningOffset));
-						Mission->Get<bool>(bCalendarAllowsSpawningOffset) = true;
-					}
-				}
 
 				if (!bIsInAutoRestart && (Engine_Version < 424 && ImGui::Button("Restart")))
 				{
@@ -934,6 +917,29 @@ static inline void MainUI()
 			ImGui::InputText("Class Name to mess with", &ClassNameToDump);
 
 			ImGui::InputText("Function Name to mess with", &FunctionNameToDump);
+
+			if (ImGui::Button("Find all classes that inherit"))
+			{
+				auto ClassToScuff = FindObject<UClass>(ClassNameToDump);
+
+				if (ClassToScuff)
+				{
+					auto ObjectNum = ChunkedObjects ? ChunkedObjects->Num() : UnchunkedObjects ? UnchunkedObjects->Num() : 0;
+
+					for (int i = 0; i < ObjectNum; i++)
+					{
+						auto CurrentObject = GetObjectByIndex(i);
+
+						if (!CurrentObject || CurrentObject == ClassToScuff)
+							continue;
+
+						if (!CurrentObject->IsA(ClassToScuff))
+							continue;
+
+						LOG_INFO(LogDev, "Class Name: {}", CurrentObject->GetPathName());
+					}
+				}
+			}
 
 			if (ImGui::Button("Print Class VFT"))
 			{
