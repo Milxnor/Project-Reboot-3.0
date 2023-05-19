@@ -720,7 +720,11 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		}
 		else if (Command == "pausesafezone")
 		{
-			UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
+			auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+			auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
+			// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
+			GameMode->PauseSafeZone(GameState->IsSafeZonePaused() == 0);
 		}
 		else if (Command == "teleport")
 		{
@@ -764,36 +768,6 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			Pawn->TeleportTo(FVector(X, Y, Z), Pawn->GetActorRotation());
 			SendMessageToConsole(PlayerController, L"Teleported!");
 		}
-		else if (Command == "test")
-		{
-			auto SpawnBigWall = [&](AFortAthenaMutator* Mutator) {
-				if (auto BarrierMutator = Cast<AFortAthenaMutator_Barrier>(Mutator))
-				{
-					auto BigBaseWallClass = BarrierMutator->GetBigBaseWallClass();
-
-					LOG_INFO(LogDev, "BigBaseWallClass: {}", BigBaseWallClass->IsValidLowLevel() ? BigBaseWallClass->GetFullName() : "BadRead");
-
-					if (BigBaseWallClass->IsValidLowLevel())
-					{
-						BarrierMutator->GetBigBaseWall() = GetWorld()->SpawnActor<AAthenaBigBaseWall>(BigBaseWallClass, FVector(0, 0, 0));
-					}
-				}
-			};
-
-			LoopMutators(SpawnBigWall);
-		}
-		else if (Command == "printpawn")
-		{
-			auto Pawn = Cast<APawn>(ReceivingController->GetPawn());
-
-			if (!Pawn)
-			{
-				SendMessageToConsole(PlayerController, L"No pawn to print!");
-				return;
-			}
-			
-			LOG_INFO(LogDev, "Pawn: 0x{:x}", __int64(Pawn));
-		}
 		else { bSendHelpMessage = true; };
 	}
 	else { bSendHelpMessage = true; };
@@ -812,6 +786,8 @@ cheat setshield <Shield=0.f> - Sets executing player's shield.
 cheat applycid <CIDShortName> - Sets a player's character.
 cheat spawnpickup <ShortWID> - Spawns a pickup at specified player.
 cheat teleport - Teleports to what the player is looking at.
+cheat spawnbot <Amount=1> - Spawns a bot at the player (experimental).
+cheat setpickaxe <PickaxeID> - Set player's pickaxe.
 
 If you want to execute a command on a certain player, surround their name (case sensitive) with \, and put the param anywhere. Example: cheat sethealth \Milxnor\ 100
 )";

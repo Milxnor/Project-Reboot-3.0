@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "ObjectMacros.h"
 #include "NameTypes.h"
 
@@ -76,13 +78,14 @@ public:
 	void SetBitfieldValue(int Offset, uint8_t FieldMask, bool NewValue);
 	void SetBitfieldValue(const std::string& ChildName, uint8_t FieldMask, bool NewValue) { return SetBitfieldValue(GetOffset(ChildName), FieldMask, NewValue); }
 
-	template <typename T = UObject*>
+	/* template <typename T = UObject*>
 	T& GetCached(const std::string& ChildName)
 	{
 		// We need to find a better way to do this because if there is a member with the same name in a different class then it will return the wrong offset.
 		static std::unordered_map<std::string, int32_t> SavedOffsets; // Name (formatted in {Member}) and Offset
 
-		auto CachedName = /* ClassPrivate->GetName() + */ ChildName;
+		auto CachedName = // ClassPrivate->GetName() +
+			ChildName;
 		auto Offset = SavedOffsets.find(CachedName);
 
 		if (Offset != SavedOffsets.end())
@@ -97,7 +100,7 @@ public:
 		SavedOffsets.emplace(CachedName, Offset->second);
 
 		return *(T*)(__int64(this) + Offset->second); 
-	}
+	} */
 
 	template <typename T = UObject*>
 	T& Get(const std::string& ChildName) { return Get<T>(GetOffset(ChildName)); }

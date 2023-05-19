@@ -23,7 +23,7 @@ struct FBarrierTeamState // Idk if this actually changes
 {
 	static UStruct* GetStruct()
 	{
-		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.BarrierTeamState");
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.BarrierTeamState");
 		return Struct;
 	}
 

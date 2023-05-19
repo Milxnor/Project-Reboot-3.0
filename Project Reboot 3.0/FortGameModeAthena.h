@@ -244,6 +244,7 @@ public:
 
 	FName RedirectLootTier(const FName& LootTier);
 	UClass* GetVehicleClassOverride(UClass* DefaultClass);
+	void PauseSafeZone(bool bPaused = true);
 
 	static void HandleSpawnRateForActorClass(UClass* ActorClass, float SpawnPercentage); // idk where to put
 

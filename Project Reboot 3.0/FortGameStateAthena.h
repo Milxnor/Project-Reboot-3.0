@@ -99,6 +99,12 @@ public:
 		return Get<int>(PlayersLeftOffset);
 	}
 
+	bool& IsSafeZonePaused()
+	{
+		static auto bSafeZonePausedOffset = this->GetOffset("bSafeZonePaused");
+		return this->Get<bool>(bSafeZonePausedOffset);
+	}
+
 	EAthenaGamePhase& GetGamePhase()
 	{
 		static auto GamePhaseOffset = GetOffset("GamePhase");

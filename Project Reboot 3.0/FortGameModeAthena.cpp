@@ -143,6 +143,26 @@ void AFortGameModeAthena::HandleSpawnRateForActorClass(UClass* ActorClass, float
 	}
 }
 
+void AFortGameModeAthena::PauseSafeZone(bool bPaused)
+{
+	auto GameState = GetGameStateAthena();
+
+	static auto bSafeZonePausedOffset = GameState->GetOffset("bSafeZonePaused");
+	GameState->IsSafeZonePaused() = bPaused;
+
+	auto SafeZoneIndicator = GetSafeZoneIndicator();
+
+	if (!SafeZoneIndicator)
+		return;
+
+	static auto TimeRemainingWhenPhasePausedOffset = this->GetOffset("TimeRemainingWhenPhasePaused");
+
+	if (bPaused)
+		this->Get<float>(TimeRemainingWhenPhasePausedOffset) = SafeZoneIndicator->GetSafeZoneFinishShrinkTime() - GameState->GetServerWorldTimeSeconds();
+	else
+		SafeZoneIndicator->GetSafeZoneFinishShrinkTime() = GameState->GetServerWorldTimeSeconds() + this->Get<float>(TimeRemainingWhenPhasePausedOffset);
+}
+
 bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode)
 {
 	Globals::bHitReadyToStartMatch = true;

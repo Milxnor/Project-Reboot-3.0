@@ -458,7 +458,7 @@ static inline void MainUI()
 				if (!bStartedBus)
 				{
 					bool bWillBeLategame = Globals::bLateGame.load();
-					ImGui::Checkbox("Lategame", &bWillBeLategame);
+					ImGui::Checkbox("Lategame (HIGHLY EXPERIMENTAL)", &bWillBeLategame);
 					Globals::bLateGame.store(bWillBeLategame);
 				}
 
@@ -478,10 +478,10 @@ static inline void MainUI()
 					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
 				}
 
-				if (ImGui::Button("Spawn BGAs"))
+				/* if (ImGui::Button("Spawn BGAs"))
 				{
 					SpawnBGAs();
-				}
+				} */
 
 				/*
 				if (ImGui::Button("New"))
