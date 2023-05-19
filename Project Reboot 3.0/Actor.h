@@ -28,6 +28,7 @@ public:
 	struct FVector GetActorScale3D();
 	struct FVector GetActorLocation();
 	struct FVector GetActorRightVector();
+	struct FVector GetActorUpVector();
 	void K2_DestroyActor();
 	class UActorComponent* GetComponentByClass(class UClass* ComponentClass);
 	float GetDistanceTo(AActor* OtherActor);

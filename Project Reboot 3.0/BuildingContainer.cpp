@@ -7,7 +7,7 @@
 bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 {
 	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
-	FVector LocationToSpawnLoot = this->GetActorLocation() + this->GetActorRightVector() * 70.f + FVector{ 0, 0, 50 };
+	FVector LocationToSpawnLoot = this->GetActorLocation() + this->GetActorRightVector() * 70.f + this->GetActorUpVector() * 50.f;
 
 	static auto SearchLootTierGroupOffset = this->GetOffset("SearchLootTierGroup");
 	auto RedirectedLootTier = GameMode->RedirectLootTier(this->Get<FName>(SearchLootTierGroupOffset));
