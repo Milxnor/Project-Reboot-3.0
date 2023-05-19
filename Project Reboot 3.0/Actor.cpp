@@ -114,6 +114,15 @@ FVector AActor::GetActorRightVector()
 	return ret;
 }
 
+FVector AActor::GetActorUpVector()
+{
+	static auto GetActorUpVectorFn = FindObject<UFunction>("/Script/Engine.Actor.GetActorUpVector");
+	FVector ret;
+	this->ProcessEvent(GetActorUpVectorFn, &ret);
+
+	return ret;
+}
+
 FRotator AActor::GetActorRotation()
 {
 	static auto K2_GetActorRotationFn = FindObject<UFunction>(L"/Script/Engine.Actor.K2_GetActorRotation");
