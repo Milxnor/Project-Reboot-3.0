@@ -542,8 +542,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	/* if (!Globals::bCreative) // ??
+	if (!Globals::bCreative) // ??
 	{
+		// TODO Not do this because on some playlists like battle lab there is no warmup player starts.
+
 		static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
 		static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
 		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
@@ -554,7 +556,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		if (ActorsNum == 0)
 			return false;
-	} */
+	}
 
 	auto MapInfo = GameState->GetMapInfo();
 	
