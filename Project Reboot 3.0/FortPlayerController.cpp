@@ -1206,9 +1206,6 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	if (!DeadPawn || !GameState || !DeadPlayerState)
 		return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 
-	static auto DeathInfoStruct = FindObject<UStruct>(L"/Script/FortniteGame.DeathInfo");
-	static auto DeathInfoStructSize = DeathInfoStruct->GetPropertiesSize();
-
 	auto DeathLocation = DeadPawn->GetActorLocation();
 
 	static auto FallDamageEnumValue = 1;
@@ -1217,8 +1214,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	if (Fortnite_Version > 1.8 || Fortnite_Version == 1.11)
 	{
-		auto DeathInfo = (void*)(__int64(DeadPlayerState) + MemberOffsets::FortPlayerStateAthena::DeathInfo); // Alloc<void>(DeathInfoStructSize);
-		RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize); // TODO FREE THE DEATHTAGS
+		auto DeathInfo = DeadPlayerState->GetDeathInfo(); // Alloc<void>(DeathInfoStructSize);
+		DeadPlayerState->ClearDeathInfo();
 
 		auto/*&*/ Tags = MemberOffsets::FortPlayerPawn::CorrectTags == 0 ? FGameplayTagContainer()
 			: DeadPawn->Get<FGameplayTagContainer>(MemberOffsets::FortPlayerPawn::CorrectTags);
@@ -1425,13 +1422,13 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 				{
 					if (DamageCauser->IsA(FortProjectileBaseClass))
 					{
-						LOG_INFO(LogDev, "From a projectile!");
+						// LOG_INFO(LogDev, "From a projectile!");
 						auto Owner = Cast<AFortWeapon>(DamageCauser->GetOwner());
 						KillerWeaponDef = Owner->IsValidLowLevel() ? Owner->GetWeaponData() : nullptr; // I just added the IsValidLowLevel check because what if the weapon destroys?
 					}
 					if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
 					{
-						LOG_INFO(LogDev, "From a weapon!");
+						// LOG_INFO(LogDev, "From a weapon!");
 						KillerWeaponDef = Weapon->GetWeaponData();
 					}
 				}
@@ -1516,6 +1513,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	{
 		// AllPlayerBotsToTick.remov3lbah
 	}
+
+	DeadPlayerState->EndDBNOAbilities();
 
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 }

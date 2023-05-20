@@ -123,6 +123,11 @@ public:
 		return GetPtr<FDeathInfo>(MemberOffsets::FortPlayerStateAthena::DeathInfo);
 	}
 
+	void ClearDeathInfo()
+	{
+		RtlSecureZeroMemory(GetDeathInfo(), FDeathInfo::GetStructSize()); // TODO FREE THE DEATHTAGS
+	}
+
 	static void ServerSetInAircraftHook(UObject* Context, FFrame& Stack, void* Ret);
 
 	static UClass* StaticClass()

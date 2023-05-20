@@ -3,6 +3,7 @@
 #include "FortPlayerController.h"
 #include "FortGadgetItemDefinition.h"
 #include "FortPlayerControllerAthena.h"
+#include "FortPlayerPawnAthena.h"
 
 FFortAthenaLoadout* AFortPlayerPawn::GetCosmeticLoadout()
 {
@@ -69,35 +70,7 @@ void AFortPlayerPawn::ServerReviveFromDBNOHook(AFortPlayerPawn* Pawn, AControlle
 	else
 	*/
 
-	static auto GAB_AthenaDBNOClass = FindObject<UClass>(L"/Game/Abilities/NPC/Generic/GAB_AthenaDBNO.Default__GAB_AthenaDBNO_C");
-
-	auto DBNOPawnASC = PlayerState->GetAbilitySystemComponent();
-
-	if (!DBNOPawnASC)
-		return;
-
-	FGameplayAbilitySpec* DBNOSpec = nullptr;
-
-	UObject* ClassToFind = GAB_AthenaDBNOClass->ClassPrivate;
-
-	auto compareAbilities = [&DBNOSpec, &ClassToFind](FGameplayAbilitySpec* Spec) {
-		auto CurrentAbility = Spec->GetAbility();
-
-		if (CurrentAbility->ClassPrivate == ClassToFind)
-		{
-			DBNOSpec = Spec;
-			return;
-		}
-	};
-
-	LoopSpecs(DBNOPawnASC, compareAbilities);
-
-	if (!DBNOSpec)
-		return;
-
-	DBNOPawnASC->ClientCancelAbility(DBNOSpec->GetHandle(), DBNOSpec->GetActivationInfo());
-	DBNOPawnASC->ClientEndAbility(DBNOSpec->GetHandle(), DBNOSpec->GetActivationInfo());
-	DBNOPawnASC->ServerEndAbility(DBNOSpec->GetHandle(), DBNOSpec->GetActivationInfo(), nullptr);
+	PlayerState->EndDBNOAbilities();
 
 	Pawn->SetDBNO(false);
 	Pawn->SetHasPlayedDying(false);
@@ -108,6 +81,14 @@ void AFortPlayerPawn::ServerReviveFromDBNOHook(AFortPlayerPawn* Pawn, AControlle
 
 	PlayerController->ClientOnPawnRevived(EventInstigator); // We should call the function that calls this.
 	PlayerController->RespawnPlayerAfterDeath(false); // nooo
+
+	if (auto PawnAthena = Cast<AFortPlayerPawnAthena>(Pawn)) // im too lazy to make another hook for fortplayerpawnathena
+	{
+		if (!PawnAthena->IsDBNO())
+		{
+			PawnAthena->GetDBNORevivalStacking() = 0;
+		}
+	}
 }
 
 void AFortPlayerPawn::ServerHandlePickupWithRequestedSwapHook(UObject* Context, FFrame* Stack, void* Ret)

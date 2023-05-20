@@ -148,7 +148,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	/* auto DeathInfo = (void*)(__int64(PlayerStateAthena) + MemberOffsets::FortPlayerStateAthena::DeathInfo);
 	FVector DeathLocation = MemberOffsets::DeathInfo::DeathLocation != -1 ? *(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) : FVector(0, 0, 0);
 
-	bIsRespawning = !(DeathLocation == FVector(0, 0, 0)); // bro kms */
+	bIsRespawning = !(DeathLocation.CompareVectors(FVector(0, 0, 0))); // bro kms */
 
 	auto ASC = PlayerStateAthena->GetAbilitySystemComponent();
 	auto GameState = ((AFortGameModeAthena*)GameMode)->GetGameStateAthena();

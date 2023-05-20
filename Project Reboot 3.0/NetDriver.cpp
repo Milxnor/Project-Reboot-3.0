@@ -9,6 +9,8 @@
 #include <random>
 #include "Package.h"S
 #include "AssertionMacros.h"
+#include "bots.h"
+#include "gui.h"
 
 FNetworkObjectList& UNetDriver::GetNetworkObjectList()
 {
@@ -24,6 +26,11 @@ void UNetDriver::RemoveNetworkActor(AActor* Actor)
 
 void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 {
+	/* if (bEnableBotTick)
+	{
+		Bots::Tick();
+	} */
+
 	if (Globals::bStartedListening)
 	{
 		static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver", false);

@@ -12,6 +12,8 @@ typedef short int16;
 typedef int int32;
 typedef __int64 int64;
 typedef unsigned int uint32;
+typedef char ANSICHAR;
+typedef uint32_t CodeSkipSizeType;
 typedef unsigned __int64 uint64;
 
 extern inline int Engine_Version = 0; // For example, 420, 421, etc. // Prevent using this when possible.

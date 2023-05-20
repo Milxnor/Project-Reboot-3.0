@@ -11,6 +11,9 @@
 #include "FortGameModeAthena.h"
 #include "FortGameStateAthena.h"
 #include "FortPlayerControllerAthena.h"
+#include "FortBotNameSettings.h"
+#include "KismetTextLibrary.h"
+#include "FortAthenaAIBotCustomizationData.h"
 
 using UNavigationSystemV1 = UObject;
 using UNavigationSystemConfig = UObject;
@@ -214,7 +217,7 @@ static void SetupNavConfig(const FName& AgentName)
     AthenaNavConfig->Get<bool>("bSpawnNavDataInNavBoundsLevel") = true; // BITFIELD
 
     static auto bUseNavigationInvokersOffset = AthenaNavConfig->GetOffset("bUseNavigationInvokers", false);
-    
+
     if (bUseNavigationInvokersOffset != -1)
         AthenaNavConfig->Get<bool>(bUseNavigationInvokersOffset) = false;
 
@@ -229,7 +232,7 @@ static void SetupNavConfig(const FName& AgentName)
     SetNavigationSystem(NavSystemOverride);
 }
 
-static AFortPlayerPawn* SpawnAIFromCustomizationData(const FVector& Location, UObject* CustomizationData)
+static AFortPlayerPawn* SpawnAIFromCustomizationData(const FVector& Location, UFortAthenaAIBotCustomizationData* CustomizationData)
 {
     static auto PawnClassOffset = CustomizationData->GetOffset("PawnClass");
     auto PawnClass = CustomizationData->Get<UClass*>(PawnClassOffset);
@@ -242,12 +245,38 @@ static AFortPlayerPawn* SpawnAIFromCustomizationData(const FVector& Location, UO
 
     auto Pawn = GetWorld()->SpawnActor<AFortPlayerPawn>(PawnClass, Location);
 
+    if (!Pawn)
+    {
+        LOG_INFO(LogAI, "Failed to spawn pawn!");
+        return nullptr;
+    }
+
+    auto Controller = Pawn->GetController();
+
+    if (!Controller)
+    {
+        LOG_INFO(LogAI, "No controller!");
+        Pawn->K2_DestroyActor();
+        return nullptr;
+    }
+
+    auto PlayerState = Controller->GetPlayerState();
+
+    if (!PlayerState)
+    {
+        LOG_INFO(LogAI, "No PlayerState!");
+        Controller->K2_DestroyActor();
+        Pawn->K2_DestroyActor();
+        return nullptr;
+    }
+
     static auto CharacterCustomizationOffset = CustomizationData->GetOffset("CharacterCustomization");
     auto CharacterCustomization = CustomizationData->Get(CharacterCustomizationOffset);
     auto CharacterCustomizationLoadoutOffset = CharacterCustomization->GetOffset("CustomizationLoadout");
     auto CharacterCustomizationLoadout = CharacterCustomization->GetPtr<FFortAthenaLoadout>(CharacterCustomizationLoadoutOffset);
+    auto CharacterToApply = CharacterCustomizationLoadout->GetCharacter();
 
-    ApplyCID(Pawn, CharacterCustomizationLoadout->GetCharacter());
+    ApplyCID(Pawn, CharacterToApply, true); // bruhh
 
     struct FItemAndCount
     {
@@ -259,30 +288,77 @@ static AFortPlayerPawn* SpawnAIFromCustomizationData(const FVector& Location, UO
     static auto StartupInventoryOffset = CustomizationData->GetOffset("StartupInventory");
     auto StartupInventory = CustomizationData->Get(StartupInventoryOffset);
     static auto StartupInventoryItemsOffset = StartupInventory->GetOffset("Items");
-    auto& StartupInventoryItems = StartupInventory->Get<TArray<FItemAndCount>>(StartupInventoryItemsOffset);
 
-    auto Controller = Pawn->GetController();
-    LOG_INFO(LogDev, "Controller: {} StartupInventoryItems.Num: {}", Controller ? Controller->GetFullName() : "InvalidObject", StartupInventoryItems.Num());
+    std::vector<std::pair<UFortItemDefinition*, int>> ItemsToGrant;
 
-    if (Controller)
+    if (Fortnite_Version < 13)
     {
-        /* static auto InventoryOffset = Controller->GetOffset("Inventory");
-        auto Inventory = Controller->Get<AFortInventory*>(InventoryOffset);
+        auto& StartupInventoryItems = StartupInventory->Get<TArray<UFortItemDefinition*>>(StartupInventoryItemsOffset);
 
         for (int i = 0; i < StartupInventoryItems.Num(); i++)
         {
-            auto pair = Inventory->AddItem(StartupInventoryItems.at(i).Item, nullptr, StartupInventoryItems.at(i).Count);
+            ItemsToGrant.push_back({ StartupInventoryItems.at(i), 1 });
+        }
+    }
+    else
+    {
+        auto& StartupInventoryItems = StartupInventory->Get<TArray<FItemAndCount>>(StartupInventoryItemsOffset);
+
+        for (int i = 0; i < StartupInventoryItems.Num(); i++)
+        {
+            ItemsToGrant.push_back({ StartupInventoryItems.at(i).Item, StartupInventoryItems.at(i).Count });
+        }
+    }
+
+    static auto InventoryOffset = Controller->GetOffset("Inventory");
+    auto Inventory = Controller->Get<AFortInventory*>(InventoryOffset);
+
+    if (Inventory)
+    {
+        for (int i = 0; i < ItemsToGrant.size(); i++)
+        {
+            auto pair = Inventory->AddItem(ItemsToGrant.at(i).first, nullptr, ItemsToGrant.at(i).second);
 
             LOG_INFO(LogDev, "pair.first.size(): {}", pair.first.size());
 
             if (pair.first.size() > 0)
             {
-                if (auto weaponDef = Cast<UFortWeaponItemDefinition>(StartupInventoryItems.at(i).Item))
+                if (auto weaponDef = Cast<UFortWeaponItemDefinition>(ItemsToGrant.at(i).first))
                     Pawn->EquipWeaponDefinition(weaponDef, pair.first.at(0)->GetItemEntry()->GetItemGuid());
             }
-        } */
+        }
 
-        // Inventory->Update(); // crashes idk why
+        Inventory->Update();
+    }
+
+    static auto BotNameSettingsOffset = CustomizationData->GetOffset("BotNameSettings");
+    auto BotNameSettings = CustomizationData->Get<UFortBotNameSettings*>(BotNameSettingsOffset);
+
+    FString Name;
+
+    if (BotNameSettings)
+    {
+        static int CurrentId = 0; // scuffed!
+        static auto DisplayNameOffset = FindOffsetStruct("/Script/FortniteGame.FortItemDefinition", "DisplayName");
+
+        switch (BotNameSettings->GetNamingMode())
+        {
+        case EBotNamingMode::Custom:
+            Name = UKismetTextLibrary::Conv_TextToString(BotNameSettings->GetOverrideName());
+            break;
+        case EBotNamingMode::SkinName:
+            Name = CharacterToApply ? UKismetTextLibrary::Conv_TextToString(*(FText*)(__int64(CharacterCustomizationLoadout->GetCharacter()) + DisplayNameOffset)) : L"InvalidCharacter";
+            Name.Set((std::wstring(Name.Data.Data) += std::to_wstring(CurrentId++)).c_str());
+            break;
+        default:
+            Name = L"Unknown";
+            break;
+        }
+    }
+
+    if (Name.Data.Data && Name.Data.Num() > 0)
+    {
+        Controller->ServerChangeName(Name);
     }
 
     return Pawn;

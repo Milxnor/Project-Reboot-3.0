@@ -976,17 +976,22 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 
 	CurrentTeamMembers++;
 
+	auto PlayerStateObjectItem = GetItemByIndex(PlayerState->InternalIndex);
+
 	TWeakObjectPtr<AFortPlayerStateAthena> WeakPlayerState{};
 	WeakPlayerState.ObjectIndex = PlayerState->InternalIndex;
-	WeakPlayerState.ObjectSerialNumber = GetItemByIndex(PlayerState->InternalIndex)->SerialNumber;
+	WeakPlayerState.ObjectSerialNumber = PlayerStateObjectItem ? PlayerStateObjectItem->SerialNumber : 0;
 
-	if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
+	if (PlayerStateObjectItem)
 	{
-		auto& TeamArray = TeamsArrayContainer->TeamsArray.at(NextTeamIndex);
-		LOG_INFO(LogDev, "TeamsArrayContainer->TeamsArray.Num(): {}", TeamsArrayContainer->TeamsArray.Num());
-		LOG_INFO(LogDev, "TeamArray.Num(): {}", TeamArray.Num());
+		if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
+		{
+			auto& TeamArray = TeamsArrayContainer->TeamsArray.at(NextTeamIndex);
+			LOG_INFO(LogDev, "TeamsArrayContainer->TeamsArray.Num(): {}", TeamsArrayContainer->TeamsArray.Num());
+			LOG_INFO(LogDev, "TeamArray.Num(): {}", TeamArray.Num());
 
-		TeamArray.Add(WeakPlayerState);
+			TeamArray.Add(WeakPlayerState);
+		}
 	}
 
 	return NextTeamIndex;

@@ -71,6 +71,14 @@ static bool ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChooseP
 	if (!PlayerController)
 		return false;
 
+	if (bUseServerChoosePart)
+	{
+		if (Pawn)
+		{
+
+		}
+	}
+
 	/* auto PCCosmeticLoadout = PlayerController->GetCosmeticLoadout();
 
 	if (!PCCosmeticLoadout)
@@ -197,9 +205,9 @@ public:
 		}
 	}
 
-	void ClientOnPawnRevived(AController* EventInstigator)
+	void ClientOnPawnRevived(AController* EventInstigator) // actually zone // idk what this actually does but i call it
 	{
-		static auto ClientOnPawnRevivedFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.ClientOnPawnRevived");
+		static auto ClientOnPawnRevivedFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.ClientOnPawnRevived");
 		this->ProcessEvent(ClientOnPawnRevivedFn, &EventInstigator);
 	}
 

@@ -5,7 +5,7 @@
 
 void APlayerController::ServerChangeName(FString& S)
 {
-	static auto ServerChangeNameFn = FindObject<UFunction>("/Script/Engine.PlayerController.ServerChangeName");
+	static auto ServerChangeNameFn = FindObject<UFunction>(L"/Script/Engine.PlayerController.ServerChangeName");
 	this->ProcessEvent(ServerChangeNameFn, &S);
 }
 

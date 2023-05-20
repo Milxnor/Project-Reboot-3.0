@@ -252,6 +252,9 @@ namespace Bots
 
 	static void Tick()
 	{
+		if (AllPlayerBotsToTick.size() == 0)
+			return;
+
 		auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
@@ -310,4 +313,9 @@ namespace Bots
 
 		// AllBuildingContainers.Free();
 	}
+}
+
+namespace Bosses
+{
+
 }

@@ -256,6 +256,7 @@
     <ClCompile Include="PlayerState.cpp" />
     <ClCompile Include="reboot.cpp" />
     <ClCompile Include="SavePackage.cpp" />
+    <ClCompile Include="ScriptDisassembler.cpp" />
     <ClCompile Include="UnrealMath.cpp" />
     <ClCompile Include="UnrealNames.cpp" />
     <ClCompile Include="UObjectGlobals.cpp" />
@@ -289,6 +290,7 @@
     <ClInclude Include="BuildingFoundation.h" />
     <ClInclude Include="BuildingGameplayActor.h" />
     <ClInclude Include="BuildingGameplayActorSpawnMachine.h" />
+    <ClInclude Include="BuildingItemWeaponUpgradeActor.h" />
     <ClInclude Include="BuildingRift.h" />
     <ClInclude Include="BuildingSMActor.h" />
     <ClInclude Include="BuildingStructuralSupportSystem.h" />
@@ -319,6 +321,8 @@
     <ClInclude Include="finder.h" />
     <ClInclude Include="FortAbilitySet.h" />
     <ClInclude Include="FortAIEncounterInfo.h" />
+    <ClInclude Include="FortAthenaAIBotCharacterCustomization.h" />
+    <ClInclude Include="FortAthenaAIBotCustomizationData.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
     <ClInclude Include="FortAthenaMapInfo.h" />
     <ClInclude Include="FortAthenaMutator.h" />
@@ -339,6 +343,7 @@
     <ClInclude Include="FortAthenaSupplyDrop.h" />
     <ClInclude Include="FortAthenaVehicle.h" />
     <ClInclude Include="FortAthenaVehicleSpawner.h" />
+    <ClInclude Include="FortBotNameSettings.h" />
     <ClInclude Include="FortDecoItemDefinition.h" />
     <ClInclude Include="FortGadgetItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />
@@ -442,6 +447,7 @@
     <ClInclude Include="ReversePredicate.h" />
     <ClInclude Include="Rotator.h" />
     <ClInclude Include="ScriptDelegates.h" />
+    <ClInclude Include="ScriptDisassembler.h" />
     <ClInclude Include="ScriptInterface.h" />
     <ClInclude Include="Set.h" />
     <ClInclude Include="SharedPointer.h" />

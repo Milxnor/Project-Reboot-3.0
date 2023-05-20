@@ -289,6 +289,9 @@
     <ClCompile Include="FortPawn.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptDisassembler.cpp">
+      <Filter>Engine\Source\Developer\ScriptDisassembler\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -913,6 +916,21 @@
     <ClInclude Include="EnvQueryTypes.h">
       <Filter>Engine\Source\Runtime\AIModule\Classes\EnvironmentQuery</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptDisassembler.h">
+      <Filter>Engine\Source\Developer\ScriptDisassembler\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortBotNameSettings.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaAIBotCharacterCustomization.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaAIBotCustomizationData.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildingItemWeaponUpgradeActor.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -1166,6 +1184,18 @@
     </Filter>
     <Filter Include="Engine\Source\Runtime\AIModule\Classes\EnvironmentQuery">
       <UniqueIdentifier>{9b5483b5-3984-4fe1-96d2-e37d72642efd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Developer">
+      <UniqueIdentifier>{4c658de2-f9aa-4a42-9d7c-21014cb29b3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Developer\ScriptDisassembler">
+      <UniqueIdentifier>{f64d3dc0-39df-46a5-a451-2f9011ecbad1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Developer\ScriptDisassembler\Public">
+      <UniqueIdentifier>{1df3fb86-ba8f-446d-be0c-cfeb7ec94137}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Developer\ScriptDisassembler\Private">
+      <UniqueIdentifier>{45f601de-1a88-490c-a74a-5cf729b16dfb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

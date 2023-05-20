@@ -95,6 +95,7 @@ namespace Offsets
 	extern inline uint64 IsNetRelevantFor = 0;
 	extern inline uint64 NetworkObjectList = 0;
 	extern inline uint64 ClientWorldPackageName = 0;
+	extern inline uint64 Script = 0;
 
 	void FindAll();
 	void Print();

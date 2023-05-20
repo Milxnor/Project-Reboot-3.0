@@ -10,6 +10,7 @@
 #include "FortLootPackage.h"
 #include "bots.h"
 #include "FortAthenaMutator_Bots.h"
+#include "ai.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
@@ -644,6 +645,43 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			else
 			{
 				SendMessageToConsole(PlayerController, L"Not a valid class!");
+			}
+		}
+		else if (Command == "spawnbottest")
+		{
+			// /Game/Athena/AI/MANG/BotData/
+
+			if (NumArgs < 1)
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a customization object!");
+				return;
+			}
+
+			auto Pawn = ReceivingController->GetPawn();
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to spawn bot at!");
+				return;
+			}
+
+			auto CustomizationData = LoadObject<UFortAthenaAIBotCustomizationData>(Arguments[1], UFortAthenaAIBotCustomizationData::StaticClass());
+
+			if (!CustomizationData)
+			{
+				SendMessageToConsole(PlayerController, L"Invalid CustomizationData!");
+				return;
+			}
+
+			auto NewPawn = SpawnAIFromCustomizationData(Pawn->GetActorLocation(), CustomizationData);
+
+			if (NewPawn)
+			{
+				SendMessageToConsole(PlayerController, L"Spawned!");
+			}
+			else
+			{
+				SendMessageToConsole(PlayerController, L"Failed to spawn!");
 			}
 		}
 		else if (Command == "spawnbot")

@@ -19,11 +19,13 @@ public:
 		return this->Get<int>(WorldPlayerIdOffset);
 	}
 
+	void EndDBNOAbilities();
+
 	static bool AreUniqueIDsIdentical(FUniqueNetIdRepl* A, FUniqueNetIdRepl* B);
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerState");
+		static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerState");
 		return Class;
 	}
 };

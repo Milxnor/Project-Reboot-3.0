@@ -457,6 +457,7 @@ void Offsets::FindAll()
 	}
 
 	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();
+	Offsets::Script = Offsets::Children + 8 + 4 + 4;
 }
 
 void Offsets::Print()
@@ -468,7 +469,7 @@ void Offsets::Print()
 	LOG_INFO(LogDev, "Func: 0x{:x}", Func);
 	LOG_INFO(LogDev, "ServerReplicateActors: 0x{:x}", ServerReplicateActors);
 	LOG_INFO(LogDev, "ReplicationFrame: 0x{:x}", ReplicationFrame);
-	LOG_INFO(LogDev, "IsNetRelevantFor: 0x{:x}", IsNetRelevantFor);
+	LOG_INFO(LogDev, "Script: 0x{:x}", Script);
 }
 
 void Addresses::Init()

@@ -179,11 +179,6 @@ void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 	if (!Object || !Function)
 		return;
 
-	if (bEnableBotTick)
-	{
-		Bots::Tick();
-	}
-
 	if (Globals::bLogProcessEvent)
 	{
 		auto FunctionName = Function->GetName(); // UKismetSystemLibrary::GetPathName(Function).ToString();

@@ -157,14 +157,14 @@ UPackage* UObject::GetOutermost() const
 
 bool UObject::IsA(UStruct* otherClass)
 {
-	UClass* super = ClassPrivate;
+	UStruct* super = ClassPrivate;
 
 	while (super)
 	{
 		if (otherClass == super)
 			return true;
 
-		super = *(UClass**)(__int64(super) + Offsets::SuperStruct);
+		super = super->GetSuperStruct();
 	}
 
 	return false;
@@ -174,7 +174,7 @@ UFunction* UObject::FindFunction(const std::string& ShortFunctionName)
 {
 	// We could also loop through children.
 	
-	UClass* super = ClassPrivate;
+	UStruct* super = ClassPrivate;
 
 	while (super)
 	{
