@@ -7,6 +7,11 @@ public:
 	float Y;
 	float Z;
 
+	bool CompareVectors(const FVector& A)
+	{
+		return X == A.X && Y == A.Y && Z == A.Z;
+	}
+
 	FVector() : X(0), Y(0), Z(0) {}
 	FVector(float x, float y, float z) : X(x), Y(y), Z(z) {}
 
@@ -35,10 +40,10 @@ public:
 		return FVector{ this->X * A, this->Y * A, this->Z * A };
 	}
 
-	bool operator==(const FVector& A)
+	/* bool operator==(const FVector& A)
 	{
 		return X == A.X && Y == A.Y && Z == A.Z;
-	}
+	} */
 
 	void operator+=(const FVector& A)
 	{

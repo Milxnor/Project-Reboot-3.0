@@ -105,7 +105,7 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 					*/
 				} 
 
-				if (FinalSpawnTransform.Translation == FVector(0, 0, 0))
+				if (FinalSpawnTransform.Translation.CompareVectors(FVector(0, 0, 0)))
 				{
 					LOG_WARN(LogGame, "Invalid BGA spawn location!");
 					// ConsumableActor->K2_DestroyActor(); // ??

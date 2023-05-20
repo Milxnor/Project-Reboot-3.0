@@ -396,6 +396,32 @@ static inline std::vector<Event> Events =
 		17.30
 	),
 	Event
+    (
+        "Operation: Sky Fire",
+        "",
+        "",
+        0,
+        {
+
+        },
+        {
+            {
+                {
+                    false,
+                    // "/Buffet/Gameplay/Blueprints/BP_Buffet_Master_Scripting.BP_Buffet_Master_Scripting_C.startevent"
+                    "/Script/SpecialEventGameplayRuntime.SpecialEventScript.StartEventAtIndex"
+                },
+
+                0
+            }
+        },
+
+        "/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C",
+        // "/Buffet/Gameplay/Blueprints/BP_Buffet_Master_Scripting.BP_Buffet_Master_Scripting_C",
+        "/KiwiPlaylist/Playlists/Playlist_Kiwi.Playlist_Kiwi",
+        17.50
+    ),
+	Event
 	(
 		"Ice King Event",
 		"/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyLoader.BP_MooneyLoader_C",

@@ -134,6 +134,8 @@ static void SetupServerBotManager()
 
 static void SetupAIGoalManager()
 {
+    // Playlist->AISettings->bAllowAIGoalManager
+
     // There is some virtual function in the gamemode that calls a spawner for this, it gets the class from GameData, not sure why this doesn't work automatically or if we should even spawn this.
 
     auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
@@ -154,6 +156,8 @@ static void SetupAIGoalManager()
 
 static void SetupAIDirector()
 {
+    // Playlist->AISettings->bAllowAIDirector
+
     auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
     auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 

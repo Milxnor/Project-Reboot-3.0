@@ -33,16 +33,38 @@ AFortWeapon* AFortPawn::EquipWeaponDefinition(UFortWeaponItemDefinition* WeaponD
 
 bool AFortPawn::PickUpActor(AActor* PickupTarget, UFortDecoItemDefinition* PlacementDecoItemDefinition)
 {
-	static auto fn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.PickUpActor");
+	static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.PickUpActor");
 	struct { AActor* PickupTarget; UFortDecoItemDefinition* PlacementDecoItemDefinition; bool ReturnValue; } AFortPawn_PickUpActor_Params{ PickupTarget, PlacementDecoItemDefinition };
 	this->ProcessEvent(fn, &AFortPawn_PickUpActor_Params);
 
 	return AFortPawn_PickUpActor_Params.ReturnValue;
 }
 
+float AFortPawn::GetShield()
+{
+	float Shield = 0;
+	static auto GetShieldFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.GetShield");
+
+	if (GetShieldFn)
+		this->ProcessEvent(GetShieldFn, &Shield);
+	
+	return Shield;
+}
+
+float AFortPawn::GetHealth()
+{
+	float Health = 0;
+	static auto GetHealthFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.GetHealth");
+
+	if (GetHealthFn)
+		this->ProcessEvent(GetHealthFn, &Health);
+
+	return Health;
+}
+
 void AFortPawn::SetHealth(float NewHealth)
 {
-	static auto SetHealthFn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.SetHealth");
+	static auto SetHealthFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.SetHealth");
 
 	if (SetHealthFn)
 		this->ProcessEvent(SetHealthFn, &NewHealth);
@@ -50,7 +72,7 @@ void AFortPawn::SetHealth(float NewHealth)
 
 void AFortPawn::SetMaxHealth(float NewHealthVal)
 {
-	static auto SetMaxHealthFn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.SetMaxHealth");
+	static auto SetMaxHealthFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.SetMaxHealth");
 
 	if (!SetMaxHealthFn)
 		return;

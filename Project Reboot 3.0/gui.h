@@ -71,6 +71,7 @@ extern inline bool bEnableCombinePickup = false;
 extern inline int AmountOfBotsToSpawn = 0;
 extern inline bool bEnableRebooting = false;
 extern inline bool bEngineDebugLogs = false;
+extern inline int AmountOfHealthSiphon = 0;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
 
@@ -277,12 +278,17 @@ static inline void StaticUI()
 	{
 		// ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
 
-		if (Globals::bAutoRestart)
+		if (false)
 		{
-			ImGui::InputFloat(std::format("How long after {} players join the bus will start", NumRequiredPlayersToStart).c_str(), &AutoBusStartSeconds);
-			ImGui::InputInt("How many players required to join for bus auto timer to start", &NumRequiredPlayersToStart);
+			if (Globals::bAutoRestart)
+			{
+				ImGui::InputFloat(std::format("How long after {} players join the bus will start", NumRequiredPlayersToStart).c_str(), &AutoBusStartSeconds);
+				ImGui::InputInt("Num Players required for bus auto timer", &NumRequiredPlayersToStart);
+			}
 		}
 	}
+
+	ImGui::InputInt("Shield/Health for siphon", &AmountOfHealthSiphon);
 
 #ifndef PROD
 	ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);

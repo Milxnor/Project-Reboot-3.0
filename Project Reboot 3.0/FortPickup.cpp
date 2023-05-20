@@ -32,9 +32,9 @@ void AFortPickup::SpawnMovementComponent()
 AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 {
 	if (PickupData.Source == -1)
-		PickupData.Source = -1;
+		PickupData.Source = 0;
 	if (PickupData.SourceType == -1)
-		PickupData.SourceType = -1;
+		PickupData.SourceType = 0;
 
 	/* if (PickupData.bToss)
 	{
@@ -42,7 +42,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 	} */
 
 	static auto FortPickupAthenaClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickupAthena");
-	auto PlayerState = PickupData.PawnOwner ? Cast<AFortPlayerState>(PickupData.PawnOwner->GetPlayerState()) : nullptr;
+	auto PlayerState = PickupData.PawnOwner->IsValidLowLevel() ? Cast<AFortPlayerState>(PickupData.PawnOwner->GetPlayerState()) : nullptr;
 
 	FActorSpawnParameters SpawnParameters{};
 	// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;

@@ -162,7 +162,7 @@ bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState)
 	auto GameModeAthena = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 	static auto IsRespawningAllowedFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameStateZone.IsRespawningAllowed");
 
-	LOG_INFO(LogDev, "IsRespawningAllowedFn: {}", __int64(IsRespawningAllowedFn));
+	// LOG_INFO(LogDev, "IsRespawningAllowedFn: {}", __int64(IsRespawningAllowedFn));
 
 	if (!IsRespawningAllowedFn)
 	{
@@ -178,7 +178,7 @@ bool AFortGameStateAthena::IsRespawningAllowed(AFortPlayerState* PlayerState)
 			return false;
 
 		auto& RespawnType = CurrentPlaylist->Get<uint8_t>(RespawnTypeOffset);
-		LOG_INFO(LogDev, "RespawnType: {}", (int)RespawnType);
+		// LOG_INFO(LogDev, "RespawnType: {}", (int)RespawnType);
 
 		if (RespawnType == 1)
 			return true;
@@ -278,25 +278,29 @@ void AFortGameStateAthena::AddToAdditionalPlaylistLevelsStreamed(const FName& Na
 	auto NameStr = Name.ToString();
 	auto NameWStr = std::wstring(NameStr.begin(), NameStr.end());
 
-	StreamLevel(Name.ToString()); // skunke bozo (I didn't test the next code too much soo)
-	/* ULevelStreamingDynamic::LoadLevelInstance(GetWorld(), NameWStr.c_str(), FVector(), FRotator());
-
-	static auto AdditionalPlaylistLevelsStreamedOffset = this->GetOffset("AdditionalPlaylistLevelsStreamed", false);
-
-	if (!FAdditionalLevelStreamed::GetStruct())
+	if (true)
 	{
-		auto& AdditionalPlaylistLevelsStreamed = this->Get<TArray<FName>>(AdditionalPlaylistLevelsStreamedOffset);
-		AdditionalPlaylistLevelsStreamed.Add(Name);
+		StreamLevel(Name.ToString()); // skunke bozo (I didn't test the next code too much soo)
 	}
 	else
 	{
-		auto& AdditionalPlaylistLevelsStreamed = this->Get<TArray<FAdditionalLevelStreamed>>(AdditionalPlaylistLevelsStreamedOffset);
-		auto NewLevelStreamed = Alloc<FAdditionalLevelStreamed>(FAdditionalLevelStreamed::GetStructSize());
-		NewLevelStreamed->GetLevelName() = Name;
-		NewLevelStreamed->IsServerOnly() = bServerOnly;
+		static auto AdditionalPlaylistLevelsStreamedOffset = this->GetOffset("AdditionalPlaylistLevelsStreamed", false);
 
-		AdditionalPlaylistLevelsStreamed.AddPtr(NewLevelStreamed, FAdditionalLevelStreamed::GetStructSize());
-	} */
+		if (!FAdditionalLevelStreamed::GetStruct())
+		{
+			auto& AdditionalPlaylistLevelsStreamed = this->Get<TArray<FName>>(AdditionalPlaylistLevelsStreamedOffset);
+			AdditionalPlaylistLevelsStreamed.Add(Name);
+		}
+		else
+		{
+			auto& AdditionalPlaylistLevelsStreamed = this->Get<TArray<FAdditionalLevelStreamed>>(AdditionalPlaylistLevelsStreamedOffset);
+			auto NewLevelStreamed = Alloc<FAdditionalLevelStreamed>(FAdditionalLevelStreamed::GetStructSize());
+			NewLevelStreamed->GetLevelName() = Name;
+			NewLevelStreamed->IsServerOnly() = bServerOnly;
+
+			AdditionalPlaylistLevelsStreamed.AddPtr(NewLevelStreamed, FAdditionalLevelStreamed::GetStructSize());
+		}
+	}
 }
 
 UClass* AFortGameStateAthena::StaticClass()

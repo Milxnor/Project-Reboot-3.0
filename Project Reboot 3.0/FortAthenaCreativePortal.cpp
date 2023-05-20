@@ -31,7 +31,7 @@ void AFortAthenaCreativePortal::TeleportPlayerToLinkedVolumeHook(UObject* Contex
 		return TeleportPlayerToLinkedVolumeOriginal(Context, Stack, Ret);
 
 	auto Location = LinkedVolume->GetActorLocation();
-	Location.Z -= 10000; // proper 1:1
+	// Location.Z -= 10000; // proper 1:1
 	PlayerPawn->TeleportTo(Location, FRotator());
 
 	return TeleportPlayerToLinkedVolumeOriginal(Context, Stack, Ret);

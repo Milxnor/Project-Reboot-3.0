@@ -233,6 +233,36 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		SetupServerBotManager();
 		// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"MANG"));
 
+		static auto WorldManagerOffset = GameState->GetOffset("WorldManager", false);
+
+		if (WorldManagerOffset != -1) // needed?
+		{
+			auto WorldManager = GameState->Get(WorldManagerOffset);
+
+			if (WorldManager)
+			{
+				static auto WorldManagerStateOffset = WorldManager->GetOffset("WorldManagerState", false);
+
+				if (WorldManagerStateOffset != -1) // needed?
+				{
+					enum class EFortWorldManagerState : uint8_t
+					{
+						WMS_Created = 0,
+						WMS_QueryingWorld = 1,
+						WMS_WorldQueryComplete = 2,
+						WMS_CreatingNewWorld = 3,
+						WMS_LoadingExistingWorld = 4,
+						WMS_Running = 5,
+						WMS_Failed = 6,
+						WMS_MAX = 7
+					};
+
+					LOG_INFO(LogDev, "Old WorldManager State: {}", (int)WorldManager->Get<EFortWorldManagerState>(WorldManagerStateOffset));
+					WorldManager->Get<EFortWorldManagerState>(WorldManagerStateOffset) = EFortWorldManagerState::WMS_Running; // needed? right time?
+				}
+			}
+		}
+
 		static auto WarmupRequiredPlayerCountOffset = GameMode->GetOffset("WarmupRequiredPlayerCount");
 		GameMode->Get<int>(WarmupRequiredPlayerCountOffset) = 1;
 
@@ -512,7 +542,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	// if (!Globals::bCreative)
+	/* if (!Globals::bCreative) // ??
 	{
 		static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
 		static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
@@ -524,7 +554,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		if (ActorsNum == 0)
 			return false;
-	}
+	} */
 
 	auto MapInfo = GameState->GetMapInfo();
 	
@@ -1095,7 +1125,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 				for (auto& LootDrop : LootDrops)
 				{
-					PickupCreateData CreateData;
+					PickupCreateData CreateData{};
 					CreateData.bToss = true;
 					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
 					CreateData.SpawnLocation = Location;

@@ -439,7 +439,7 @@ static inline uint64 FindOnRep_ZiplineState()
 	return 0;
 }
 
-static inline uint64 FindGetMaxTickRate() // Uengine::getmaxtickrate
+static inline uint64 FindGetMaxTickRate() // UEngine::getmaxtickrate
 {
 	// TODO switch to index maybe?
 
@@ -454,6 +454,9 @@ static inline uint64 FindGetMaxTickRate() // Uengine::getmaxtickrate
 
 	if (Engine_Version == 500)
 		return Memcury::Scanner::FindPattern("40 53 48 83 EC 50 0F 29 74 24 ? 48 8B D9 0F 29 7C 24 ? 0F 28 F9 44 0F 29").Get(); // the string is in func + it's in function chunks.
+
+	if (Engine_Version == 427)
+		return Memcury::Scanner::FindPattern("40 53 48 83 EC 60 0F 29 74 24 ? 48 8B D9 0F 29 7C 24 ? 0F 28").Get(); // function chunks woo!
 
 	auto Addrr = Memcury::Scanner::FindStringRef(L"Hitching by request!").Get();
 
@@ -1129,8 +1132,12 @@ static inline uint64 FindActorGetNetMode()
 
 	if (Engine_Version == 427)
 	{
-		// note this sig doesnt work on s18
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B 93 ? ? ? ? 48 8B C8 48 8B F8 E8 ? ? ? ? 48 85 C0 75 29").Get();
+		auto addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B 93 ? ? ? ? 48 8B C8 48 8B F8 E8 ? ? ? ? 48 85 C0 75 29", false).Get();
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 F6 41 08 10 48 8B D9 0F 85 ? ? ? ? 48 8B 41 20 48 85 C0 0F 84").Get(); // 17.50 & 18.40
+
+		return addr;
 	}
 
 	auto AActorGetNetmodeStrRef = Memcury::Scanner::FindStringRef(L"STAT_ServerUpdateCamera", false);

@@ -52,11 +52,11 @@ void AFortAthenaMapInfo::SpawnLlamas()
 
 		// LOG_INFO(LogDev, "Initial Llama at {} {} {}", Location.X, Location.Y, Location.Z);
 
-		if (Location == FVector(0, 0, 0))
+		if (Location.CompareVectors(FVector(0, 0, 0)))
 			continue;
 
 		FRotator RandomYawRotator = FRotator();
-		RandomYawRotator.Yaw = (float)rand() * 0.010986663;
+		RandomYawRotator.Yaw = (float)rand() * 0.010986663f;
 
 		FTransform InitialSpawnTransform;
 		InitialSpawnTransform.Translation = Location;

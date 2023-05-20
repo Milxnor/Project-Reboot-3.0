@@ -17,6 +17,11 @@ FFortAthenaLoadout* AFortPlayerPawn::GetCosmeticLoadout()
 	return GetPtr<FFortAthenaLoadout>(CosmeticLoadoutOffset);
 }
 
+void AFortPlayerPawn::ServerReviveFromDBNOHook(AController* EventInstigator)
+{
+	LOG_INFO(LogDev, "ServerReviveFromDBNOHook!");
+}
+
 void AFortPlayerPawn::ServerHandlePickupWithRequestedSwapHook(UObject* Context, FFrame* Stack, void* Ret)
 {
 	auto Pawn = (AFortPlayerPawn*)Context;

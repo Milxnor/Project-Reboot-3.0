@@ -44,6 +44,7 @@ public:
 	UFortWeaponItemDefinition* GetVehicleWeaponDefinition(AFortAthenaVehicle* Vehicle);
 	void UnEquipVehicleWeaponDefinition(UFortWeaponItemDefinition* VehicleWeaponDefinition);
 
+	static void ServerReviveFromDBNOHook(AController* EventInstigator);
 	static void ServerHandlePickupWithRequestedSwapHook(UObject* Context, FFrame* Stack, void* Ret); // we could native hook this but idk
 	static void StartGhostModeExitHook(UObject* Context, FFrame* Stack, void* Ret); // we could native hook this but eh
 	static AActor* ServerOnExitVehicleHook(AFortPlayerPawn* Pawn, ETryExitVehicleBehavior ExitForceBehavior); // actually returns AFortAthenaVehicle

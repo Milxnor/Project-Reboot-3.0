@@ -1229,6 +1229,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		DeathCause = ToDeathCause(Tags, false, DeadPawn); // DeadPawn->IsDBNO() ??
 
 		LOG_INFO(LogDev, "DeathCause: {}", (int)DeathCause);
+		LOG_INFO(LogDev, "DeadPawn->IsDBNO(): {}", DeadPawn->IsDBNO());
+		LOG_INFO(LogDev, "KillerPlayerState: {}", __int64(KillerPlayerState));
 
 		*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bDBNO) = DeadPawn->IsDBNO();
 		*(uint8*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathCause) = DeathCause;
@@ -1295,11 +1297,37 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		// LOG_INFO(LogDev, "Reported kill.");
 
-		/* if (KillerPawn && KillerPawn != DeadPawn)
+		if (AmountOfHealthSiphon != 0)
 		{
-			KillerPawn->SetHealth(100);
-			KillerPawn->SetShield(100);
-		} */
+			if (KillerPawn && KillerPawn != DeadPawn)
+			{
+				float Health = KillerPawn->GetHealth();
+				float Shield = KillerPawn->GetShield();
+
+				int MaxHealth = 100;
+				int MaxShield = 100;
+				int AmountGiven = 0;
+
+				if ((MaxHealth - Health) > 0)
+				{
+					int AmountToGive = MaxHealth - Health >= AmountOfHealthSiphon ? AmountOfHealthSiphon : MaxHealth - Health;
+					KillerPawn->SetHealth(Health + AmountToGive);
+					AmountGiven += AmountToGive;
+				}
+
+				if ((MaxShield - Shield) > 0 && AmountGiven < AmountOfHealthSiphon)
+				{
+					int AmountToGive = MaxShield - Shield >= AmountOfHealthSiphon ? AmountOfHealthSiphon : MaxShield - Shield;
+					AmountToGive -= AmountGiven;
+
+					if (AmountToGive > 0)
+					{
+						KillerPawn->SetShield(Shield + AmountToGive);
+						AmountGiven += AmountToGive;
+					}
+				}
+			}
+		}
 	}
 
 	bool bIsRespawningAllowed = GameState->IsRespawningAllowed(DeadPlayerState);

@@ -723,8 +723,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 			auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
-			// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
-			GameMode->PauseSafeZone(GameState->IsSafeZonePaused() == 0);
+			UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
+			// GameMode->PauseSafeZone(GameState->IsSafeZonePaused() == 0);
 		}
 		else if (Command == "teleport")
 		{

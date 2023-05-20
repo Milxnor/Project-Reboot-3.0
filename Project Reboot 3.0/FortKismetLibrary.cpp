@@ -508,7 +508,7 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 
 	LOG_INFO(LogDev, __FUNCTION__);
 	
-	PickupCreateData CreateData;
+	PickupCreateData CreateData{};
 	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
 	CreateData.Source = Source;
 	CreateData.SourceType = SourceType;
@@ -516,6 +516,7 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 	CreateData.bToss = bToss;
 	CreateData.bRandomRotation = bRandomRotation;
 	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
+	CreateData.PawnOwner = OptionalOwnerPC ? OptionalOwnerPC->GetMyFortPawn() : nullptr;
 
 	auto NewPickup = AFortPickup::SpawnPickup(CreateData);
 
@@ -590,13 +591,14 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 
 	auto Pawn = OptionalOwnerPC ? OptionalOwnerPC->GetMyFortPawn() : nullptr;
 
-	PickupCreateData CreateData;
+	PickupCreateData CreateData{};
 	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
 	CreateData.SpawnLocation = Position;
 	CreateData.bToss = bToss;
 	CreateData.bRandomRotation = bRandomRotation;
 	CreateData.PawnOwner = Pawn;
 	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
+	CreateData.PawnOwner = OptionalOwnerPC ? OptionalOwnerPC->GetMyFortPawn() : nullptr;
 
 	auto NewPickup = AFortPickup::SpawnPickup(CreateData);
 

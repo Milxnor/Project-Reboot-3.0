@@ -27,6 +27,8 @@ public:
 		return ReadBitfieldValue(bIsDBNOOffset, bIsDBNOFieldMask);
 	}
 
+	float GetShield();
+	float GetHealth();
 	void SetHealth(float NewHealth);
 	void SetMaxHealth(float NewHealthVal);
 	void SetShield(float NewShield);

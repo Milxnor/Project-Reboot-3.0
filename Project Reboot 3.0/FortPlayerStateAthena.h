@@ -32,6 +32,23 @@ struct FFortRespawnData
 	}
 };
 
+struct FDeathInfo
+{
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.DeathInfo");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
+
+	bool& IsDBNO()
+	{
+		static auto bDBNOOffset = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "bDBNO");
+		return *(bool*)(__int64(this) + bDBNOOffset);
+	}
+};
+
 class AFortPlayerStateAthena : public AFortPlayerState
 {
 public:
@@ -87,15 +104,30 @@ public:
 
 	void ClientReportKill(AFortPlayerStateAthena* Player)
 	{
-		static auto ClientReportKillFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerStateAthena.ClientReportKill");
+		static auto ClientReportKillFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.ClientReportKill");
 		this->ProcessEvent(ClientReportKillFn, &Player);
+	}
+	
+	void OnRep_DeathInfo()
+	{
+		static auto OnRep_DeathInfoFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
+
+		if (OnRep_DeathInfoFn) // needed?
+		{
+			this->ProcessEvent(OnRep_DeathInfoFn);
+		}
+	}
+
+	FDeathInfo* GetDeathInfo()
+	{
+		return GetPtr<FDeathInfo>(MemberOffsets::FortPlayerStateAthena::DeathInfo);
 	}
 
 	static void ServerSetInAircraftHook(UObject* Context, FFrame& Stack, void* Ret);
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortPlayerStateAthena");
+		static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStateAthena");
 		return Class;
 	}
 };
