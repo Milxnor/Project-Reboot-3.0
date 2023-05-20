@@ -17,9 +17,97 @@ FFortAthenaLoadout* AFortPlayerPawn::GetCosmeticLoadout()
 	return GetPtr<FFortAthenaLoadout>(CosmeticLoadoutOffset);
 }
 
-void AFortPlayerPawn::ServerReviveFromDBNOHook(AController* EventInstigator)
+bool DBNOCheck(AFortPlayerPawn* Pawn, AController* EventInstigator)
+{
+	bool res = false;
+
+	if (Pawn->IsDBNO())
+	{
+		if (EventInstigator)
+		{
+			// idk what this does but this is my interpretation
+
+			auto PlayerState = Cast<AFortPlayerStateAthena>(Pawn->GetPlayerState());
+			auto InstigatorPlayerState = Cast<AFortPlayerStateAthena>(EventInstigator->GetPlayerState());
+
+			if (PlayerState && InstigatorPlayerState)
+			{
+				if (PlayerState->GetTeamIndex() == InstigatorPlayerState->GetTeamIndex())
+				{
+					res = true;
+				}
+			}
+		}
+	}
+
+	return res;
+}
+
+void AFortPlayerPawn::ServerReviveFromDBNOHook(AFortPlayerPawn* Pawn, AController* EventInstigator)
 {
 	LOG_INFO(LogDev, "ServerReviveFromDBNOHook!");
+	
+	if (!DBNOCheck(Pawn, EventInstigator))
+		return;
+
+	auto PlayerController = Cast<AFortPlayerControllerAthena>(Pawn->GetController());
+
+	if (!PlayerController)
+		return;
+
+	auto PlayerState = Cast<AFortPlayerState>(PlayerController->GetPlayerState());
+
+	if (!PlayerState)
+		return;
+
+	bool IsRevivingSelf = EventInstigator == PlayerController;
+	
+	/*
+	UObject* ReviveGameplayEffect = nullptr;
+
+	if (IsRevivingSelf)
+	else
+	*/
+
+	static auto GAB_AthenaDBNOClass = FindObject<UClass>(L"/Game/Abilities/NPC/Generic/GAB_AthenaDBNO.Default__GAB_AthenaDBNO_C");
+
+	auto DBNOPawnASC = PlayerState->GetAbilitySystemComponent();
+
+	if (!DBNOPawnASC)
+		return;
+
+	FGameplayAbilitySpec* DBNOSpec = nullptr;
+
+	UObject* ClassToFind = GAB_AthenaDBNOClass->ClassPrivate;
+
+	auto compareAbilities = [&DBNOSpec, &ClassToFind](FGameplayAbilitySpec* Spec) {
+		auto CurrentAbility = Spec->GetAbility();
+
+		if (CurrentAbility->ClassPrivate == ClassToFind)
+		{
+			DBNOSpec = Spec;
+			return;
+		}
+	};
+
+	LoopSpecs(DBNOPawnASC, compareAbilities);
+
+	if (!DBNOSpec)
+		return;
+
+	DBNOPawnASC->ClientCancelAbility(DBNOSpec->GetHandle(), DBNOSpec->GetActivationInfo());
+	DBNOPawnASC->ClientEndAbility(DBNOSpec->GetHandle(), DBNOSpec->GetActivationInfo());
+	DBNOPawnASC->ServerEndAbility(DBNOSpec->GetHandle(), DBNOSpec->GetActivationInfo(), nullptr);
+
+	Pawn->SetDBNO(false);
+	Pawn->SetHasPlayedDying(false);
+
+	Pawn->SetHealth(30); // TODO Get value from SetByCallerReviveHealth?
+
+	Pawn->OnRep_IsDBNO();
+
+	PlayerController->ClientOnPawnRevived(EventInstigator); // We should call the function that calls this.
+	PlayerController->RespawnPlayerAfterDeath(false); // nooo
 }
 
 void AFortPlayerPawn::ServerHandlePickupWithRequestedSwapHook(UObject* Context, FFrame* Stack, void* Ret)

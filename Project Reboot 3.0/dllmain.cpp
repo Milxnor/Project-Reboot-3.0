@@ -291,7 +291,7 @@ DWORD WINAPI Main(LPVOID)
     }
 
     bSwitchedInitialLevel = true;
-    Globals::bAutoRestart = IsRestartingSupported();
+    // Globals::bAutoRestart = IsRestartingSupported();
 
     static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
     static auto FortPlayerControllerZoneDefault = FindObject<AFortPlayerController>(L"/Script/FortniteGame.Default__FortPlayerControllerZone");

@@ -50,6 +50,56 @@ FActiveGameplayEffectHandle UAbilitySystemComponent::ApplyGameplayEffectToSelf(U
 	return ContextHandle;
 } */
 
+void UAbilitySystemComponent::ServerEndAbility(FGameplayAbilitySpecHandle AbilityToEnd, FGameplayAbilityActivationInfo* ActivationInfo, FPredictionKey* PredictionKey)
+{
+	static auto ServerEndAbilityFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ServerEndAbility");
+
+	auto Params = Alloc<void>(ServerEndAbilityFn->GetPropertiesSize());
+
+	if (!Params)
+		return;
+
+	static auto AbilityToEndOffset = FindOffsetStruct("/Script/GameplayAbilities.AbilitySystemComponent.ServerEndAbility", "AbilityToEnd");
+	static auto ActivationInfoOffset = FindOffsetStruct("/Script/GameplayAbilities.AbilitySystemComponent.ServerEndAbility", "ActivationInfo");
+	static auto PredictionKeyOffset = FindOffsetStruct("/Script/GameplayAbilities.AbilitySystemComponent.ServerEndAbility", "PredictionKey");
+
+	*(FGameplayAbilitySpecHandle*)(__int64(Params) + AbilityToEndOffset) = AbilityToEnd;
+	CopyStruct((FGameplayAbilityActivationInfo*)(__int64(Params) + ActivationInfoOffset), ActivationInfo, FGameplayAbilityActivationInfo::GetStructSize());
+	CopyStruct((FPredictionKey*)(__int64(Params) + PredictionKeyOffset), PredictionKey, FPredictionKey::GetStructSize());
+
+	this->ProcessEvent(ServerEndAbilityFn, Params);
+}
+
+void UAbilitySystemComponent::ClientEndAbility(FGameplayAbilitySpecHandle AbilityToEnd, FGameplayAbilityActivationInfo* ActivationInfo)
+{
+	static auto ClientEndAbilityFn = FindObject<UFunction>("/Script/GameplayAbilities.AbilitySystemComponent.ClientEndAbility");
+
+	auto Params = Alloc(ClientEndAbilityFn->GetPropertiesSize());
+
+	static auto AbilityToEndOffset = FindOffsetStruct("/Script/GameplayAbilities.AbilitySystemComponent.ClientEndAbility", "AbilityToEnd");
+	static auto ActivationInfoOffset = FindOffsetStruct("/Script/GameplayAbilities.AbilitySystemComponent.ClientEndAbility", "ActivationInfo");
+
+	*(FGameplayAbilitySpecHandle*)(__int64(Params) + AbilityToEndOffset) = AbilityToEnd;
+	CopyStruct((FGameplayAbilityActivationInfo*)(__int64(Params) + ActivationInfoOffset), ActivationInfo, FGameplayAbilityActivationInfo::GetStructSize());
+
+	this->ProcessEvent(ClientEndAbilityFn, Params);
+}
+
+void UAbilitySystemComponent::ClientCancelAbility(FGameplayAbilitySpecHandle AbilityToCancel, FGameplayAbilityActivationInfo* ActivationInfo)
+{
+	static auto ClientCancelAbilityFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ClientCancelAbility");
+
+	auto Params = Alloc(ClientCancelAbilityFn->GetPropertiesSize());
+
+	static auto AbilityToCancelOffset = FindOffsetStruct("/Script/GameplayAbilities.AbilitySystemComponent.ClientCancelAbility", "AbilityToCancel");
+	static auto ActivationInfoOffset = FindOffsetStruct("/Script/GameplayAbilities.AbilitySystemComponent.ClientCancelAbility", "ActivationInfo");
+
+	*(FGameplayAbilitySpecHandle*)(__int64(Params) + AbilityToCancelOffset) = AbilityToCancel;
+	CopyStruct((FGameplayAbilityActivationInfo*)(__int64(Params) + ActivationInfoOffset), ActivationInfo, FGameplayAbilityActivationInfo::GetStructSize());
+
+	this->ProcessEvent(ClientCancelAbilityFn, Params);
+}
+
 bool UAbilitySystemComponent::HasAbility(UObject* DefaultAbility)
 {
 	auto ActivatableAbilities = GetActivatableAbilities();

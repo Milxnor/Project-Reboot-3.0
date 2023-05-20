@@ -208,15 +208,15 @@ void UObject::AddToRoot()
 
 bool UObject::IsValidLowLevel()
 {
-	if (std::floor(Fortnite_Version) == 5) // real 1:1
-		return true;
+	if (std::floor(Fortnite_Version) == 5) // real 1:1 // todo (milxnor) try without this
+		return !IsBadReadPtr(this, 8);
 
 	if (this == nullptr)
 	{
 		// UE_LOG(LogUObjectBase, Warning, TEXT("NULL object"));
 		return false;
 	}
-	if (IsBadReadPtr(this, 8)) // needed?
+	if (IsBadReadPtr(this, 8)) // needed? (milxnor)
 	{
 		return false;
 	}

@@ -371,6 +371,9 @@ inline int FindOffsetStruct(const std::string& StructName, const std::string& Me
 // template <typename T>
 static void CopyStruct(void* Dest, void* Src, size_t Size, UStruct* Struct = nullptr)
 {
+	if (!Src)
+		return;
+
 	memcpy_s(Dest, Size, Src, Size);
 
 	if (Struct)
@@ -394,7 +397,9 @@ public:
 template <typename T = __int64>
 static T* Alloc(size_t Size = sizeof(T), bool bUseFMemoryRealloc = false)
 {
-	return bUseFMemoryRealloc ? (T*)FMemory::Realloc(0, Size, 0) : (T*)VirtualAlloc(0, Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	auto mem = bUseFMemoryRealloc ? (T*)FMemory::Realloc(0, Size, 0) : (T*)VirtualAlloc(0, Size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	// RtlSecureZeroMemory(mem, Size);
+	return mem;
 }
 
 namespace MemberOffsets

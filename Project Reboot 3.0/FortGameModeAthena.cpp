@@ -1129,7 +1129,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 				for (auto& LootDrop : LootDrops)
 				{
-					PickupCreateData CreateData{};
+					PickupCreateData CreateData;
 					CreateData.bToss = true;
 					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
 					CreateData.SpawnLocation = Location;

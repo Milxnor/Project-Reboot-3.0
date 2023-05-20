@@ -197,6 +197,12 @@ public:
 		}
 	}
 
+	void ClientOnPawnRevived(AController* EventInstigator)
+	{
+		static auto ClientOnPawnRevivedFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerZone.ClientOnPawnRevived");
+		this->ProcessEvent(ClientOnPawnRevivedFn, &EventInstigator);
+	}
+
 	bool& IsMarkedAlive()
 	{
 		static auto bMarkedAliveOffset = GetOffset("bMarkedAlive");

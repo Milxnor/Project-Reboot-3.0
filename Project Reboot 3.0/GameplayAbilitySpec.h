@@ -23,6 +23,17 @@ struct FGameplayAbilitySpecHandle
 	} */
 };
 
+struct FGameplayAbilityActivationInfo // TODO Move
+{
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/GameplayAbilities.GameplayAbilityActivationInfo");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
+};
+
 struct FGameplayAbilitySpec : FFastArraySerializerItem
 {
 	static int GetStructSize()
@@ -44,6 +55,12 @@ struct FGameplayAbilitySpec : FFastArraySerializerItem
 	{
 		static auto HandleOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "Handle");
 		return *(FGameplayAbilitySpecHandle*)(__int64(this) + HandleOffset);
+	}
+
+	FGameplayAbilityActivationInfo* GetActivationInfo()
+	{
+		static auto ActivationInfoOffset = FindOffsetStruct("/Script/GameplayAbilities.GameplayAbilitySpec", "ActivationInfo");
+		return (FGameplayAbilityActivationInfo*)(__int64(this) + ActivationInfoOffset);
 	}
 };
 

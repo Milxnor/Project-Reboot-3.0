@@ -5,7 +5,7 @@
 
 AFortWeapon* AFortPawn::EquipWeaponDefinition(UFortWeaponItemDefinition* WeaponData, const FGuid& ItemEntryGuid)
 {
-	static auto EquipWeaponDefinitionFn = FindObject<UFunction>("/Script/FortniteGame.FortPawn.EquipWeaponDefinition");
+	static auto EquipWeaponDefinitionFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.EquipWeaponDefinition");
 
 	FGuid TrackerGuid{};
 
@@ -38,6 +38,12 @@ bool AFortPawn::PickUpActor(AActor* PickupTarget, UFortDecoItemDefinition* Place
 	this->ProcessEvent(fn, &AFortPawn_PickUpActor_Params);
 
 	return AFortPawn_PickUpActor_Params.ReturnValue;
+}
+
+void AFortPawn::OnRep_IsDBNO()
+{
+	static auto OnRep_IsDBNOFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.OnRep_IsDBNO");
+	this->ProcessEvent(OnRep_IsDBNOFn);
 }
 
 float AFortPawn::GetShield()

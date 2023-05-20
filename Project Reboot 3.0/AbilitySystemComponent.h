@@ -15,8 +15,20 @@ struct PadHexB0 { char Pad[0xB0]; };
 // using FPredictionKey = PadHex10; 
 using FGameplayEventData = PadHexB0;
 
-using FPredictionKey = __int64;
 // using FGameplayEventData = __int64;
+
+struct FPredictionKey // todo move
+{
+	// __int64 real;
+
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>("/Script/GameplayAbilities.PredictionKey");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
+};
 
 struct FGameplayEffectContextHandle
 {
@@ -72,6 +84,9 @@ public:
 		return Subobject;
 	}
 
+	void ServerEndAbility(FGameplayAbilitySpecHandle AbilityToEnd, FGameplayAbilityActivationInfo* ActivationInfo, FPredictionKey* PredictionKey);
+	void ClientEndAbility(FGameplayAbilitySpecHandle AbilityToEnd, FGameplayAbilityActivationInfo* ActivationInfo);
+	void ClientCancelAbility(FGameplayAbilitySpecHandle AbilityToCancel, FGameplayAbilityActivationInfo* ActivationInfo);
 	bool HasAbility(UObject* DefaultAbility);
 	FActiveGameplayEffectHandle ApplyGameplayEffectToSelf(UClass* GameplayEffectClass, float Level, const FGameplayEffectContextHandle& EffectContext = FGameplayEffectContextHandle());
 	// FGameplayEffectContextHandle MakeEffectContext();
@@ -84,3 +99,5 @@ public:
 
 	static void InternalServerTryActivateAbilityHook(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAbilitySpecHandle Handle, bool InputPressed, const FPredictionKey* PredictionKey, const FGameplayEventData* TriggerEventData);
 };
+
+void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<void(FGameplayAbilitySpec*)> func);

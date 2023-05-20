@@ -42,7 +42,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 	} */
 
 	static auto FortPickupAthenaClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickupAthena");
-	auto PlayerState = PickupData.PawnOwner->IsValidLowLevel() ? Cast<AFortPlayerState>(PickupData.PawnOwner->GetPlayerState()) : nullptr;
+	auto PlayerState = PickupData.PawnOwner ? Cast<AFortPlayerState>(PickupData.PawnOwner->GetPlayerState()) : nullptr;
 
 	FActorSpawnParameters SpawnParameters{};
 	// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;

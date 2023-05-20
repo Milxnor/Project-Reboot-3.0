@@ -22,7 +22,7 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 	{
 		auto& lootDrop = LootDrops.at(i);
 
-		PickupCreateData CreateData{};
+		PickupCreateData CreateData;
 		CreateData.bToss = true;
 		// CreateData.PawnOwner = Pawn;
 		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(lootDrop->GetItemDefinition(), lootDrop->GetCount(), lootDrop->GetLoadedAmmo());

@@ -27,6 +27,23 @@ public:
 		return ReadBitfieldValue(bIsDBNOOffset, bIsDBNOFieldMask);
 	}
 
+	void SetDBNO(bool IsDBNO)
+	{
+		static auto bIsDBNOFieldMask = GetFieldMask(GetProperty("bIsDBNO"));
+		static auto bIsDBNOOffset = GetOffset("bIsDBNO");
+
+		this->SetBitfieldValue(bIsDBNOOffset, bIsDBNOFieldMask, IsDBNO);
+	}
+
+	void SetHasPlayedDying(bool NewValue)
+	{
+		static auto bPlayedDyingFieldMask = GetFieldMask(GetProperty("bPlayedDying"));
+		static auto bPlayedDyingOffset = GetOffset("bPlayedDying");
+
+		this->SetBitfieldValue(bPlayedDyingOffset, bPlayedDyingFieldMask, NewValue);
+	}
+	
+	void OnRep_IsDBNO();
 	float GetShield();
 	float GetHealth();
 	void SetHealth(float NewHealth);
