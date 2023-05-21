@@ -1124,8 +1124,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
 			auto BRIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot");
 
-			float UpZ = 50;
-
 			uint8 SpawnFlag = EFortPickupSourceTypeFlag::GetContainerValue();
 
 			bool bTest = false;
@@ -1134,8 +1132,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
-				auto Location = CurrentActor->GetActorLocation();
-				Location.Z += UpZ;
+				static auto LootSpawnLocationOffset = CurrentActor->GetOffset("LootSpawnLocation_Athena");
+				auto LSL = CurrentActor->Get<FVector>(LootSpawnLocationOffset);
+				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * LSL.X + CurrentActor->GetActorRightVector() * LSL.Y + CurrentActor->GetActorUpVector() * LSL.Z;
 
 				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, GameState->GetWorldLevel(), -1, bPrintWarmup);
 
@@ -1164,8 +1163,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
 				spawned++;
-				auto Location = CurrentActor->GetActorLocation();
-				Location.Z += UpZ;
+				static auto LootSpawnLocationOffset = CurrentActor->GetOffset("LootSpawnLocation_Athena");
+				auto LSL = CurrentActor->Get<FVector>(LootSpawnLocationOffset);
+				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * LSL.X + CurrentActor->GetActorRightVector() * LSL.Y + CurrentActor->GetActorUpVector() * LSL.Z;
 
 				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, GameState->GetWorldLevel(), -1, bPrint);
 
