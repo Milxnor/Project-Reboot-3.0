@@ -23,6 +23,7 @@ namespace Globals
 	extern inline bool bAutoRestart = false; // doesnt work fyi
 	extern inline bool bFillVendingMachines = true;
 	extern inline int AmountOfListens = 0; // TODO: Switch to this for LastNum
+	extern inline int PlayersRequired = 1;
 }
 
 extern inline std::string PlaylistName =

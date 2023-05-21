@@ -268,7 +268,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		*/
 
 		static auto WarmupRequiredPlayerCountOffset = GameMode->GetOffset("WarmupRequiredPlayerCount");
-		GameMode->Get<int>(WarmupRequiredPlayerCountOffset) = 1;
+		GameMode->Get<int>(WarmupRequiredPlayerCountOffset) = Globals::PlayersRequired;
 
 		static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
@@ -590,21 +590,21 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				bShouldSkipAircraft = CurrentPlaylist->Get<bool>(bSkipAircraftOffset);
 		}
 
-		float Duration = bShouldSkipAircraft ? 0 : 100000;
-		float EarlyDuration = Duration;
+		if (bShouldSkipAircraft)
+		{
+			float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
 
-		float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
+			static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
+			static auto WarmupCountdownStartTimeOffset = GameState->GetOffset("WarmupCountdownStartTime");
+			static auto WarmupCountdownDurationOffset = GameMode->GetOffset("WarmupCountdownDuration");
+			static auto WarmupEarlyCountdownDurationOffset = GameMode->GetOffset("WarmupEarlyCountdownDuration");
 
-		static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
-		static auto WarmupCountdownStartTimeOffset = GameState->GetOffset("WarmupCountdownStartTime");
-		static auto WarmupCountdownDurationOffset = GameMode->GetOffset("WarmupCountdownDuration");
-		static auto WarmupEarlyCountdownDurationOffset = GameMode->GetOffset("WarmupEarlyCountdownDuration");
+			GameState->Get<float>(WarmupCountdownEndTimeOffset) = 0;
+			GameMode->Get<float>(WarmupCountdownDurationOffset) = 0;
 
-		GameState->Get<float>(WarmupCountdownEndTimeOffset) = TimeSeconds + Duration;
-		GameMode->Get<float>(WarmupCountdownDurationOffset) = Duration;
-
-		GameState->Get<float>(WarmupCountdownStartTimeOffset) = TimeSeconds;
-		GameMode->Get<float>(WarmupEarlyCountdownDurationOffset) = EarlyDuration;
+			GameState->Get<float>(WarmupCountdownStartTimeOffset) = TimeSeconds;
+			GameMode->Get<float>(WarmupEarlyCountdownDurationOffset) = 0;
+		}
 
 		static auto GameSessionOffset = GameMode->GetOffset("GameSession");
 		auto GameSession = GameMode->Get<AActor*>(GameSessionOffset);

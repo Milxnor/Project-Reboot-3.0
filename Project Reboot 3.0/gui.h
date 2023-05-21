@@ -1042,6 +1042,8 @@ static inline void PregameUI()
 		ImGui::Checkbox("Play Event", &Globals::bGoingToPlayEvent);
 	}
 
+	ImGui::SliderInt("Players required to start countdown", &Globals::PlayersRequired, 1, 100);
+
 	if (!bSwitchedInitialLevel)
 		ImGui::SliderInt("Seconds until load into map", &SecondsUntilTravel, 1, 100);
 	
