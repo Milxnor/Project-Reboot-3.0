@@ -283,11 +283,31 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
         if (ItemLevel >= 0)
             FinalItemLevel = ItemLevel;
 
-        while (FinalCount > 0)
+	     while (FinalCount > 0)
         {
             int CurrentCountForEntry = PickedPackage->GetCount(); // Idk calls some itemdefinition vfunc
 
-            OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(ItemDefinition, CurrentCountForEntry, LoadedAmmo)));
+            bool hasAdded = false;
+
+            for (int i = 0; i < OutEntries->size(); i++)
+            {
+                auto& CurrentEntry = OutEntries->at(i);
+                if (CurrentEntry->GetItemDefinition() == ItemDefinition)
+                {
+                    int NewCount = CurrentEntry->GetCount() + PickedPackage->GetCount();
+                    if (NewCount <= ItemDefinition->GetMaxStackSize())
+                    {
+                        hasAdded = true;
+                        static auto CountOffset = FindOffsetStruct("/Script/FortniteGame.FortItemEntry", "Count");
+                        *(int*)(__int64(CurrentEntry.ItemEntry) + CountOffset) = NewCount;
+                    }
+                }
+            }
+
+            if (!hasAdded)
+            {
+                OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(ItemDefinition, CurrentCountForEntry, LoadedAmmo)));
+            }
 
             if (Engine_Version >= 424)
             {
