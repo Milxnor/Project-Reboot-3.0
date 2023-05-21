@@ -73,41 +73,43 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 	static auto ClientConnectionsOffset = WorldNetDriver->GetOffset("ClientConnections");
 	auto& ClientConnections = WorldNetDriver->Get<TArray<UObject*>>(ClientConnectionsOffset);
 
-	/* if (firstBackslash == lastBackslash)
+	if (firstBackslash != std::string::npos && lastBackslash != std::string::npos)
 	{
-		SendMessageToConsole(PlayerController, L"Warning: You have a backslash but no ending backslash, was this by mistake? Executing on you.");
-	} */
-
-	if (firstBackslash != lastBackslash && firstBackslash != std::string::npos && lastBackslash != std::string::npos) // we want to specify a player
-	{
-		std::string player = OldMsg;
-
-		player = player.substr(firstBackslash + 1, lastBackslash - firstBackslash - 1);
-
-		for (int i = 0; i < ClientConnections.Num(); i++)
+		if (firstBackslash != lastBackslash)
 		{
-			static auto PlayerControllerOffset = ClientConnections.at(i)->GetOffset("PlayerController");
-			auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get(PlayerControllerOffset));
+			std::string player = OldMsg;
 
-			if (!CurrentPlayerController)
-				continue;
+			player = player.substr(firstBackslash + 1, lastBackslash - firstBackslash - 1);
 
-			auto CurrentPlayerState = Cast<AFortPlayerStateAthena>(CurrentPlayerController->GetPlayerState());
-
-			if (!CurrentPlayerState)
-				continue;
-
-			auto PlayerName = CurrentPlayerState->GetPlayerName();
-
-			if (PlayerName.ToString() == player) // hopefully we arent on adifferent thread
+			for (int i = 0; i < ClientConnections.Num(); i++)
 			{
-				ReceivingController = CurrentPlayerController;
-				ReceivingPlayerState = CurrentPlayerState;
-				PlayerName.Free();
-				break;
-			}
+				static auto PlayerControllerOffset = ClientConnections.at(i)->GetOffset("PlayerController");
+				auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get(PlayerControllerOffset));
 
-			PlayerName.Free();
+				if (!CurrentPlayerController)
+					continue;
+
+				auto CurrentPlayerState = Cast<AFortPlayerStateAthena>(CurrentPlayerController->GetPlayerState());
+
+				if (!CurrentPlayerState)
+					continue;
+
+				auto PlayerName = CurrentPlayerState->GetPlayerName();
+
+				if (PlayerName.ToString() == player) // hopefully we arent on adifferent thread
+				{
+					ReceivingController = CurrentPlayerController;
+					ReceivingPlayerState = CurrentPlayerState;
+					PlayerName.Free();
+					break;
+				}
+
+				PlayerName.Free();
+			}
+		}
+		else
+		{
+			// SendMessageToConsole(PlayerController, L"Warning: You have a backslash but no ending backslash, was this by mistake? Executing on you.");
 		}
 	}
 
@@ -624,7 +626,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				Count = Max;
 			}
 
-			static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
+			static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
 			auto ClassObj = LoadObject<UClass>(ClassName, BGAClass);
 
 			if (ClassObj)

@@ -46,7 +46,7 @@
 #define GAMEMODE_TAB 3
 #define THANOS_TAB 4
 #define EVENT_TAB 5
-#define LATEGAME_TAB 6
+#define ZONE_TAB 6
 #define DUMP_TAB 7
 #define UNBAN_TAB 8
 #define DEVELOPER_TAB 9
@@ -347,9 +347,9 @@ static inline void MainTabs()
 			}
 		}
 
-		if (false && Globals::bLateGame && ImGui::BeginTabItem(("Lategame")))
+		if (ImGui::BeginTabItem(("Zone")))
 		{
-			Tab = LATEGAME_TAB;
+			Tab = ZONE_TAB;
 			PlayerTab = -1;
 			bInformationTab = false;
 			ImGui::EndTabItem();
@@ -576,13 +576,13 @@ static inline void MainUI()
 
 				if (!bStartedBus)
 				{
-					if (Globals::bLateGame.load())
+					if (Globals::bLateGame.load() || Fortnite_Version >= 11)
 					{
 						if (ImGui::Button("Start Bus"))
 						{
 							bStartedBus = true;
 
-							auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+							auto GameMode = (AFortGameModeAthena*)GetWorld()->GetGameMode();
 							auto GameState = GameMode->GetGameState();
 
 							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
@@ -688,6 +688,24 @@ static inline void MainUI()
 							static auto bAircraftIsLockedOffset = GameState->GetOffset("bAircraftIsLocked");
 							static auto bAircraftIsLockedFieldMask = GetFieldMask(GameState->GetProperty("bAircraftIsLocked"));
 							GameState->SetBitfieldValue(bAircraftIsLockedOffset, bAircraftIsLockedFieldMask, false);
+
+							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
+							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipaircraft", nullptr);
+
+							auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
+							
+							if (SafeZoneIndicator)
+							{
+								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
+								SafeZoneIndicator->SkipShrinkSafeZone();
+								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
+								SafeZoneIndicator->SkipShrinkSafeZone();
+
+								// Sleep(1000);
+								// SafeZoneIndicator->SkipShrinkSafeZone();
+							}
+
+							LOG_INFO(LogDev, "Finished!");
 						}
 					}
 					else
@@ -781,6 +799,40 @@ static inline void MainUI()
 						static auto PillarsConcludedFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.PillarsConcluded");
 						EventScripting->ProcessEvent(PillarsConcludedFn, &Name);
 					}
+				}
+			}
+		}
+
+		else if (Tab == ZONE_TAB)
+		{
+			if (ImGui::Button("Start Safe Zone"))
+			{
+				UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startsafezone", nullptr);
+			}
+
+			if (ImGui::Button("Pause Safe Zone"))
+			{
+				UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
+			}
+
+			if (ImGui::Button("Skip Zone"))
+			{
+				UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipsafezone", nullptr);
+			}
+
+			if (ImGui::Button("Start Shrink Safe Zone"))
+			{
+				UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
+			}
+
+			if (ImGui::Button("Skip Shrink Safe Zone"))
+			{
+				auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+				auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
+
+				if (SafeZoneIndicator)
+				{
+					SafeZoneIndicator->SkipShrinkSafeZone();
 				}
 			}
 		}

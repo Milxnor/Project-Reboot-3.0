@@ -19,8 +19,6 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 
 	LOG_INFO(LogDev, "SetZoneToIndexHook!");
 
-	bool bIsFirstZone = false;
-
 	auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
 
 	LOG_INFO(LogDev, "GamePhaseStep: {}", (int)GameState->GetGamePhaseStep());
@@ -30,31 +28,26 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		static auto GameMode_SafeZonePhaseOffset = GameModeAthena->GetOffset("SafeZonePhase");
 		static auto GameState_SafeZonePhaseOffset = GameState->GetOffset("SafeZonePhase");
 
-		int NewSafeZonePhase = GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
+		static int ahaaSafeZonePhase = 4;
+		int NewSafeZonePhase = ahaaSafeZonePhase; // GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
+
+		const int OriginalOldSafeZonePhase = GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
 
 		if (NewSafeZonePhase < 4)
 		{
 			NewSafeZonePhase = 4;
-			bIsFirstZone = true;
 		}
 
-		LOG_INFO(LogDev, "Setting zone to: {}", NewSafeZonePhase);
+		LOG_INFO(LogDev, "Setting zone to: {} ({})", NewSafeZonePhase, OriginalOldSafeZonePhase);
 
 		GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset) = NewSafeZonePhase;
 		GameState->Get<int>(GameState_SafeZonePhaseOffset) = NewSafeZonePhase;
+		ahaaSafeZonePhase++;
 	}
 
 	if (Fortnite_Version < 13)
 	{
 		SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
-
-		if (Globals::bLateGame && bIsFirstZone)
-		{
-			// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
-			// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
-			// UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipshrinksafezone", nullptr);
-		}
-
 		return;
 	}
 

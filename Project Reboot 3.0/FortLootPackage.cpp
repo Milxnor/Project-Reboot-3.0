@@ -194,7 +194,7 @@ FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, F
     return ChosenRowLootTierData;
 }
 
-void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, const FName& LootPackageName, std::vector<LootDrop>* OutEntries, int LootPackageCategory = -1, int WorldLevel = 0, bool bPrint = false)
+void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, const FName& LootPackageName, std::vector<LootDrop>* OutEntries, int LootPackageCategory = -1, int WorldLevel = 0, bool bPrint = false, bool bCombineDrops = true)
 {
     if (!OutEntries)
         return;
@@ -305,7 +305,29 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
 
             auto ActualItemLevel = WorldItemDefinition->PickLevel(FinalItemLevel);
 
-            OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(ItemDefinition, CurrentCountForEntry, LoadedAmmo, 0x3F800000, ActualItemLevel)));
+            bool bHasCombined = false;
+
+            if (bCombineDrops)
+            {
+                for (auto& CurrentLootDrop : *OutEntries)
+                {
+                    if (CurrentLootDrop->GetItemDefinition() == ItemDefinition)
+                    {
+                        int NewCount = CurrentLootDrop->GetCount() + CurrentCountForEntry;
+
+                        if (NewCount <= ItemDefinition->GetMaxStackSize())
+                        {
+                            bHasCombined = true;
+                            CurrentLootDrop->GetCount() = NewCount;
+                        }
+                    }
+                }
+            }
+
+            if (!bHasCombined)
+            {
+                OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(ItemDefinition, CurrentCountForEntry, LoadedAmmo, MAX_DURABILITY, ActualItemLevel)));
+            }
 
             if (Engine_Version >= 424)
             {
@@ -346,7 +368,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
 
 // #define brudda
 
-std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int ForcedLootTier, bool bPrint, int recursive)
+std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int ForcedLootTier, bool bPrint, int recursive, bool bCombineDrops)
 {
     std::vector<LootDrop> LootDrops;
 

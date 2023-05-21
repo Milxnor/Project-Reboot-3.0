@@ -819,7 +819,6 @@
     <ClInclude Include="FortAthenaVehicleSpawner.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
-    <ClInclude Include="discord.h" />
     <ClInclude Include="FortAthenaSupplyDrop.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building</Filter>
     </ClInclude>
@@ -933,6 +932,9 @@
     </ClInclude>
     <ClInclude Include="BuildingItemWeaponUpgradeActor.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Building\GameplayActors</Filter>
+    </ClInclude>
+    <ClInclude Include="discord.h">
+      <Filter>Reboot\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

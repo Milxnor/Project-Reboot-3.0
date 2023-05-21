@@ -255,4 +255,4 @@ FORCEINLINE static ValueType PickWeightedElement(const std::unordered_map<KeyTyp
 	return ValueType();
 }
 
-std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int ForcedLootTier = -1, bool bPrint = false, int recursive = 0);
+std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int ForcedLootTier = -1, bool bPrint = false, int recursive = 0, bool bCombineDrops = true);
