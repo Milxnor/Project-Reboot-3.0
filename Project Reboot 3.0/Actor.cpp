@@ -105,6 +105,15 @@ FVector AActor::GetActorLocation()
 	return ret;
 }
 
+FVector AActor::GetActorForwardVector()
+{
+	static auto GetActorForwardVectorFn = FindObject<UFunction>("/Script/Engine.Actor.GetActorForwardVector");
+	FVector ret;
+	this->ProcessEvent(GetActorForwardVectorFn, &ret);
+
+	return ret;
+}
+
 FVector AActor::GetActorRightVector()
 {
 	static auto GetActorRightVectorFn = FindObject<UFunction>("/Script/Engine.Actor.GetActorRightVector");
