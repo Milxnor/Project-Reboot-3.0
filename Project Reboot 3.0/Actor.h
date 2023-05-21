@@ -27,6 +27,7 @@ public:
 	AActor* GetOwner();
 	struct FVector GetActorScale3D();
 	struct FVector GetActorLocation();
+	struct FVector GetActorForwardVector();
 	struct FVector GetActorRightVector();
 	struct FVector GetActorUpVector();
 	void K2_DestroyActor();
