@@ -49,6 +49,9 @@ inline void SendMessageToConsole(AFortPlayerController* PlayerController, const 
 
 void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 {
+	if (!Msg.Data.Data || Msg.Data.Num() <= 0)
+		return;
+
 	auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
 
 	// std::cout << "aa!\n";
