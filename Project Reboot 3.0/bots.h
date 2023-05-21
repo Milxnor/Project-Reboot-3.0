@@ -42,11 +42,8 @@ public:
 
 		static auto FortAthenaAIBotControllerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAIBotController");
 
-		FActorSpawnParameters PawnSpawnParameters{};
-		PawnSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 		Controller = GetWorld()->SpawnActor<AController>(ControllerClass);
-		AFortPlayerPawnAthena* Pawn = GetWorld()->SpawnActor<AFortPlayerPawnAthena>(PawnClass, SpawnTransform, PawnSpawnParameters);
+		AFortPlayerPawnAthena* Pawn = GetWorld()->SpawnActor<AFortPlayerPawnAthena>(PawnClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn));
 		AFortPlayerStateAthena* PlayerState = Cast<AFortPlayerStateAthena>(Controller->GetPlayerState());
 
 		if (!Pawn || !PlayerState)
@@ -126,14 +123,10 @@ public:
 			return;
 		}
 
-		FActorSpawnParameters InventorySpawnParameters{};
-		InventorySpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		InventorySpawnParameters.Owner = Controller;
-
 		FTransform InventorySpawnTransform{};
 
 		static auto FortInventoryClass = FindObject<UClass>("/Script/FortniteGame.FortInventory"); // AFortInventory::StaticClass()
-		*Inventory = GetWorld()->SpawnActor<AFortInventory>(FortInventoryClass, InventorySpawnTransform, InventorySpawnParameters);
+		*Inventory = GetWorld()->SpawnActor<AFortInventory>(FortInventoryClass, InventorySpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AlwaysSpawn, false, Controller));
 
 		if (!*Inventory)
 		{

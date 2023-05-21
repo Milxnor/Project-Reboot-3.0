@@ -30,6 +30,8 @@ enum class EFortItemEntryState : uint8_t // this changes but its fineee
 	EFortItemEntryState_MAX = 15
 };
 
+#define MAX_DURABILITY 0x3F800000
+
 struct FFortItemEntryStateValue
 {
 	static UStruct* GetStruct()
@@ -189,7 +191,7 @@ struct FFortItemEntry : FFastArraySerializerItem
 		return StructSize;
 	}
 
-	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0, float Durability = 0x3F800000);
+	static FFortItemEntry* MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count = 1, int LoadedAmmo = 0, float Durability = MAX_DURABILITY, int Level = 0);
 
 	// We need to find a better way for below... Especially since we can't do either method for season 5 or 6.
 

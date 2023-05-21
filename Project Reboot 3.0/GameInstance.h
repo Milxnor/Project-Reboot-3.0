@@ -4,8 +4,7 @@
 
 #include "TimerManager.h"
 
-class UGameInstance :
-    public UObject
+class UGameInstance : public UObject
 {
 public:
     inline FTimerManager& GetTimerManager() const 

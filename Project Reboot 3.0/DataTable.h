@@ -1,8 +1,14 @@
 #pragma once
 
 #include "Object.h"
+#include "reboot.h"
 
 #include "Map.h"
+
+struct FTableRowBase
+{
+	unsigned char                                      UnknownData00[0x8]; // this is actually structural padding
+};
 
 class UDataTable : public UObject
 {
@@ -17,7 +23,7 @@ public:
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/Engine.DataTable");
+		static auto Class = FindObject<UClass>(L"/Script/Engine.DataTable");
 		return Class;
 	}
 };

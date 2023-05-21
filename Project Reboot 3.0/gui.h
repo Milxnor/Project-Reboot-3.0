@@ -39,6 +39,7 @@
 #include "events.h"
 #include "FortAthenaMutator_Heist.h"
 #include "BGA.h"
+#include "vendingmachine.h"
 
 #define GAME_TAB 1
 #define PLAYERS_TAB 2

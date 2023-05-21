@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FortItemDefinition.h"
+#include "FortLootLevel.h"
 
 enum class EWorldItemDropBehavior : uint8_t
 {
@@ -8,6 +9,16 @@ enum class EWorldItemDropBehavior : uint8_t
 	DestroyOnDrop = 1,
 	DropAsPickupDestroyOnEmpty = 2,
 	EWorldItemDropBehavior_MAX = 3
+};
+
+struct FFortLootLevelData : public FTableRowBase
+{
+public:
+	FName                                  Category;                                          // 0x8(0x8)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int32                                        LootLevel;                                         // 0x10(0x4)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int32                                        MinItemLevel;                                      // 0x14(0x4)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int32                                        MaxItemLevel;                                      // 0x18(0x4)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	uint8                                        Pad_B94[0x4];                                      // Fixing Size Of Struct [ Dumper-7 ]
 };
 
 class UFortWorldItemDefinition : public UFortItemDefinition
@@ -24,6 +35,42 @@ public:
 	{
 		static auto DropCountOffset = GetOffset("DropCount");
 		return Get<int>(DropCountOffset);
+	}
+
+	int PickLevel(int PreferredLevel) // well min level and maxlevel is sometimes in ufortowrlditemdeifnit9 then on older versions ufortitemdefinitoj so idk wher tyo put this
+	{
+		static auto MinLevelOffset = GetOffset("MinLevel");
+		static auto MaxLevelOffset = GetOffset("MaxLevel");
+
+		const int MinLevel = Get<int>(MinLevelOffset);
+		const int MaxLevel = Get<int>(MaxLevelOffset);
+
+		int PickedLevel = 0;
+
+		if (PreferredLevel >= MinLevel)
+			PickedLevel = PreferredLevel;
+
+		if (MaxLevel >= 0)
+		{
+			if (PickedLevel <= MaxLevel)
+				return PickedLevel;
+			return MaxLevel;
+		}
+
+		return PickedLevel;
+	}
+
+	FDataTableCategoryHandle& GetLootLevelData()
+	{
+		static auto LootLevelDataOffset = GetOffset("LootLevelData");
+		return Get<FDataTableCategoryHandle>(LootLevelDataOffset);
+	}
+
+	int GetFinalLevel(int WorldLevel)
+	{
+		auto ItemLevel = UFortLootLevel::GetItemLevel(GetLootLevelData(), WorldLevel);
+
+		return PickLevel(ItemLevel >= 0 ? ItemLevel : 0);
 	}
 
 	EWorldItemDropBehavior& GetDropBehavior()
@@ -85,7 +132,7 @@ public:
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortWorldItemDefinition");
+		static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortWorldItemDefinition");
 		return Class;
 	}
 };

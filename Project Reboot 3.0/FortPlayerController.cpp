@@ -592,7 +592,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 			auto Entry = ItemCollection->GetOutputItemEntry()->AtPtr(z, FFortItemEntry::GetStructSize());
 
 			PickupCreateData CreateData;
-			CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(Entry->GetItemDefinition(), Entry->GetCount(), Entry->GetLoadedAmmo());
+			CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(Entry->GetItemDefinition(), Entry->GetCount(), Entry->GetLoadedAmmo(), MAX_DURABILITY, Entry->GetLevel());
 			CreateData.SpawnLocation = LocationToSpawnLoot;
 			CreateData.PawnOwner = PlayerController->GetMyFortPawn(); // hmm
 			CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
@@ -627,9 +627,6 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	if (Engine_Version < 424 && !Globals::bLateGame.load())
 		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 
-	if (Fortnite_Version == 17.30 && Globals::bGoingToPlayEvent)
-		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation); // We want to be teleported back to the UFO but we dont use chooseplayerstart
-
 	if (!PlayerController)
 		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 
@@ -637,32 +634,57 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 		// return;
 
 	auto GameMode = (AFortGameModeAthena*)GetWorld()->GetGameMode();
-	auto GameState = GameMode->GetGameStateAthena();
 
-	AActor* AircraftToJumpFrom = nullptr;
-
-	static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
-
-	if (AircraftsOffset == -1)
+	if (false)
 	{
-		static auto AircraftOffset = GameState->GetOffset("Aircraft");
-		AircraftToJumpFrom = GameState->Get<AActor*>(AircraftOffset);
+		auto GameState = GameMode->GetGameStateAthena();
+
+		AActor* AircraftToJumpFrom = nullptr;
+
+		static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
+
+		if (AircraftsOffset == -1)
+		{
+			static auto AircraftOffset = GameState->GetOffset("Aircraft");
+			AircraftToJumpFrom = GameState->Get<AActor*>(AircraftOffset);
+		}
+		else
+		{
+			auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
+			AircraftToJumpFrom = Aircrafts->Num() > 0 ? Aircrafts->at(0) : nullptr;
+		}
+
+		if (!AircraftToJumpFrom)
+			return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
+
+		auto NewPawn = GameMode->SpawnDefaultPawnForHook(GameMode, (AController*)PlayerController, AircraftToJumpFrom);
+		PlayerController->Possess(NewPawn);
 	}
 	else
 	{
-		auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
-		AircraftToJumpFrom = Aircrafts->Num() > 0 ? Aircrafts->at(0) : nullptr;
+		if (false)
+		{
+			// honestly idk why this doesnt work
+
+			auto NAME_Inactive = UKismetStringLibrary::Conv_StringToName(L"NAME_Inactive");
+
+			LOG_INFO(LogDev, "name Comp: {}", NAME_Inactive.ComparisonIndex.Value);
+
+			PlayerController->GetStateName() = NAME_Inactive;
+			PlayerController->SetPlayerIsWaiting(true);
+			PlayerController->ServerRestartPlayer();
+		}
+		else
+		{
+			GameMode->RestartPlayer(PlayerController);
+		}
+
+		// we are supposed to do some skydivign stuff here but whatever
 	}
 
-	if (!AircraftToJumpFrom)
-		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
+	auto NewPawnAsFort = PlayerController->GetMyFortPawn();
 
-	auto NewPawn = GameMode->SpawnDefaultPawnForHook(GameMode, (AController*)PlayerController, AircraftToJumpFrom);
-	PlayerController->Possess(NewPawn);
-
-	auto NewPawnAsFort = Cast<AFortPawn>(NewPawn);
-
-	if (Fortnite_Version >= 18)
+	if (Fortnite_Version >= 18) // TODO (Milxnor) Find a better fix and move this
 	{
 		static auto StormEffectClass = FindObject<UClass>(L"/Game/Athena/SafeZone/GE_OutsideSafeZoneDamage.GE_OutsideSafeZoneDamage_C");
 		auto PlayerState = PlayerController->GetPlayerStateAthena();
@@ -671,7 +693,7 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 
 	if (NewPawnAsFort)
 	{
-		NewPawnAsFort->SetHealth(100);
+		NewPawnAsFort->SetHealth(100); // needed with server restart player?
 		
 		if (Globals::bLateGame)
 			NewPawnAsFort->SetShield(100);
@@ -907,9 +929,7 @@ AActor* AFortPlayerController::SpawnToyInstanceHook(UObject* Context, FFrame* St
 	if (!ToyClass)
 		return nullptr;
 
-	FActorSpawnParameters SpawnParameters{};
-	SpawnParameters.Owner = PlayerController;
-	auto NewToy = GetWorld()->SpawnActor<AActor>(ToyClass, SpawnPosition, SpawnParameters);
+	auto NewToy = GetWorld()->SpawnActor<AActor>(ToyClass, SpawnPosition, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, false, PlayerController));
 
 	static auto ActiveToyInstancesOffset = PlayerController->GetOffset("ActiveToyInstances");
 	auto& ActiveToyInstances = PlayerController->Get<TArray<AActor*>>(ActiveToyInstancesOffset);

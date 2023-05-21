@@ -89,9 +89,11 @@ public:
 	}
 };
 
+extern inline int NumElementsPerChunk = 0x10000;
+
 class FChunkedFixedUObjectArray
 {
-	enum { NumElementsPerChunk = 64 * 1024, };
+	// enum { NumElementsPerChunk = 64 * 1024, };
 
 	FUObjectItem** Objects;
 	FUObjectItem* PreAllocatedObjects;

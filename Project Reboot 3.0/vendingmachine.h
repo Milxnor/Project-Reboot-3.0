@@ -90,8 +90,8 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 	auto StoneName = UKismetStringLibrary::Conv_StringToName(L"Default.VendingMachine.Cost.Stone");
 	auto MetalName = UKismetStringLibrary::Conv_StringToName(L"Default.VendingMachine.Cost.Metal");
 
-	static auto StoneItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
-	static auto MetalItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+	static auto StoneItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+	static auto MetalItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
 
 	// TODO: Pull prices from datatables.
 
@@ -124,10 +124,14 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 		constexpr bool bPrint = false;
 
-		std::vector<LootDrop> LootDrops = PickLootDrops(LootTierGroup, LootTier, bPrint);
+		std::vector<LootDrop> LootDrops = PickLootDrops(LootTierGroup, GameState->GetWorldLevel(), LootTier, bPrint);
 
 		if (LootDrops.size() == 0)
+		{
+			// LOG_WARN(LogGame, "Failed to find LootDrops for vending machine loot tier: {}", LootTier);
+			// ItemCollectorIt--; // retry (?)
 			continue;
+		}
 
 		for (int LootDropIt = 0; LootDropIt < LootDrops.size(); LootDropIt++)
 		{
@@ -168,7 +172,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 
 		for (int LootDropIt = 0; LootDropIt < LootDrops.size(); LootDropIt++)
 		{
-			auto ItemEntry = FFortItemEntry::MakeItemEntry(LootDrops[LootDropIt]->GetItemDefinition(), LootDrops[LootDropIt]->GetCount(), LootDrops[LootDropIt]->GetLoadedAmmo());
+			auto ItemEntry = LootDrops[LootDropIt].ItemEntry; // FFortItemEntry::MakeItemEntry(LootDrops[LootDropIt]->GetItemDefinition(), LootDrops[LootDropIt]->GetCount(), LootDrops[LootDropIt]->GetLoadedAmmo(), MAX_DURABILITY, LootDrops[LootDropIt]->GetLevel());
 
 			if (!ItemEntry)
 				continue;
@@ -202,7 +206,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 	if (StartingGoalLevelOffset != -1)
 		ItemCollector->Get<int32>(StartingGoalLevelOffset) = LootTier;
 
-	static auto VendingMachineClass = FindObject<UClass>("/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C");
+	static auto VendingMachineClass = FindObject<UClass>(L"/Game/Athena/Items/Gameplay/VendingMachine/B_Athena_VendingMachine.B_Athena_VendingMachine_C");
 
 	if (ItemCollector->IsA(VendingMachineClass))
 	{
@@ -274,7 +278,19 @@ static inline void FillVendingMachines()
 			continue;
 		}
 
-		FillItemCollector(VendingMachine, OverrideLootTierGroup, Out - 1, true, true);
+		/*
+		
+		LOOT LEVELS:
+
+		0 - Common
+		1 - Uncommon
+		2 - Rare
+		3 - Epic
+		4 - Legendary
+
+		*/
+
+		FillItemCollector(VendingMachine, OverrideLootTierGroup, true, Out - 1);
 	}
 
 	auto AllVendingMachinesNum = AllVendingMachines.Num();

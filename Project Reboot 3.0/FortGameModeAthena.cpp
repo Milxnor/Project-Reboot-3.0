@@ -652,6 +652,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		GetWorld()->Listen();
 
+		LOG_INFO(LogNet, "WorldLevel {}", GameState->GetWorldLevel());
+
 		if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
 		{
 			TeamsArrayContainer->TeamIndexesArray.Free();
@@ -889,6 +891,8 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		bShouldSpreadTeams = bIsLargeTeamGame;
 	}
 
+	// bShouldSpreadTeams = true;
+
 	static int CurrentTeamMembers = 0; // bad
 	static int Current = DefaultFirstTeam;
 	static int NextTeamIndex = DefaultFirstTeam;
@@ -986,11 +990,14 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 	{
 		if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
 		{
-			auto& TeamArray = TeamsArrayContainer->TeamsArray.at(NextTeamIndex);
+			TArray<TWeakObjectPtr<AFortPlayerStateAthena>>* TeamArray = TeamsArrayContainer->TeamsArray.IsValidIndex(NextTeamIndex) ? TeamsArrayContainer->TeamsArray.AtPtr(NextTeamIndex) : nullptr;
 			LOG_INFO(LogDev, "TeamsArrayContainer->TeamsArray.Num(): {}", TeamsArrayContainer->TeamsArray.Num());
-			LOG_INFO(LogDev, "TeamArray.Num(): {}", TeamArray.Num());
 
-			TeamArray.Add(WeakPlayerState);
+			if (TeamArray)
+			{
+				LOG_INFO(LogDev, "TeamArray.Num(): {}", TeamArray->Num());
+				TeamArray->Add(WeakPlayerState);
+			}
 		}
 	}
 
@@ -1130,13 +1137,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				auto Location = CurrentActor->GetActorLocation();
 				Location.Z += UpZ;
 
-				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, -1, bPrintWarmup);
+				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, GameState->GetWorldLevel(), -1, bPrintWarmup);
 
 				for (auto& LootDrop : LootDrops)
 				{
 					PickupCreateData CreateData;
 					CreateData.bToss = true;
-					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
+					CreateData.ItemEntry = LootDrop.ItemEntry;
 					CreateData.SpawnLocation = Location;
 					CreateData.SourceType = SpawnFlag;
 					CreateData.bRandomRotation = true;
@@ -1160,13 +1167,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				auto Location = CurrentActor->GetActorLocation();
 				Location.Z += UpZ;
 
-				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, -1, bPrint);
+				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, GameState->GetWorldLevel(), -1, bPrint);
 
 				for (auto& LootDrop : LootDrops)
 				{
 					PickupCreateData CreateData;
 					CreateData.bToss = true;
-					CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(LootDrop->GetItemDefinition(), LootDrop->GetCount(), LootDrop->GetLoadedAmmo());
+					CreateData.ItemEntry = LootDrop.ItemEntry;
 					CreateData.SpawnLocation = Location;
 					CreateData.SourceType = SpawnFlag;
 					CreateData.bRandomRotation = true;

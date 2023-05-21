@@ -129,9 +129,6 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 	SpawnTransform.Rotation = VehicleSpawner->GetActorRotation().Quaternion();
 	SpawnTransform.Scale3D = { 1, 1, 1 };
 
-	FActorSpawnParameters SpawnParameters{};
-	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 	static auto VehicleClassOffset = VehicleSpawner->GetOffset("VehicleClass", false);
 	static auto BGAClass = FindObject<UClass>("/Script/Engine.BlueprintGeneratedClass");
 
@@ -147,7 +144,7 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 			return nullptr;
 		}
 
-		return GetWorld()->SpawnActor<AActor>(StrongVehicleClass, SpawnTransform, SpawnParameters);
+		return GetWorld()->SpawnActor<AActor>(StrongVehicleClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn));
 	}
 
 	static auto FortVehicleItemDefOffset = VehicleSpawner->GetOffset("FortVehicleItemDef");
@@ -176,12 +173,12 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 		return nullptr;
 	}
 
-	return GetWorld()->SpawnActor<AActor>(StrongVehicleActorClass, SpawnTransform, SpawnParameters);
+	return GetWorld()->SpawnActor<AActor>(StrongVehicleActorClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn));
 }
 
 static inline void SpawnVehicles2()
 {
-	static auto FortAthenaVehicleSpawnerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaVehicleSpawner");
+	static auto FortAthenaVehicleSpawnerClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaVehicleSpawner");
 	TArray<AActor*> AllVehicleSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaVehicleSpawnerClass);
 
 	int AmountOfVehiclesSpawned = 0;

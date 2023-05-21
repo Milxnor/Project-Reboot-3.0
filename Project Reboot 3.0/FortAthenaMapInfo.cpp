@@ -63,11 +63,8 @@ void AFortAthenaMapInfo::SpawnLlamas()
 		InitialSpawnTransform.Rotation = RandomYawRotator.Quaternion();
 		InitialSpawnTransform.Scale3D = FVector(1, 1, 1);
 
-		FActorSpawnParameters SpawnParameters{};
-		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		SpawnParameters.bDeferConstruction = true;
-
-		auto LlamaStart = GetWorld()->SpawnActor<AFortAthenaSupplyDrop>(GetLlamaClass(), InitialSpawnTransform, SpawnParameters);
+		auto LlamaStart = GetWorld()->SpawnActor<AFortAthenaSupplyDrop>(GetLlamaClass(), InitialSpawnTransform, 
+			CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, true));
 	
 		// LOG_INFO(LogDev, "LlamaStart: {}", __int64(LlamaStart));
 

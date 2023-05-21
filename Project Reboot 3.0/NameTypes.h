@@ -9,12 +9,29 @@ struct FNameEntryId
 	FNameEntryId() : Value(0) {}
 
 	FNameEntryId(uint32 value) : Value(value) {}
+
+	bool operator<(FNameEntryId Rhs) const { return Value < Rhs.Value; }
+	bool operator>(FNameEntryId Rhs) const { return Rhs.Value < Value; }
+	bool operator==(FNameEntryId Rhs) const { return Value == Rhs.Value; }
+	bool operator!=(FNameEntryId Rhs) const { return Value != Rhs.Value; }
 };
+
+#define WITH_CASE_PRESERVING_NAME 1 // ??
 
 struct FName
 {
 	FNameEntryId ComparisonIndex;
 	uint32 Number;
+
+	FORCEINLINE int32 GetNumber() const
+	{
+		return Number;
+	}
+
+	FORCEINLINE FNameEntryId GetComparisonIndexFast() const
+	{
+		return ComparisonIndex;
+	}
 
 	std::string ToString() const;
 	std::string ToString();
@@ -23,15 +40,36 @@ struct FName
 
 	FName(uint32 Value) : ComparisonIndex(Value), Number(0) {}
 
-	bool IsValid() { return ComparisonIndex.Value > 0; }
+	bool IsValid() { return ComparisonIndex.Value > 0; } // for real
 
-	bool operator==(FName other)
+	FORCEINLINE bool operator==(const FName& Other) const // HMM??
 	{
-		return ComparisonIndex.Value == other.ComparisonIndex.Value;
+#if WITH_CASE_PRESERVING_NAME
+		return GetComparisonIndexFast() == Other.GetComparisonIndexFast() && GetNumber() == Other.GetNumber();
+#else
+		// static_assert(sizeof(CompositeComparisonValue) == sizeof(*this), "ComparisonValue does not cover the entire FName state");
+		// return CompositeComparisonValue == Other.CompositeComparisonValue;
+#endif
 	}
 
-	bool operator<(FName Other) const
+	int32 Compare(const FName& Other) const;
+
+	/* FORCEINLINE bool operator<(const FName& Other) const
 	{
-		return this->ComparisonIndex.Value < Other.ComparisonIndex.Value;
+		return Compare(Other) < 0;
+	} */
+
+	FORCEINLINE bool operator<(const FName& Other) const
+	{
+		return GetComparisonIndexFast() < Other.GetComparisonIndexFast();
+
+		// (Milxnor) BRO IDK
+
+		if (GetComparisonIndexFast() == Other.GetComparisonIndexFast())
+		{
+			return GetNumber() - Other.GetNumber();
+		}
+
+		return GetComparisonIndexFast() < Other.GetComparisonIndexFast();
 	}
 };

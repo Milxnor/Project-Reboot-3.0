@@ -43,7 +43,7 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 		static auto SpawnLootTierGroupOffset = BGAConsumableSpawner->GetOffset("SpawnLootTierGroup");
 		auto& SpawnLootTierGroup = BGAConsumableSpawner->Get<FName>(SpawnLootTierGroupOffset);
 
-		auto LootDrops = PickLootDrops(SpawnLootTierGroup);
+		auto LootDrops = PickLootDrops(SpawnLootTierGroup, GameState->GetWorldLevel());
 
 		for (int z = 0; z < LootDrops.size(); z++)
 		{
@@ -63,11 +63,7 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 
 			bool bDeferConstruction = true; // hm?
 
-			FActorSpawnParameters SpawnParameters{};
-			// SpawnParameters.ObjectFlags = RF_Transactional; // idk fortnite does this i think // i think its acutally suppsoed to be |= RF_Transient
-			SpawnParameters.bDeferConstruction = bDeferConstruction;
-
-			auto ConsumableActor = GetWorld()->SpawnActor<ABuildingGameplayActor>(StrongConsumableClass, SpawnTransform, SpawnParameters);
+			auto ConsumableActor = GetWorld()->SpawnActor<ABuildingGameplayActor>(StrongConsumableClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, bDeferConstruction));
 
 			if (ConsumableActor)
 			{

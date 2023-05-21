@@ -217,6 +217,7 @@
     <ClCompile Include="FortItem.cpp" />
     <ClCompile Include="FortItemDefinition.cpp" />
     <ClCompile Include="FortKismetLibrary.cpp" />
+    <ClCompile Include="FortLootLevel.cpp" />
     <ClCompile Include="FortLootPackage.cpp" />
     <ClCompile Include="FortMinigame.cpp" />
     <ClCompile Include="FortOctopusVehicle.cpp" />

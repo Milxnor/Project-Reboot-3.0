@@ -6,6 +6,7 @@
 #include "UObjectArray.h"
 #include "GameplayTagContainer.h"
 #include "FortGameModeAthena.h"
+#include "FortLootLevel.h"
 
 struct FFortGameFeatureLootTableData
 {
@@ -13,8 +14,10 @@ struct FFortGameFeatureLootTableData
     TSoftObjectPtr<UDataTable> LootPackageData;
 };
 
+#define LOOTING_MAP_TYPE std::map // uhhh // TODO (Milxnor) switch bad to map
+
 template <typename RowStructType = uint8>
-void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, std::map<FName, RowStructType*>* OutMap, std::function<bool(FName, RowStructType*)> Check = []() { return true; })
+void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, LOOTING_MAP_TYPE<FName, RowStructType*>* OutMap, std::function<bool(FName, RowStructType*)> Check = []() { return true; })
 {
     std::vector<UDataTable*> DataTablesToIterate;
 
@@ -32,8 +35,8 @@ void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, std::map<
         {
             auto CompositeDataTable = DataTable;
 
-            static auto ParentTablesOffset = DataTable->GetOffset("ParentTables");
-            auto& ParentTables = DataTable->Get<TArray<UDataTable*>>(ParentTablesOffset);
+            static auto ParentTablesOffset = CompositeDataTable->GetOffset("ParentTables");
+            auto& ParentTables = CompositeDataTable->Get<TArray<UDataTable*>>(ParentTablesOffset);
 
             for (int i = 0; i < ParentTables.Num(); i++)
             {
@@ -49,14 +52,12 @@ void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, std::map<
         for (auto& CurrentPair : CurrentDataTable->GetRowMap())
         {
             if (Check(CurrentPair.Key(), (RowStructType*)CurrentPair.Value()))
+            {
+                // LOG_INFO(LogDev, "row: {} comp {} num: {} passed check!", CurrentPair.Key().ToString(), CurrentPair.Key().ComparisonIndex.Value, CurrentPair.Key().Number);
                 (*OutMap)[CurrentPair.Key()] = (RowStructType*)CurrentPair.Value();
+            }
         }
     }
-}
-
-int GetItemLevel(const FDataTableCategoryHandle& LootLevelData, int WorldLevel)
-{
-    return 0;
 }
 
 float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int OriginalNumberLootDrops)
@@ -145,7 +146,7 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
     std::vector<FFortItemEntry> ItemEntries;
 }; */
 
-FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int WorldLevel = 0, int ForcedLootTier = -1, FName* OutRowName = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
+FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int ForcedLootTier = -1, FName* OutRowName = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
 {
     // This like isn't right, at all.
 
@@ -153,45 +154,47 @@ FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, F
 
     if (LootTier == -1)
     {
-        // LootTier = 0;
+        // LootTier = ??
     }
     else
     {
         // buncha code im too lazy to reverse
     }
 
-    // IDIakuuyg8712u091fj120gvik
-
     // if (fabs(LootTier) <= 0.0000000099999999)
       //  return 0;
 
-    std::map<FName, FFortLootTierData*> TierGroupLTDs;
+    int Multiplier = 1; // LootTier == -1 ? 1 : 1 LootTier // Idk i think we need to fill out the code above for this to work properly
+
+    LOOTING_MAP_TYPE<FName, FFortLootTierData*> TierGroupLTDs;
 
     CollectDataTablesRows<FFortLootTierData>(LTDTables, &TierGroupLTDs, [&](FName RowName, FFortLootTierData* TierData) -> bool {
-        if (LootTierGroup == TierData->GetTierGroup() && (LootTier == -1 ? true : LootTier == TierData->GetLootTier()))
+        if (LootTierGroup == TierData->GetTierGroup())
         {
-            return true;
+            if ((LootTier == -1 ? true : LootTier == TierData->GetLootTier()))
+            {
+                return true;
+            }
         }
 
         return false;
         });
 
+    // LOG_INFO(LogDev, "TierGroupLTDs.size(): {}", TierGroupLTDs.size());
+
     FFortLootTierData* ChosenRowLootTierData = PickWeightedElement<FName, FFortLootTierData*>(TierGroupLTDs,
         [](FFortLootTierData* LootTierData) -> float { return LootTierData->GetWeight(); }, RandomFloatForLoot, -1,
-        true, LootTier == -1 ? 1 : LootTier, OutRowName);
-
-    if (!ChosenRowLootTierData)
-        return nullptr;
+        true, Multiplier, OutRowName);
 
     return ChosenRowLootTierData;
 }
 
-void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, const FName& LootPackageName, std::vector<LootDrop>* OutEntries, int LootPackageCategory = -1, bool bPrint = false)
+void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, const FName& LootPackageName, std::vector<LootDrop>* OutEntries, int LootPackageCategory = -1, int WorldLevel = 0, bool bPrint = false)
 {
     if (!OutEntries)
         return;
 
-    std::map<FName, FFortLootPackageData*> LootPackageIDMap;
+    LOOTING_MAP_TYPE<FName, FFortLootPackageData*> LootPackageIDMap;
 
     CollectDataTablesRows<FFortLootPackageData>(LPTables, &LootPackageIDMap, [&](FName RowName, FFortLootPackageData* LootPackage) -> bool {
         if (LootPackage->GetLootPackageID() != LootPackageName)
@@ -204,14 +207,14 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
             return false;
         }
 
-        /* if (WorldLevel >= 0)
+        if (WorldLevel >= 0)
         {
-            if (LootPackage->MaxWorldLevel >= 0 && WorldLevel > LootPackage->MaxWorldLevel)
+            if (LootPackage->GetMaxWorldLevel() >= 0 && WorldLevel > LootPackage->GetMaxWorldLevel())
                 return 0;
 
-            if (LootPackage->MinWorldLevel >= 0 && WorldLevel < LootPackage->MinWorldLevel)
+            if (LootPackage->GetMinWorldLevel() >= 0 && WorldLevel < LootPackage->GetMinWorldLevel())
                 return 0;
-        } */
+        }
 
         return true;
         });
@@ -245,7 +248,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
                 
                 PickLootDropsFromLootPackage(LPTables,
                     PickedPackage->GetLootPackageCall().Data.Data ? UKismetStringLibrary::Conv_StringToName(PickedPackage->GetLootPackageCall()) : FName(0),
-                    OutEntries, LootPackageCategoryToUseForLPCall, bPrint
+                    OutEntries, LootPackageCategoryToUseForLPCall, WorldLevel, bPrint
                 );
 
                 v9++;
@@ -262,16 +265,16 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
         LOG_INFO(LogLoot, "Loot Package {} does not contain a LootPackageCall or ItemDefinition.", PickedPackage->GetLootPackageID().ToString());
         return;
     }
-
-    int ItemLevel = 0;
-
+    
     auto WeaponItemDefinition = Cast<UFortWeaponItemDefinition>(ItemDefinition);
     int LoadedAmmo = WeaponItemDefinition ? WeaponItemDefinition->GetClipSize() : 0; // we shouldnt set loaded ammo here techinally
 
-    if (auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemDefinition))
-    {
-        ItemLevel = 0; // GetItemLevel(WorldItemDefinition->LootLevelData, 0);
-    }
+    auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemDefinition);
+
+    if (!WorldItemDefinition) // hahahah not proper!!
+        return;
+
+    int ItemLevel = UFortLootLevel::GetItemLevel(WorldItemDefinition->GetLootLevelData(), WorldLevel);
 
     int CountMultiplier = 1;
     int FinalCount = CountMultiplier * PickedPackage->GetCount();
@@ -285,9 +288,19 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
 
         while (FinalCount > 0)
         {
-            int CurrentCountForEntry = PickedPackage->GetCount(); // Idk calls some itemdefinition vfunc
+            int MaxStackSize = ItemDefinition->GetMaxStackSize();
 
-            OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(ItemDefinition, CurrentCountForEntry, LoadedAmmo)));
+            int CurrentCountForEntry = MaxStackSize;
+
+            if (FinalCount <= MaxStackSize)
+                CurrentCountForEntry = FinalCount;
+
+            if (CurrentCountForEntry <= 0)
+                CurrentCountForEntry = 0;
+
+            auto ActualItemLevel = WorldItemDefinition->PickLevel(FinalItemLevel);
+
+            OutEntries->push_back(LootDrop(FFortItemEntry::MakeItemEntry(ItemDefinition, CurrentCountForEntry, LoadedAmmo, 0x3F800000, ActualItemLevel)));
 
             if (Engine_Version >= 424)
             {
@@ -328,7 +341,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
 
 // #define brudda
 
-std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, bool bPrint, int recursive)
+std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int ForcedLootTier, bool bPrint, int recursive)
 {
     std::vector<LootDrop> LootDrops;
 
@@ -636,10 +649,11 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, boo
     }
     
     FName LootTierRowName;
-    auto ChosenRowLootTierData = PickLootTierData(LTDTables, TierGroupName, 0, ForcedLootTier, &LootTierRowName);
+    auto ChosenRowLootTierData = PickLootTierData(LTDTables, TierGroupName, ForcedLootTier, &LootTierRowName);
 
     if (!ChosenRowLootTierData)
     {
+        LOG_INFO(LogLoot, "Failed to find LootTierData row for {} with loot tier {}", TierGroupName.ToString(), ForcedLootTier);
         return LootDrops;
     }
     else if (bPrint)
@@ -690,7 +704,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int ForcedLootTier, boo
 
                 int LootPackageCategory = i;
 
-                PickLootDropsFromLootPackage(LPTables, ChosenRowLootTierData->GetLootPackage(), &LootDrops, LootPackageCategory, bPrint);
+                PickLootDropsFromLootPackage(LPTables, ChosenRowLootTierData->GetLootPackage(), &LootDrops, LootPackageCategory, WorldLevel, bPrint);
             }
         }
     }

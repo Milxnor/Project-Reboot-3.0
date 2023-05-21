@@ -25,7 +25,7 @@ void FFortItemEntry::SetStateValue(EFortItemEntryState StateType, int IntValue)
 	// ItemEntry->bIsDirty = true;
 }
 
-FFortItemEntry* FFortItemEntry::MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count, int LoadedAmmo, float Durability)
+FFortItemEntry* FFortItemEntry::MakeItemEntry(UFortItemDefinition* ItemDefinition, int Count, int LoadedAmmo, float Durability, int Level)
 {
 	auto Entry = Alloc<FFortItemEntry>(GetStructSize(), bUseFMemoryRealloc);
 
@@ -50,6 +50,7 @@ FFortItemEntry* FFortItemEntry::MakeItemEntry(UFortItemDefinition* ItemDefinitio
 	Entry->GetDurability() = Durability;
 	Entry->GetGameplayAbilitySpecHandle() = FGameplayAbilitySpecHandle(-1);
 	Entry->GetParentInventory().ObjectIndex = -1;
+	Entry->GetLevel() = Level;
 	// We want to add StateValues.Add(DurabilityInitialized); orwnatefc erwgearf yk
 	// CoCreateGuid((GUID*)&Entry->GetItemGuid());
 	// Entry->DoesUpdateStatsOnCollection() = true; // I think fortnite does this?

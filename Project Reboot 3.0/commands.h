@@ -14,12 +14,13 @@
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
-	auto IP = PlayerState->GetPtr<FString>("SavedNetworkAddress");
+	static auto SavedNetworkAddressOffset = PlayerState->GetOffset("SavedNetworkAddress");
+	auto IP = PlayerState->GetPtr<FString>(SavedNetworkAddressOffset);
 	auto IPStr = IP->ToString();
 
 	// std::cout << "IPStr: " << IPStr << '\n';
 
-	if (IPStr == "127.0.0.1" || IPStr == "68.134.74.228" || IPStr == "26.66.97.190" || IPStr == "68.134.74.228") // || IsOp(PlayerController))
+	if (IPStr == "127.0.0.1" || IPStr == "68.134.74.228" || IPStr == "26.66.97.190") // || IsOp(PlayerController))
 	{
 		return true;
 	}
@@ -32,7 +33,7 @@ inline void SendMessageToConsole(AFortPlayerController* PlayerController, const 
 	float MsgLifetime = 1; // unused by ue
 	FName TypeName = FName(); // auto set to "Event"
 
-	static auto ClientMessageFn = FindObject<UFunction>("/Script/Engine.PlayerController.ClientMessage");
+	static auto ClientMessageFn = FindObject<UFunction>(L"/Script/Engine.PlayerController.ClientMessage");
 	struct
 	{
 		FString                                     S;                                                        // (Parm, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
@@ -64,7 +65,10 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 	auto firstBackslash = OldMsg.find_first_of("\\");
 	auto lastBackslash = OldMsg.find_last_of("\\");
 
-	auto& ClientConnections = GetWorld()->Get("NetDriver")->Get<TArray<UObject*>>("ClientConnections");
+	static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
+	auto WorldNetDriver = GetWorld()->Get(World_NetDriverOffset);
+	static auto ClientConnectionsOffset = WorldNetDriver->GetOffset("ClientConnections");
+	auto& ClientConnections = WorldNetDriver->Get<TArray<UObject*>>(ClientConnectionsOffset);
 
 	/* if (firstBackslash == lastBackslash)
 	{
@@ -442,8 +446,10 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			auto Location = Pawn->GetActorLocation();
 
+			auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
 			PickupCreateData CreateData;
-			CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(WID, count, -1);
+			CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(WID, count, -1, MAX_DURABILITY, WID->GetFinalLevel(GameState->GetWorldLevel()));
 			CreateData.SpawnLocation = Location;
 			CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
@@ -623,12 +629,9 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 				for (int i = 0; i < Count; i++)
 				{
-					FActorSpawnParameters SpawnParameters{};
-					// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 					auto Loc = Pawn->GetActorLocation();
 					Loc.Z += 1000;
-					auto NewActor = GetWorld()->SpawnActor<AActor>(ClassObj, Loc, FQuat(), FVector(1, 1, 1), SpawnParameters);
+					auto NewActor = GetWorld()->SpawnActor<AActor>(ClassObj, Loc, FQuat(), FVector(1, 1, 1));
 
 					if (!NewActor)
 					{

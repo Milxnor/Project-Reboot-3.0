@@ -111,7 +111,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 			return std::make_pair(NewItemInstances, ModifiedItemInstances);
 
 		PickupCreateData CreateData;
-		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, Count, -1);
+		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, Count, -1, MAX_DURABILITY/* level */);
 		CreateData.SpawnLocation = Pawn->GetActorLocation();
 		CreateData.PawnOwner = Cast<AFortPawn>(Pawn);
 		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();

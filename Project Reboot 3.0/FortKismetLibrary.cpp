@@ -137,8 +137,10 @@ void UFortKismetLibrary::SpawnItemVariantPickupInWorldHook(UObject* Context, FFr
 
 	LOG_INFO(LogDev, "{} {} {}", Position.X, Position.Y, Position.Z);
 	
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
 	PickupCreateData CreateData;
-	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, ParamsPtr->GetNumberToSpawn(), -1);
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, ParamsPtr->GetNumberToSpawn(), -1, MAX_DURABILITY, ItemDefinition->GetFinalLevel(GameState->GetWorldLevel()));
 	CreateData.SourceType = ParamsPtr->GetSourceType();
 	CreateData.Source = ParamsPtr->GetSource();
 	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
@@ -172,8 +174,10 @@ bool UFortKismetLibrary::SpawnInstancedPickupInWorldHook(UObject* Context, FFram
 	Stack.StepCompiledIn(&bRandomRotation);
 	Stack.StepCompiledIn(&bBlockedFromAutoPickup);
 
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
 	PickupCreateData CreateData;
-	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1, MAX_DURABILITY, ItemDefinition->GetFinalLevel(GameState->GetWorldLevel()));
 	CreateData.SpawnLocation = Position;
 	CreateData.bToss = bToss;
 	CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
@@ -226,8 +230,10 @@ void UFortKismetLibrary::CreateTossAmmoPickupForWeaponItemDefinitionAtLocationHo
 	if (!AmmoDefinition)
 		return CreateTossAmmoPickupForWeaponItemDefinitionAtLocationOriginal(Context, Stack, Ret);
 
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
 	PickupCreateData CreateData;
-	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(AmmoDefinition, Count, 0);
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(AmmoDefinition, Count, 0, MAX_DURABILITY, AmmoDefinition->GetFinalLevel(GameState->GetWorldLevel()));
 	CreateData.SourceType = SourceTypeFlag;
 	CreateData.Source = SpawnSource;
 	CreateData.SpawnLocation = Location;
@@ -508,8 +514,10 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassHook(UObject* Con
 
 	LOG_INFO(LogDev, __FUNCTION__);
 	
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
 	PickupCreateData CreateData;
-	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1, MAX_DURABILITY, ItemDefinition->GetFinalLevel(GameState->GetWorldLevel()));
 	CreateData.Source = Source;
 	CreateData.SourceType = SourceType;
 	CreateData.OverrideClass = PickupClass;
@@ -591,8 +599,10 @@ AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFr
 
 	auto Pawn = OptionalOwnerPC ? OptionalOwnerPC->GetMyFortPawn() : nullptr;
 
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
 	PickupCreateData CreateData;
-	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1);
+	CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, NumberToSpawn, -1, MAX_DURABILITY, GameState->GetWorldLevel());
 	CreateData.SpawnLocation = Position;
 	CreateData.bToss = bToss;
 	CreateData.bRandomRotation = bRandomRotation;
@@ -628,9 +638,11 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 
 	FFortItemEntry::FreeArrayOfEntries(OutLootToDropTempBuf);
 
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
 	LOG_INFO(LogDev, "Picking loot for {}.", TierGroupName.ComparisonIndex.Value ? TierGroupName.ToString() : "InvalidName");
 
-	auto LootDrops = PickLootDrops(TierGroupName, -1, true);
+	auto LootDrops = PickLootDrops(TierGroupName, GameState->GetWorldLevel(), -1, true);
 
 	for (int i = 0; i < LootDrops.size(); i++)
 	{

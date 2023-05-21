@@ -189,7 +189,7 @@ UFunction* UObject::FindFunction(const std::string& ShortFunctionName)
 
 /* class UClass* UObject::StaticClass()
 {
-	static auto Class = FindObject<UClass>("/Script/CoreUObject.Object");
+	static auto Class = FindObject<UClass>(L"/Script/CoreUObject.Object");
 	return Class;
 } */
 
@@ -208,9 +208,6 @@ void UObject::AddToRoot()
 
 bool UObject::IsValidLowLevel()
 {
-	if (std::floor(Fortnite_Version) == 5) // real 1:1 // todo (milxnor) try without this
-		return !IsBadReadPtr(this, 8);
-
 	if (this == nullptr)
 	{
 		// UE_LOG(LogUObjectBase, Warning, TEXT("NULL object"));

@@ -8,6 +8,12 @@ public:
 	AActor* GetViewTarget();
 	void Possess(class APawn* Pawn);
 
+	FName& GetStateName()
+	{
+		static auto StateNameOffset = GetOffset("StateName");
+		return Get<FName>(StateNameOffset);
+	}
+
 	class APawn*& GetPawn()
 	{
 		static auto PawnOffset = this->GetOffset("Pawn");

@@ -14,7 +14,9 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 
 	// LOG_INFO(LogInteraction, "RedirectedLootTier: {}", RedirectedLootTier.ToString());
 
-	auto LootDrops = PickLootDrops(RedirectedLootTier, -1, bDebugPrintLooting);
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
+	auto LootDrops = PickLootDrops(RedirectedLootTier, GameState->GetWorldLevel(), -1, bDebugPrintLooting);
 
 	// LOG_INFO(LogInteraction, "LootDrops.size(): {}", LootDrops.size());
 
@@ -25,7 +27,7 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 		PickupCreateData CreateData;
 		CreateData.bToss = true;
 		// CreateData.PawnOwner = Pawn;
-		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(lootDrop->GetItemDefinition(), lootDrop->GetCount(), lootDrop->GetLoadedAmmo());
+		CreateData.ItemEntry = lootDrop.ItemEntry;
 		CreateData.SpawnLocation = LocationToSpawnLoot;
 		CreateData.SourceType = EFortPickupSourceTypeFlag::GetContainerValue();
 		CreateData.bRandomRotation = true;

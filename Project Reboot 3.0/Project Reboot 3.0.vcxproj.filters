@@ -292,6 +292,9 @@
     <ClCompile Include="ScriptDisassembler.cpp">
       <Filter>Engine\Source\Developer\ScriptDisassembler\Private</Filter>
     </ClCompile>
+    <ClCompile Include="FortLootLevel.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />

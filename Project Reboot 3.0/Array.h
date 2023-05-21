@@ -37,6 +37,8 @@ public:
 	inline InElementType& at(int i, size_t Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 	inline InElementType* AtPtr(int i, size_t Size = sizeof(InElementType)) const { return (InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 
+	bool IsValidIndex(int i) { return i > 0 && i < ArrayNum; }
+
 	ElementAllocatorType& GetData() const { return Data; }
 	ElementAllocatorType& GetData() { return Data; }
 

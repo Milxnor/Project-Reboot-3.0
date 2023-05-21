@@ -44,10 +44,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 	static auto FortPickupAthenaClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickupAthena");
 	auto PlayerState = PickupData.PawnOwner ? Cast<AFortPlayerState>(PickupData.PawnOwner->GetPlayerState()) : nullptr;
 
-	FActorSpawnParameters SpawnParameters{};
-	// SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-	auto Pickup = GetWorld()->SpawnActor<AFortPickup>(PickupData.OverrideClass ? PickupData.OverrideClass : FortPickupAthenaClass, PickupData.SpawnLocation, FQuat(), FVector(1, 1, 1), SpawnParameters);
+	auto Pickup = GetWorld()->SpawnActor<AFortPickup>(PickupData.OverrideClass ? PickupData.OverrideClass : FortPickupAthenaClass, PickupData.SpawnLocation, FQuat(), FVector(1, 1, 1));
 
 	if (!Pickup)
 		return nullptr;
@@ -270,7 +267,7 @@ void AFortPickup::CombinePickupHook(AFortPickup* Pickup)
 		auto ItemOwner = Pickup->GetPickupLocationData()->GetItemOwner();
 
 		PickupCreateData CreateData;
-		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, OverStackCount, 0);
+		CreateData.ItemEntry = FFortItemEntry::MakeItemEntry(ItemDefinition, OverStackCount, 0, MAX_DURABILITY, Pickup->GetPrimaryPickupItemEntry()->GetLevel());
 		CreateData.SpawnLocation = PickupToCombineInto->GetActorLocation();
 		CreateData.PawnOwner = ItemOwner;
 		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
@@ -380,8 +377,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 				if (ItemInstanceToSwap && ItemDefinitionToSwap->CanBeDropped() && !bHasSwapped && ItemDefGoingInPrimary) // swap
 				{
-					auto SwappedPickup = SpawnPickup(ItemEntryToSwap, PawnLoc,
-						EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn);
+					auto SwappedPickup = SpawnPickup(ItemEntryToSwap, PawnLoc, EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn);
 
 					auto CurrentWeapon = Pawn->GetCurrentWeapon();
 

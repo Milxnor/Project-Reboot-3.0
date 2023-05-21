@@ -105,6 +105,12 @@ public:
 		return this->Get<bool>(bSafeZonePausedOffset);
 	}
 
+	int& GetWorldLevel() // Actually in AFortGameState
+	{
+		static auto WorldLevelOffset = GetOffset("WorldLevel");
+		return Get<int>(WorldLevelOffset);
+	}
+
 	EAthenaGamePhase& GetGamePhase()
 	{
 		static auto GamePhaseOffset = GetOffset("GamePhase");
