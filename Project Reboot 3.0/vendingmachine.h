@@ -129,7 +129,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		if (LootDrops.size() == 0)
 		{
 			// LOG_WARN(LogGame, "Failed to find LootDrops for vending machine loot tier: {}", LootTier);
-			// ItemCollectorIt--; // retry (?)
+			ItemCollectorIt--; // retry (?)
 			continue;
 		}
 
@@ -253,7 +253,7 @@ static inline void FillVendingMachines()
 
 	for (int i = 0; i < ThingAndWeights.size(); i++)
 	{
-		LOG_INFO(LogDev, "[{}] bruh: {}", i, ThingAndWeights.at(i));
+		// LOG_INFO(LogDev, "[{}] bruh: {}", i, ThingAndWeights.at(i));
 	}
 
 	std::map<int, int> PickedRarities;

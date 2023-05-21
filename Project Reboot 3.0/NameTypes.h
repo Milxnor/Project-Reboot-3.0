@@ -1,10 +1,11 @@
 #pragma once
 
 #include "inc.h"
+#include "log.h"
 
 struct FNameEntryId
 {
-	uint32 Value;
+	uint32 Value; // well depends on version if its int32 or uint32 i think
 
 	FNameEntryId() : Value(0) {}
 
@@ -59,17 +60,20 @@ struct FName
 		return Compare(Other) < 0;
 	} */
 
-	FORCEINLINE bool operator<(const FName& Other) const
+	FORCEINLINE bool operator<(const FName& Rhs) const
 	{
-		return GetComparisonIndexFast() < Other.GetComparisonIndexFast();
+		auto res = this->ComparisonIndex == Rhs.ComparisonIndex ? /* (Number - Rhs.Number) < 0 */ Number < Rhs.Number : this->ComparisonIndex < Rhs.ComparisonIndex;
+		// LOG_INFO(LogDev, "LHS ({} {}) RHS ({} {}) RESULT {}", this->ComparisonIndex.Value, this->Number, Rhs.ComparisonIndex.Value, Rhs.Number, res);
+		return res;
+		// return GetComparisonIndexFast() < Rhs.GetComparisonIndexFast() || (GetComparisonIndexFast() == Rhs.GetComparisonIndexFast() && GetNumber() < Rhs.GetNumber());
 
 		// (Milxnor) BRO IDK
 
-		if (GetComparisonIndexFast() == Other.GetComparisonIndexFast())
+		if (GetComparisonIndexFast() == Rhs.GetComparisonIndexFast())
 		{
-			return GetNumber() - Other.GetNumber();
+			return (GetNumber() - Rhs.GetNumber()) < 0;
 		}
 
-		return GetComparisonIndexFast() < Other.GetComparisonIndexFast();
+		return GetComparisonIndexFast() < Rhs.GetComparisonIndexFast();
 	}
 };

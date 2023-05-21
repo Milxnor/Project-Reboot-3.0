@@ -453,7 +453,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		if (Fortnite_Season == 6)
 		{
-			if (Fortnite_Version != 6.10)
+			if (Fortnite_Version > 6.10)
 			{
 				auto Lake = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake1");
 				auto Lake2 = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake2");

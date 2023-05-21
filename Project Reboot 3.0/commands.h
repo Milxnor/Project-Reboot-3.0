@@ -118,6 +118,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		auto Message = Msg.ToString();
 
 		size_t start = Message.find('\\');
+
 		while (start != std::string::npos) // remove the playername
 		{
 			size_t end = Message.find('\\', start + 1);
@@ -133,7 +134,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 		// std::cout << "Message Before: " << Message << '\n';
 
-		while (Message.find(" ") != -1)
+		while (Message.find(" ") != std::string::npos)
 		{
 			auto arg = Message.substr(0, Message.find(' '));
 			Arguments.push_back(arg);

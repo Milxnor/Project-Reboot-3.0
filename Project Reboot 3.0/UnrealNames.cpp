@@ -63,7 +63,7 @@ int32 FName::Compare(const FName& Other) const
 		} */
 	}
 
-	return 0;
+	return GetComparisonIndexFast() < Other.GetComparisonIndexFast();
 }
 
 std::string FName::ToString()

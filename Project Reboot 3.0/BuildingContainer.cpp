@@ -6,6 +6,11 @@
 
 bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 {
+	if (!Pawn)
+		return false;
+
+	this->ForceNetUpdate();
+
 	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 	FVector LocationToSpawnLoot = this->GetActorLocation() + this->GetActorRightVector() * 70.f + this->GetActorUpVector() * 50.f;
 
@@ -34,6 +39,12 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 		CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
 		auto NewPickup = AFortPickup::SpawnPickup(CreateData);
+	}
+
+	if (!this->IsDestroyed())
+	{
+		this->ForceNetUpdate();
+		// a buncha other stuff
 	}
 
 	return true;

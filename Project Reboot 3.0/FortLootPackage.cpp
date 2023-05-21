@@ -49,12 +49,17 @@ void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, LOOTING_M
 
     for (auto CurrentDataTable : DataTablesToIterate)
     {
-        for (auto& CurrentPair : CurrentDataTable->GetRowMap())
+        for (TPair<FName, uint8_t*>& CurrentPair : CurrentDataTable->GetRowMap())
         {
             if (Check(CurrentPair.Key(), (RowStructType*)CurrentPair.Value()))
             {
-                // LOG_INFO(LogDev, "row: {} comp {} num: {} passed check!", CurrentPair.Key().ToString(), CurrentPair.Key().ComparisonIndex.Value, CurrentPair.Key().Number);
+                // LOG_INFO(LogDev, "Setting key with {} comp {} num: {} then iterating through map!", CurrentPair.Key().ToString(), CurrentPair.Key().ComparisonIndex.Value, CurrentPair.Key().Number);
                 (*OutMap)[CurrentPair.Key()] = (RowStructType*)CurrentPair.Value();
+
+                /* for (auto PairInOutMap : *OutMap)
+                {
+                    // LOG_INFO(LogDev, "Current Row Key {} comp {} num: {}!", PairInOutMap.first.ToString(), PairInOutMap.first.ComparisonIndex.Value, PairInOutMap.first.Number);
+                } */
             }
         }
     }

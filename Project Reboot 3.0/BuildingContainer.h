@@ -45,6 +45,12 @@ public:
 		return Get<float>(LootNoiseRangeOffset);
 	}
 
+	void BounceContainer()
+	{
+		static auto BounceContainerFn = FindObject<UFunction>("/Script/FortniteGame.BuildingContainer.BounceContainer");
+		this->ProcessEvent(BounceContainerFn);
+	}
+
 	bool SpawnLoot(AFortPawn* Pawn);
 
 	static UClass* StaticClass()

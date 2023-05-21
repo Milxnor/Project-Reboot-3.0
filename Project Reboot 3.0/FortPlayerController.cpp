@@ -445,13 +445,16 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 
 		// LOG_INFO(LogInteraction, "bAlreadySearchedFieldMask: {}", bAlreadySearchedFieldMask);
 
+		BuildingContainer->SpawnLoot(PlayerController->GetMyFortPawn());
+
 		BuildingContainer->SetBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask, true);
 		(*(int*)(__int64(SearchBounceData) + SearchAnimationCountOffset))++;
+		BuildingContainer->BounceContainer();
+
+		BuildingContainer->ForceNetUpdate(); // ?
 
 		static auto OnRep_bAlreadySearchedFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingContainer.OnRep_bAlreadySearched");
-		BuildingContainer->ProcessEvent(OnRep_bAlreadySearchedFn);
-
-		BuildingContainer->SpawnLoot(PlayerController->GetMyFortPawn());
+		// BuildingContainer->ProcessEvent(OnRep_bAlreadySearchedFn);
 
 		// if (BuildingContainer->ShouldDestroyOnSearch())
 			// BuildingContainer->K2_DestroyActor();
