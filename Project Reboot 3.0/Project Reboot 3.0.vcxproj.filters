@@ -179,7 +179,7 @@
       <Filter>Engine\Source\Runtime\Engine\Private</Filter>
     </ClCompile>
     <ClCompile Include="FortOctopusVehicle.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicle</Filter>
     </ClCompile>
     <ClCompile Include="BuildingStructuralSupportSystem.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
@@ -212,10 +212,10 @@
       <Filter>Libaries\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="FortWeaponRangedMountedCannon.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicle</Filter>
     </ClCompile>
     <ClCompile Include="FortAthenaVehicle.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicle</Filter>
     </ClCompile>
     <ClCompile Include="CheatManager.cpp">
       <Filter>Engine\Source\Runtime\Engine\Private</Filter>
@@ -242,7 +242,7 @@
       <Filter>Engine\Source\Runtime\CoreUObject\Private</Filter>
     </ClCompile>
     <ClCompile Include="FortAthenaVehicleSpawner.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicles</Filter>
+      <Filter>FortniteGame\Source\FortniteGame\Private\Vehicle</Filter>
     </ClCompile>
     <ClCompile Include="BuildingContainer.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
@@ -263,9 +263,6 @@
       <Filter>FortniteGame\Source\FortniteGame\Private\Athena\Modifiers</Filter>
     </ClCompile>
     <ClCompile Include="inc.cpp">
-      <Filter>Reboot\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="events.cpp">
       <Filter>Reboot\Private</Filter>
     </ClCompile>
     <ClCompile Include="reboot.cpp">
@@ -936,6 +933,12 @@
     <ClInclude Include="discord.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
+    <ClInclude Include="FortVehicleItemDefinition.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
+    </ClInclude>
+    <ClInclude Include="FortDagwoodVehicle.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -1124,9 +1127,6 @@
     <Filter Include="Engine\Source\Runtime\Core\Public\Internationalization">
       <UniqueIdentifier>{b00f4455-11e7-4fd9-aa6d-2d814788b544}</UniqueIdentifier>
     </Filter>
-    <Filter Include="FortniteGame\Source\FortniteGame\Private\Vehicles">
-      <UniqueIdentifier>{702a4ab1-e5e1-46e1-b8cd-2fab1c4fb48c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Source\Runtime\Core\Public\Algo">
       <UniqueIdentifier>{98f1bd0d-3eea-4d54-8bff-65ecf4ab1e73}</UniqueIdentifier>
     </Filter>
@@ -1201,6 +1201,9 @@
     </Filter>
     <Filter Include="Engine\Source\Developer\ScriptDisassembler\Private">
       <UniqueIdentifier>{45f601de-1a88-490c-a74a-5cf729b16dfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Vehicle">
+      <UniqueIdentifier>{702a4ab1-e5e1-46e1-b8cd-2fab1c4fb48c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -8,12 +8,12 @@ namespace Calendar
 {
 	static inline bool HasSnowModification()
 	{
-		return Fortnite_Version == 7.30;
+		return Fortnite_Version == 7.30 || Fortnite_Version == 11.31 || Fortnite_Version == 19.10;
 	}
 
 	static inline UObject* GetSnowSetup()
 	{
-		auto Class = FindObject<UClass>("/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C");
+		auto Class = FindObject<UClass>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C");
 		auto Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Class);
 
 		return Actors.Num() > 0 ? Actors.at(0) : nullptr;
@@ -36,14 +36,14 @@ namespace Calendar
 
 	static inline void SetSnow(float NewValue)
 	{
-		static auto SetSnowFn = FindObject<UFunction>("/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C.SetSnow");
+		static auto SetSnowFn = FindObject<UFunction>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C.SetSnow");
 		auto SnowSetup = GetSnowSetup();
 
 		LOG_INFO(LogDev, "SnowSetup: {}", SnowSetup->IsValidLowLevel() ? SnowSetup->GetFullName() : "BadRead");
 
 		if (SnowSetup)
 		{
-			static auto OnReady_347B1F4D45630C357605FCB417D749A3Fn = FindObject<UFunction>("/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C.OnReady_347B1F4D45630C357605FCB417D749A3");
+			static auto OnReady_347B1F4D45630C357605FCB417D749A3Fn = FindObject<UFunction>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C.OnReady_347B1F4D45630C357605FCB417D749A3");
 			auto GameState = GetWorld()->GetGameState();
 			SnowSetup->ProcessEvent(OnReady_347B1F4D45630C357605FCB417D749A3Fn, &GameState);
 

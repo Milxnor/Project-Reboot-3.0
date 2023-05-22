@@ -59,7 +59,7 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
-extern inline int NumToSubtractFromSquadId = 2;
+extern inline int NumToSubtractFromSquadId = 0; // I think 2?
 extern inline int SecondsUntilTravel = 5;
 extern inline bool bSwitchedInitialLevel = false;
 extern inline bool bIsInAutoRestart = false;
@@ -587,122 +587,125 @@ static inline void MainUI()
 
 							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
 
-							auto GetAircrafts = [&]() -> TArray<AActor*>
+							if (Globals::bLateGame.load())
 							{
-								static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
-
-								if (AircraftsOffset == -1)
+								auto GetAircrafts = [&]() -> TArray<AActor*>
 								{
-									// GameState->Aircraft
+									static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
 
-									static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
-									auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
-
-									return AllAircrafts;
-								}
-
-								return GameState->Get<TArray<AActor*>>(AircraftsOffset);
-							};
-
-							while (GetAircrafts().Num() <= 0) // hmm
-							{
-								Sleep(500);
-							}
-
-							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startsafezone", nullptr);
-
-							static auto SafeZoneIndicatorOffset = GameState->GetOffset("SafeZoneIndicator");
-
-							static auto SafeZonesStartTimeOffset = GameState->GetOffset("SafeZonesStartTime");
-							GameState->Get<float>(SafeZonesStartTimeOffset) = 0;
-
-							while (!GameState->Get(SafeZoneIndicatorOffset))
-							{
-								Sleep(500);
-							}
-
-							while (GetAircrafts().Num() <= 0) // hmm
-							{
-								Sleep(500);
-							}
-
-							static auto NextNextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextNextCenter", false);
-							static auto NextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextCenter");
-							FVector LocationToStartAircraft = GameState->Get(SafeZoneIndicatorOffset)->Get<FVector>(NextNextCenterOffset == -1 ? NextCenterOffset : NextNextCenterOffset); // SafeZoneLocations.at(4);
-							LocationToStartAircraft.Z += 10000;
-
-							for (int i = 0; i < GetAircrafts().Num(); i++)
-							{
-								auto CurrentAircraft = GetAircrafts().at(i);
-
-								CurrentAircraft->TeleportTo(LocationToStartAircraft, FRotator());
-
-								static auto FlightInfoOffset = CurrentAircraft->GetOffset("FlightInfo", false);
-
-								float FlightSpeed = 0.0f;
-
-								if (FlightInfoOffset == -1)
-								{
-									static auto FlightStartLocationOffset = CurrentAircraft->GetOffset("FlightStartLocation");
-									static auto FlightSpeedOffset = CurrentAircraft->GetOffset("FlightSpeed");
-									static auto DropStartTimeOffset = CurrentAircraft->GetOffset("DropStartTime");
-
-									CurrentAircraft->Get<FVector>(FlightStartLocationOffset) = LocationToStartAircraft;
-									CurrentAircraft->Get<float>(FlightSpeedOffset) = FlightSpeed;
-									CurrentAircraft->Get<float>(DropStartTimeOffset) = GameState->GetServerWorldTimeSeconds();
-								}
-								else
-								{
-									auto FlightInfo = CurrentAircraft->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
-
-									FlightInfo->GetFlightSpeed() = FlightSpeed;
-									FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
-									FlightInfo->GetTimeTillDropStart() = 0.0f;
-								}
-							}
-
-							static auto MapInfoOffset = GameState->GetOffset("MapInfo");
-							auto MapInfo = GameState->Get(MapInfoOffset);
-
-							if (MapInfo)
-							{
-								static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos", false);
-
-								if (FlightInfosOffset != -1)
-								{
-									auto& FlightInfos = MapInfo->Get<TArray<FAircraftFlightInfo>>(FlightInfosOffset);
-
-									LOG_INFO(LogDev, "FlightInfos.Num(): {}", FlightInfos.Num());
-
-									for (int i = 0; i < FlightInfos.Num(); i++)
+									if (AircraftsOffset == -1)
 									{
-										auto FlightInfo = FlightInfos.AtPtr(i, FAircraftFlightInfo::GetStructSize());
+										// GameState->Aircraft
 
-										FlightInfo->GetFlightSpeed() = 0;
+										static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
+										auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
+
+										return AllAircrafts;
+									}
+
+									return GameState->Get<TArray<AActor*>>(AircraftsOffset);
+								};
+
+								while (GetAircrafts().Num() <= 0) // hmm
+								{
+									Sleep(500);
+								}
+
+								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startsafezone", nullptr);
+
+								static auto SafeZoneIndicatorOffset = GameState->GetOffset("SafeZoneIndicator");
+
+								static auto SafeZonesStartTimeOffset = GameState->GetOffset("SafeZonesStartTime");
+								GameState->Get<float>(SafeZonesStartTimeOffset) = 0;
+
+								while (!GameState->Get(SafeZoneIndicatorOffset))
+								{
+									Sleep(500);
+								}
+
+								while (GetAircrafts().Num() <= 0) // hmm
+								{
+									Sleep(500);
+								}
+
+								static auto NextNextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextNextCenter", false);
+								static auto NextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextCenter");
+								FVector LocationToStartAircraft = GameState->Get(SafeZoneIndicatorOffset)->Get<FVector>(NextNextCenterOffset == -1 ? NextCenterOffset : NextNextCenterOffset); // SafeZoneLocations.at(4);
+								LocationToStartAircraft.Z += 10000;
+
+								for (int i = 0; i < GetAircrafts().Num(); i++)
+								{
+									auto CurrentAircraft = GetAircrafts().at(i);
+
+									CurrentAircraft->TeleportTo(LocationToStartAircraft, FRotator());
+
+									static auto FlightInfoOffset = CurrentAircraft->GetOffset("FlightInfo", false);
+
+									float FlightSpeed = 0.0f;
+
+									if (FlightInfoOffset == -1)
+									{
+										static auto FlightStartLocationOffset = CurrentAircraft->GetOffset("FlightStartLocation");
+										static auto FlightSpeedOffset = CurrentAircraft->GetOffset("FlightSpeed");
+										static auto DropStartTimeOffset = CurrentAircraft->GetOffset("DropStartTime");
+
+										CurrentAircraft->Get<FVector>(FlightStartLocationOffset) = LocationToStartAircraft;
+										CurrentAircraft->Get<float>(FlightSpeedOffset) = FlightSpeed;
+										CurrentAircraft->Get<float>(DropStartTimeOffset) = GameState->GetServerWorldTimeSeconds();
+									}
+									else
+									{
+										auto FlightInfo = CurrentAircraft->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
+
+										FlightInfo->GetFlightSpeed() = FlightSpeed;
 										FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
 										FlightInfo->GetTimeTillDropStart() = 0.0f;
 									}
 								}
-							}
 
-							static auto bAircraftIsLockedOffset = GameState->GetOffset("bAircraftIsLocked");
-							static auto bAircraftIsLockedFieldMask = GetFieldMask(GameState->GetProperty("bAircraftIsLocked"));
-							GameState->SetBitfieldValue(bAircraftIsLockedOffset, bAircraftIsLockedFieldMask, false);
+								static auto MapInfoOffset = GameState->GetOffset("MapInfo");
+								auto MapInfo = GameState->Get(MapInfoOffset);
 
-							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
-							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipaircraft", nullptr);
+								if (MapInfo)
+								{
+									static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos", false);
 
-							auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
-							
-							if (SafeZoneIndicator)
-							{
-								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
-								SafeZoneIndicator->SkipShrinkSafeZone();
-								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
-								SafeZoneIndicator->SkipShrinkSafeZone();
+									if (FlightInfosOffset != -1)
+									{
+										auto& FlightInfos = MapInfo->Get<TArray<FAircraftFlightInfo>>(FlightInfosOffset);
 
-								// Sleep(1000);
-								// SafeZoneIndicator->SkipShrinkSafeZone();
+										LOG_INFO(LogDev, "FlightInfos.Num(): {}", FlightInfos.Num());
+
+										for (int i = 0; i < FlightInfos.Num(); i++)
+										{
+											auto FlightInfo = FlightInfos.AtPtr(i, FAircraftFlightInfo::GetStructSize());
+
+											FlightInfo->GetFlightSpeed() = 0;
+											FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
+											FlightInfo->GetTimeTillDropStart() = 0.0f;
+										}
+									}
+								}
+
+								static auto bAircraftIsLockedOffset = GameState->GetOffset("bAircraftIsLocked");
+								static auto bAircraftIsLockedFieldMask = GetFieldMask(GameState->GetProperty("bAircraftIsLocked"));
+								GameState->SetBitfieldValue(bAircraftIsLockedOffset, bAircraftIsLockedFieldMask, false);
+
+								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
+								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipaircraft", nullptr);
+
+								auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
+
+								if (SafeZoneIndicator)
+								{
+									UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
+									SafeZoneIndicator->SkipShrinkSafeZone();
+									UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
+									SafeZoneIndicator->SkipShrinkSafeZone();
+
+									// Sleep(1000);
+									// SafeZoneIndicator->SkipShrinkSafeZone();
+								}
 							}
 
 							LOG_INFO(LogDev, "Finished!");
@@ -719,7 +722,7 @@ static inline void MainUI()
 
 							if (Fortnite_Version == 1.11)
 							{
-								static auto OverrideBattleBusSkin = FindObject("/Game/Athena/Items/Cosmetics/BattleBuses/BBID_WinterBus.BBID_WinterBus");
+								static auto OverrideBattleBusSkin = FindObject(L"/Game/Athena/Items/Cosmetics/BattleBuses/BBID_WinterBus.BBID_WinterBus");
 								LOG_INFO(LogDev, "OverrideBattleBusSkin: {}", __int64(OverrideBattleBusSkin));
 
 								if (OverrideBattleBusSkin)
@@ -765,7 +768,21 @@ static inline void MainUI()
 							}
 
 							static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
-							GameState->Get<float>(WarmupCountdownEndTimeOffset) = UGameplayStatics::GetTimeSeconds(GetWorld()) + 10;
+							// GameState->Get<float>(WarmupCountdownEndTimeOffset) = UGameplayStatics::GetTimeSeconds(GetWorld()) + 10;
+
+							float TimeSeconds = GameState->GetServerWorldTimeSeconds(); // UGameplayStatics::GetTimeSeconds(GetWorld());
+							float Duration = 10;
+							float EarlyDuration = Duration;
+
+							static auto WarmupCountdownStartTimeOffset = GameState->GetOffset("WarmupCountdownStartTime");
+							static auto WarmupCountdownDurationOffset = GameMode->GetOffset("WarmupCountdownDuration");
+							static auto WarmupEarlyCountdownDurationOffset = GameMode->GetOffset("WarmupEarlyCountdownDuration");
+
+							GameState->Get<float>(WarmupCountdownEndTimeOffset) = TimeSeconds + Duration;
+							GameMode->Get<float>(WarmupCountdownDurationOffset) = Duration;
+
+							// GameState->Get<float>(WarmupCountdownStartTimeOffset) = TimeSeconds;
+							GameMode->Get<float>(WarmupEarlyCountdownDurationOffset) = EarlyDuration;
 						}
 					}
 				}
@@ -788,7 +805,7 @@ static inline void MainUI()
 			{
 				if (ImGui::Button("Unvault DrumGun"))
 				{
-					static auto SetUnvaultItemNameFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.SetUnvaultItemName");
+					static auto SetUnvaultItemNameFn = FindObject<UFunction>(L"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.SetUnvaultItemName");
 					auto EventScripting = GetEventScripting();
 
 					if (EventScripting)
@@ -796,7 +813,7 @@ static inline void MainUI()
 						FName Name = UKismetStringLibrary::Conv_StringToName(L"DrumGun");
 						EventScripting->ProcessEvent(SetUnvaultItemNameFn, &Name);
 
-						static auto PillarsConcludedFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.PillarsConcluded");
+						static auto PillarsConcludedFn = FindObject<UFunction>(L"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.PillarsConcluded");
 						EventScripting->ProcessEvent(PillarsConcludedFn, &Name);
 					}
 				}

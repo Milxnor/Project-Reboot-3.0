@@ -18,20 +18,22 @@ public:
 		static UClass* PawnClass = nullptr;
 		static UClass* ControllerClass = nullptr;
 
+		bool bUsePhoebeClasses = false;
+
 		if (!PawnClass)
 		{
-			if (true)
-				PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+			if (!bUsePhoebeClasses)
+				PawnClass = FindObject<UClass>(L"/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 			else
-				PawnClass = FindObject<UClass>("/Game/Athena/AI/Phoebe/BP_PlayerPawn_Athena_Phoebe.BP_PlayerPawn_Athena_Phoebe_C");
+				PawnClass = FindObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_PlayerPawn_Athena_Phoebe.BP_PlayerPawn_Athena_Phoebe_C");
 		}
 
 		if (!ControllerClass)
 		{
-			if (true)
+			if (!bUsePhoebeClasses)
 				ControllerClass = AFortPlayerControllerAthena::StaticClass();
 			else
-				ControllerClass = FindObject<UClass>("/Game/Athena/AI/Phoebe/BP_PhoebePlayerController.BP_PhoebePlayerController_C");
+				ControllerClass = FindObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_PhoebePlayerController.BP_PhoebePlayerController_C");
 		}
 
 		if (!ControllerClass || !PawnClass)
@@ -40,7 +42,7 @@ public:
 			return;
 		}
 
-		static auto FortAthenaAIBotControllerClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAIBotController");
+		static auto FortAthenaAIBotControllerClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaAIBotController");
 
 		Controller = GetWorld()->SpawnActor<AController>(ControllerClass);
 		AFortPlayerPawnAthena* Pawn = GetWorld()->SpawnActor<AFortPlayerPawnAthena>(PawnClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn));
@@ -49,11 +51,20 @@ public:
 		if (!Pawn || !PlayerState)
 			return;
 
-		static int CurrentBotNum = 1;
+		bool bUseOverrideName = false;
 
-		auto BotNumWStr = std::to_wstring(CurrentBotNum++);
+		FString NewName;
 
-		FString NewName = (L"RebootBot" + BotNumWStr).c_str();
+		if (bUseOverrideName)
+		{
+			NewName = L"Override";
+		}
+		else
+		{
+			static int CurrentBotNum = 1;
+			auto BotNumWStr = std::to_wstring(CurrentBotNum++);
+			NewName = (L"RebootBot" + BotNumWStr).c_str();
+		}
 
 		if (auto PlayerController = Cast<APlayerController>(Controller))
 			PlayerController->ServerChangeName(NewName);
@@ -65,7 +76,9 @@ public:
 		static auto SquadIdOffset = PlayerState->GetOffset("SquadId", false);
 
 		if (SquadIdOffset != -1)
-			PlayerState->GetSquadId() = PlayerState->GetTeamIndex() - 2;
+			PlayerState->GetSquadId() = PlayerState->GetTeamIndex() - 2; // NumToSubtractFromSquadId;
+
+		GameState->AddPlayerStateToGameMemberInfo(PlayerState);
 
 		PlayerState->SetIsBot(true);
 
@@ -125,7 +138,7 @@ public:
 
 		FTransform InventorySpawnTransform{};
 
-		static auto FortInventoryClass = FindObject<UClass>("/Script/FortniteGame.FortInventory"); // AFortInventory::StaticClass()
+		static auto FortInventoryClass = FindObject<UClass>(L"/Script/FortniteGame.FortInventory"); // AFortInventory::StaticClass()
 		*Inventory = GetWorld()->SpawnActor<AFortInventory>(FortInventoryClass, InventorySpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AlwaysSpawn, false, Controller));
 
 		if (!*Inventory)
@@ -166,19 +179,11 @@ public:
 					{
 						FortPlayerController->ServerExecuteInventoryItemHook(FortPlayerController, PickaxeInstance->GetItemEntry()->GetItemGuid());
 					}
-
 				}
 
 				(*Inventory)->Update();
 			}
 		}
-
-		/* static auto HeroType = FindObject(L"/Game/Athena/Heroes/HID_115_Athena_Commando_M_CarbideBlue.HID_115_Athena_Commando_M_CarbideBlue");
-
-		static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
-
-		if (HeroTypeOffset != -1)
-			PlayerState->Get(HeroTypeOffset) = HeroType; */
 
 		auto PlayerAbilitySet = GetPlayerAbilitySet();
 		auto AbilitySystemComponent = PlayerState->GetAbilitySystemComponent();
@@ -193,6 +198,56 @@ public:
 
 		// PlayerController->ApplyCosmeticLoadout();
 
+		/*
+
+		auto AllHeroTypes = GetAllObjectsOfClass(FindObject<UClass>(L"/Script/FortniteGame.FortHeroType"));
+		std::vector<UFortItemDefinition*> AthenaHeroTypes;
+
+		UFortItemDefinition* HeroType = FindObject<UFortItemDefinition>(L"/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
+
+		for (int i = 0; i < AllHeroTypes.size(); i++)
+		{
+			auto CurrentHeroType = (UFortItemDefinition*)AllHeroTypes.at(i);
+
+			if (CurrentHeroType->GetPathName().starts_with("/Game/Athena/Heroes/"))
+				AthenaHeroTypes.push_back(CurrentHeroType);
+		}
+
+		if (AthenaHeroTypes.size())
+		{
+			HeroType = AthenaHeroTypes.at(std::rand() % AthenaHeroTypes.size());
+		}
+
+		static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
+
+		if (HeroTypeOffset != -1)
+			PlayerState->Get(HeroTypeOffset) = HeroType;
+
+		static auto OwningGameInstanceOffset = GetWorld()->GetOffset("OwningGameInstance");
+		auto OwningGameInstance = GetWorld()->Get(OwningGameInstanceOffset);
+
+		static auto RegisteredPlayersOffset = OwningGameInstance->GetOffset("RegisteredPlayers");
+		auto& RegisteredPlayers = OwningGameInstance->Get<TArray<UObject*>>(RegisteredPlayersOffset);
+
+		static auto FortRegisteredPlayerInfoClass = FindObject<UClass>("/Script/FortniteGame.FortRegisteredPlayerInfo");
+
+		auto NewPlayerInfo = UGameplayStatics::SpawnObject(FortRegisteredPlayerInfoClass, Controller);
+		static auto PlayerIDOffset = NewPlayerInfo->GetOffset("PlayerID");
+
+		static auto UniqueIdOffset = PlayerState->GetOffset("UniqueId");
+		auto PlayerStateUniqueId = PlayerState->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset);
+
+		NewPlayerInfo->GetPtr<FUniqueNetIdRepl>(PlayerIDOffset)->CopyFromAnotherUniqueId(PlayerStateUniqueId);
+
+		static auto MyPlayerInfoOffset = Controller->GetOffset("MyPlayerInfo");
+		Controller->Get(MyPlayerInfoOffset) = NewPlayerInfo;
+
+		RegisteredPlayers.Add(NewPlayerInfo);
+
+		ApplyHID(Pawn, HeroType, true);
+
+		*/
+
 		GameState->GetPlayersLeft()++;
 		GameState->OnRep_PlayersLeft();
 
@@ -201,7 +256,7 @@ public:
 	}
 };
 
-static std::vector<PlayerBot> AllPlayerBotsToTick;
+static inline std::vector<PlayerBot> AllPlayerBotsToTick;
 
 namespace Bots
 {
@@ -281,7 +336,7 @@ namespace Bots
 
 			if (CurrentPlayerState->IsInAircraft() && !CurrentPlayerState->HasThankedBusDriver())
 			{
-				static auto ServerThankBusDriverFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ServerThankBusDriver");
+				static auto ServerThankBusDriverFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerThankBusDriver");
 				CurrentPlayer->ProcessEvent(ServerThankBusDriverFn);
 			}
 
@@ -289,7 +344,7 @@ namespace Bots
 			{
 				if (PlayerBot.NextJumpTime <= UGameplayStatics::GetTimeSeconds(GetWorld()))
 				{
-					static auto JumpFn = FindObject<UFunction>("/Script/Engine.Character.Jump");
+					static auto JumpFn = FindObject<UFunction>(L"/Script/Engine.Character.Jump");
 
 					CurrentPawn->ProcessEvent(JumpFn);
 					PlayerBot.NextJumpTime = UGameplayStatics::GetTimeSeconds(GetWorld()) + (rand() % 4 + 3);

@@ -259,7 +259,7 @@ static UActorChannel* FindChannel(AActor * Actor, UNetConnection * Connection)
 	static auto OpenChannelsOffset = Connection->GetOffset("OpenChannels");
 	auto& OpenChannels = Connection->Get<TArray<UChannel*>>(OpenChannelsOffset);
 
-	static auto ActorChannelClass = FindObject<UClass>("/Script/Engine.ActorChannel");
+	static auto ActorChannelClass = FindObject<UClass>(L"/Script/Engine.ActorChannel");
 
 	// LOG_INFO(LogReplication, "OpenChannels.Num(): {}", OpenChannels.Num());
 

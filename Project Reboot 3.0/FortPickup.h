@@ -8,7 +8,7 @@ namespace EFortPickupSourceTypeFlag
 {
 	static inline UEnum* GetEnum()
 	{
-		static auto Enum = FindObject<UEnum>("/Script/FortniteGame.EFortPickupSourceTypeFlag");
+		static auto Enum = FindObject<UEnum>(L"/Script/FortniteGame.EFortPickupSourceTypeFlag");
 		return Enum;
 	}
 

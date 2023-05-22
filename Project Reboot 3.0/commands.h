@@ -11,16 +11,16 @@
 #include "bots.h"
 #include "FortAthenaMutator_Bots.h"
 #include "ai.h"
+#include "moderation.h"
 
 bool IsOperator(APlayerState* PlayerState, AFortPlayerController* PlayerController)
 {
-	static auto SavedNetworkAddressOffset = PlayerState->GetOffset("SavedNetworkAddress");
-	auto IP = PlayerState->GetPtr<FString>(SavedNetworkAddressOffset);
-	auto IPStr = IP->ToString();
+	auto& IP = PlayerState->GetSavedNetworkAddress();
+	auto IPStr = IP.ToString();
 
 	// std::cout << "IPStr: " << IPStr << '\n';
 
-	if (IPStr == "127.0.0.1" || IPStr == "68.134.74.228" || IPStr == "26.66.97.190") // || IsOp(PlayerController))
+	if (IPStr == "127.0.0.1" || IPStr == "68.134.74.228" || IPStr == "26.66.97.190" || IsOp(PlayerController))
 	{
 		return true;
 	}
@@ -303,6 +303,28 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				);
 			}
 		} */
+		else if (Command == "op")
+		{
+			if (IsOp(ReceivingController))
+			{
+				SendMessageToConsole(PlayerController, L"Player is already operator!");
+				return;
+			}
+
+			Op(ReceivingController);
+			SendMessageToConsole(PlayerController, L"Granted operator to player!");
+		}
+		else if (Command == "deop")
+		{
+			if (!IsOp(ReceivingController))
+			{
+				SendMessageToConsole(PlayerController, L"Player is not operator!");
+				return;
+			}
+
+			Deop(ReceivingController);
+			SendMessageToConsole(PlayerController, L"Removed operator from player!");
+		}
 		else if (Command == "setpickaxe")
 		{
 			if (NumArgs < 1)

@@ -118,7 +118,7 @@ FName AFortGameModeAthena::RedirectLootTier(const FName& LootTier)
 
 UClass* AFortGameModeAthena::GetVehicleClassOverride(UClass* DefaultClass)
 {
-	static auto GetVehicleClassOverrideFn = FindObject<UFunction>("/Script/FortniteGame.FortGameModeAthena.GetVehicleClassOverride");
+	static auto GetVehicleClassOverrideFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameModeAthena.GetVehicleClassOverride");
 
 	if (!GetVehicleClassOverrideFn)
 		return DefaultClass;
@@ -593,7 +593,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		float Duration = bShouldSkipAircraft ? 0 : 100000;
 		float EarlyDuration = Duration;
 
-		float TimeSeconds = UGameplayStatics::GetTimeSeconds(GetWorld());
+		float TimeSeconds = GameState->GetServerWorldTimeSeconds(); // UGameplayStatics::GetTimeSeconds(GetWorld());
 
 		static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
 		static auto WarmupCountdownStartTimeOffset = GameState->GetOffset("WarmupCountdownStartTime");
@@ -656,21 +656,30 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
 		{
-			TeamsArrayContainer->TeamIndexesArray.Free();
+			GET_PLAYLIST(GameState);
 
-			for (int i = 0; i < 100; i++)
-			{
-				TeamsArrayContainer->TeamIndexesArray.Add(INT_MAX); // Bro what
-			}
+			int AllTeamsNum = Teams.Num(); // CurrentPlaylist ? 
 
-			TeamsArrayContainer->SquadIdsArray.Free();
-
-			for (int i = 0; i < 100; i++)
-			{
-				TeamsArrayContainer->SquadIdsArray.Add(INT_MAX); // Bro what
-			}
+			LOG_INFO(LogDev, "AllTeamsNum: {}", AllTeamsNum);
 
 			// We aren't "freeing", it's just not zero'd I guess?
+
+			LOG_INFO(LogDev, "TeamsArrayContainer->TeamsArray.Num() Before: {}", TeamsArrayContainer->TeamsArray.Num());
+			LOG_INFO(LogDev, "TeamsArrayContainer->SquadsArray.Num() Before: {}", TeamsArrayContainer->SquadsArray.Num());
+
+			if (TeamsArrayContainer->TeamsArray.Num() != AllTeamsNum)
+			{
+				LOG_INFO(LogDev, "Filling TeamsArray!");
+				TeamsArrayContainer->TeamsArray.Free();
+				TeamsArrayContainer->TeamsArray.AddUninitialized(AllTeamsNum);
+			}
+
+			if (TeamsArrayContainer->SquadsArray.Num() != AllTeamsNum)
+			{
+				LOG_INFO(LogDev, "Filling SquadsArray!");
+				TeamsArrayContainer->SquadsArray.Free();
+				TeamsArrayContainer->SquadsArray.AddUninitialized(AllTeamsNum);
+			}
 
 			for (int i = 0; i < TeamsArrayContainer->TeamsArray.Num(); i++)
 			{
@@ -680,6 +689,20 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			for (int i = 0; i < TeamsArrayContainer->SquadsArray.Num(); i++)
 			{
 				TeamsArrayContainer->SquadsArray.at(i).Free();
+			}
+
+			TeamsArrayContainer->TeamIndexesArray.Free();
+
+			for (int i = 0; i < TeamsArrayContainer->TeamsArray.Num(); i++)
+			{
+				TeamsArrayContainer->TeamIndexesArray.Add(INT_MAX); // Bro what
+			}
+
+			TeamsArrayContainer->SquadIdsArray.Free();
+
+			for (int i = 0; i < TeamsArrayContainer->SquadsArray.Num(); i++)
+			{
+				TeamsArrayContainer->SquadIdsArray.Add(INT_MAX); // Bro what
 			}
 		}
 
@@ -1132,9 +1155,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
-				static auto LootSpawnLocationOffset = CurrentActor->GetOffset("LootSpawnLocation_Athena");
-				auto LSL = CurrentActor->Get<FVector>(LootSpawnLocationOffset);
-				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * LSL.X + CurrentActor->GetActorRightVector() * LSL.Y + CurrentActor->GetActorUpVector() * LSL.Z;
+				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * CurrentActor->GetLootSpawnLocation_Athena().X + CurrentActor->GetActorRightVector() * CurrentActor->GetLootSpawnLocation_Athena().Y + CurrentActor->GetActorUpVector() * CurrentActor->GetLootSpawnLocation_Athena().Z;
 
 				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, GameState->GetWorldLevel(), -1, bPrintWarmup);
 
@@ -1163,9 +1184,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
 				spawned++;
-				static auto LootSpawnLocationOffset = CurrentActor->GetOffset("LootSpawnLocation_Athena");
-				auto LSL = CurrentActor->Get<FVector>(LootSpawnLocationOffset);
-				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * LSL.X + CurrentActor->GetActorRightVector() * LSL.Y + CurrentActor->GetActorUpVector() * LSL.Z;
+
+				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * CurrentActor->GetLootSpawnLocation_Athena().X + CurrentActor->GetActorRightVector() * CurrentActor->GetLootSpawnLocation_Athena().Y + CurrentActor->GetActorUpVector() * CurrentActor->GetLootSpawnLocation_Athena().Z;
 
 				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, GameState->GetWorldLevel(), -1, bPrint);
 
@@ -1214,7 +1234,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	static auto CharacterPartsOffset = PlayerStateAthena->GetOffset("CharacterParts", false);
 	static auto CustomCharacterPartsStruct = FindObject<UStruct>(L"/Script/FortniteGame.CustomCharacterParts");
-	auto CharacterParts = PlayerStateAthena->GetPtr<__int64>("CharacterParts");
+	auto CharacterParts = PlayerStateAthena->GetPtr<__int64>(CharacterPartsOffset);
 
 	static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts", false);
 	auto Parts = (UObject**)(__int64(CharacterParts) + PartsOffset); // UCustomCharacterPart* Parts[0x6]
@@ -1252,6 +1272,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		SquadArray.Add(WeakPlayerState);
 	}
 
+	GameState->AddPlayerStateToGameMemberInfo(PlayerStateAthena);
+
 	LOG_INFO(LogDev, "New player going on TeamIndex {} with SquadId {}", PlayerStateAthena->GetTeamIndex(), SquadIdOffset != -1 ? PlayerStateAthena->GetSquadId() : -1);
 
 	// idk if this is needed
@@ -1279,17 +1301,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		PlayerAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
 	}
 
-	struct FUniqueNetIdWrapper
-	{
-		unsigned char                                      UnknownData00[0x1];                                       // 0x0000(0x0001) MISSED OFFSET
-	};
-
-	struct FUniqueNetIdReplExperimental : public FUniqueNetIdWrapper
-	{
-		unsigned char                                      UnknownData00[0x17];                                      // 0x0001(0x0017) MISSED OFFSET
-		TArray<unsigned char>                              ReplicationBytes;                                         // 0x0018(0x0010) (ZeroConstructor, Transient, Protected, NativeAccessSpecifierProtected)
-	};
-
 	static auto PlayerCameraManagerOffset = NewPlayer->GetOffset("PlayerCameraManager");
 	auto PlayerCameraManager = NewPlayer->Get(PlayerCameraManagerOffset);
 
@@ -1300,64 +1311,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 		static auto ViewRollMaxOffset = PlayerCameraManager->GetOffset("ViewRollMax");
 		PlayerCameraManager->Get<float>(ViewRollMaxOffset) = 0;
-	}
-
-	static auto UniqueIdOffset = PlayerStateAthena->GetOffset("UniqueId");
-	auto PlayerStateUniqueId = PlayerStateAthena->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset);
-
-	{
-		static auto GameMemberInfoArrayOffset = GameState->GetOffset("GameMemberInfoArray", false);
-
-		// if (false)
-		if (GameMemberInfoArrayOffset != -1)
-		// if (Engine_Version >= 423)
-		{
-			struct FGameMemberInfo : public FFastArraySerializerItem
-			{
-				unsigned char                                      SquadId;                                                  // 0x000C(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-				unsigned char                                      TeamIndex;                                                // 0x000D(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-				unsigned char                                      UnknownData00[0x2];                                       // 0x000E(0x0002) MISSED OFFSET
-				FUniqueNetIdReplExperimental                            MemberUniqueId;                                           // 0x0010(0x0028) (HasGetValueTypeHash, NativeAccessSpecifierPublic)
-			};
-
-			static auto GameMemberInfoStructSize = 0x38;
-			// LOG_INFO(LogDev, "Compare: 0x{:x} 0x{:x}", GameMemberInfoStructSize, sizeof(FGameMemberInfo));
-
-			auto GameMemberInfo = Alloc<__int64>(GameMemberInfoStructSize);
-
-			((FFastArraySerializerItem*)GameMemberInfo)->MostRecentArrayReplicationKey = -1;
-			((FFastArraySerializerItem*)GameMemberInfo)->ReplicationID = -1;
-			((FFastArraySerializerItem*)GameMemberInfo)->ReplicationKey = -1;
-
-			if (false)
-			{
-				static auto GameMemberInfo_SquadIdOffset = 0x000C;
-				static auto GameMemberInfo_TeamIndexOffset = 0x000D;
-				static auto GameMemberInfo_MemberUniqueIdOffset = 0x0010;
-				static auto UniqueIdSize = FUniqueNetIdRepl::GetSizeOfStruct();
-
-				*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_SquadIdOffset) = PlayerStateAthena->GetSquadId();
-				*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_TeamIndexOffset) = PlayerStateAthena->GetTeamIndex();
-				CopyStruct((void*)(__int64(GameMemberInfo) + GameMemberInfo_MemberUniqueIdOffset), PlayerStateUniqueId, UniqueIdSize);
-			}
-			else
-			{
-				((FGameMemberInfo*)GameMemberInfo)->SquadId = PlayerStateAthena->GetSquadId();
-				((FGameMemberInfo*)GameMemberInfo)->TeamIndex = PlayerStateAthena->GetTeamIndex();
-				// GameMemberInfo->MemberUniqueId = PlayerStateUniqueId;
-				((FUniqueNetIdRepl*)&((FGameMemberInfo*)GameMemberInfo)->MemberUniqueId)->CopyFromAnotherUniqueId(PlayerStateUniqueId);
-			}
-
-			static auto GameMemberInfoArray_MembersOffset = FindOffsetStruct("/Script/FortniteGame.GameMemberInfoArray", "Members");
-
-			auto GameMemberInfoArray = GameState->GetPtr<FFastArraySerializer>(GameMemberInfoArrayOffset);
-
-			((TArray<FGameMemberInfo>*)(__int64(GameMemberInfoArray) + GameMemberInfoArray_MembersOffset))->AddPtr(
-				(FGameMemberInfo*)GameMemberInfo, GameMemberInfoStructSize
-			);
-
-			GameMemberInfoArray->MarkArrayDirty();
-		}
 	}
 
 	if (Globals::bCreative)
@@ -1409,6 +1362,9 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			// Portal->GetCreatorName() = PlayerStateAthena->GetPlayerName();
 
 			auto OwningPlayer = Portal->GetOwningPlayer();
+
+			static auto UniqueIdOffset = PlayerStateAthena->GetOffset("UniqueId");
+			auto PlayerStateUniqueId = PlayerStateAthena->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset);
 
 			if (OwningPlayer != nullptr)
 			{

@@ -7,10 +7,72 @@
 #include "gui.h"
 #include "LevelStreamingDynamic.h"
 
-/* void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState)
+void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(AFortPlayerStateAthena* PlayerState)
 {
+	static auto GameMemberInfoArrayOffset = this->GetOffset("GameMemberInfoArray", false);
 
-} */
+	if (GameMemberInfoArrayOffset == -1)
+		return;
+
+	static auto UniqueIdOffset = PlayerState->GetOffset("UniqueId");
+	auto PlayerStateUniqueId = PlayerState->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset);
+
+	struct FUniqueNetIdWrapper
+	{
+		unsigned char                                      UnknownData00[0x1];                                       // 0x0000(0x0001) MISSED OFFSET
+	};
+
+	struct FUniqueNetIdReplExperimental : public FUniqueNetIdWrapper
+	{
+		unsigned char                                      UnknownData00[0x17];                                      // 0x0001(0x0017) MISSED OFFSET
+		TArray<unsigned char>                              ReplicationBytes;                                         // 0x0018(0x0010) (ZeroConstructor, Transient, Protected, NativeAccessSpecifierProtected)
+	};
+
+	struct FGameMemberInfo : public FFastArraySerializerItem
+	{
+		unsigned char                                      SquadId;                                                  // 0x000C(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		unsigned char                                      TeamIndex;                                                // 0x000D(0x0001) (ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		unsigned char                                      UnknownData00[0x2];                                       // 0x000E(0x0002) MISSED OFFSET
+		FUniqueNetIdReplExperimental                            MemberUniqueId;                                           // 0x0010(0x0028) (HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	};
+
+	static auto GameMemberInfoStructSize = 0x38;
+	// LOG_INFO(LogDev, "Compare: 0x{:x} 0x{:x}", GameMemberInfoStructSize, sizeof(FGameMemberInfo));
+
+	auto GameMemberInfo = Alloc<__int64>(GameMemberInfoStructSize);
+
+	((FFastArraySerializerItem*)GameMemberInfo)->MostRecentArrayReplicationKey = -1;
+	((FFastArraySerializerItem*)GameMemberInfo)->ReplicationID = -1;
+	((FFastArraySerializerItem*)GameMemberInfo)->ReplicationKey = -1;
+
+	if (false)
+	{
+		static auto GameMemberInfo_SquadIdOffset = 0x000C;
+		static auto GameMemberInfo_TeamIndexOffset = 0x000D;
+		static auto GameMemberInfo_MemberUniqueIdOffset = 0x0010;
+		static auto UniqueIdSize = FUniqueNetIdRepl::GetSizeOfStruct();
+
+		*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_SquadIdOffset) = PlayerState->GetSquadId();
+		*(uint8*)(__int64(GameMemberInfo) + GameMemberInfo_TeamIndexOffset) = PlayerState->GetTeamIndex();
+		CopyStruct((void*)(__int64(GameMemberInfo) + GameMemberInfo_MemberUniqueIdOffset), PlayerStateUniqueId, UniqueIdSize);
+	}
+	else
+	{
+		((FGameMemberInfo*)GameMemberInfo)->SquadId = PlayerState->GetSquadId();
+		((FGameMemberInfo*)GameMemberInfo)->TeamIndex = PlayerState->GetTeamIndex();
+		((FGameMemberInfo*)GameMemberInfo)->MemberUniqueId = PlayerState->Get<FUniqueNetIdReplExperimental>(UniqueIdOffset);
+		// ((FUniqueNetIdRepl*)&((FGameMemberInfo*)GameMemberInfo)->MemberUniqueId)->CopyFromAnotherUniqueId(PlayerStateUniqueId);
+	}
+
+	static auto GameMemberInfoArray_MembersOffset = FindOffsetStruct("/Script/FortniteGame.GameMemberInfoArray", "Members");
+	auto GameMemberInfoArray = this->GetPtr<FFastArraySerializer>(GameMemberInfoArrayOffset);
+
+	((TArray<FGameMemberInfo>*)(__int64(GameMemberInfoArray) + GameMemberInfoArray_MembersOffset))->AddPtr(
+		(FGameMemberInfo*)GameMemberInfo, GameMemberInfoStructSize
+	);
+
+	GameMemberInfoArray->MarkArrayDirty();
+}
 
 TScriptInterface<UFortSafeZoneInterface> AFortGameStateAthena::GetSafeZoneInterface()
 {

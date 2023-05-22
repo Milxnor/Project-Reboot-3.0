@@ -137,7 +137,7 @@ public:
 
 	bool IsResurrectionEnabled(AFortPlayerPawn* PlayerPawn)
 	{
-		static auto IsResurrectionEnabledFn = FindObject<UFunction>("/Script/FortniteGame.FortGameStateAthena.IsResurrectionEnabled");
+		static auto IsResurrectionEnabledFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameStateAthena.IsResurrectionEnabled");
 		struct { AFortPlayerPawn* PlayerPawn; bool Ret; } Params{PlayerPawn};
 		this->ProcessEvent(IsResurrectionEnabledFn, &Params);
 		return Params.Ret;
@@ -154,7 +154,7 @@ public:
 	UFortPlaylist*& GetCurrentPlaylist();
 	TScriptInterface<UFortSafeZoneInterface> GetSafeZoneInterface();
 
-	// void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
+	void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
 
 	int GetAircraftIndex(AFortPlayerState* PlayerState);
 	bool IsRespawningAllowed(AFortPlayerState* PlayerState); // actually in zone

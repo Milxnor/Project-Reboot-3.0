@@ -94,7 +94,7 @@ namespace Builder
 					// NewActor->GetTeamIndex() = stuff[6];
 					// NewActor->SetHealth(stuff[7]);
 
-					static auto FortActorOptionsComponentClass = FindObject<UClass>("/Script/FortniteGame.FortActorOptionsComponent");
+					static auto FortActorOptionsComponentClass = FindObject<UClass>(L"/Script/FortniteGame.FortActorOptionsComponent");
 					auto ActorOptionsComponent = FortActorOptionsComponentClass ? NewActor->GetComponentByClass(FortActorOptionsComponentClass) : nullptr;
 
 					// continue;

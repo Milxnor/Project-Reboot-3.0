@@ -36,10 +36,18 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 	if (PickupData.SourceType == -1)
 		PickupData.SourceType = 0;
 
-	/* if (PickupData.bToss)
+	if (PickupData.bToss)
 	{
-		PickupData.SourceType |= EFortPickupSourceTypeFlag::Tossed;
-	} */
+		auto TossedValue = EFortPickupSourceTypeFlag::GetTossedValue();
+
+		if (TossedValue != -1)
+		{
+			if ((PickupData.SourceType & TossedValue) == 0) // if it already has tossed flag we dont wanna add it again..
+			{
+				// PickupData.SourceType |= TossedValue;
+			}
+		}
+	}
 
 	static auto FortPickupAthenaClass = FindObject<UClass>(L"/Script/FortniteGame.FortPickupAthena");
 	auto PlayerState = PickupData.PawnOwner ? Cast<AFortPlayerState>(PickupData.PawnOwner->GetPlayerState()) : nullptr;
@@ -52,7 +60,9 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 	static auto bRandomRotationOffset = Pickup->GetOffset("bRandomRotation", false);
 
 	if (bRandomRotationOffset != -1)
+	{
 		Pickup->Get<bool>(bRandomRotationOffset) = PickupData.bRandomRotation;
+	}
 
 	static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
 	Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) = PickupData.PawnOwner;
@@ -145,7 +155,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 
 	if (PickupSourceTypeFlagsOffset != -1)
 	{
-		// Pickup->Get<int32>(PickupSourceTypeFlagsOffset) |= (int)PickupData.SourceType; // Assuming its the same enum on older versions. // (it is not the same)
+		// Pickup->Get<uint32>(PickupSourceTypeFlagsOffset) = (uint32)PickupData.SourceType; // Assuming its the same enum on older versions.
 	}
 
 	if (Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset))
@@ -208,7 +218,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 		Pickup->ForceNetUpdate();
 	}
 
-	if (EFortPickupSourceTypeFlag::GetEnum() && PickupData.SourceType == EFortPickupSourceTypeFlag::GetContainerValue()) // crashes if we do this then tosspickup
+	if (EFortPickupSourceTypeFlag::GetEnum() && ((PickupData.SourceType & EFortPickupSourceTypeFlag::GetContainerValue()) != 0)) // crashes if we do this then tosspickup
 	{
 		static auto bTossedFromContainerOffset = Pickup->GetOffset("bTossedFromContainer");
 		Pickup->Get<bool>(bTossedFromContainerOffset) = true;

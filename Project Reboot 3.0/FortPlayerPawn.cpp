@@ -146,7 +146,7 @@ void AFortPlayerPawn::ServerHandlePickupWithRequestedSwapHook(UObject* Context, 
 
 void AFortPlayerPawn::ServerChoosePart(EFortCustomPartType Part, UObject* ChosenCharacterPart)
 {
-	static auto fn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerPawn.ServerChoosePart");
+	static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerChoosePart");
 
 	struct
 	{

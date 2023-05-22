@@ -20,6 +20,12 @@ public:
 		return this->ReadBitfieldValue(bAlreadySearchedOffset, bAlreadySearchedFieldMask);
 	}
 
+	FVector& GetLootSpawnLocation_Athena()
+	{
+		static auto LootSpawnLocation_AthenaOffset = this->GetOffset("LootSpawnLocation_Athena");
+		return this->Get<FVector>(LootSpawnLocation_AthenaOffset);
+	}
+
 	void SetAlreadySearched(bool bNewValue, bool bOnRep = true)
 	{
 		static auto bAlreadySearchedOffset = this->GetOffset("bAlreadySearched");

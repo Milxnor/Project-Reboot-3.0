@@ -169,7 +169,7 @@ FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, F
     // if (fabs(LootTier) <= 0.0000000099999999)
       //  return 0;
 
-    int Multiplier = 1; // LootTier == -1 ? 1 : 1 LootTier // Idk i think we need to fill out the code above for this to work properly
+    int Multiplier = LootTier == -1 ? 1 : LootTier; // Idk i think we need to fill out the code above for this to work properly maybe
 
     LOOTING_MAP_TYPE<FName, FFortLootTierData*> TierGroupLTDs;
 

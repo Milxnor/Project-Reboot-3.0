@@ -8,7 +8,7 @@
 #include "AthenaMarkerComponent.h"
 #include "FortVolume.h"
 
-static void ApplyHID(AFortPlayerPawn* Pawn, UObject* HeroDefinition)
+static void ApplyHID(AFortPlayerPawn* Pawn, UObject* HeroDefinition, bool bUseServerChoosePart = false)
 {
 	using UFortHeroSpecialization = UObject;
 
@@ -21,7 +21,7 @@ static void ApplyHID(AFortPlayerPawn* Pawn, UObject* HeroDefinition)
 	{
 		auto& SpecializationSoft = Specializations.at(i);
 
-		static auto FortHeroSpecializationClass = FindObject<UClass>("/Script/FortniteGame.FortHeroSpecialization");
+		static auto FortHeroSpecializationClass = FindObject<UClass>(L"/Script/FortniteGame.FortHeroSpecialization");
 		auto Specialization = SpecializationSoft.Get(FortHeroSpecializationClass, true);
 
 		if (Specialization)
@@ -29,9 +29,9 @@ static void ApplyHID(AFortPlayerPawn* Pawn, UObject* HeroDefinition)
 			static auto Specialization_CharacterPartsOffset = Specialization->GetOffset("CharacterParts");
 			auto& CharacterParts = Specialization->Get<TArray<TSoftObjectPtr<UObject>>>(Specialization_CharacterPartsOffset);
 
-			static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
+			static auto CustomCharacterPartClass = FindObject<UClass>(L"/Script/FortniteGame.CustomCharacterPart");
 
-			/* if (bUseServerChoosePart)
+			if (bUseServerChoosePart)
 			{
 				for (int z = 0; z < CharacterParts.Num(); z++)
 				{
@@ -39,7 +39,7 @@ static void ApplyHID(AFortPlayerPawn* Pawn, UObject* HeroDefinition)
 				}
 
 				continue; // hm?
-			} */
+			}
 
 			bool aa;
 
@@ -107,7 +107,7 @@ static bool ApplyCID(AFortPlayerPawn* Pawn, UObject* CID, bool bUseServerChooseP
 	static auto HeroDefinitionOffset = CID->GetOffset("HeroDefinition");
 	auto HeroDefinition = CID->Get(HeroDefinitionOffset);
 
-	ApplyHID(Pawn, HeroDefinition);
+	ApplyHID(Pawn, HeroDefinition, bUseServerChoosePart);
 
 	// static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
 	// PlayerState->Get(HeroTypeOffset) = HeroDefinition;

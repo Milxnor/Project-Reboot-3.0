@@ -316,6 +316,7 @@ DWORD WINAPI Main(LPVOID)
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortWorld VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortPlayerRegistration VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogBuilding VeryVerbose", nullptr);
+    UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortTeams VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortAI VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortAIDirector VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortQuest VeryVerbose", nullptr);
@@ -640,6 +641,11 @@ DWORD WINAPI Main(LPVOID)
     if (bEnableRebooting)
     {
         HookInstruction(Addresses::RebootingDelegate, (PVOID)ABuildingGameplayActorSpawnMachine::RebootingDelegateHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FindObject("/Script/FortniteGame.Default__BuildingGameplayActorSpawnMachine"));
+    }
+
+    if (Fortnite_Version == 13.40)
+    {
+        // HookInstruction(__int64(GetModuleHandleW(0)) + 0x1FC835D, (PVOID)UFortAthenaAIBotCustomizationData::ApplyOverrideCharacterCustomizationHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::CALL, nullptr);
     }
 
     Hooking::MinHook::Hook(FortWeaponDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortWeapon.ServerReleaseWeaponAbility"),

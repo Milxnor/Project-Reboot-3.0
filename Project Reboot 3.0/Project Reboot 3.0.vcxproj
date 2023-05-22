@@ -194,7 +194,6 @@
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EngineTypes.cpp" />
-    <ClCompile Include="events.cpp" />
     <ClCompile Include="FortAthenaCreativePortal.cpp" />
     <ClCompile Include="FortAthenaMapInfo.cpp" />
     <ClCompile Include="FortAthenaMutator_Barrier.cpp" />
@@ -345,6 +344,7 @@
     <ClInclude Include="FortAthenaVehicle.h" />
     <ClInclude Include="FortAthenaVehicleSpawner.h" />
     <ClInclude Include="FortBotNameSettings.h" />
+    <ClInclude Include="FortDagwoodVehicle.h" />
     <ClInclude Include="FortDecoItemDefinition.h" />
     <ClInclude Include="FortGadgetItemDefinition.h" />
     <ClInclude Include="FortGameMode.h" />
@@ -377,6 +377,7 @@
     <ClInclude Include="FortQuickBars.h" />
     <ClInclude Include="FortResourceItemDefinition.h" />
     <ClInclude Include="FortSafeZoneIndicator.h" />
+    <ClInclude Include="FortVehicleItemDefinition.h" />
     <ClInclude Include="FortVolume.h" />
     <ClInclude Include="FortWeapon.h" />
     <ClInclude Include="FortWeaponItemDefinition.h" />

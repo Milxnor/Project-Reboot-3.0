@@ -2,6 +2,12 @@
 
 #include "reboot.h"
 
+FString& APlayerState::GetSavedNetworkAddress()
+{
+	static auto SavedNetworkAddressOffset = GetOffset("SavedNetworkAddress");
+	return Get<FString>(SavedNetworkAddressOffset);
+}
+
 FString APlayerState::GetPlayerName()
 {
 	static auto GetPlayerNameFn = FindObject<UFunction>("/Script/Engine.PlayerState.GetPlayerName");

@@ -98,6 +98,8 @@ void Addresses::SetupVersion()
 		Fortnite_Version = 1.8;
 	if (Fortnite_CL == 3757339)
 		Fortnite_Version = 1.9;
+	if (Fortnite_CL == 3841827)
+		Fortnite_Version = 2.2;
 	if (Fortnite_CL == 3870737)
 		Fortnite_Version = 2.42;
 
@@ -436,6 +438,10 @@ void Offsets::FindAll()
 	{
 		Offsets::ClientWorldPackageName = 0x337B8;
 	}
+	if (Fortnite_Version == 2.20)
+	{
+		Offsets::ClientWorldPackageName = 0xA17A8;
+	}
 	if (Fortnite_Version == 2.42 || Fortnite_Version == 2.5)
 	{
 		Offsets::ClientWorldPackageName = 0x17F8;
@@ -450,7 +456,7 @@ void Offsets::FindAll()
 		Offsets::NetworkObjectList = 0x4F8;
 		Offsets::ClientWorldPackageName = 0x1818;
 	}
-	if (Engine_Version == 419) // checked 2.4.2 & 1.11
+	if (Engine_Version == 419) // checked 2.4.2 & 2.2 & 1.11
 	{
 		Offsets::NetworkObjectList = 0x490;
 		Offsets::ReplicationFrame = 0x2C8;
@@ -487,7 +493,7 @@ void Addresses::Init()
 	ABuildingActor::OnDamageServerOriginal = decltype(ABuildingActor::OnDamageServerOriginal)(OnDamageServer);
 	StaticLoadObjectOriginal = decltype(StaticLoadObjectOriginal)(StaticLoadObject);
 
-	static auto DefaultNetDriver = FindObject("/Script/Engine.Default__NetDriver");
+	static auto DefaultNetDriver = FindObject(L"/Script/Engine.Default__NetDriver");
 	Addresses::SetWorld = Engine_Version < 426 ? Addresses::SetWorld : __int64(DefaultNetDriver->VFTable[Addresses::SetWorld]);
 	UNetDriver::SetWorldOriginal = decltype(UNetDriver::SetWorldOriginal)(SetWorld);
 
@@ -508,7 +514,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 54 24 ? 48 89 4C 24 ? 55 53 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 8B 41 08 C1 E8 05").Get()); // Widget class
 	}
 
-	if (Fortnite_Version == 1.11)
+	if (Fortnite_Version == 1.11 || Fortnite_Version == 2.2)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B 01 49 8B E9 45 0F B6 F8").Get()); // No Reserve
 	}
