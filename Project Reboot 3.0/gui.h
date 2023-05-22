@@ -59,7 +59,6 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
-extern inline int NumToSubtractFromSquadId = 0; // I think 2?
 extern inline int SecondsUntilTravel = 5;
 extern inline bool bSwitchedInitialLevel = false;
 extern inline bool bIsInAutoRestart = false;

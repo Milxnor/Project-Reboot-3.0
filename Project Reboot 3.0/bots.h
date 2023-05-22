@@ -76,7 +76,7 @@ public:
 		static auto SquadIdOffset = PlayerState->GetOffset("SquadId", false);
 
 		if (SquadIdOffset != -1)
-			PlayerState->GetSquadId() = PlayerState->GetTeamIndex() - 2; // NumToSubtractFromSquadId;
+			PlayerState->GetSquadId() = PlayerState->GetTeamIndex() - NumToSubtractFromSquadId;
 
 		GameState->AddPlayerStateToGameMemberInfo(PlayerState);
 

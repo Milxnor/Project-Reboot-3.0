@@ -100,6 +100,10 @@ void Addresses::SetupVersion()
 		Fortnite_Version = 1.9;
 	if (Fortnite_CL == 3841827)
 		Fortnite_Version = 2.2;
+	if (Fortnite_CL == 3847564)
+		Fortnite_Version = 2.3;
+	if (Fortnite_CL == 3858292)
+		Fortnite_Version = 2.4;
 	if (Fortnite_CL == 3870737)
 		Fortnite_Version = 2.42;
 
@@ -438,7 +442,7 @@ void Offsets::FindAll()
 	{
 		Offsets::ClientWorldPackageName = 0x337B8;
 	}
-	if (Fortnite_Version == 2.20)
+	if (Fortnite_Version >= 2.2 && Fortnite_Version <= 2.4) // 2.2 & 2.4
 	{
 		Offsets::ClientWorldPackageName = 0xA17A8;
 	}
@@ -514,7 +518,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 54 24 ? 48 89 4C 24 ? 55 53 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 8B 41 08 C1 E8 05").Get()); // Widget class
 	}
 
-	if (Fortnite_Version == 1.11 || Fortnite_Version == 2.2)
+	if (Fortnite_Version == 1.11 || Fortnite_Version >= 2.2 && Fortnite_Version <= 2.4)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B 01 49 8B E9 45 0F B6 F8").Get()); // No Reserve
 	}

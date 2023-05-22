@@ -139,7 +139,7 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 	if (!PawnAsFort)
 		return;
 
-	static auto UpdatePlayerCustomCharacterPartsVisualizationFn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.UpdatePlayerCustomCharacterPartsVisualization");
+	static auto UpdatePlayerCustomCharacterPartsVisualizationFn = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.UpdatePlayerCustomCharacterPartsVisualization");
 
 	if (!UpdatePlayerCustomCharacterPartsVisualizationFn)
 	{

@@ -112,8 +112,16 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		LegendaryPrice = 0;
 	}
 
+	int itemCollectorRecursive = 0;
+
 	for (int ItemCollectorIt = 0; ItemCollectorIt < ItemCollections.Num(); ItemCollectorIt++)
 	{
+		if (itemCollectorRecursive > 3)
+		{
+			itemCollectorRecursive = 0;
+			continue;
+		}
+
 		auto ItemCollection = ItemCollections.AtPtr(ItemCollectorIt, FCollectorUnitInfo::GetPropertiesSize());
 
 		if (ItemCollection->GetOutputItemEntry()->Num() > 0)
@@ -130,6 +138,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		{
 			// LOG_WARN(LogGame, "Failed to find LootDrops for vending machine loot tier: {}", LootTier);
 			ItemCollectorIt--; // retry (?)
+			itemCollectorRecursive++;
 			continue;
 		}
 
@@ -167,6 +176,7 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 		if (!ItemCollection->GetOutputItem())
 		{
 			ItemCollectorIt--; // retry
+			itemCollectorRecursive++;
 			continue;
 		}
 

@@ -25,6 +25,8 @@ namespace Globals
 	extern inline int AmountOfListens = 0; // TODO: Switch to this for LastNum
 }
 
+extern inline int NumToSubtractFromSquadId = 0; // I think 2?
+
 extern inline std::string PlaylistName =
 "/Game/Athena/Playlists/Playlist_DefaultSolo.Playlist_DefaultSolo";
 // "/Game/Athena/Playlists/gg/Playlist_Gg_Reverse.Playlist_Gg_Reverse";

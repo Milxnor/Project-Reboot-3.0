@@ -12,16 +12,30 @@ public:
 		return Get<UFortAthenaAIBotCharacterCustomization*>(CharacterCustomizationOffset);
 	}
 
-	/* static void ApplyOverrideCharacterCustomizationHook(UFortAthenaAIBotCustomizationData* InBotData, AFortPlayerPawn* NewBot, __int64 idk)
+	static void ApplyOverrideCharacterCustomizationHook(UFortAthenaAIBotCustomizationData* InBotData, AFortPlayerPawn* NewBot, __int64 idk)
 	{
 		LOG_INFO(LogDev, "ApplyOverrideCharacterCustomizationHook!");
 
 		auto CharacterCustomization = InBotData->GetCharacterCustomization();
 
-		NewBot->GetCosmeticLoadout()->GetCharacter() = CharacterCustomization->GetCustomizationLoadout()->GetCharacter();
+		auto Controller = NewBot->GetController();
 
-		NewBot->Get<bool>(0x1B30) = true; // idk this is like a initialize check
-	} */
+		LOG_INFO(LogDev, "Controller: {}", Controller->IsValidLowLevel() ? Controller->GetPathName() : "BadRead");
+
+		static auto CosmeticLoadoutBCOffset = Controller->GetOffset("CosmeticLoadoutBC");
+		Controller->GetPtr<FFortAthenaLoadout>(CosmeticLoadoutBCOffset)->GetCharacter() = CharacterCustomization->GetCustomizationLoadout()->GetCharacter();
+
+		auto PlayerStateAsFort = Cast<AFortPlayerState>(Controller->GetPlayerState());
+
+		static auto UpdatePlayerCustomCharacterPartsVisualizationFn = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.UpdatePlayerCustomCharacterPartsVisualization");
+		PlayerStateAsFort->ProcessEvent(UpdatePlayerCustomCharacterPartsVisualizationFn, &PlayerStateAsFort);
+
+		PlayerStateAsFort->ForceNetUpdate();
+		NewBot->ForceNetUpdate();
+		Controller->ForceNetUpdate();
+
+		// NewBot->GetCosmeticLoadout()->GetCharacter() = CharacterCustomization->GetCustomizationLoadout()->GetCharacter();
+	}
 
 	static UClass* StaticClass()
 	{
