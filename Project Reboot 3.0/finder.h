@@ -377,7 +377,14 @@ static inline uint64 FindPauseBeaconRequests()
 	// todo try 40 53 48 83 EC 30 48 8B ? 84 D2 74 ? 80 3D for S1-S15
 
 	if (Engine_Version == 426)
-		return Memcury::Scanner::FindPattern("40 57 48 83 EC 30 48 8B F9 84 D2 74 62 80 3D").Get();
+	{
+		auto addr = Memcury::Scanner::FindPattern("40 57 48 83 EC 30 48 8B F9 84 D2 74 62 80 3D", false).Get();
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 5E 80 3D").Get();
+		
+		return addr;
+	}
 
 	if (Engine_Version == 420)
 		return Memcury::Scanner::FindPattern("40 53 48 83 EC 30 48 8B D9 84 D2 74 68 80 3D ? ? ? ? ? 72 2C 48 8B 05 ? ? ? ? 4C 8D 44").Get();

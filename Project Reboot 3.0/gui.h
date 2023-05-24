@@ -49,10 +49,11 @@
 #define ZONE_TAB 6
 #define DUMP_TAB 7
 #define UNBAN_TAB 8
-#define DEVELOPER_TAB 9
-#define DEBUGLOG_TAB 10
-#define SETTINGS_TAB 11
-#define CREDITS_TAB 12
+#define FUN_TAB 9
+#define DEVELOPER_TAB 10
+#define DEBUGLOG_TAB 11
+#define SETTINGS_TAB 12
+#define CREDITS_TAB 13
 
 #define MAIN_PLAYERTAB 1
 #define INVENTORY_PLAYERTAB 2
@@ -146,12 +147,15 @@ static inline std::string wstring_to_utf8(const std::wstring& str)
 	return str_to;
 }
 
-static inline void InitStyle()
+static inline void InitFont()
 {
 	ImFontConfig FontConfig;
 	FontConfig.FontDataOwnedByAtlas = false;
 	ImGui::GetIO().Fonts->AddFontFromMemoryTTF((void*)ruda_bold_data, sizeof(ruda_bold_data), 17.f, &FontConfig);
-	// ImGui::GetIO().Fonts->AddFontFromFileTTF("Reboot Resources/fonts/ruda-bold.ttf", 17);
+}
+
+static inline void InitStyle()
+{
 	auto& mStyle = ImGui::GetStyle();
 	mStyle.FramePadding = ImVec2(4, 2);
 	mStyle.ItemSpacing = ImVec2(6, 2);
@@ -357,6 +361,14 @@ static inline void MainTabs()
 		if (ImGui::BeginTabItem("Dump"))
 		{
 			Tab = DUMP_TAB;
+			PlayerTab = -1;
+			bInformationTab = false;
+			ImGui::EndTabItem();
+		}
+
+		if (ImGui::BeginTabItem("Fun"))
+		{
+			Tab = FUN_TAB;
 			PlayerTab = -1;
 			bInformationTab = false;
 			ImGui::EndTabItem();
@@ -978,6 +990,51 @@ static inline void MainUI()
 		{
 
 		}
+		else if (Tab == FUN_TAB)
+		{
+			static std::string ItemToGrantEveryone;
+			static int AmountToGrantEveryone = 1;
+
+			ImGui::InputText("Item to Give", &ItemToGrantEveryone);
+			ImGui::InputInt("Amount to Give", &AmountToGrantEveryone);
+
+			if (ImGui::Button("Give Item to Everyone"))
+			{
+				auto ItemDefinition = FindObject<UFortItemDefinition>(ItemToGrantEveryone, nullptr, ANY_PACKAGE);
+				
+				if (ItemDefinition)
+				{
+					static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
+					auto WorldNetDriver = GetWorld()->Get<UNetDriver*>(World_NetDriverOffset);
+					auto& ClientConnections = WorldNetDriver->GetClientConnections();
+
+					for (int i = 0; i < ClientConnections.Num(); i++)
+					{
+						auto PlayerController = Cast<AFortPlayerController>(ClientConnections.at(i)->GetPlayerController());
+
+						if (!PlayerController->IsValidLowLevel())
+							continue;
+
+						auto WorldInventory = PlayerController->GetWorldInventory();
+
+						if (!WorldInventory->IsValidLowLevel())
+							continue;
+
+						bool bShouldUpdate = false;
+						WorldInventory->AddItem(ItemDefinition, &bShouldUpdate, AmountToGrantEveryone);
+
+						if (bShouldUpdate)
+							WorldInventory->Update();
+					}
+				}
+				else
+				{
+					ItemToGrantEveryone = "";
+					LOG_WARN(LogUI, "Invalid Item Definition!");
+				}
+			}
+
+		}
 		else if (Tab == DEVELOPER_TAB)
 		{
 			static std::string ClassNameToDump;
@@ -1201,6 +1258,7 @@ static inline DWORD WINAPI GuiThread(LPVOID)
 	// io.Fonts->AddFontFromFileTTF("../vendor/fonts/Aller_Bd.ttf", 17);
 
 	// Setup Dear ImGui style
+	InitFont();
 	InitStyle();
 
 	// Setup Platform/Renderer backends

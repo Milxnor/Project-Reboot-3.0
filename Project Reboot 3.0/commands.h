@@ -69,9 +69,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 	auto lastBackslash = OldMsg.find_last_of("\\");
 
 	static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
-	auto WorldNetDriver = GetWorld()->Get(World_NetDriverOffset);
-	static auto ClientConnectionsOffset = WorldNetDriver->GetOffset("ClientConnections");
-	auto& ClientConnections = WorldNetDriver->Get<TArray<UObject*>>(ClientConnectionsOffset);
+	auto WorldNetDriver = GetWorld()->Get<UNetDriver*>(World_NetDriverOffset);
+	auto& ClientConnections = WorldNetDriver->GetClientConnections();
 
 	if (firstBackslash != std::string::npos && lastBackslash != std::string::npos)
 	{
