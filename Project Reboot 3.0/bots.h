@@ -4,11 +4,39 @@
 #include "OnlineReplStructs.h"
 #include "BuildingContainer.h"
 
+class BotPOI
+{
+	FVector CenterLocation;
+	FVector Range; // this just has to be FVector2D
+};
+
+class BotPOIEncounter
+{
+public:
+	int NumChestsSearched;
+	int NumAmmoBoxesSearched;
+	int NumPlayersEncountered;
+};
+
 class PlayerBot
 {
 public:
 	AController* Controller = nullptr;
+	BotPOIEncounter currentBotEncounter;
+	int TotalPlayersEncountered;
+	std::vector<BotPOI> POIsTraveled;
 	float NextJumpTime = 1.0f;
+
+	void OnPlayerEncountered()
+	{
+		currentBotEncounter.NumPlayersEncountered++;
+		TotalPlayersEncountered++;
+	}
+
+	void MoveToNewPOI()
+	{
+
+	}
 
 	void Initialize(const FTransform& SpawnTransform)
 	{

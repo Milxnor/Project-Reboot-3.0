@@ -22,7 +22,7 @@ static inline void ServerVehicleUpdate(UObject* Context, FFrame& Stack, void* Re
 
 	FTransform Transform{};
 
-	static std::string StateStructName = FindObject("/Script/FortniteGame.ReplicatedPhysicsPawnState") ? "/Script/FortniteGame.ReplicatedPhysicsPawnState" : "/Script/FortniteGame.ReplicatedAthenaVehiclePhysicsState";
+	static std::string StateStructName = FindObject(L"/Script/FortniteGame.ReplicatedPhysicsPawnState") ? "/Script/FortniteGame.ReplicatedPhysicsPawnState" : "/Script/FortniteGame.ReplicatedAthenaVehiclePhysicsState";
 
 	if (StateStructName.empty())
 		return;
@@ -86,7 +86,7 @@ static inline void ServerVehicleUpdate(UObject* Context, FFrame& Stack, void* Re
 	Mesh->ProcessEvent(K2_SetWorldTransformFn, K2_SetWorldTransformParams);
 	// Mesh->bComponentToWorldUpdated = true;
 
-	// VirtualFree(K2_SetWorldTransformParams, 0, MEM_RELEASE);
+	VirtualFree(K2_SetWorldTransformParams, 0, MEM_RELEASE);
 
 	struct { FVector NewVel; bool bAddToCurrent; FName BoneName; } 
 	UPrimitiveComponent_SetPhysicsLinearVelocity_Params{

@@ -130,6 +130,37 @@ UClass* AFortGameModeAthena::GetVehicleClassOverride(UClass* DefaultClass)
 	return GetVehicleClassOverride_Params.ReturnValue;
 }
 
+void AFortGameModeAthena::SkipAircraft()
+{
+	// reversed from 10.40
+
+	auto GameState = GetGameStateAthena();
+
+	static auto bGameModeWillSkipAircraftOffset = GameState->GetOffset("bGameModeWillSkipAircraft", false);
+
+	if (bGameModeWillSkipAircraftOffset != -1) // hmm?
+		GameState->Get<bool>(bGameModeWillSkipAircraftOffset) = true; 
+
+	static auto OnAircraftExitedDropZoneFn = FindObject<UFunction>("/Script/FortniteGame.FortGameModeAthena.OnAircraftExitedDropZone");
+
+	static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
+
+	if (AircraftsOffset == -1)
+	{
+		static auto AircraftOffset = GameState->GetOffset("Aircraft");
+		this->ProcessEvent(OnAircraftExitedDropZoneFn, &GameState->Get<AActor*>(AircraftOffset));
+	}
+	else
+	{
+		auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
+
+		for (int i = 0; i < Aircrafts->Num(); i++)
+		{
+			this->ProcessEvent(OnAircraftExitedDropZoneFn, &Aircrafts->at(i));
+		}
+	}
+}
+
 void AFortGameModeAthena::HandleSpawnRateForActorClass(UClass* ActorClass, float SpawnPercentage)
 {
 	TArray<AActor*> AllActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ActorClass);
@@ -466,7 +497,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				ShowFoundation(Lake);
 			}
 
-			auto FloatingIsland = Fortnite_Version == 6.10 ? FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_StreamingTest13") :
+			auto FloatingIsland = Fortnite_Version <= 6.10 ? FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_StreamingTest13") :
 				FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_FloatingIsland");
 
 			ShowFoundation(FloatingIsland);
@@ -1138,8 +1169,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				}
 			}
 
-			auto SpawnIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
-			auto BRIsland_FloorLoot = FindObject<UClass>("/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
+			auto SpawnIsland_FloorLoot = FindObject<UClass>(L"/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
+			auto BRIsland_FloorLoot = FindObject<UClass>(L"/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
 			TArray<AActor*> SpawnIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnIsland_FloorLoot);
 			TArray<AActor*> BRIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BRIsland_FloorLoot);

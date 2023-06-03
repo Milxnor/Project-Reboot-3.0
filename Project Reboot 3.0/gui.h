@@ -211,7 +211,7 @@ static inline void InitStyle()
 	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.20f, 0.22f, 0.27f, 0.9f);
 }
 
-static inline void TextCentered(std::string text, bool bNewLine = true) {
+static inline void TextCentered(const std::string& text, bool bNewLine = true) {
 	if (bNewLine)
 		ImGui::NewLine();
 
@@ -235,7 +235,7 @@ static inline void TextCentered(std::string text, bool bNewLine = true) {
 	ImGui::PopTextWrapPos();
 }
 
-static inline bool ButtonCentered(std::string text, bool bNewLine = true) {
+static inline bool ButtonCentered(const std::string& text, bool bNewLine = true) {
 	if (bNewLine)
 		ImGui::NewLine();
 
@@ -608,7 +608,7 @@ static inline void MainUI()
 									{
 										// GameState->Aircraft
 
-										static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
+										static auto FortAthenaAircraftClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaAircraft");
 										auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
 
 										return AllAircrafts;
@@ -629,10 +629,14 @@ static inline void MainUI()
 								static auto SafeZonesStartTimeOffset = GameState->GetOffset("SafeZonesStartTime");
 								GameState->Get<float>(SafeZonesStartTimeOffset) = 0;
 
+								LOG_INFO(LogDev, "Waiting for SafeZoneIndicator..");
+
 								while (!GameState->Get(SafeZoneIndicatorOffset))
 								{
 									Sleep(500);
 								}
+
+								LOG_INFO(LogDev, "SafeZoneIndicator is valid!");
 
 								while (GetAircrafts().Num() <= 0) // hmm
 								{
@@ -705,6 +709,57 @@ static inline void MainUI()
 								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
 								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipaircraft", nullptr);
 
+								static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
+								auto WorldNetDriver = GetWorld()->Get<UNetDriver*>(World_NetDriverOffset);
+								auto& ClientConnections = WorldNetDriver->GetClientConnections();
+
+								for (int z = 0; z < ClientConnections.Num(); z++)
+								{
+									auto ClientConnection = ClientConnections.at(z);
+									auto FortPC = Cast<AFortPlayerController>(ClientConnection->GetPlayerController());
+
+									if (!FortPC)
+										continue;
+
+									auto WorldInventory = FortPC->GetWorldInventory();
+
+									if (!WorldInventory)
+										continue;
+
+									static auto WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
+									static auto StoneItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+									static auto MetalItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+
+									static auto Rifle = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03.WID_Assault_AutoHigh_Athena_SR_Ore_T03");
+									static auto Shotgun = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03") 
+										? FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03")
+										: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_C_Ore_T03.WID_Shotgun_Standard_Athena_C_Ore_T03");
+									static auto SMG = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03")
+										? FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03")
+										: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavySuppressed_Athena_R_Ore_T03.WID_Pistol_AutoHeavySuppressed_Athena_R_Ore_T03");
+
+									static auto MiniShields = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/ShieldSmall/Athena_ShieldSmall.Athena_ShieldSmall");
+
+									static auto Shells = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells");
+									static auto Medium = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsMedium.AthenaAmmoDataBulletsMedium");
+									static auto Light = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsLight.AthenaAmmoDataBulletsLight");
+									static auto Heavy = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsHeavy.AthenaAmmoDataBulletsHeavy");
+
+									WorldInventory->AddItem(WoodItemData, nullptr, 500);
+									WorldInventory->AddItem(StoneItemData, nullptr, 500);
+									WorldInventory->AddItem(MetalItemData, nullptr, 500);
+									WorldInventory->AddItem(Rifle, nullptr, 1);
+									WorldInventory->AddItem(Shotgun, nullptr, 1);
+									WorldInventory->AddItem(SMG, nullptr, 1);
+									WorldInventory->AddItem(MiniShields, nullptr, 6);
+									WorldInventory->AddItem(Shells, nullptr, 999);
+									WorldInventory->AddItem(Medium, nullptr, 999);
+									WorldInventory->AddItem(Light, nullptr, 999);
+									WorldInventory->AddItem(Heavy, nullptr, 999);
+
+									WorldInventory->Update();
+								}
+
 								auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
 
 								if (SafeZoneIndicator)
@@ -714,8 +769,8 @@ static inline void MainUI()
 									UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
 									SafeZoneIndicator->SkipShrinkSafeZone();
 
-									// Sleep(1000);
-									// SafeZoneIndicator->SkipShrinkSafeZone();
+									Sleep(1000);
+									SafeZoneIndicator->SkipShrinkSafeZone();
 								}
 							}
 

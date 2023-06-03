@@ -146,22 +146,24 @@ public:
 		((UKismetSystemLibrary_LineTraceSingle_Params*)Params)->bTraceComplex = bTraceComplex;
 		*(bool*)(__int64(Params) + bIgnoreSelfOffset) = bIgnoreSelf;
 
-		static auto KismetSystemLibrary = FindObject("/Script/Engine.Default__KismetSystemLibrary");
+		static auto KismetSystemLibrary = FindObject(L"/Script/Engine.Default__KismetSystemLibrary");
 		KismetSystemLibrary->ProcessEvent(LineTraceSingleFn, Params);
 
 		if (OutHit)
 			*OutHit = (FHitResult*)(__int64(Params) + OutHitOffset);
 
-		return *(bool*)(__int64(Params) + ReturnValueOffset);
+		bool ReturnValue = *(bool*)(__int64(Params) + ReturnValueOffset);
 
-		// free params frfr
+		// VirtualFree(Params, 0, MEM_RELEASE);
+
+		return ReturnValue;
 	}
 
 	static bool LineTraceSingleByProfile(UObject* WorldContextObject, const FVector& Start, const FVector& End, FName ProfileName, bool bTraceComplex,
 		const TArray<AActor*>& ActorsToIgnore, EDrawDebugTrace DrawDebugType, FHitResult** OutHit, bool bIgnoreSelf, const FLinearColor& TraceColor, 
 		const FLinearColor& TraceHitColor, float DrawTime)
 	{
-		auto LineTraceSingleByProfileFn = FindObject<UFunction>("/Script/Engine.KismetSystemLibrary.LineTraceSingleByProfile");
+		auto LineTraceSingleByProfileFn = FindObject<UFunction>(L"/Script/Engine.KismetSystemLibrary.LineTraceSingleByProfile");
 
 		if (!LineTraceSingleByProfileFn)
 			return false;

@@ -10,7 +10,7 @@ FString& APlayerState::GetSavedNetworkAddress()
 
 FString APlayerState::GetPlayerName()
 {
-	static auto GetPlayerNameFn = FindObject<UFunction>("/Script/Engine.PlayerState.GetPlayerName");
+	static auto GetPlayerNameFn = FindObject<UFunction>(L"/Script/Engine.PlayerState.GetPlayerName");
 
 	if (GetPlayerNameFn)
 	{

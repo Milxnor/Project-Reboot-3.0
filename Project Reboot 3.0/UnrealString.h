@@ -5,6 +5,8 @@
 #include "Array.h"
 #include "log.h"
 
+// #define EXPERIMENTAL_FSTRING
+
 class FString
 {
 public:
@@ -30,17 +32,57 @@ public:
 		return Data.Data;
 	}
 
-	void Set(const wchar_t* NewStr) // by fischsalat
+	void Set(const wchar_t* NewStr)
 	{
-		if (!NewStr/* || std::wcslen(NewStr) == 0 */) return;
+		if (!NewStr/* || std::wcslen(NewStr) == 0 */) 
+			return;
 
+#ifndef EXPERIMENTAL_FSTRING
 		Data.ArrayMax = Data.ArrayNum = *NewStr ? (int)std::wcslen(NewStr) + 1 : 0;
 
 		if (Data.ArrayNum)
 			Data.Data = const_cast<wchar_t*>(NewStr);
+#else
+		Data.ArrayNum = (int)std::wcslen(NewStr) + 1;
+		Data.ArrayMax = Data.ArrayNum;
+
+		if (Data.ArrayNum > 0) // this should never happen unless std::wcslen returns negative..
+		{
+			int amountToAlloc = (Data.ArrayNum * sizeof(TCHAR));
+
+			if (Addresses::Free && Addresses::Realloc)
+			{
+				Data.Data = (TCHAR*)FMemory::Realloc(0, amountToAlloc, 0);
+				memcpy_s(Data.Data, amountToAlloc, NewStr, amountToAlloc);
+			}
+			else
+			{
+				Data.Data = (TCHAR*)NewStr;
+			}
+		}
+#endif
 	}
 
 	FString() {}
+
+#ifdef EXPERIMENTAL_FSTRING
+	FString& operator=(const wchar_t* Other)
+	{
+		this->Set(Other);
+		return *this;
+	}
+
+	FString& operator=(const FString& Other)
+	{
+		this->Set(Other.Data.Data);
+		return *this;
+	}
+
+	FString(const FString& Other)
+	{
+		this->Set(Other.Data.Data);
+	}
+#endif
 
 	FString(const wchar_t* str)
 	{
@@ -49,11 +91,28 @@ public:
 
 	~FString()
 	{
+#ifdef EXPERIMENTAL_FSTRING
 		if (Data.Data)
 		{
 			// LOG_INFO(LogDev, "Deconstructing FString!");
+			// free(Data.Data);
+
+			if (Addresses::Realloc && Addresses::Free)
+			{
+				static void (*freeOriginal)(void*) = decltype(freeOriginal)(Addresses::Free);
+				freeOriginal(Data.Data);
+			}
+			else
+			{
+				// VirtualFree(Data.Data, 0, MEM_RELEASE);
+			}
 		}
+#endif
 
 		// Free();
+
+		Data.Data = nullptr;
+		Data.ArrayNum = 0;
+		Data.ArrayMax = 0;
 	}
 };

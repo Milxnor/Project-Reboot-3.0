@@ -250,6 +250,96 @@ UObject* GetAIDirectorHook()
     return GameMode->Get(AIDirectorOffset);
 }
 
+void ChangeLevels()
+{
+    constexpr bool bUseRemovePlayer = false;
+    constexpr bool bUseSwitchLevel = false;
+    constexpr bool bShouldRemoveLocalPlayer = true;
+
+    FString LevelB = Engine_Version < 424
+        ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+        ? L"open Asteria_Terrain"
+        : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+        : L"open Artemis_Terrain"
+        : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
+        : L"open Apollo_Terrain";
+
+    FString Level = Engine_Version < 424
+        ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+        ? L"Asteria_Terrain"
+        : Globals::bCreative ? L"Creative_NoApollo_Terrain"
+        : L"Artemis_Terrain"
+        : Globals::bCreative ? L"Creative_NoApollo_Terrain"
+        : L"Apollo_Terrain";
+
+    if (bUseSwitchLevel)
+    {
+        static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
+
+        GetLocalPlayerController()->ProcessEvent(SwitchLevel, &Level);
+
+        if (FindGIsServer())
+        {
+            *(bool*)FindGIsServer() = true;
+        }
+
+        if (FindGIsClient())
+        {
+            *(bool*)FindGIsClient() = false;
+        }
+    }
+    else
+    {
+        if (FindGIsServer())
+        {
+            *(bool*)FindGIsServer() = true;
+        }
+
+        if (FindGIsClient())
+        {
+            *(bool*)FindGIsClient() = false;
+        }
+
+        if (bShouldRemoveLocalPlayer)
+        {
+            if (!bUseRemovePlayer)
+            {
+                auto& LocalPlayers = GetLocalPlayers();
+
+                if (LocalPlayers.Num() && LocalPlayers.Data)
+                {
+                    LocalPlayers.Remove(0);
+                }
+            }
+            else if (bUseRemovePlayer)
+            {
+                UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
+            }
+        }
+
+        UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelB, nullptr);
+    }
+
+    LOG_INFO(LogPlayer, "Switched level.");
+
+    if (bUseSwitchLevel && bShouldRemoveLocalPlayer)
+    {
+        if (!bUseRemovePlayer)
+        {
+            auto& LocalPlayers = GetLocalPlayers();
+
+            if (LocalPlayers.Num() && LocalPlayers.Data)
+            {
+                LocalPlayers.Remove(0);
+            }
+        }
+        else if (bUseRemovePlayer)
+        {
+            UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
+        }
+    }
+}
+
 DWORD WINAPI Main(LPVOID)
 {
     InitLogger();
@@ -270,7 +360,7 @@ DWORD WINAPI Main(LPVOID)
 
     Addresses::SetupVersion();
 
-    NumElementsPerChunk = std::floor(Fortnite_Version) == 5 ? 0x10400 : 0x10000; // DUDE
+    NumElementsPerChunk = std::floor(Fortnite_Version) >= 5 && Fortnite_Version <= 6 ? 0x10400 : 0x10000; // Idk what version tbh
 
     Offsets::FindAll(); // We have to do this before because FindCantBuild uses FortAIController.CreateBuildingActor
     Offsets::Print();
@@ -293,6 +383,7 @@ DWORD WINAPI Main(LPVOID)
     }
 
     bSwitchedInitialLevel = true;
+
     // Globals::bAutoRestart = IsRestartingSupported();
 
     static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
@@ -349,11 +440,8 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);
 
-    LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
-    LOG_INFO(LogDev, "FindGIsClient: 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
-
-    bool bUseRemovePlayer = false;
-    bool bUseSwitchLevel = false;
+    // LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
+    // LOG_INFO(LogDev, "FindGIsClient: 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
 
     /* Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationTransform"),
@@ -431,77 +519,7 @@ DWORD WINAPI Main(LPVOID)
     else if (Fortnite_Version == 12.41)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x2DBCBA0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
 
-    if (bUseSwitchLevel)
-    {
-        static auto SwitchLevel = FindObject<UFunction>(L"/Script/Engine.PlayerController.SwitchLevel");
-
-        FString Level = Engine_Version < 424
-            ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
-            ? L"Asteria_Terrain"
-            : Globals::bCreative ? L"Creative_NoApollo_Terrain"
-            : L"Artemis_Terrain"
-            : Globals::bCreative ? L"Creative_NoApollo_Terrain"
-            : L"Apollo_Terrain";
-
-        GetLocalPlayerController()->ProcessEvent(SwitchLevel, &Level);
-
-        if (FindGIsServer())
-            *(bool*)FindGIsServer() = true;
-
-        if (FindGIsClient())
-            *(bool*)FindGIsClient() = false;
-    }
-    else
-    {
-        if (FindGIsServer())
-            *(bool*)FindGIsServer() = true;
-
-        if (FindGIsClient())
-            *(bool*)FindGIsClient() = false;
-
-        if (!bUseRemovePlayer)
-        {
-            auto& LocalPlayers = GetLocalPlayers();
-
-            if (LocalPlayers.Num() && LocalPlayers.Data)
-            {
-                LocalPlayers.Remove(0);
-            }
-        }
-        else if (bUseRemovePlayer)
-        {
-            UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
-        }
-
-        FString LevelB = Engine_Version < 424
-            ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
-            ? L"open Asteria_Terrain"
-            : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-            : L"open Artemis_Terrain"
-            : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-            : L"open Apollo_Terrain";
-
-        UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), LevelB, nullptr);
-    }
-
-    LOG_INFO(LogPlayer, "Switched level.");
-
-    if (bUseSwitchLevel)
-    {
-        if (!bUseRemovePlayer)
-        {
-            auto& LocalPlayers = GetLocalPlayers();
-
-            if (LocalPlayers.Num() && LocalPlayers.Data)
-            {
-                LocalPlayers.Remove(0);
-            }
-        }
-        else if (bUseRemovePlayer)
-        {
-            UGameplayStatics::RemovePlayer((APlayerController*)GetLocalPlayerController(), true);
-        }
-    }
+    ChangeLevels();
 
     auto AddressesToNull = Addresses::GetFunctionsToNull();
 
@@ -536,7 +554,7 @@ DWORD WINAPI Main(LPVOID)
     {
         auto matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? 01 7F 18 49 8D 4D D8 48 8B D6 E8 ? ? ? ? 48", false).Get();
 
-        matchmaking = matchmaking ? matchmaking : Memcury::Scanner::FindPattern("83 7D 88 01 7F 0D 48 8B CE E8").Get();
+        matchmaking = matchmaking ? matchmaking : Memcury::Scanner::FindPattern("83 7D 88 01 7F 0D 48 8B CE E8", false).Get();
 
         bool bMatchmakingSupported = false;
 
@@ -565,7 +583,7 @@ DWORD WINAPI Main(LPVOID)
             }
         }
 
-        std::cout << "Matchmaking will " << (bMatchmakingSupported ? "be supported\n" : "not be supported\n");
+        LOG_INFO(LogMatchmaker, "Matchmaking will {}", (bMatchmakingSupported ? "be supported" : "not be supported"));
 
         if (bMatchmakingSupported)
         {
@@ -770,6 +788,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
     Hooking::MinHook::Hook((PVOID)GetFunctionIdxOrPtr(FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerOnExitVehicle"), true), AFortPlayerPawn::ServerOnExitVehicleHook, (PVOID*)&AFortPlayerPawn::ServerOnExitVehicleOriginal);
+    
     if (Fortnite_Version == 1.11 || Fortnite_Version > 1.8)
     {
         Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerReviveFromDBNO"),

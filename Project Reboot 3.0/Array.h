@@ -326,16 +326,19 @@ public:
 
 	void FreeGood(SizeType Size = sizeof(InElementType))
 	{
-		if (true)
+		if (Data)
 		{
-			static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(Addresses::Free);
+			if (true)
+			{
+				static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(Addresses::Free);
 
-			if (FreeOriginal)
-				FreeOriginal(Data);
-		}
-		else
-		{
-			VirtualFree(Data, 0, MEM_RELEASE);
+				if (FreeOriginal)
+					FreeOriginal(Data);
+			}
+			else
+			{
+				VirtualFree(Data, 0, MEM_RELEASE);
+			}
 		}
 
 		Data = nullptr;

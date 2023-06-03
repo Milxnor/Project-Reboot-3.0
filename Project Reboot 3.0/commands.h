@@ -93,7 +93,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				if (!CurrentPlayerState)
 					continue;
 
-				auto PlayerName = CurrentPlayerState->GetPlayerName();
+				FString PlayerName = CurrentPlayerState->GetPlayerName();
 
 				if (PlayerName.ToString() == player) // hopefully we arent on adifferent thread
 				{
@@ -160,6 +160,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 	auto NumArgs = Arguments.size() == 0 ? 0 : Arguments.size() - 1;
 
 	// std::cout << "NumArgs: " << NumArgs << '\n';
+
+	// return;
 
 	bool bSendHelpMessage = false;
 
@@ -304,6 +306,12 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		} */
 		else if (Command == "op")
 		{
+			if (ReceivingController == PlayerController)
+			{
+				SendMessageToConsole(PlayerController, L"You can't op yourself!");
+				return;
+			}
+
 			if (IsOp(ReceivingController))
 			{
 				SendMessageToConsole(PlayerController, L"Player is already operator!");
@@ -617,11 +625,11 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			auto& ClassName = Arguments[1];
 
-			if (ClassName.contains("/Script/"))
+			/* if (ClassName.contains("/Script/"))
 			{
 				SendMessageToConsole(PlayerController, L"For now, we don't allow non-blueprint classes.\n");
 				return;
-			}
+			} */
 
 			auto Pawn = ReceivingController->GetPawn();
 
@@ -648,7 +656,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			}
 
 			static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
-			auto ClassObj = LoadObject<UClass>(ClassName, BGAClass);
+			static auto ClassClass = FindObject<UClass>(L"/Script/CoreUObject.Class");
+			auto ClassObj = ClassName.contains("/Script/") ? FindObject<UClass>(ClassName, ClassClass) : LoadObject<UClass>(ClassName, BGAClass); // scuffy
 
 			if (ClassObj)
 			{

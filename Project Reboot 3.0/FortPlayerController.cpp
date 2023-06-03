@@ -636,30 +636,31 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	// if (!PlayerController->bInAircraft) 
 		// return;
 
+	LOG_INFO(LogDev, "ServerAttemptAircraftJumpHook!");
+
 	auto GameMode = (AFortGameModeAthena*)GetWorld()->GetGameMode();
+	auto GameState = GameMode->GetGameStateAthena();
+
+	AActor* AircraftToJumpFrom = nullptr;
+
+	static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
+
+	if (AircraftsOffset == -1)
+	{
+		static auto AircraftOffset = GameState->GetOffset("Aircraft");
+		AircraftToJumpFrom = GameState->Get<AActor*>(AircraftOffset);
+	}
+	else
+	{
+		auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
+		AircraftToJumpFrom = Aircrafts->Num() > 0 ? Aircrafts->at(0) : nullptr; // skunky
+	}
+
+	if (!AircraftToJumpFrom)
+		return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 
 	if (false)
 	{
-		auto GameState = GameMode->GetGameStateAthena();
-
-		AActor* AircraftToJumpFrom = nullptr;
-
-		static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
-
-		if (AircraftsOffset == -1)
-		{
-			static auto AircraftOffset = GameState->GetOffset("Aircraft");
-			AircraftToJumpFrom = GameState->Get<AActor*>(AircraftOffset);
-		}
-		else
-		{
-			auto Aircrafts = GameState->GetPtr<TArray<AActor*>>(AircraftsOffset);
-			AircraftToJumpFrom = Aircrafts->Num() > 0 ? Aircrafts->at(0) : nullptr;
-		}
-
-		if (!AircraftToJumpFrom)
-			return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
-
 		auto NewPawn = GameMode->SpawnDefaultPawnForHook(GameMode, (AController*)PlayerController, AircraftToJumpFrom);
 		PlayerController->Possess(NewPawn);
 	}
@@ -699,7 +700,11 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 		NewPawnAsFort->SetHealth(100); // needed with server restart player?
 		
 		if (Globals::bLateGame)
+		{
 			NewPawnAsFort->SetShield(100);
+
+			NewPawnAsFort->TeleportTo(AircraftToJumpFrom->GetActorLocation(), FRotator());
+		}
 	}
 
 	// PlayerController->ServerRestartPlayer();

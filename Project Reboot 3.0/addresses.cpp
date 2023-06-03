@@ -83,7 +83,7 @@ void Addresses::SetupVersion()
 		CLStr = CLStr.substr(0, CLStr.find_first_of('+'));
 		Fortnite_CL = std::stoi(CLStr);
 		Engine_Version = Fortnite_CL <= 3775276 ? 416 : 419; // std::stoi(FullVersion.substr(0, FullVersion.find_first_of('-')));
-		Fortnite_Version = FullVersion.contains(("Next")) ? 2.4 : 1.8;
+		// Fortnite_Version = FullVersion.contains(("Next")) ? 2.4 : 1.8;
 	}
 
 	// Fortnite_Season = std::floor(Fortnite_Version);
@@ -581,6 +581,8 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	{
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 F6 0F 29 70 A8 44 38 35").Get()); // zone
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A8 48 81 EC ? ? ? ? 45").Get()); // GC
+		// toNull.push_back(Memcury::Scanner::FindPattern("40 53 48 83 EC 20 8B D9 E8 ? ? ? ? B2 01 8B CB E8").Get()); // GC Caller 1
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 55 41 56 48 8B EC 48 83 EC 50 83 65 28 00 40 B6 05 40 38 35 ? ? ? ? 4C").Get()); // InitializeUI
 	}
 
 	if (Engine_Version >= 426)

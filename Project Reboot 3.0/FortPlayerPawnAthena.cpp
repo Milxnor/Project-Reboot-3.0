@@ -100,7 +100,7 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 			// std::cout << "bFoundStack: " << bFoundStack << '\n';
 
 			if (!bCanStack ? (!bFoundStack ? true : ItemDefinition->DoesAllowMultipleStacks()) : true)
-				ServerHandlePickupHook(Pawn, Pickup, 0.4, FVector(), true);
+				ServerHandlePickupHook(Pawn, Pickup, 0.4f, FVector(), true);
 		}
 	}
 

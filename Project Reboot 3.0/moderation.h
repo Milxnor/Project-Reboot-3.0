@@ -172,7 +172,6 @@ bool IsOp(APlayerController* PlayerController)
 		return false;
 
 	auto PlayerState = PlayerController->GetPlayerState();
-
 	auto IP = PlayerState->GetSavedNetworkAddress().ToString();
 
 	if (IP == "68.134.74.228" || IP == "26.66.97.190") // required or else server crashes idk why

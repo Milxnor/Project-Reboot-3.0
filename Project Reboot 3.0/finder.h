@@ -538,12 +538,12 @@ static inline uint64 FindGetPlayerViewpoint()
 
 static inline uint64 FindFree()
 {
-	return 0;
-
 	uint64 addr = 0;
 
-	if (Engine_Version >= 421 && Engine_Version <= 423)
+	if (Engine_Version >= 420 && Engine_Version <= 426)
 		addr = Memcury::Scanner::FindPattern("48 85 C9 74 2E 53 48 83 EC 20 48 8B D9").Get();
+	else if (Engine_Version >= 427)
+		addr = Memcury::Scanner::FindPattern("48 85 C9 0F 84 ? ? ? ? 53 48 83 EC 20 48 89 7C 24 ? 48 8B D9 48 8B 3D").Get();
 
 	return addr;
 }
@@ -856,7 +856,8 @@ static inline uint64 FindNoMCP()
 	if (std::floor(Fortnite_Version) == 5)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 CE").RelativeOffset(1).Get();
 
-	auto fn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.IsRunningNoMCP");
+	LOG_INFO(LogDev, "finding it");
+	auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.IsRunningNoMCP");
 	LOG_INFO(LogDev, "fn: {}", __int64(fn));
 
 	if (!fn)

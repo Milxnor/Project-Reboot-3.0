@@ -68,6 +68,8 @@ void UAbilitySystemComponent::ServerEndAbility(FGameplayAbilitySpecHandle Abilit
 	CopyStruct((FPredictionKey*)(__int64(Params) + PredictionKeyOffset), PredictionKey, FPredictionKey::GetStructSize());
 
 	this->ProcessEvent(ServerEndAbilityFn, Params);
+
+	VirtualFree(Params, 0, MEM_RELEASE);
 }
 
 void UAbilitySystemComponent::ClientEndAbility(FGameplayAbilitySpecHandle AbilityToEnd, FGameplayAbilityActivationInfo* ActivationInfo)
@@ -83,6 +85,8 @@ void UAbilitySystemComponent::ClientEndAbility(FGameplayAbilitySpecHandle Abilit
 	CopyStruct((FGameplayAbilityActivationInfo*)(__int64(Params) + ActivationInfoOffset), ActivationInfo, FGameplayAbilityActivationInfo::GetStructSize());
 
 	this->ProcessEvent(ClientEndAbilityFn, Params);
+
+	VirtualFree(Params, 0, MEM_RELEASE);
 }
 
 void UAbilitySystemComponent::ClientCancelAbility(FGameplayAbilitySpecHandle AbilityToCancel, FGameplayAbilityActivationInfo* ActivationInfo)
@@ -98,6 +102,8 @@ void UAbilitySystemComponent::ClientCancelAbility(FGameplayAbilitySpecHandle Abi
 	CopyStruct((FGameplayAbilityActivationInfo*)(__int64(Params) + ActivationInfoOffset), ActivationInfo, FGameplayAbilityActivationInfo::GetStructSize());
 
 	this->ProcessEvent(ClientCancelAbilityFn, Params);
+
+	VirtualFree(Params, 0, MEM_RELEASE);
 }
 
 bool UAbilitySystemComponent::HasAbility(UObject* DefaultAbility)
