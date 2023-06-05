@@ -1378,6 +1378,11 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
 		LOG_INFO(LogDev, "PlayersLeft: {} IsDBNO: {}", GameState->GetPlayersLeft(), DeadPawn->IsDBNO());
+		
+		if (GameState->GetPlayersLeft() == 1)
+		{
+			Restart();
+		}
 
 		if (!DeadPawn->IsDBNO())
 		{
