@@ -1616,3 +1616,15 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 		EditTool->OnRep_EditActor();
 	}
 }
+
+void AFortPlayerController::ServerSuicideHook(AFortPlayerController* PC)
+{
+	struct
+	{
+		FGameplayTag DeathReason;
+		AController* KillerController;
+		AActor* KillerActor;
+	} ForceKillParams { FGameplayTag(), PC, PC->GetMyFortPawn() };
+	static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.ForceKill");
+	PC->GetMyFortPawn()->ProcessEvent(fn, &ForceKillParams);
+}

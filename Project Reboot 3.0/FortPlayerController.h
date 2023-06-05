@@ -51,6 +51,7 @@ public:
 	static inline AActor* (*SpawnToyInstanceOriginal)(UObject* Context, FFrame* Stack, AActor** Ret);
 	static inline void (*ServerLoadingScreenDroppedOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 	static inline void (*ServerAttemptAircraftJumpOriginal)(AFortPlayerController* PC, FRotator ClientRotation);
+	static inline void (*ServerSuicideOriginal)(AFortPlayerController* PC);
 
 	void ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot);
 
@@ -161,6 +162,8 @@ public:
 	// static void ServerEditBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit, UClass* NewBuildingClass, int RotationIterations, char bMirrored);
 	static void ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void ServerEndEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToStopEditing);
+
+	static void ServerSuicideHook(AFortPlayerController* PC);
 
 	static UClass* StaticClass()
 	{
