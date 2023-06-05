@@ -50,10 +50,11 @@
 #define DUMP_TAB 7
 #define UNBAN_TAB 8
 #define FUN_TAB 9
-#define DEVELOPER_TAB 10
-#define DEBUGLOG_TAB 11
-#define SETTINGS_TAB 12
-#define CREDITS_TAB 13
+#define LATEGAME_TAB 10
+#define DEVELOPER_TAB 11
+#define DEBUGLOG_TAB 12
+#define SETTINGS_TAB 13
+#define CREDITS_TAB 14
 
 #define MAIN_PLAYERTAB 1
 #define INVENTORY_PLAYERTAB 2
@@ -369,6 +370,14 @@ static inline void MainTabs()
 		if (ImGui::BeginTabItem("Fun"))
 		{
 			Tab = FUN_TAB;
+			PlayerTab = -1;
+			bInformationTab = false;
+			ImGui::EndTabItem();
+		}
+
+		if (Globals::bLateGame.load() && ImGui::BeginTabItem("Lategame"))
+		{
+			Tab = LATEGAME_TAB;
 			PlayerTab = -1;
 			bInformationTab = false;
 			ImGui::EndTabItem();
@@ -769,8 +778,43 @@ static inline void MainUI()
 									UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
 									SafeZoneIndicator->SkipShrinkSafeZone();
 
-									Sleep(1000);
+									bool bBreak = false;
+									int a = 0;
+
+									while (!bBreak)
+									{
+										for (int z = 0; z < ClientConnections.Num(); z++)
+										{
+											auto ClientConnection = ClientConnections.at(z);
+											auto FortPC = Cast<AFortPlayerController>(ClientConnection->GetPlayerController());
+
+											if (!FortPC)
+												continue;
+
+											if (FortPC->GetMyFortPawn())
+											{
+												bBreak = true;
+												break;
+											}
+										}
+
+										if (++a >= 5)
+											bBreak = true;
+
+										Sleep(1000);
+									}
+
 									SafeZoneIndicator->SkipShrinkSafeZone();
+
+									if (Engine_Version >= 424)
+									{
+										Sleep(1000);
+										SafeZoneIndicator->SkipShrinkSafeZone();
+									}
+								}
+								else
+								{
+									LOG_WARN(LogDev, "Invalid Indicator!");
 								}
 							}
 
@@ -1088,6 +1132,9 @@ static inline void MainUI()
 					LOG_WARN(LogUI, "Invalid Item Definition!");
 				}
 			}
+		}
+		else if (Tab == LATEGAME_TAB)
+		{
 
 		}
 		else if (Tab == DEVELOPER_TAB)

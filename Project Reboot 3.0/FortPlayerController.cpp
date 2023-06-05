@@ -711,6 +711,32 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	// return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
 }
 
+void AFortPlayerController::ServerSuicideHook(AFortPlayerController* PlayerController)
+{
+	auto Pawn = PlayerController->GetPawn();
+
+	if (!Pawn)
+		return;
+
+	// theres some other checks here idk
+
+	if (!Pawn->IsA(AFortPlayerPawn::StaticClass())) // Why FortPlayerPawn? Ask Fortnite
+		return;
+
+	// suicide doesn't actually call force kill but its basically the same function
+
+	static auto ForceKillFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.ForceKill"); // exists on 1.2 and 19.10 with same params so I assume it's the same on every other build.
+
+	FGameplayTag DeathReason; // unused on 1.7.2
+	AActor* KillerActor = nullptr; // its just 0 in suicide (not really but easiest way to explain it)
+
+	struct { FGameplayTag DeathReason; AController* KillerController; AActor* KillerActor; } AFortPawn_ForceKill_Params{ DeathReason, PlayerController, KillerActor };
+
+	Pawn->ProcessEvent(ForceKillFn, &AFortPawn_ForceKill_Params);
+
+	//PlayerDeathReport->ServerTimeForRespawn && PlayerDeathReport->ServerTimeForResurrect = 0? // I think this is what they do on 1.7.2 I'm too lazy to double check though.
+}
+
 void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)
 {
 	LOG_INFO(LogDev, "DropAllItems!");

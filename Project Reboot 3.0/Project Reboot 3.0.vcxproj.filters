@@ -939,6 +939,9 @@
     <ClInclude Include="FortDagwoodVehicle.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Vehicle</Filter>
     </ClInclude>
+    <ClInclude Include="objectviewer.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">

@@ -13,7 +13,9 @@ namespace Calendar
 
 	static inline UObject* GetSnowSetup()
 	{
-		auto Class = FindObject<UClass>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C");
+		auto Class = FindObject<UClass>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C") ? FindObject<UClass>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C") :
+			FindObject<UClass>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C");
+
 		auto Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Class);
 
 		return Actors.Num() > 0 ? Actors.at(0) : nullptr;
@@ -30,24 +32,55 @@ namespace Calendar
 			// 15;
 			return TimeAndValues[3].first;
 		}
+		else if (Fortnite_Version == 11.31)
+		{
+			return 100;
+		}
 
 		return -1;
 	}
 
 	static inline void SetSnow(float NewValue)
 	{
-		static auto SetSnowFn = FindObject<UFunction>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C.SetSnow");
+		static auto SetSnowFn = FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.OnReady_0A511B314AE165C51798519FB84738B8") ? FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.OnReady_0A511B314AE165C51798519FB84738B8") :
+			FindObject<UFunction>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C.SetSnow");
 		auto SnowSetup = GetSnowSetup();
 
 		LOG_INFO(LogDev, "SnowSetup: {}", SnowSetup->IsValidLowLevel() ? SnowSetup->GetFullName() : "BadRead");
 
-		if (SnowSetup)
+		if (SnowSetup && SetSnowFn)
 		{
-			static auto OnReady_347B1F4D45630C357605FCB417D749A3Fn = FindObject<UFunction>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C.OnReady_347B1F4D45630C357605FCB417D749A3");
-			auto GameState = GetWorld()->GetGameState();
-			SnowSetup->ProcessEvent(OnReady_347B1F4D45630C357605FCB417D749A3Fn, &GameState);
+			auto GameState = (AFortGameStateAthena*)GetWorld()->GetGameState();
 
-			SnowSetup->ProcessEvent(SetSnowFn, &NewValue);
+			GET_PLAYLIST(GameState)
+			struct { UObject* GameState; UObject* Playlist; FGameplayTagContainer PlaylistContextTags; } OnReadyParams{ GameState, CurrentPlaylist, FGameplayTagContainer()};
+
+			UFunction* OnReadyFunc = FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.OnReady_0A511B314AE165C51798519FB84738B8");
+
+			LOG_INFO(LogDev, "Calling OnReady!");
+
+			if (OnReadyFunc)
+			{
+				SnowSetup->ProcessEvent(OnReadyFunc, &OnReadyParams);
+			}
+
+			LOG_INFO(LogDev, "Called OnReady!");
+
+			if (NewValue != -1)
+			{
+				static auto SnowAmountOffset = SnowSetup->GetOffset("SnowAmount");
+				SnowSetup->Get<float>(SnowAmountOffset) = NewValue;
+
+				static auto OnRep_Snow_AmountFn = FindObject<UFunction>("/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.OnRep_Snow_Amount");
+				SnowSetup->ProcessEvent(OnRep_Snow_AmountFn);
+
+				// SnowSetup->ProcessEvent(SetSnowFn, &NewValue);
+			}
+
+			LOG_INFO(LogDev, "Called SetSnow!");
+
+			static auto ada = FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.SetFullSnowEd");
+			SnowSetup->ProcessEvent(ada);
 		}
 	}
 }
