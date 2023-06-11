@@ -467,6 +467,10 @@ void Offsets::FindAll()
 		Offsets::NetworkObjectList = 0x490;
 		Offsets::ReplicationFrame = 0x2C8;
 	}
+	if (Fortnite_Version >= 20 && Fortnite_Version < 22)
+	{
+		Offsets::ReplicationFrame = 0x3D8;
+	}
 
 	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();
 	Offsets::Script = Offsets::Children + 8 + 4 + 4;

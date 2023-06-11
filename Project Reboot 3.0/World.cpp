@@ -66,14 +66,6 @@ void UWorld::Listen()
 	FURL URL = FURL();
 	URL.Port = Port - (Engine_Version >= 426);
 
-	FString Error;
-
-	if (!NewNetDriver->InitListen(GetWorld(), URL, false, Error))
-	{
-		LOG_ERROR(LogNet, "Failed to init listen!");
-		return;
-	}
-
 	NewNetDriver->SetWorld(GetWorld());
 
 	// LEVEL COLLECTIONS
@@ -84,6 +76,21 @@ void UWorld::Listen()
 
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;
+
+	FString Error;
+
+	if (!NewNetDriver->InitListen(GetWorld(), URL, false, Error))
+	{
+		LOG_ERROR(LogNet, "Failed to init listen!");
+		return;
+	}
+
+	const bool bLanSpeed = false;
+
+	if (!bLanSpeed && (NewNetDriver->GetMaxInternetClientRate() < NewNetDriver->GetMaxClientRate()) && (NewNetDriver->GetMaxInternetClientRate() > 2500))
+	{
+		NewNetDriver->GetMaxClientRate() = NewNetDriver->GetMaxInternetClientRate();
+	}
 
 	LOG_INFO(LogNet, "Listening on port {}!", Port + Globals::AmountOfListens - 1);
 }

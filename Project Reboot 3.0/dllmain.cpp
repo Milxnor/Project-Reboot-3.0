@@ -256,6 +256,8 @@ void ChangeLevels()
     constexpr bool bUseSwitchLevel = false;
     constexpr bool bShouldRemoveLocalPlayer = true;
 
+    LOG_INFO(LogDev, "FindGIsClient(): 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
+
     FString LevelB = Engine_Version < 424
         ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
         ? L"open Asteria_Terrain"
@@ -371,7 +373,8 @@ DWORD WINAPI Main(LPVOID)
     Addresses::Print();
 
     LOG_INFO(LogDev, "Fortnite_CL: {}", Fortnite_CL);
-    LOG_INFO(LogDev, "Version: {}", Fortnite_Version);
+    LOG_INFO(LogDev, "Fortnite_Version: {}", Fortnite_Version);
+    LOG_INFO(LogDev, "Engine_Version: {}", Engine_Version);
 
     CreateThread(0, 0, GuiThread, 0, 0, 0);
 
@@ -434,8 +437,6 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::KickPlayer, (PVOID)AGameSession::KickPlayerHook, (PVOID*)&AGameSession::KickPlayerOriginal);
 
     LOG_INFO(LogDev, "Built on {} {}", __DATE__, __TIME__);
-    LOG_INFO(LogDev, "[bNoMCP] {}", Globals::bNoMCP);
-    LOG_INFO(LogDev, "[bGoingToPlayEvent] {}", Globals::bGoingToPlayEvent);
     LOG_INFO(LogDev, "Size: 0x{:x}", sizeof(TMap<FName, void*>));
 
     Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);
@@ -524,6 +525,8 @@ DWORD WINAPI Main(LPVOID)
     */
 
     ChangeLevels();
+
+    LOG_INFO(LogDev, "Switch levels.");
 
     auto AddressesToNull = Addresses::GetFunctionsToNull();
 
@@ -794,6 +797,7 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
+
     Hooking::MinHook::Hook((PVOID)GetFunctionIdxOrPtr(FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerOnExitVehicle"), true), AFortPlayerPawn::ServerOnExitVehicleHook, (PVOID*)&AFortPlayerPawn::ServerOnExitVehicleOriginal);
     
     if (Fortnite_Version == 1.11 || Fortnite_Version > 1.8)
@@ -994,6 +998,7 @@ DWORD WINAPI Main(LPVOID)
     uint64 ServerRemoveInventoryItemFunctionCallBeginFunctionAddr = 0;
 
     // if (Engine_Version >= 419)
+    if (Fortnite_Version < 20)
     {
         std::vector<uint8_t> ServerRemoveInventoryItemCallFunctionStarts = Engine_Version == 416 
             ? std::vector<uint8_t>{ 0x44, 0x88, 0x4C } 

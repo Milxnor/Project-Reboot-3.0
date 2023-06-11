@@ -130,6 +130,18 @@ public:
 
 	static void TickFlushHook(UNetDriver* NetDriver);
 
+	int& GetMaxInternetClientRate()
+	{
+		static auto MaxInternetClientRateOffset = GetOffset("MaxInternetClientRate");
+		return Get<int>(MaxInternetClientRateOffset);
+	}
+
+	int& GetMaxClientRate()
+	{
+		static auto MaxClientRateOffset = GetOffset("MaxClientRate");
+		return Get<int>(MaxClientRateOffset);
+	}
+
 	FNetGUIDCache* GetGuidCache()
 	{
 		static auto GuidCacheOffset = GetOffset("WorldPackage") + 8; // checked for 1.11

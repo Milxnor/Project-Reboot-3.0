@@ -1,11 +1,19 @@
 #pragma once
 
+#include "inc.h"
+
 struct FVector
 {
 public:
-	float X;
-	float Y;
-	float Z;
+#ifdef ABOVE_S20
+	using VectorDataType = double;
+#else
+	using VectorDataType = float;
+#endif
+
+	VectorDataType X;
+	VectorDataType Y;
+	VectorDataType Z;
 
 	bool CompareVectors(const FVector& A)
 	{
@@ -13,7 +21,7 @@ public:
 	}
 
 	FVector() : X(0), Y(0), Z(0) {}
-	FVector(float x, float y, float z) : X(x), Y(y), Z(z) {}
+	FVector(VectorDataType x, VectorDataType y, VectorDataType z) : X(x), Y(y), Z(z) {}
 
 	FVector operator+(const FVector& A)
 	{
@@ -25,17 +33,17 @@ public:
 		return FVector{ this->X - A.X, this->Y - A.Y, this->Z - A.Z };
 	}
 
-	FORCEINLINE float SizeSquared() const
+	FORCEINLINE VectorDataType SizeSquared() const
 	{
 		return X * X + Y * Y + Z * Z;
 	}
 
-	FORCEINLINE float operator|(const FVector& V) const
+	FORCEINLINE VectorDataType operator|(const FVector& V) const
 	{
 		return X * V.X + Y * V.Y + Z * V.Z;
 	}
 
-	FVector operator*(const float A)
+	FVector operator*(const VectorDataType A)
 	{
 		return FVector{ this->X * A, this->Y * A, this->Z * A };
 	}

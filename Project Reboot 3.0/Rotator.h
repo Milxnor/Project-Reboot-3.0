@@ -7,9 +7,15 @@
 
 struct FRotator
 {
+#ifdef ABOVE_S20
+	double Pitch;
+	double Yaw;
+	double Roll;
+#else
 	float Pitch;
 	float Yaw;
 	float Roll;
+#endif
 
 	FQuat Quaternion();
 

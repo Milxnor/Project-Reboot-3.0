@@ -263,9 +263,15 @@ static inline bool ButtonCentered(const std::string& text, bool bNewLine = true)
 
 static inline void InputVector(const std::string& baseText, FVector* vec)
 {
+#ifdef ABOVE_S20
+	ImGui::InputDouble((baseText + " X").c_str(), &vec->X);
+	ImGui::InputDouble((baseText + " Y").c_str(), &vec->Y);
+	ImGui::InputDouble((baseText + " Z").c_str(), &vec->Z);
+#else
 	ImGui::InputFloat((baseText + " X").c_str(), &vec->X);
 	ImGui::InputFloat((baseText + " Y").c_str(), &vec->Y);
 	ImGui::InputFloat((baseText + " Z").c_str(), &vec->Z);
+#endif
 }
 
 static int Width = 640;
