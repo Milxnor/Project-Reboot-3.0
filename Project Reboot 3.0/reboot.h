@@ -262,25 +262,13 @@ inline void* FindPropertyStruct(const std::string& StructName, const std::string
 
 	// LOG_INFO(LogFinder, "Struct: {}", Struct->GetFullName());
 
-	auto getFNameOfProp = [](void* Property) -> FName*
-	{
-		FName* NamePrivate = nullptr;
-
-		if (Engine_Version >= 425)
-			NamePrivate = (FName*)(__int64(Property) + 0x28);
-		else
-			NamePrivate = &((UField*)Property)->NamePrivate;
-
-		return NamePrivate;
-	};
-
 	for (auto CurrentClass = Struct; CurrentClass; CurrentClass = *(UObject**)(__int64(CurrentClass) + Offsets::SuperStruct))
 	{
 		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
 
 		if (Property)
 		{
-			std::string PropName = getFNameOfProp(Property)->ToString();
+			std::string PropName = GetFNameOfProp(Property)->ToString();
 
 			if (PropName == MemberName)
 			{
@@ -297,7 +285,7 @@ inline void* FindPropertyStruct(const std::string& StructName, const std::string
 				}
 
 				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
-				PropName = Property ? getFNameOfProp(Property)->ToString() : "";
+				PropName = Property ? GetFNameOfProp(Property)->ToString() : "";
 			}
 		}
 	}
@@ -322,25 +310,13 @@ inline int FindOffsetStruct(const std::string& StructName, const std::string& Me
 
 	// LOG_INFO(LogFinder, "Struct: {}", Struct->GetFullName());
 
-	auto getFNameOfProp = [](void* Property) -> FName*
-	{
-		FName* NamePrivate = nullptr;
-
-		if (Engine_Version >= 425)
-			NamePrivate = (FName*)(__int64(Property) + 0x28);
-		else
-			NamePrivate = &((UField*)Property)->NamePrivate;
-
-		return NamePrivate;
-	};
-
 	for (auto CurrentClass = Struct; CurrentClass; CurrentClass = *(UObject**)(__int64(CurrentClass) + Offsets::SuperStruct))
 	{
 		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
 
 		if (Property)
 		{
-			std::string PropName = getFNameOfProp(Property)->ToString();
+			std::string PropName = GetFNameOfProp(Property)->ToString();
 
 			if (PropName == MemberName)
 			{
@@ -356,8 +332,8 @@ inline int FindOffsetStruct(const std::string& StructName, const std::string& Me
 					return *(int*)(__int64(Property) + Offsets::Offset_Internal);
 				}
 
-				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
-				PropName = Property ? getFNameOfProp(Property)->ToString() : "";
+				Property = GetNext(Property);
+				PropName = Property ? GetFNameOfProp(Property)->ToString() : "";
 			}
 		}
 	}

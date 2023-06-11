@@ -1277,62 +1277,45 @@ static inline void PregameUI()
 		ImGui::InputText("Playlist", &PlaylistName);
 }
 
+static inline HICON LoadIconFromMemory(const char* bytes, int bytes_size, const wchar_t* IconName) {
+	HANDLE hMemory = CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, bytes_size, IconName);
+	if (hMemory == NULL) {
+		return NULL;
+	}
+
+	LPVOID lpBuffer = MapViewOfFile(hMemory, FILE_MAP_READ, 0, 0, bytes_size);
+
+	if (lpBuffer == NULL) {
+		CloseHandle(hMemory);
+		return NULL;
+	}
+
+	ICONINFO icon_info;
+
+	if (!GetIconInfo((HICON)lpBuffer, &icon_info)) {
+		UnmapViewOfFile(lpBuffer);
+		CloseHandle(hMemory);
+		return NULL;
+	}
+
+	HICON hIcon = CreateIconIndirect(&icon_info);
+	UnmapViewOfFile(lpBuffer);
+	CloseHandle(hMemory);
+	return hIcon;
+}
+
 static inline DWORD WINAPI GuiThread(LPVOID)
 {
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"RebootClass", NULL };
 	::RegisterClassEx(&wc);
 	HWND hwnd = ::CreateWindowExW(0L, wc.lpszClassName, L"Project Reboot", (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX), 100, 100, Width, Height, NULL, NULL, wc.hInstance, NULL);
 
-	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, sizeof(reboot_icon_data));
-
-	if (!hGlobal)
+	if (false) // idk why this dont work
 	{
-		LOG_WARN(LogDev, "Failed to allocate global icon data!");
-	}
-	else
-	{
-		void* data = GlobalLock(hGlobal);
-		memcpy(data, reboot_icon_data, sizeof(reboot_icon_data));
-		GlobalUnlock(hGlobal);
-
-		IStream* stream;
-		HRESULT hr = CreateStreamOnHGlobal(hGlobal, FALSE, &stream);
-		if (hr != S_OK)
-		{
-			// Handle error
-		}
-
-		HBITMAP hBitmap{};
-		HRESULT hr1 = CoInitialize(NULL);
-		hr1 = OleLoadPicture(stream, sizeof(reboot_icon_data), FALSE, IID_IPicture, (void**)&hBitmap);
-		stream->Release();
-		GlobalFree(hGlobal);
-		CoUninitialize();
-
-		if (hr1 != S_OK)
-		{
-			// Handle error
-		}
-
-		// Create the icon from the bitmap
-		ICONINFO iconInfo{};
-		iconInfo.fIcon = TRUE;
-		iconInfo.xHotspot = 0;
-		iconInfo.yHotspot = 0;
-		iconInfo.hbmMask = NULL;
-		iconInfo.hbmColor = hBitmap;
-
-		HICON hIcon = CreateIconIndirect(&iconInfo);
-
+		auto hIcon = LoadIconFromMemory((const char*)reboot_icon_data, strlen((const char*)reboot_icon_data), L"RebootIco");
 		SendMessageW(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 		SendMessageW(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-
-		// Cleanup the resources
-		DeleteObject(iconInfo.hbmColor);
 	}
-	
-	// HANDLE hIcon = LoadImageW(wc.hInstance, L"Reboot Resources/images/reboot.ico", IMAGE_ICON, 48, 48, LR_LOADFROMFILE);
-	// SendMessageW(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 
 	// SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP); // Disables windows title bar at the cost of dragging and some quality
 
@@ -1356,8 +1339,7 @@ static inline DWORD WINAPI GuiThread(LPVOID)
 	io.IniFilename = NULL; // Disable imgui.ini generation.
 	io.DisplaySize = ImGui::GetMainViewport()->Size;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-	// io.Fonts->AddFontFromFileTTF("../vendor/fonts/Aller_Bd.ttf", 17);
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
 	// Setup Dear ImGui style
 	InitFont();

@@ -168,9 +168,9 @@ void __fastcall ApplyHomebaseEffectsOnPlayerSetupHook(
                 AthenaHeroTypes.push_back(CurrentHeroType);
         }
 
-        if (AthenaHeroTypes.size())
+        if (AthenaHeroTypes.size() > 0)
         {
-            HeroType = AthenaHeroTypes.at(std::rand() % AthenaHeroTypes.size());
+            HeroType = AthenaHeroTypes.at(std::rand() % AthenaHeroTypes.size() /* - 1 */);
         }
     }
 
@@ -512,12 +512,16 @@ DWORD WINAPI Main(LPVOID)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x41624C8), (PVOID)ActivatePhaseAtIndexHook, (PVOID*)&ActivatePhaseAtIndexOriginal); // 7FF79E3E24C8  
     }
 
+    /*
+
     if (Fortnite_Version == 6.21)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x191D2E0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
     else if (Fortnite_Version == 10.40)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x22A30C0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
     else if (Fortnite_Version == 12.41)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x2DBCBA0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
+
+    */
 
     ChangeLevels();
 

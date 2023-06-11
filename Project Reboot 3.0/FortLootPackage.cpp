@@ -366,8 +366,6 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
     }
 }
 
-// #define brudda
-
 std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int ForcedLootTier, bool bPrint, int recursive, bool bCombineDrops)
 {
     std::vector<LootDrop> LootDrops;

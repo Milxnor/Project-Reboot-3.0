@@ -37,16 +37,18 @@ public:
 		if (!NewStr/* || std::wcslen(NewStr) == 0 */) 
 			return;
 
+		constexpr size_t Inc = 1;
+
 #ifndef EXPERIMENTAL_FSTRING
-		Data.ArrayMax = Data.ArrayNum = *NewStr ? (int)std::wcslen(NewStr) + 1 : 0;
+		Data.ArrayMax = Data.ArrayNum = *NewStr ? (int)std::wcslen(NewStr) + Inc : 0;
 
 		if (Data.ArrayNum)
 			Data.Data = const_cast<wchar_t*>(NewStr);
 #else
-		Data.ArrayNum = (int)std::wcslen(NewStr) + 1;
+		Data.ArrayNum = (int)std::wcslen(NewStr) + Inc;
 		Data.ArrayMax = Data.ArrayNum;
 
-		if (Data.ArrayNum > 0) // this should never happen unless std::wcslen returns negative..
+		if (Data.ArrayNum > 0)
 		{
 			int amountToAlloc = (Data.ArrayNum * sizeof(TCHAR));
 

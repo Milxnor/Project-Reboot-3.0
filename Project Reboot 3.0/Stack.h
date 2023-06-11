@@ -68,7 +68,7 @@ public:
 				LOG_INFO(LogDev, "No code!");
 
 			void* Property = GetPropertyChainForCompiledIn();
-			GetPropertyChainForCompiledIn() = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
+			GetPropertyChainForCompiledIn() = GetNext(Property);
 			StepExplicitProperty(Result, Property);
 		}
 	}

@@ -66,6 +66,8 @@ namespace Calendar
 
 			LOG_INFO(LogDev, "Called OnReady!");
 
+			return;
+
 			if (NewValue != -1)
 			{
 				static auto SnowAmountOffset = SnowSetup->GetOffset("SnowAmount");
@@ -76,6 +78,8 @@ namespace Calendar
 
 				// SnowSetup->ProcessEvent(SetSnowFn, &NewValue);
 			}
+
+			auto SetFallingSnowFn = FindObject<UFunction>("/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.SetFallingSnow");
 
 			LOG_INFO(LogDev, "Called SetSnow!");
 

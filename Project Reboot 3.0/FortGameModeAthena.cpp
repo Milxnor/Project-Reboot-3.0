@@ -644,6 +644,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		GameSession->Get<int>(MaxPlayersOffset) = 100;
 
 		GameState->OnRep_CurrentPlaylistInfo(); // ?
+		
+		// Calendar::SetSnow(1000);
 
 		static auto bAlwaysDBNOOffset = GameMode->GetOffset("bAlwaysDBNO");
 		// GameMode->Get<bool>(bAlwaysDBNOOffset) = true;
@@ -1168,6 +1170,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 					HandleSpawnRateForActorClass(MapInfo->GetAmmoBoxClass(), AmmoBoxSpawnPercent);
 				}
 			}
+
+			LOG_INFO(LogDev, "Spawning loot!");
 
 			auto SpawnIsland_FloorLoot = FindObject<UClass>(L"/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
 			auto BRIsland_FloorLoot = FindObject<UClass>(L"/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");

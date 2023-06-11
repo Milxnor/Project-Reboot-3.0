@@ -80,7 +80,7 @@ void UWorld::Listen()
 
 	static auto LevelCollectionsOffset = GetWorld()->GetOffset("LevelCollections");
 	auto& LevelCollections = GetWorld()->Get<TArray<__int64>>(LevelCollectionsOffset);
-	static int LevelCollectionSize = FindObject<UStruct>("/Script/Engine.LevelCollection")->GetPropertiesSize();
+	static int LevelCollectionSize = FindObject<UStruct>(L"/Script/Engine.LevelCollection")->GetPropertiesSize();
 
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
 	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;

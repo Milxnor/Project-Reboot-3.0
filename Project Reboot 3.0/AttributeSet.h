@@ -23,14 +23,7 @@ struct FGameplayAttribute
 		if (!Attribute)
 			return "INVALIDATTRIBUTE";
 
-		FName* NamePrivate = nullptr;
-
-		if (Engine_Version >= 425)
-			NamePrivate = (FName*)(__int64(Attribute) + 0x28);
-		else
-			NamePrivate = &((UField*)Attribute)->NamePrivate;
-
-		return NamePrivate->ToString();
+		return GetFNameOfProp(Attribute)->ToString();
 	}
 };
 

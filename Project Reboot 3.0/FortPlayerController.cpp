@@ -713,6 +713,8 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 
 void AFortPlayerController::ServerSuicideHook(AFortPlayerController* PlayerController)
 {
+	LOG_INFO(LogDev, "Suicide!");
+
 	auto Pawn = PlayerController->GetPawn();
 
 	if (!Pawn)

@@ -389,15 +389,17 @@ void Addresses::Print()
 
 void Offsets::FindAll()
 {
-	Offsets::Offset_Internal = Engine_Version >= 425 && std::floor(Fortnite_Version) < 20 ? 0x4C : 0x44;
+	Offsets::Offset_Internal = Fortnite_Version >= 12.10 && std::floor(Fortnite_Version) < 20 ? 0x4C : 0x44;
 	Offsets::SuperStruct = Engine_Version >= 422 ? 0x40 : 0x30;
-	Offsets::Children = Engine_Version >= 425 ? 0x50 : Offsets::SuperStruct + 8;
+	Offsets::Children = Fortnite_Version >= 12.10 ? 0x50 : Offsets::SuperStruct + 8;
 	Offsets::PropertiesSize = Offsets::Children + 8;
 
 	if (Engine_Version >= 416 && Engine_Version <= 421)
 		Offsets::Func = 0xB0;
 	else if (Engine_Version >= 422 && Engine_Version <= 424)
 		Offsets::Func = 0xC0;
+	else if (Fortnite_Version >= 12.00 && Fortnite_Version < 12.10)
+		Offsets::Func = 0xC8;
 	else if (Engine_Version == 425)
 		Offsets::Func = 0xF0;
 	else if (Engine_Version >= 426)
@@ -540,11 +542,6 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor({ 0x40, 0x55 }, false).Get()); // Widget class
 	}
 
-	if (Engine_Version == 421)
-	{
-		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor({ 0x40, 0x55 }, false).Get()); // Widget class
-	}
-
 	if (Engine_Version == 422)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 30 48 8B 41 28 48 8B DA 48 8B F9 48 85 C0 74 34 48 8B 4B 08 48 8D").Get()); // widget class
@@ -582,7 +579,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 F6 0F 29 70 A8 44 38 35").Get()); // zone
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A8 48 81 EC ? ? ? ? 45").Get()); // GC
 		// toNull.push_back(Memcury::Scanner::FindPattern("40 53 48 83 EC 20 8B D9 E8 ? ? ? ? B2 01 8B CB E8").Get()); // GC Caller 1
-		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 55 41 56 48 8B EC 48 83 EC 50 83 65 28 00 40 B6 05 40 38 35 ? ? ? ? 4C").Get()); // InitializeUI
+		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 55 41 56 48 8B EC 48 83 EC 50 83 65 28 00 40 B6 05 40 38 35 ? ? ? ? 4C").Get()); // InitializeUI
 	}
 
 	if (Engine_Version >= 426)
