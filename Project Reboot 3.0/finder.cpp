@@ -47,56 +47,84 @@ uint64 FindGetPlayerViewpoint()
 	}
 
 	return __int64(PlayerControllerVFT[FailedToSpawnPawnIdx - 1]);
+}
 
-	// LITERALLY KMS BRO
+uint64 ApplyGameSessionPatch()
+{
+	auto GamePhaseStepStringAddr = Memcury::Scanner::FindStringRef(L"Gamephase Step: %s", false).Get();
 
-	if (Engine_Version == 420 && Fortnite_Version < 4.5)
+	uint64 BeginningOfGamePhaseStepFn = 0;
+	uint8_t* ByteToPatch = 0;
+
+	if (!GamePhaseStepStringAddr)
 	{
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 41 56 41 57 48 8B EC 48 83 EC 50").Get(); // idk why finder doesnt work and cba to debug
-	}
+		LOG_WARN(LogFinder, "Unable to find GamePhaseStepString!");
+		// return 0;
 
-	auto Addrr = Memcury::Scanner::FindStringRef(L"APlayerController::GetPlayerViewPoint: out_Location, ViewTarget=%s").Get();
+		BeginningOfGamePhaseStepFn = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 E8 ? ? ? ? 48 8B D8 48 85 C0 0F 84 ? ? ? ? E8").Get(); // not actually the func but its fine
 
-	LOG_INFO(LogDev, "GetPlayerViewpoint StringRef: 0x{:x}", __int64(Addrr) - __int64(GetModuleHandleW(0)));
-
-	for (int i = 0; i < Fortnite_Version >= 20 ? 2000 : 1000; i++)
-	{
-		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x55)
+		if (!BeginningOfGamePhaseStepFn)
 		{
-			LOG_INFO(LogDev, "GetPlayerViewpoint1!");
-			return Addrr - i;
-		}
-
-		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
-		{
-			LOG_INFO(LogDev, "GetPlayerViewpoint2!");
-			return Addrr - i;
-		}
-
-		if (Fortnite_Version == 7.20 && *(uint8_t*)(uint8_t*)(Addrr - i) == 0xC3) // hmm scuffed lmfao
-		{
-			LOG_INFO(LogDev, "Hit C3!");
-			break;
+			LOG_WARN(LogFinder, "Unable to find fallback sig for gamephase step! Report to Milxnor immediately.");
+			return 0;
 		}
 	}
 
-	for (int i = 0; i < 1000; i++)
+	if (!BeginningOfGamePhaseStepFn && !ByteToPatch)
 	{
-		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x74)
+		for (int i = 0; i < 3000; i++)
 		{
-			LOG_INFO(LogDev, "GetPlayerViewpoint3!");
-			return Addrr - i;
+			if (*(uint8_t*)(uint8_t*)(GamePhaseStepStringAddr - i) == 0x40 && *(uint8_t*)(uint8_t*)(GamePhaseStepStringAddr - i + 1) == 0x55)
+			{
+				BeginningOfGamePhaseStepFn = GamePhaseStepStringAddr - i;
+				break;
+			}
+
+			if (*(uint8_t*)(uint8_t*)(GamePhaseStepStringAddr - i) == 0x48 && *(uint8_t*)(uint8_t*)(GamePhaseStepStringAddr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(GamePhaseStepStringAddr - i + 2) == 0x5C)
+			{
+				BeginningOfGamePhaseStepFn = GamePhaseStepStringAddr - i;
+				break;
+			}
+
+			if (*(uint8_t*)(uint8_t*)(GamePhaseStepStringAddr - i) == 0x48 && *(uint8_t*)(uint8_t*)(GamePhaseStepStringAddr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(GamePhaseStepStringAddr - i + 2) == 0xC4)
+			{
+				BeginningOfGamePhaseStepFn = GamePhaseStepStringAddr - i;
+				break;
+			}
+		}
+	}
+	 
+	if (!BeginningOfGamePhaseStepFn && !ByteToPatch)
+	{
+		LOG_WARN(LogFinder, "Unable to find beginning of GamePhaseStep! Report to Milxnor immediately.");
+		return 0;
+	}
+
+	if (!ByteToPatch)
+	{
+		for (int i = 0; i < 500; i++)
+		{
+			if (*(uint8_t*)(uint8_t*)(BeginningOfGamePhaseStepFn + i) == 0x0F && *(uint8_t*)(uint8_t*)(BeginningOfGamePhaseStepFn + i + 1) == 0x84)
+			{
+				ByteToPatch = (uint8_t*)(uint8_t*)(BeginningOfGamePhaseStepFn + i + 1);
+				break;
+			}
 		}
 	}
 
-	for (int i = 0; i < 1000; i++)
+	if (!ByteToPatch)
 	{
-		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
-		{
-			LOG_INFO(LogDev, "GetPlayerViewpoint4!");
-			return Addrr - i;
-		}
+		LOG_WARN(LogFinder, "Unable to find byte to patch for GamePhaseStep!");
+		return 0;
 	}
+
+	DWORD dwProtection;
+	VirtualProtect((PVOID)ByteToPatch, 1, PAGE_EXECUTE_READWRITE, &dwProtection);
+
+	*ByteToPatch = 0x85;
+
+	DWORD dwTemp;
+	VirtualProtect((PVOID)ByteToPatch, 1, dwProtection, &dwTemp);
 
 	return 0;
 }

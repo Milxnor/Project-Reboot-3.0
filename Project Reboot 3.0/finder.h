@@ -492,6 +492,7 @@ static inline uint64 FindGetMaxTickRate() // UEngine::getmaxtickrate
 }
 
 uint64 FindGetPlayerViewpoint();
+uint64 ApplyGameSessionPatch();
 
 static inline uint64 FindFree()
 {

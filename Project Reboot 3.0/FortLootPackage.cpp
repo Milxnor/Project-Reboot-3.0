@@ -151,63 +151,45 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
     std::vector<FFortItemEntry> ItemEntries;
 }; */
 
-bool PickRowForLootTier(FName* OutName, FFortLootTierData** OutLTD, float RandMultiplier, const LOOTING_MAP_TYPE<FName, FFortLootTierData*>& Rows)
-{
-    float Rand = RandomFloatForLoot(RandMultiplier);
-
-    if (!Rows.size())
-        return false;
-
-    for (auto& currentPair : Rows)
-    {
-        float currentWeight = currentPair.second->GetWeight();
-
-        if (Rand <= currentWeight)
-        {
-            *OutName = currentPair.first;
-            *OutLTD = currentPair.second;
-            return true;
-        }
-
-        Rand -= currentWeight;
-    }
-        
-    return false;
-}
-
-FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int ForcedLootTier = -1, FName* OutRowName = nullptr, int* OutLootTierDataTier = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
+FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int ForcedLootTier = -1, FName* OutRowName = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
 {
     // This like isn't right, at all.
 
-    float TotalWeight = 0;
+    float LootTier = ForcedLootTier;
 
-    LOOTING_MAP_TYPE<FName, FFortLootTierData*> TierGroupLTDs;
-
-    if (ForcedLootTier == -1)
+    if (LootTier == -1)
     {
-        CollectDataTablesRows<FFortLootTierData>(LTDTables, &TierGroupLTDs, [&](FName RowName, FFortLootTierData* TierData) -> bool {
-            if (LootTierGroup == TierData->GetTierGroup())
-            {
-                TotalWeight += TierData->GetWeight();
-                return true;
-            }
-            
-            return false;
-            });
+        // LootTier = ??
     }
     else
     {
         // buncha code im too lazy to reverse
     }
 
-    if (fabs(TotalWeight) <= 0.0000000099999999)
-      return 0;
+    // if (fabs(LootTier) <= 0.0000000099999999)
+      //  return 0;
+
+    int Multiplier = LootTier == -1 ? 1 : LootTier; // Idk i think we need to fill out the code above for this to work properly maybe
+
+    LOOTING_MAP_TYPE<FName, FFortLootTierData*> TierGroupLTDs;
+
+    CollectDataTablesRows<FFortLootTierData>(LTDTables, &TierGroupLTDs, [&](FName RowName, FFortLootTierData* TierData) -> bool {
+        if (LootTierGroup == TierData->GetTierGroup())
+        {
+            if ((LootTier == -1 ? true : LootTier == TierData->GetLootTier()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+        });
 
     // LOG_INFO(LogDev, "TierGroupLTDs.size(): {}", TierGroupLTDs.size());
 
-    FFortLootTierData* ChosenRowLootTierData = nullptr;
-
-    PickRowForLootTier(OutRowName, &ChosenRowLootTierData, TotalWeight, TierGroupLTDs);
+    FFortLootTierData* ChosenRowLootTierData = PickWeightedElement<FName, FFortLootTierData*>(TierGroupLTDs,
+        [](FFortLootTierData* LootTierData) -> float { return LootTierData->GetWeight(); }, RandomFloatForLoot, -1,
+        true, Multiplier, OutRowName);
 
     return ChosenRowLootTierData;
 }
@@ -678,8 +660,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
     }
     
     FName LootTierRowName;
-    int ltdLootTier = 0;
-    auto ChosenRowLootTierData = PickLootTierData(LTDTables, TierGroupName, ForcedLootTier, &LootTierRowName, &ltdLootTier);
+    auto ChosenRowLootTierData = PickLootTierData(LTDTables, TierGroupName, ForcedLootTier, &LootTierRowName);
 
     if (!ChosenRowLootTierData)
     {

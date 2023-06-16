@@ -74,6 +74,7 @@ namespace Addresses
 	extern inline uint64 GetSquadIdForCurrentPlayer = 0;
 	extern inline uint64 FinishResurrection = 0;
 	extern inline uint64 AddToAlivePlayers = 0;
+	extern inline uint64 GameSessionPatch = 0;
 	
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();

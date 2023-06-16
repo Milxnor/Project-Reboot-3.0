@@ -2,6 +2,13 @@
 
 void AFortAthenaMutator_Barrier::OnGamePhaseStepChangedHook(UObject* Context, FFrame& Stack, void* Ret)
 {
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
+	if (!GameState)
+		return OnGamePhaseStepChangedOriginal(Context, Stack, Ret);
+	
+	LOG_INFO(LogDev, "OnGamePhaseStepChangedHook gamepadsl gwrigjsafjob fs: {}", (int)GameState->GetGamePhaseStep());
+
 	/*
 	TScriptInterface<UObject> SafeZoneInterface;
 	EAthenaGamePhaseStep GamePhaseStep;

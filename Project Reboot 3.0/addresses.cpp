@@ -312,6 +312,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding AddToAlivePlayers");
 	Addresses::AddToAlivePlayers = FindAddToAlivePlayers();
 
+	LOG_INFO(LogDev, "Applying GameSessionPatch");
+	ApplyGameSessionPatch();
+
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
