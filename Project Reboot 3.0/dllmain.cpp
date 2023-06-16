@@ -376,6 +376,14 @@ DWORD WINAPI Main(LPVOID)
     LOG_INFO(LogDev, "Fortnite_Version: {}", Fortnite_Version);
     LOG_INFO(LogDev, "Engine_Version: {}", Engine_Version);
 
+#ifdef ABOVE_S20
+    if (Fortnite_Version < 20)
+    {
+        MessageBoxA(0, "Please undefined ABOVE_S20", "Project Reboot 3.0", MB_ICONERROR);
+        return 0;
+    }
+#endif
+
     CreateThread(0, 0, GuiThread, 0, 0, 0);
 
     while (SecondsUntilTravel > 0)
@@ -444,13 +452,17 @@ DWORD WINAPI Main(LPVOID)
     // LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
     // LOG_INFO(LogDev, "FindGIsClient: 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
 
-    /* Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
+    /*
+
+    Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationTransform"),
         ABuildingFoundation::SetDynamicFoundationTransformHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationTransformOriginal, false, true);
 
     Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationEnabled"),
-        ABuildingFoundation::SetDynamicFoundationEnabledHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationEnabledOriginal, false, true); */
+        ABuildingFoundation::SetDynamicFoundationEnabledHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationEnabledOriginal, false, true);
+
+    */
 
     /*
     if (Fortnite_Version == 6.21) // ur trolling
@@ -1112,6 +1124,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved)
     case DLL_PROCESS_DETACH:
         break;
     }
+
     return TRUE;
 }
 

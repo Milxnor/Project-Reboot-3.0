@@ -301,9 +301,9 @@ public:
 
 		auto& ModifierList = this->GetModifierList();
 
-		static auto FortGameplayModifierItemDefinitionClass = FindObject<UClass>("/Script/FortniteGame.FortGameplayModifierItemDefinition");
+		static auto FortGameplayModifierItemDefinitionClass = FindObject<UClass>(L"/Script/FortniteGame.FortGameplayModifierItemDefinition");
 
-		for (int i = 0; i < ModifierList.Num(); i++)
+		for (int i = 0; i < ModifierList.Num(); ++i)
 		{
 			auto& ModifierSoft = ModifierList.at(i);
 			auto StrongModifier = ModifierSoft.Get(FortGameplayModifierItemDefinitionClass, true);

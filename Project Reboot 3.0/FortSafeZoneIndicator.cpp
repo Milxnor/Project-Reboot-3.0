@@ -17,14 +17,5 @@ void AFortSafeZoneIndicator::OnSafeZoneStateChangeHook(AFortSafeZoneIndicator* S
 
 	LOG_INFO(LogDev, "OnSafeZoneStateChangeHook!");
 
-	if (NewState == EFortSafeZoneState::Shrinking)
-	{
-		GameState->SetGamePhaseStep(EAthenaGamePhaseStep::StormShrinking);
-	}
-	else if (NewState == EFortSafeZoneState::Holding)
-	{
-		GameState->SetGamePhaseStep(EAthenaGamePhaseStep::StormHolding);
-	}
-
 	return OnSafeZoneStateChangeOriginal(SafeZoneIndicator, NewState, bInitial);
 }

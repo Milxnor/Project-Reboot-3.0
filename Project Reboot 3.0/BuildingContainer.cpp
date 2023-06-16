@@ -26,10 +26,8 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 
 	// LOG_INFO(LogInteraction, "LootDrops.size(): {}", LootDrops.size());
 
-	for (int i = 0; i < LootDrops.size(); i++)
+	for (auto& lootDrop : LootDrops)
 	{
-		auto& lootDrop = LootDrops.at(i);
-
 		PickupCreateData CreateData;
 		CreateData.bToss = true;
 		// CreateData.PawnOwner = Pawn;

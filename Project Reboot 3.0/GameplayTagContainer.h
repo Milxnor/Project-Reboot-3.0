@@ -40,7 +40,7 @@ struct FGameplayTagContainer
 
 	int Find(const std::string& Str)
 	{
-		for (int i = 0; i < GameplayTags.Num(); i++)
+		for (int i = 0; i < GameplayTags.Num(); ++i)
 		{
 			if (GameplayTags.at(i).TagName.ToString() == Str)
 				return i;

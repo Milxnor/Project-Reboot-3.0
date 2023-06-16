@@ -152,9 +152,7 @@ inline uint8_t GetFieldMask(void* Property, int additional = 0)
 
 	// 3 = sizeof(FieldSize) + sizeof(ByteOffset) + sizeof(ByteMask)
 
-	if (Engine_Version <= 420)
-		return *(uint8_t*)(__int64(Property) + (112 + 3 + additional));
-	else if (Engine_Version >= 421 && Engine_Version <= 424)
+	if (Engine_Version <= 424 || Fortnite_Version >= 20)
 		return *(uint8_t*)(__int64(Property) + (112 + 3 + additional));
 	else if (Engine_Version >= 425)
 		return *(uint8_t*)(__int64(Property) + (120 + 3 + additional));

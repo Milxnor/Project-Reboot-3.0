@@ -98,7 +98,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 
 			std::vector<float> AttributeValueVector;
 
-			for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); i++)
+			for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); ++i)
 			{
 				auto& CurrentTrackedAttribute = GadgetItemDefinition->GetTrackedAttributes().at(i);
 
@@ -111,7 +111,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 
 				int CurrentAttributeValue = -1;
 
-				for (int i = 0; i < ASC->GetSpawnedAttributes().Num(); i++)
+				for (int i = 0; i < ASC->GetSpawnedAttributes().Num(); ++i)
 				{
 					auto CurrentSpawnedAttribute = ASC->GetSpawnedAttributes().at(i);
 
@@ -365,7 +365,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 		bool bIsInventoryFull = false;
 
-		for (int i = 0; i < ItemInstances.Num(); i++)
+		for (int i = 0; i < ItemInstances.Num(); ++i)
 		{
 			auto ItemInstance = ItemInstances.at(i);
 			auto CurrentItemEntry = ItemInstance->GetItemEntry();
@@ -504,7 +504,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 	// auto Item = GiveItem(PlayerController, ItemDef, cpyCount, CurrentPickup->PrimaryPickupItemEntry.LoadedAmmo, true);
 
-	/* for (int i = 0; i < Pawn->IncomingPickups.Num(); i++)
+	/* for (int i = 0; i < Pawn->IncomingPickups.Num(); ++i)
 	{
 		Pawn->IncomingPickups[i]->PickupLocationData.PickupGuid = Item->ItemEntry.ItemGuid;
 	} */

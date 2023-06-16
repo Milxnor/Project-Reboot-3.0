@@ -149,8 +149,6 @@ public:
 		return Get<EAthenaGamePhaseStep>(GamePhaseStepOffset);
 	}
 
-	void SetGamePhaseStep(EAthenaGamePhaseStep NewGamePhaseStep);
-
 	UFortPlaylist*& GetCurrentPlaylist();
 	TScriptInterface<UFortSafeZoneInterface> GetSafeZoneInterface();
 
@@ -167,35 +165,3 @@ public:
 
 	static UClass* StaticClass();
 };
-
-static void* ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep GamePhaseStep)
-{
-	struct AFortAthenaAIBotController_OnGamePhaseStepChanged_Params
-	{
-		TScriptInterface<UFortSafeZoneInterface>     SafeZoneInterface;                                        // (ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-		EAthenaGamePhaseStep                               GamePhaseStep;                                            // (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	};
-
-	bool bHasSafeZoneInterfaceParam = Fortnite_Version >= 10; // idk what version
-
-	AFortAthenaAIBotController_OnGamePhaseStepChanged_Params* Params = Alloc<AFortAthenaAIBotController_OnGamePhaseStepChanged_Params>();
-	
-	if (bHasSafeZoneInterfaceParam)
-	{
-		auto GameState = (AFortGameStateAthena*)GetWorld()->GetGameState();
-
-		auto Interface = GameState->GetSafeZoneInterface();
-
-		if (!Interface.ObjectPointer)
-			return nullptr;
-
-		Params->SafeZoneInterface = Interface;
-		Params->GamePhaseStep = GamePhaseStep;
-	}
-	else
-	{
-		*(EAthenaGamePhaseStep*)(__int64(Params) + 0) = GamePhaseStep;
-	}
-
-	return Params;
-}

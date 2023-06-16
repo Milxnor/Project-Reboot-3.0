@@ -87,7 +87,7 @@ void UAthenaMarkerComponent::ServerAddMapMarkerHook(UAthenaMarkerComponent* Mark
 	static auto TeamMembersOffset = PlayerTeam->GetOffset("TeamMembers");
 	auto& TeamMembers = PlayerTeam->Get<TArray<AController*>>(TeamMembersOffset);
 
-	for (int i = 0; i < TeamMembers.Num(); i++)
+	for (int i = 0; i < TeamMembers.Num(); ++i)
 	{
 		if (TeamMembers.at(i) == PlayerController)
 			continue;
@@ -155,7 +155,7 @@ void UAthenaMarkerComponent::ServerRemoveMapMarkerHook(UAthenaMarkerComponent* M
 	static auto TeamMembersOffset = PlayerTeam->GetOffset("TeamMembers");
 	auto& TeamMembers = PlayerTeam->Get<TArray<AController*>>(TeamMembersOffset);
 
-	for (int i = 0; i < TeamMembers.Num(); i++)
+	for (int i = 0; i < TeamMembers.Num(); ++i)
 	{
 		if (TeamMembers.at(i) == PlayerController)
 			continue;

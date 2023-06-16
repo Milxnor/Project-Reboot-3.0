@@ -61,12 +61,14 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
+extern inline int AmountToSubtractIndex = 1;
 extern inline int SecondsUntilTravel = 5;
 extern inline bool bSwitchedInitialLevel = false;
 extern inline bool bIsInAutoRestart = false;
 extern inline float AutoBusStartSeconds = 60;
 extern inline int NumRequiredPlayersToStart = 2;
 extern inline bool bDebugPrintLooting = false;
+extern inline bool bDebugPrintFloorLoot = false;
 extern inline bool bDebugPrintSwapping = false;
 extern inline bool bEnableBotTick = false;
 extern inline bool bEnableCombinePickup = false;
@@ -102,7 +104,7 @@ static inline void Restart() // todo move?
 	static auto BeaconClass = FindObject<UClass>(L"/Script/FortniteGame.FortOnlineBeaconHost");
 	auto AllFortBeacons = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BeaconClass);
 
-	for (int i = 0; i < AllFortBeacons.Num(); i++)
+	for (int i = 0; i < AllFortBeacons.Num(); ++i)
 	{
 		AllFortBeacons.at(i)->K2_DestroyActor();
 	}
@@ -569,7 +571,7 @@ static inline void MainUI()
 					static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
 					auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
 
-					for (int i = 0; i < AllMutators.Num(); i++)
+					for (int i = 0; i < AllMutators.Num(); ++i)
 					{
 						auto Mutator = AllMutators.at(i);
 
@@ -1151,9 +1153,20 @@ static inline void MainUI()
 			ImGui::Checkbox("Fill Vending Machines", &Globals::bFillVendingMachines);
 			ImGui::Checkbox("Enable Bot Tick", &bEnableBotTick);
 			ImGui::Checkbox("Enable Combine Pickup", &bEnableCombinePickup);
+			ImGui::InputInt("Amount To Subtract Index", &AmountToSubtractIndex);
 			ImGui::InputText("Class Name to mess with", &ClassNameToDump);
 
 			ImGui::InputText("Function Name to mess with", &FunctionNameToDump);
+
+			if (ImGui::Button("Print Gamephase Step"))
+			{
+				auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
+				if (GameState)
+				{
+					LOG_INFO(LogDev, "GamePhaseStep: {}", (int)GameState->GetGamePhaseStep());
+				}
+			}
 
 			if (ImGui::Button("Find all classes that inherit"))
 			{
@@ -1244,6 +1257,7 @@ static inline void MainUI()
 		}
 		else if (Tab == DEBUGLOG_TAB)
 		{
+			ImGui::Checkbox("Floor Loot Debug Log", &bDebugPrintFloorLoot);
 			ImGui::Checkbox("Looting Debug Log", &bDebugPrintLooting);
 			ImGui::Checkbox("Swapping Debug Log", &bDebugPrintSwapping);
 			ImGui::Checkbox("Engine Debug Log", &bEngineDebugLogs);

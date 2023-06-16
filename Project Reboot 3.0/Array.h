@@ -350,7 +350,7 @@ public:
 	{
 		if (!IsBadReadPtr(Data, 8) && ArrayNum > 0 && sizeof(InElementType) > 0)
 		{
-			for (int i = 0; i < ArrayNum; i++)
+			for (int i = 0; i < ArrayNum; ++i)
 			{
 				auto current = AtPtr(i, Size);
 

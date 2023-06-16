@@ -38,6 +38,15 @@ FTransform AActor::GetTransform()
 	return Ret;
 }
 
+/*
+
+UWorld* AActor::GetWorld()
+{
+	return GetWorld(); // for real
+}
+
+*/
+
 void AActor::SetNetDormancy(ENetDormancy Dormancy)
 {
 	static auto SetNetDormancyFn = FindObject<UFunction>(L"/Script/Engine.Actor.SetNetDormancy");
@@ -220,8 +229,8 @@ void AActor::GetActorEyesViewPoint(FVector* OutLocation, FRotator* OutRotation) 
 	static auto GetActorEyesViewPointFn = FindObject<UFunction>(L"/Script/Engine.Actor.GetActorEyesViewPoint");
 	struct
 	{
-		struct FVector                                     OutLocation;                                              // (Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-		struct FRotator                                    OutRotation;                                              // (Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
+		FVector                                     OutLocation;                                              // (Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		FRotator                                    OutRotation;                                              // (Parm, OutParm, ZeroConstructor, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
 	} AActor_GetActorEyesViewPoint_Params{};
 	this->ProcessEvent(GetActorEyesViewPointFn, &AActor_GetActorEyesViewPoint_Params);
 
@@ -237,7 +246,7 @@ AActor* AActor::GetClosestActor(UClass* ActorClass, float DistMax, std::function
 	TArray<AActor*> AllActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ActorClass);
 	auto ActorLocation = GetActorLocation();
 
-	for (int i = 0; i < AllActors.Num(); i++)
+	for (int i = 0; i < AllActors.Num(); ++i)
 	{
 		auto Actor = AllActors.at(i);
 

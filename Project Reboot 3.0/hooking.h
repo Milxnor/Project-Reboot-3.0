@@ -6,6 +6,8 @@
 #include "memcury.h"
 #include "Class.h"
 
+#include "reboot.h"
+
 struct FunctionHooks
 {
     void* Original;

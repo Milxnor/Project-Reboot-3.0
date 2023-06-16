@@ -19,6 +19,7 @@ class AActor : public UObject
 public:
 	struct FTransform GetTransform();
 
+	// class UWorld* GetWorld();
 	bool HasAuthority();
 	bool IsTearOff();
 	/* FORCEINLINE */ ENetDormancy& GetNetDormancy();

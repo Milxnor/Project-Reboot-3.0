@@ -9,17 +9,17 @@ UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EF
 {
 	if (ResourceType == EFortResourceType::Wood)
 	{
-		static auto WoodItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
+		static auto WoodItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
 		return WoodItemData;
 	}
 	else if (ResourceType == EFortResourceType::Stone)
 	{
-		static auto StoneItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+		static auto StoneItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
 		return StoneItemData;
 	}
 	else if (ResourceType == EFortResourceType::Metal)
 	{
-		static auto MetalItemData = FindObject<UFortResourceItemDefinition>("/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+		static auto MetalItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
 		return MetalItemData;
 	}
 
@@ -38,7 +38,7 @@ UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EF
 
 FVector UFortKismetLibrary::FindGroundLocationAt(UWorld* World, AActor* IgnoreActor, FVector InLocation, float TraceStartZ, float TraceEndZ, FName TraceName)
 {
-	static auto FindGroundLocationAtFn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.FindGroundLocationAt");
+	static auto FindGroundLocationAtFn = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.FindGroundLocationAt");
 
 	struct
 	{

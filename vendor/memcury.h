@@ -50,6 +50,7 @@
     #include <DbgHelp.h>
     #pragma comment(lib, "Dbghelp.lib")
 #include "../Project Reboot 3.0/log.h"
+#include "../Project Reboot 3.0/inc.h"
 
 
     #define MemcuryAssert(cond)                                              \
@@ -811,7 +812,8 @@
                 {
                     if (add == 0)
                     {
-                        MessageBoxA(0, "FindPointerRef return nullptr", "Memcury", MB_OK);
+                        LOG_WARN(LogMemory, "FindPointerRef return nullptr");
+                        // MessageBoxA(0, "FindPointerRef return nullptr", "Memcury", MB_OK);
                     }
                     else
                     {
@@ -824,7 +826,7 @@
 
             // Supports wide and normal strings both std and pointers
             template <typename T = const wchar_t*>
-            static auto FindStringRef(T string, bool bWarnIfNotFound = true, int useRefNum = 0, bool bIsInFunc = false) -> Scanner
+            static auto FindStringRef(T string, bool bWarnIfNotFound = true, int useRefNum = 0, bool bIsInFunc = false, bool bSkunky = false) -> Scanner
             {
                 PE::Address add{ nullptr };
 
@@ -930,7 +932,8 @@
                     {
                         for (int i = 0; i < 300; i++)
                         {
-                            if (*(uint8_t*)(add.Get() - i) == 0x48 && *(uint8_t*)(add.Get() - i + 1) == 0x83)
+                            if (!bSkunky ? (*(uint8_t*)(add.Get() - i) == 0x48 && *(uint8_t*)(add.Get() - i + 1) == 0x83) : 
+                                (*(uint8_t*)(add.Get() - i) == 0x4C && *(uint8_t*)(add.Get() - i + 1) == 0x8B && *(uint8_t*)(add.Get() - i + 2) == 0xDC))
                             {
                                 // MessageBoxA(0, std::format("0x{:x}", (__int64(add.Get() - i) - __int64(GetModuleHandleW(0)))).c_str(), "Memcury", MB_OK);
 

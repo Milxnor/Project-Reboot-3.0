@@ -207,7 +207,7 @@ void UInventoryManagementLibrary::AddItemsHook(UObject* Context, FFrame& Stack, 
 	if (!WorldInventory)
 		return;
 
-	for (int i = 0; i < Items.Num(); i++)
+	for (int i = 0; i < Items.Num(); ++i)
 	{
 		WorldInventory->AddItem(Items.at(i).GetItem(), nullptr, Items.at(i).GetCount());
 	}

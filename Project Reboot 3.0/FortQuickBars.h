@@ -78,7 +78,7 @@ public:
 		{
 			auto& PrimaryQuickBarSlots = PrimaryQuickBar->GetSlots();
 
-			for (int i = 0; i < PrimaryQuickBarSlots.Num(); i++)
+			for (int i = 0; i < PrimaryQuickBarSlots.Num(); ++i)
 			{
 				auto Slot = PrimaryQuickBarSlots.AtPtr(i, FQuickBarSlot::GetStructSize());
 
@@ -98,7 +98,7 @@ public:
 		{
 			auto& SecondaryQuickBarSlots = SecondaryQuickBar->GetSlots();
 
-			for (int i = 0; i < SecondaryQuickBarSlots.Num(); i++)
+			for (int i = 0; i < SecondaryQuickBarSlots.Num(); ++i)
 			{
 				auto Slot = SecondaryQuickBarSlots.AtPtr(i, FQuickBarSlot::GetStructSize());
 

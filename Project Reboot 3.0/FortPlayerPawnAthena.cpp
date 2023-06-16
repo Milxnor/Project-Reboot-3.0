@@ -62,7 +62,7 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 			bool  bCanStack = false;
 			bool  bFoundStack = false;
 
-			for (int i = 0; i < ItemInstances.Num(); i++)
+			for (int i = 0; i < ItemInstances.Num(); ++i)
 			{
 				auto ItemInstance = ItemInstances.at(i);
 

@@ -99,18 +99,18 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	if (!PlayerStateAthena)
 		return nullptr; // return original?
 
-	static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+	static auto PawnClass = FindObject<UClass>(L"/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 	static auto DefaultPawnClassOffset = GameMode->GetOffset("DefaultPawnClass");
 	GameMode->Get<UClass*>(DefaultPawnClassOffset) = PawnClass;
 
-	constexpr bool bUseSpawnActor = false;
+	bool bUseSpawnActor = Fortnite_Version >= 20;
 
 	static auto SpawnDefaultPawnAtTransformFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
 
 	FTransform SpawnTransform = StartSpot->GetTransform();
 	APawn* NewPawn = nullptr;
 
-	if constexpr (bUseSpawnActor)
+	if (bUseSpawnActor)
 	{
 		NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn));
 	}
@@ -179,7 +179,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 			NewPlayerAsAthena->AddPickaxeToInventory();
 
-			for (int i = 0; i < StartingItems.Num(); i++)
+			for (int i = 0; i < StartingItems.Num(); ++i)
 			{
 				auto& StartingItem = StartingItems.at(i);
 
@@ -190,7 +190,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			{
 				auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
 
-				for (int i = 0; i < 5; i++)
+				for (int i = 0; i < 5; ++i)
 				{
 					auto LootDrops = PickLootDrops(SpawnIslandTierGroup);
 
@@ -212,7 +212,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 					{
 						auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
 
-						for (int i = 0; i < LoadoutContainer.Loadout.Num(); i++)
+						for (int i = 0; i < LoadoutContainer.Loadout.Num(); ++i)
 						{
 							auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
 							WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());

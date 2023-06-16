@@ -319,7 +319,7 @@ static UActorChannel* FindChannel(AActor * Actor, UNetConnection * Connection)
 
 	// LOG_INFO(LogReplication, "OpenChannels.Num(): {}", OpenChannels.Num());
 
-	for (int i = 0; i < OpenChannels.Num(); i++)
+	for (int i = 0; i < OpenChannels.Num(); ++i)
 	{
 		auto Channel = OpenChannels.at(i);
 
@@ -342,7 +342,9 @@ static UActorChannel* FindChannel(AActor * Actor, UNetConnection * Connection)
 		return (UActorChannel*)Channel;
 	}
 
-	return NULL;
+	// LOG_INFO(LogDev, "Failed to find channel for {}!", Actor->GetName());
+
+	return nullptr;
 }
 
 static bool IsActorRelevantToConnection(AActor * Actor, std::vector<FNetViewer>&ConnectionViewers)
@@ -460,8 +462,6 @@ int32 UNetDriver::ServerReplicateActors()
 
 	if (ShouldUseNetworkObjectList())
 		ConsiderList.reserve(GetNetworkObjectList().ActiveNetworkObjects.Num());
-
-	// std::cout << "ConsiderList.size(): " << GetNetworkObjectList(NetDriver).ActiveNetworkObjects.Num() << '\n';
 
 	auto World = GetWorld();
 
@@ -621,15 +621,18 @@ int32 UNetDriver::ServerReplicateActors()
 			{
 				if (ReplicateActor(Channel))
 				{
-					// LOG_INFO(LogReplication, "Replicated Actor!");
-					auto TimeSeconds = UGameplayStatics::GetTimeSeconds(World);
-					const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();
-					const float MaxOptimalDelta = max(1.0f / Actor->GetMinNetUpdateFrequency(), MinOptimalDelta);
-					const float DeltaBetweenReplications = (TimeSeconds - ActorInfo->LastNetReplicateTime);
+					if (ShouldUseNetworkObjectList())
+					{
+						// LOG_INFO(LogReplication, "Replicated Actor!");
+						auto TimeSeconds = UGameplayStatics::GetTimeSeconds(World);
+						const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();
+						const float MaxOptimalDelta = max(1.0f / Actor->GetMinNetUpdateFrequency(), MinOptimalDelta);
+						const float DeltaBetweenReplications = (TimeSeconds - ActorInfo->LastNetReplicateTime);
 
-					// Choose an optimal time, we choose 70% of the actual rate to allow frequency to go up if needed
-					ActorInfo->OptimalNetUpdateDelta = std::clamp(DeltaBetweenReplications * 0.7f, MinOptimalDelta, MaxOptimalDelta); // should we use fmath?
-					ActorInfo->LastNetReplicateTime = TimeSeconds;
+						// Choose an optimal time, we choose 70% of the actual rate to allow frequency to go up if needed
+						ActorInfo->OptimalNetUpdateDelta = std::clamp(DeltaBetweenReplications * 0.7f, MinOptimalDelta, MaxOptimalDelta); // should we use fmath?
+						ActorInfo->LastNetReplicateTime = TimeSeconds;
+					}
 				}
 			}
 		}

@@ -80,7 +80,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			player = player.substr(firstBackslash + 1, lastBackslash - firstBackslash - 1);
 
-			for (int i = 0; i < ClientConnections.Num(); i++)
+			for (int i = 0; i < ClientConnections.Num(); ++i)
 			{
 				static auto PlayerControllerOffset = ClientConnections.at(i)->GetOffset("PlayerController");
 				auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get(PlayerControllerOffset));
@@ -228,7 +228,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			auto LootDrops = PickLootDrops(UKismetStringLibrary::Conv_StringToName(std::wstring(lootTierGroup.begin(), lootTierGroup.end()).c_str()), -1, true);
 
-			for (int i = 0; i < LootDrops.size(); i++)
+			for (int i = 0; i < LootDrops.size(); ++i)
 			{
 				
 			}
@@ -247,7 +247,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, (L"AbilitySystemComponent->GetSpawnedAttributes().Num(): " + std::to_wstring(AbilitySystemComponent->GetSpawnedAttributes().Num())).c_str());
 
-			for (int i = 0; i < AbilitySystemComponent->GetSpawnedAttributes().Num(); i++)
+			for (int i = 0; i < AbilitySystemComponent->GetSpawnedAttributes().Num(); ++i)
 			{
 				auto CurrentAttributePathName = AbilitySystemComponent->GetSpawnedAttributes().at(i)->GetPathName();
 				SendMessageToConsole(PlayerController, (L"SpawnedAttribute Name: " + std::wstring(CurrentAttributePathName.begin(), CurrentAttributePathName.end())).c_str());
@@ -297,7 +297,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			SendMessageToConsole(PlayerController, (L"ReplicatedEntry->GetGenericAttributeValues().Num(): " + std::to_wstring(ReplicatedEntry->GetGenericAttributeValues().Num())).c_str());
 			SendMessageToConsole(PlayerController, (L"ReplicatedEntry->GetStateValues().Num(): " + std::to_wstring(ReplicatedEntry->GetStateValues().Num())).c_str());
 
-			for (int i = 0; i < ReplicatedEntry->GetStateValues().Num(); i++)
+			for (int i = 0; i < ReplicatedEntry->GetStateValues().Num(); ++i)
 			{
 				SendMessageToConsole(PlayerController, (L"[{}] StateValue Type: " 
 					+ std::to_wstring((int)ReplicatedEntry->GetStateValues().at(i, FFortItemEntryStateValue::GetStructSize()).GetStateType())).c_str()

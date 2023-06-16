@@ -192,7 +192,7 @@ public:
 			{
 				auto& StartingItems = GameMode->GetStartingItems();
 
-				for (int i = 0; i < StartingItems.Num(); i++)
+				for (int i = 0; i < StartingItems.Num(); ++i)
 				{
 					auto& StartingItem = StartingItems.at(i);
 
@@ -233,7 +233,7 @@ public:
 
 		UFortItemDefinition* HeroType = FindObject<UFortItemDefinition>(L"/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
 
-		for (int i = 0; i < AllHeroTypes.size(); i++)
+		for (int i = 0; i < AllHeroTypes.size(); ++i)
 		{
 			auto CurrentHeroType = (UFortItemDefinition*)AllHeroTypes.at(i);
 
@@ -303,7 +303,7 @@ namespace Bots
 		auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
-		for (int i = 0; i < AmountOfBots; i++)
+		for (int i = 0; i < AmountOfBots; ++i)
 		{
 			FTransform SpawnTransform{};
 			SpawnTransform.Translation = FVector(1, 1, 10000);
@@ -336,7 +336,7 @@ namespace Bots
 
 		// auto AllBuildingContainers = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuildingContainer::StaticClass());
 
-		// for (int i = 0; i < GameMode->GetAlivePlayers().Num(); i++)
+		// for (int i = 0; i < GameMode->GetAlivePlayers().Num(); ++i)
 		for (auto& PlayerBot : AllPlayerBotsToTick)
 		{
 			auto CurrentPlayer = PlayerBot.Controller;

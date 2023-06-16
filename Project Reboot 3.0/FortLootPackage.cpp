@@ -38,7 +38,7 @@ void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, LOOTING_M
             static auto ParentTablesOffset = CompositeDataTable->GetOffset("ParentTables");
             auto& ParentTables = CompositeDataTable->Get<TArray<UDataTable*>>(ParentTablesOffset);
 
-            for (int i = 0; i < ParentTables.Num(); i++)
+            for (int i = 0; i < ParentTables.Num(); ++i)
             {
                 DataTablesToIterate.push_back(ParentTables.at(i));
             }
@@ -78,7 +78,7 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
 
     if (LootTierData->GetLootPackageCategoryMinArray().Num() > 0)
     {
-        for (int i = 0; i < LootTierData->GetLootPackageCategoryMinArray().Num(); i++)
+        for (int i = 0; i < LootTierData->GetLootPackageCategoryMinArray().Num(); ++i)
         {
             // Fortnite does more here, we need to figure it out.
             MinimumLootDrops += LootTierData->GetLootPackageCategoryMinArray().at(i);
@@ -95,7 +95,7 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
 
     if (LootTierData->GetLootPackageCategoryWeightArray().Num() > 0)
     {
-        for (int i = 0; i < LootTierData->GetLootPackageCategoryWeightArray().Num(); i++)
+        for (int i = 0; i < LootTierData->GetLootPackageCategoryWeightArray().Num(); ++i)
         {
             // Fortnite does more here, we need to figure it out.
 
@@ -151,55 +151,75 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
     std::vector<FFortItemEntry> ItemEntries;
 }; */
 
-FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int ForcedLootTier = -1, FName* OutRowName = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
+bool PickRowForLootTier(FName* OutName, FFortLootTierData** OutLTD, float RandMultiplier, const LOOTING_MAP_TYPE<FName, FFortLootTierData*>& Rows)
+{
+    float Rand = RandomFloatForLoot(RandMultiplier);
+
+    if (!Rows.size())
+        return false;
+
+    for (auto& currentPair : Rows)
+    {
+        float currentWeight = currentPair.second->GetWeight();
+
+        if (Rand <= currentWeight)
+        {
+            *OutName = currentPair.first;
+            *OutLTD = currentPair.second;
+            return true;
+        }
+
+        Rand -= currentWeight;
+    }
+        
+    return false;
+}
+
+FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int ForcedLootTier = -1, FName* OutRowName = nullptr, int* OutLootTierDataTier = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
 {
     // This like isn't right, at all.
 
-    float LootTier = ForcedLootTier;
+    float TotalWeight = 0;
 
-    if (LootTier == -1)
+    LOOTING_MAP_TYPE<FName, FFortLootTierData*> TierGroupLTDs;
+
+    if (ForcedLootTier == -1)
     {
-        // LootTier = ??
+        CollectDataTablesRows<FFortLootTierData>(LTDTables, &TierGroupLTDs, [&](FName RowName, FFortLootTierData* TierData) -> bool {
+            if (LootTierGroup == TierData->GetTierGroup())
+            {
+                TotalWeight += TierData->GetWeight();
+                return true;
+            }
+            
+            return false;
+            });
     }
     else
     {
         // buncha code im too lazy to reverse
     }
 
-    // if (fabs(LootTier) <= 0.0000000099999999)
-      //  return 0;
-
-    int Multiplier = LootTier == -1 ? 1 : LootTier; // Idk i think we need to fill out the code above for this to work properly maybe
-
-    LOOTING_MAP_TYPE<FName, FFortLootTierData*> TierGroupLTDs;
-
-    CollectDataTablesRows<FFortLootTierData>(LTDTables, &TierGroupLTDs, [&](FName RowName, FFortLootTierData* TierData) -> bool {
-        if (LootTierGroup == TierData->GetTierGroup())
-        {
-            if ((LootTier == -1 ? true : LootTier == TierData->GetLootTier()))
-            {
-                return true;
-            }
-        }
-
-        return false;
-        });
+    if (fabs(TotalWeight) <= 0.0000000099999999)
+      return 0;
 
     // LOG_INFO(LogDev, "TierGroupLTDs.size(): {}", TierGroupLTDs.size());
 
-    FFortLootTierData* ChosenRowLootTierData = PickWeightedElement<FName, FFortLootTierData*>(TierGroupLTDs,
-        [](FFortLootTierData* LootTierData) -> float { return LootTierData->GetWeight(); }, RandomFloatForLoot, -1,
-        true, Multiplier, OutRowName);
+    FFortLootTierData* ChosenRowLootTierData = nullptr;
+
+    PickRowForLootTier(OutRowName, &ChosenRowLootTierData, TotalWeight, TierGroupLTDs);
 
     return ChosenRowLootTierData;
 }
 
-void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, const FName& LootPackageName, std::vector<LootDrop>* OutEntries, int LootPackageCategory = -1, int WorldLevel = 0, bool bPrint = false, bool bCombineDrops = true)
+void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, FName LootPackageName, std::vector<LootDrop>* OutEntries, int LootPackageCategory = -1, int WorldLevel = 0, bool bPrint = false, bool bCombineDrops = true)
 {
     if (!OutEntries)
         return;
 
     LOOTING_MAP_TYPE<FName, FFortLootPackageData*> LootPackageIDMap;
+
+    float TotalWeight = 0;
 
     CollectDataTablesRows<FFortLootPackageData>(LPTables, &LootPackageIDMap, [&](FName RowName, FFortLootPackageData* LootPackage) -> bool {
         if (LootPackage->GetLootPackageID() != LootPackageName)
@@ -215,16 +235,18 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
         if (WorldLevel >= 0)
         {
             if (LootPackage->GetMaxWorldLevel() >= 0 && WorldLevel > LootPackage->GetMaxWorldLevel())
-                return 0;
+                return false;
 
             if (LootPackage->GetMinWorldLevel() >= 0 && WorldLevel < LootPackage->GetMinWorldLevel())
-                return 0;
+                return false;
         }
+
+        TotalWeight += LootPackage->GetWeight();
 
         return true;
         });
 
-    if (LootPackageIDMap.size() == 0)
+    if (TotalWeight == 0)
     {
         // std::cout << std::format("Loot Package {} has no valid weights.\n", LootPackageName.ToString());
         return;
@@ -232,8 +254,7 @@ void PickLootDropsFromLootPackage(const std::vector<UDataTable*>& LPTables, cons
 
     FName PickedPackageRowName;
     FFortLootPackageData* PickedPackage = PickWeightedElement<FName, FFortLootPackageData*>(LootPackageIDMap,
-        [](FFortLootPackageData* LootPackageData) -> float { return LootPackageData->GetWeight(); }, RandomFloatForLoot,
-        -1, true, 1, &PickedPackageRowName, bPrint);
+        [](FFortLootPackageData* LootPackageData) -> float { return LootPackageData->GetWeight(); }, RandomFloatForLoot, -1, true, 1, &PickedPackageRowName, bPrint);
 
     if (!PickedPackage)
         return;
@@ -454,7 +475,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 
         if (FortGameFeatureDataClass)
         {
-            for (int i = 0; i < ChunkedObjects->Num(); i++)
+            for (int i = 0; i < ChunkedObjects->Num(); ++i)
             {
                 auto Object = ChunkedObjects->GetObjectByIndex(i);
 
@@ -492,7 +513,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
                             static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
                             auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
 
-                            for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); i++)
+                            for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); ++i)
                             {
                                 auto& Tag = GameplayTagContainer->GameplayTags.At(i);
 
@@ -509,23 +530,6 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 
                                         if (ptr)
                                         {
-                                            /* if (bOverrideIsComposite)
-                                            {
-                                                static auto ParentTablesOffset = ptr->GetOffset("ParentTables");
-
-                                                auto ParentTables = ptr->GetPtr<TArray<UDataTable*>>(ParentTablesOffset);
-
-                                                for (int z = 0; z < ParentTables->size(); z++)
-                                                {
-                                                    auto ParentTable = ParentTables->At(z);
-
-                                                    if (ParentTable)
-                                                    {
-                                                        LPTables.push_back(ParentTable);
-                                                    }
-                                                }
-                                            } */
-
                                             LPTables.push_back(ptr);
                                         }
                                     }
@@ -546,7 +550,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
                             static auto GameplayTagContainerOffset = CurrentPlaylist->GetOffset("GameplayTagContainer");
                             auto GameplayTagContainer = CurrentPlaylist->GetPtr<FGameplayTagContainer>(GameplayTagContainerOffset);
 
-                            for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); i++)
+                            for (int i = 0; i < GameplayTagContainer->GameplayTags.Num(); ++i)
                             {
                                 auto& Tag = GameplayTagContainer->GameplayTags.At(i);
 
@@ -569,7 +573,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 
                                                 auto ParentTables = ptr->GetPtr<TArray<UDataTable*>>(ParentTablesOffset);
 
-                                                for (int z = 0; z < ParentTables->size(); z++)
+                                                for (int z = 0; z < ParentTables->size(); ++z)
                                                 {
                                                     auto ParentTable = ParentTables->At(z);
 
@@ -591,7 +595,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
             }
         }
 
-        for (int i = 0; i < LTDTables.size(); i++)
+        for (int i = 0; i < LTDTables.size(); ++i)
         {
             auto& Table = LTDTables.at(i);
 
@@ -604,7 +608,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
             LOG_INFO(LogDev, "[{}] LTD {}", i, Table->GetFullName());
         }
 
-        for (int i = 0; i < LPTables.size(); i++)
+        for (int i = 0; i < LPTables.size(); ++i)
         {
             auto& Table = LPTables.at(i);
 
@@ -674,7 +678,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
     }
     
     FName LootTierRowName;
-    auto ChosenRowLootTierData = PickLootTierData(LTDTables, TierGroupName, ForcedLootTier, &LootTierRowName);
+    int ltdLootTier = 0;
+    auto ChosenRowLootTierData = PickLootTierData(LTDTables, TierGroupName, ForcedLootTier, &LootTierRowName, &ltdLootTier);
 
     if (!ChosenRowLootTierData)
     {
@@ -717,12 +722,12 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 
     if (AmountOfLootPackageDrops > 0)
     {
-        for (int i = 0; i < AmountOfLootPackageDrops; i++)
+        for (int i = 0; i < AmountOfLootPackageDrops; ++i)
         {
             if (i >= ChosenRowLootTierData->GetLootPackageCategoryMinArray().Num())
                 break;
 
-            for (int j = 0; j < ChosenRowLootTierData->GetLootPackageCategoryMinArray().at(i); j++)
+            for (int j = 0; j < ChosenRowLootTierData->GetLootPackageCategoryMinArray().at(i); ++j)
             {
                 if (ChosenRowLootTierData->GetLootPackageCategoryMinArray().at(i) < 1)
                     break;

@@ -80,7 +80,7 @@ void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>
 
 	auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
 
-	for (int i = 0; i < ItemInstances.Num(); i++)
+	for (int i = 0; i < ItemInstances.Num(); ++i)
 	{
 		auto ItemInstance = ItemInstances.at(i);
 
@@ -185,7 +185,7 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 					{
 						auto& BackpackCharacterParts = Backpack->Get<TArray<UObject*>>(CharacterPartsOffset);
 
-						for (int i = 0; i < BackpackCharacterParts.Num(); i++)
+						for (int i = 0; i < BackpackCharacterParts.Num(); ++i)
 						{
 							auto BackpackCharacterPart = BackpackCharacterParts.at(i);
 
@@ -222,21 +222,32 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 
 void AFortPlayerController::ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret)
 {
+	LOG_INFO(LogDev, "ServerLoadingScreenDroppedHook!");
+
 	auto PlayerController = (AFortPlayerController*)Context;
 
-	PlayerController->ApplyCosmeticLoadout();
+	// PlayerController->ApplyCosmeticLoadout();
 
 	return ServerLoadingScreenDroppedOriginal(Context, Stack, Ret);
 }
 
 void AFortPlayerController::ServerRepairBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToRepair)
 {
-	if (!BuildingActorToRepair)
+	if (!BuildingActorToRepair 
+		// || !BuildingActorToRepair->GetWorld()
+		)
 		return;
+
+	if (BuildingActorToRepair->GetEditingPlayer())
+	{
+		// ClientSendMessage
+		return;
+	}
 
 	float BuildingHealthPercent = BuildingActorToRepair->GetHealthPercent();
 
-	// todo not hardcode these?
+	// todo not hardcode these
+
 	float BuildingCost = 10;
 	float RepairCostMultiplier = 0.75;
 
@@ -273,13 +284,9 @@ void AFortPlayerController::ServerRepairBuildingActorHook(AFortPlayerController*
 			WorldInventory->Update();
 	}
 
-	struct
-	{
-		AFortPlayerController* RepairingController;                                      // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-		int                                                ResourcesSpent;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	}ABuildingSMActor_RepairBuilding_Params{ PlayerController, RepairCost };
+	struct { AFortPlayerController* RepairingController; int ResourcesSpent; } ABuildingSMActor_RepairBuilding_Params{ PlayerController, RepairCost };
 
-	static auto RepairBuildingFn = FindObject<UFunction>("/Script/FortniteGame.BuildingSMActor.RepairBuilding");
+	static auto RepairBuildingFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingSMActor.RepairBuilding");
 	BuildingActorToRepair->ProcessEvent(RepairBuildingFn, &ABuildingSMActor_RepairBuilding_Params);
 	// PlayerController->FortClientPlaySoundAtLocation(PlayerController->StartRepairSound, BuildingActorToRepair->K2_GetActorLocation(), 0, 0);
 }
@@ -517,7 +524,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 			static auto WeaponSeatDefinitionsOffset = WeaponComponent->GetOffset("WeaponSeatDefinitions");
 			auto& WeaponSeatDefinitions = WeaponComponent->Get<TArray<__int64>>(WeaponSeatDefinitionsOffset);
 
-			for (int i = 0; i < WeaponSeatDefinitions.Num(); i++)
+			for (int i = 0; i < WeaponSeatDefinitions.Num(); ++i)
 			{
 				auto WeaponSeat = WeaponSeatDefinitions.AtPtr(i, WeaponSeatDefinitionStructSize);
 
@@ -861,7 +868,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 	}
 
-	for (int i = 0; i < ExistingBuildings.Num(); i++)
+	for (int i = 0; i < ExistingBuildings.Num(); ++i)
 	{
 		auto ExistingBuilding = ExistingBuildings.At(i);
 
@@ -1162,7 +1169,7 @@ DWORD WINAPI SpectateThread(LPVOID)
 	while (1)
 	{
 		for (auto PC : PlayerControllersDead)
-		// for (int i = 0; i < PlayerControllersDead.size(); i++)
+		// for (int i = 0; i < PlayerControllersDead.size(); ++i)
 		{
 			// auto PC = PlayerControllersDead.at(i).load();
 
@@ -1358,7 +1365,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 				std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
 
-				for (int i = 0; i < ItemInstances.Num(); i++)
+				for (int i = 0; i < ItemInstances.Num(); ++i)
 				{
 					auto ItemInstance = ItemInstances.at(i);
 
@@ -1490,7 +1497,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 				bool bDidSomeoneWin = AllPlayerStates.Num() == 0;
 
-				for (int i = 0; i < AllPlayerStates.Num(); i++)
+				for (int i = 0; i < AllPlayerStates.Num(); ++i)
 				{
 					auto CurrentPlayerState = (AFortPlayerStateAthena*)AllPlayerStates.at(i);
 
@@ -1584,8 +1591,8 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 
 	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
 	{
-		LOG_INFO(LogDev, "Cheater?");
-		LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
+		// LOG_INFO(LogDev, "Cheater?");
+		// LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
 		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 	}
 

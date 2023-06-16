@@ -59,7 +59,7 @@ public:
 	{
 		auto Names = (TArray<TPair<FName, __int64>>*)(__int64(this) + sizeof(UField) + sizeof(FString));
 
-		for (int i = 0; i < Names->Num(); i++)
+		for (int i = 0; i < Names->Num(); ++i)
 		{
 			auto& Pair = Names->At(i);
 			auto& Name = Pair.Key();

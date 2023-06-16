@@ -17,7 +17,7 @@ struct FRotator
 	float Roll;
 #endif
 
-	FQuat Quaternion();
+	FQuat Quaternion() const;
 
 	FVector Vector() const;
 

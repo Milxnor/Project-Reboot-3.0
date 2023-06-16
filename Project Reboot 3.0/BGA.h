@@ -9,7 +9,7 @@
 
 static inline void SpawnBGAs() // hahah not "proper", there's a function that we can hook and it gets called on each spawner whenever playlist gets set, but it's fine.
 {
-	static auto BGAConsumableSpawnerClass = FindObject<UClass>("/Script/FortniteGame.BGAConsumableSpawner");
+	static auto BGAConsumableSpawnerClass = FindObject<UClass>(L"/Script/FortniteGame.BGAConsumableSpawner");
 
 	if (!BGAConsumableSpawnerClass)
 		return;
@@ -20,7 +20,7 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 
 	LOG_INFO(LogDev, "AllBGAConsumableSpawners.Num(): {}", (int)AllBGAConsumableSpawners.Num());
 
-	for (int i = 0; i < AllBGAConsumableSpawners.Num(); i++)
+	for (int i = 0; i < AllBGAConsumableSpawners.Num(); ++i)
 	{
 		auto BGAConsumableSpawner = AllBGAConsumableSpawners.at(i);
 		auto SpawnLocation = BGAConsumableSpawner->GetActorLocation();

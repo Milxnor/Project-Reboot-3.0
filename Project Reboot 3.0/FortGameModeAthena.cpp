@@ -858,44 +858,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	if (Ret)
 	{
 		LOG_INFO(LogDev, "Athena_ReadyToStartMatchOriginal RET!"); // if u dont see this, not good
-
-		// We are assuming it successfully became warmup.
-
-		std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
-
-		LoopMutators([&](AFortAthenaMutator* Mutator) { LOG_INFO(LogGame, "Mutator {}", Mutator->GetPathName()); });
-		LoopMutators([&](AFortAthenaMutator* Mutator) { FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged"))); });
-
-		static int LastNum1 = 3125;
-
-		if (LastNum1 != Globals::AmountOfListens)
-		{
-			LastNum1 = Globals::AmountOfListens;
-
-			for (auto& FunctionToCallPair : FunctionsToCall)
-			{
-				// On newer versions there is a second param.
-
-				// LOG_INFO(LogDev, "FunctionToCallPair.second: {}", __int64(FunctionToCallPair.second));
-
-				if (FunctionToCallPair.second)
-				{
-					if (Fortnite_Version < 10)
-					{
-						// mem leak btw
-
-						auto a = ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::None);
-
-						if (a)
-						{
-							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, a);
-							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::Setup));
-							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::Warmup));
-						}
-					}
-				}
-			}
-		}
 	}
 
 	return Ret;
@@ -1185,7 +1147,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			uint8 SpawnFlag = EFortPickupSourceTypeFlag::GetContainerValue();
 
 			bool bTest = false;
-			bool bPrintWarmup = false;
+			bool bPrintWarmup = bDebugPrintFloorLoot;
 
 			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 			{
@@ -1211,7 +1173,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 					CurrentActor->K2_DestroyActor();
 			}
 
-			bool bPrint = false;
+			bool bPrintIsland = bDebugPrintFloorLoot;
 
 			int spawned = 0;
 
@@ -1222,7 +1184,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * CurrentActor->GetLootSpawnLocation_Athena().X + CurrentActor->GetActorRightVector() * CurrentActor->GetLootSpawnLocation_Athena().Y + CurrentActor->GetActorUpVector() * CurrentActor->GetLootSpawnLocation_Athena().Z;
 
-				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, GameState->GetWorldLevel(), -1, bPrint);
+				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, GameState->GetWorldLevel(), -1, bPrintIsland);
 
 				for (auto& LootDrop : LootDrops)
 				{
