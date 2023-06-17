@@ -12,6 +12,12 @@ struct UField : UObject
 	// void* pad; void* pad2;
 };
 
+struct UFieldPadding : UObject
+{
+	UField* Next;
+	void* pad; void* pad2;
+};
+
 template <typename PropertyType = void>
 static inline PropertyType* GetNext(void* Field)
 {
@@ -57,7 +63,7 @@ class UEnum : public UField
 public:
 	int64 GetValue(const std::string& EnumMemberName)
 	{
-		auto Names = (TArray<TPair<FName, __int64>>*)(__int64(this) + sizeof(UField) + sizeof(FString));
+		auto Names = (TArray<TPair<FName, int64>>*)(__int64(this) + sizeof(UField) + sizeof(FString));
 
 		for (int i = 0; i < Names->Num(); ++i)
 		{
@@ -65,8 +71,13 @@ public:
 			auto& Name = Pair.Key();
 			auto Value = Pair.Value();
 
-			if (Name.ComparisonIndex.Value && Name.ToString().contains(EnumMemberName))
-				return Value;
+			if (Name.ComparisonIndex.Value)
+			{
+				auto nameStr = Name.ToString();
+
+				if (nameStr.contains(EnumMemberName))
+					return Value;
+			}
 		}
 
 		return -1;

@@ -31,7 +31,7 @@ public:
 
 	void SilentDie()
 	{
-		static auto SilentDieFn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SilentDie");
+		static auto SilentDieFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingActor.SilentDie");
 		bool bPropagateSilentDeath = false; // idfk
 		this->ProcessEvent(SilentDieFn, &bPropagateSilentDeath);
 	}
@@ -39,7 +39,7 @@ public:
 	float GetMaxHealth()
 	{
 		float MaxHealth = 0;
-		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.GetMaxHealth");
+		static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingActor.GetMaxHealth");
 		this->ProcessEvent(fn, &MaxHealth);
 		return MaxHealth;
 	}
@@ -47,14 +47,22 @@ public:
 	float GetHealthPercent() // aka GetHealth() / GetMaxHealth()
 	{
 		float HealthPercent = 0;
-		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.GetHealthPercent");
+		static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingActor.GetHealthPercent");
 		this->ProcessEvent(fn, &HealthPercent);
 		return HealthPercent;
 	}
 
+	float GetHealth()
+	{
+		float Health = 0;
+		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.GetHealth");
+		this->ProcessEvent(fn, &Health);
+		return Health;
+	}
+
 	void SetTeam(unsigned char InTeam)
 	{
-		static auto fn = nullptr; // FindObject<UFunction>("/Script/FortniteGame.BuildingActor.SetTeam");
+		static auto fn = nullptr; // FindObject<UFunction>(L"/Script/FortniteGame.BuildingActor.SetTeam");
 
 		if (!fn)
 		{

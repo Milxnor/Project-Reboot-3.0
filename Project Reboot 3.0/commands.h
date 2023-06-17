@@ -537,7 +537,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				return;
 			}
 
-			static auto LaunchCharacterFn = FindObject<UFunction>("/Script/Engine.Character.LaunchCharacter");
+			static auto LaunchCharacterFn = FindObject<UFunction>(L"/Script/Engine.Character.LaunchCharacter");
 
 			struct 
 			{
@@ -817,6 +817,20 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CheatManager = nullptr;
 			SendMessageToConsole(PlayerController, L"Teleported!");
 		}
+		else if (Command == "destroytarget")
+		{
+			auto CheatManager = ReceivingController->SpawnCheatManager(UCheatManager::StaticClass());
+
+			if (!CheatManager)
+			{
+				SendMessageToConsole(PlayerController, L"Failed to spawn player's cheat manager!");
+				return;
+			}
+
+			CheatManager->DestroyTarget();
+			CheatManager = nullptr;
+			SendMessageToConsole(PlayerController, L"Destroyed target!");
+		}
 		else if (Command == "bugitgo")
 		{
 			if (Arguments.size() <= 3)
@@ -865,6 +879,7 @@ cheat spawnpickup <ShortWID> - Spawns a pickup at specified player.
 cheat teleport - Teleports to what the player is looking at.
 cheat spawnbot <Amount=1> - Spawns a bot at the player (experimental).
 cheat setpickaxe <PickaxeID> - Set player's pickaxe.
+cheat destroytarget - Destroys the actor that the player is looking at.
 
 If you want to execute a command on a certain player, surround their name (case sensitive) with \, and put the param anywhere. Example: cheat sethealth \Milxnor\ 100
 )";

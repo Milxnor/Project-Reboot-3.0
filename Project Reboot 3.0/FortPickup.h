@@ -47,7 +47,7 @@ namespace EFortPickupSpawnSource
 {
 	static inline UEnum* GetEnum()
 	{
-		static auto Enum = FindObject<UEnum>("/Script/FortniteGame.EFortPickupSpawnSource");
+		static auto Enum = FindObject<UEnum>(L"/Script/FortniteGame.EFortPickupSpawnSource");
 		return Enum;
 	}
 
