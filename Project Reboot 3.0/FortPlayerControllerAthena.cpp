@@ -11,7 +11,6 @@
 #include "AthenaResurrectionComponent.h"
 #include "FortAthenaMutator_InventoryOverride.h"
 #include "FortGadgetItemDefinition.h"
-#include "gui.h"
 
 void AFortPlayerControllerAthena::StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret)
 {
@@ -156,7 +155,7 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 
 	auto& ItemInstances = InventoryList.GetItemInstances();
 
-	for (int i = 0; i < ItemInstances.Num(); ++i)
+	for (int i = 0; i < ItemInstances.Num(); i++)
 	{
 		auto ItemEntry = ItemInstances.at(i)->GetItemEntry();
 		auto ItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
@@ -240,7 +239,7 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 			{
 				auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
 
-				for (int i = 0; i < LoadoutContainer.Loadout.Num(); ++i)
+				for (int i = 0; i < LoadoutContainer.Loadout.Num(); i++)
 				{
 					auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
 					WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());
@@ -250,6 +249,40 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 	};
 
 	LoopMutators(AddInventoryOverrideTeamLoadouts);
+
+	static int LastNum1 = 3125;
+
+	if (LastNum1 != Globals::AmountOfListens)
+	{
+		LastNum1 = Globals::AmountOfListens;
+
+		for (auto& FunctionToCallPair : FunctionsToCall)
+		{
+			// On newer versions there is a second param.
+
+			LOG_INFO(LogDev, "FunctionToCallPair.second: {}", __int64(FunctionToCallPair.second));
+
+			if (FunctionToCallPair.second)
+			{
+				{
+					// mem leak btw
+
+					auto a = ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::GetReady);
+
+					if (a)
+					{
+						FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, a);
+						FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::BusLocked));
+						FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::BusFlying));
+					}
+
+					// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormFormingGamePhaseStep);
+					// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormHoldingGamePhaseStep);
+					// FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, &StormShrinkingGamePhaseStep);
+				}
+			}
+		}
+	}
 
 	WorldInventory->Update();
 	
@@ -370,7 +403,7 @@ void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFor
 	static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
 	auto AllCreativePlayerStarts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartCreativeClass);
 
-	for (int i = 0; i < AllCreativePlayerStarts.Num(); ++i)
+	for (int i = 0; i < AllCreativePlayerStarts.Num(); i++)
 	{
 		auto CurrentPlayerStart = AllCreativePlayerStarts.at(i);
 
@@ -416,64 +449,10 @@ void AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessageHook(AFortPlaye
 {
 	using UAthenaEmojiItemDefinition = UFortItemDefinition;
 
-	auto PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
-
-	if (!PlayerStateAthena)
-		return;
-
-	static auto IndexOffset = FindOffsetStruct("/Script/FortniteGame.AthenaQuickChatActiveEntry", "Index");
-	auto Index = *(int8*)(__int64(ChatEntry) + IndexOffset);
-
-	LOG_INFO(LogDev, "Index: {}", (int)Index);
-
-	uint8 NewTeamMemberState = 0;
-
-	switch (Index)
-	{
-	case 0:
-		NewTeamMemberState = 8;
-		break;
-	case 1:
-		NewTeamMemberState = 9;
-		break;
-	case 2:
-		NewTeamMemberState = 11;
-		break;
-	case 3:
-		NewTeamMemberState = 10;
-		break;
-	case 4:
-		NewTeamMemberState = 12;
-		break;
-	case 5:
-		NewTeamMemberState = 3;
-		break;
-	case 6:
-		NewTeamMemberState = 4;
-		break;
-	case 7:
-		NewTeamMemberState = 2;
-		break;
-	case 8:
-		NewTeamMemberState = 5;
-		break;
-	case 9:
-		NewTeamMemberState = 6;
-		break;
-	default:
-		break;
-	}
-
-	NewTeamMemberState -= AmountToSubtractIndex;
-
-	PlayerStateAthena->Get<uint8_t>("ReplicatedTeamMemberState") = NewTeamMemberState;
-	PlayerStateAthena->Get<uint8_t>("TeamMemberState") = NewTeamMemberState; // pretty sure unneeded
-
 	static auto EmojiComm = FindObject<UAthenaEmojiItemDefinition>(L"/Game/Athena/Items/Cosmetics/Dances/Emoji/Emoji_Comm.Emoji_Comm");
 	PlayerController->ServerPlayEmoteItemHook(PlayerController, EmojiComm);
 
-	static auto OnRep_ReplicatedTeamMemberStateFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.OnRep_ReplicatedTeamMemberState");
-	PlayerStateAthena->ProcessEvent(OnRep_ReplicatedTeamMemberStateFn);
+	// idk what else we are supposed to do here
 }
 
 void AFortPlayerControllerAthena::GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation)
@@ -554,7 +533,7 @@ void AFortPlayerControllerAthena::UpdateTrackedAttributesHook(AFortPlayerControl
 
 	std::vector<UFortItem*> ItemInstancesToRemove;
 
-	for (int i = 0; i < ItemInstances.Num(); ++i)
+	for (int i = 0; i < ItemInstances.Num(); i++)
 	{
 		auto ItemInstance = ItemInstances.at(i);
 		auto GadgetItemDefinition = Cast<UFortGadgetItemDefinition>(ItemInstance->GetItemEntry()->GetItemDefinition());
@@ -567,13 +546,13 @@ void AFortPlayerControllerAthena::UpdateTrackedAttributesHook(AFortPlayerControl
 
 		bool bIsTrackedAttributesZero = true;
 
-		for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); ++i)
+		for (int i = 0; i < GadgetItemDefinition->GetTrackedAttributes().Num(); i++)
 		{
 			auto& CurrentTrackedAttribute = GadgetItemDefinition->GetTrackedAttributes().at(i);
 
 			int CurrentAttributeValue = -1;
 
-			for (int i = 0; i < ASC->GetSpawnedAttributes().Num(); ++i)
+			for (int i = 0; i < ASC->GetSpawnedAttributes().Num(); i++)
 			{
 				auto CurrentSpawnedAttribute = ASC->GetSpawnedAttributes().at(i);
 

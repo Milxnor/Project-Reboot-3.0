@@ -6,8 +6,6 @@
 #include "memcury.h"
 #include "Class.h"
 
-#include "reboot.h"
-
 struct FunctionHooks
 {
     void* Original;
@@ -332,7 +330,7 @@ namespace Hooking
 
                 LOG_INFO(LogDev, "Hooking {} with Idx 0x{:x} (0x{:x})", FunctionName, AddrOrIdx, __int64(DefaultClass->VFTable[Idx]) - __int64(GetModuleHandleW(0)));
 
-                VirtualSwap(DefaultClass->VFTable, Idx, Detour); // we should loop thrugh all objects and check if they inherit from the DefaultClass if so also swap that
+                VirtualSwap(DefaultClass->VFTable, Idx, Detour);
 
                 return true;
             }

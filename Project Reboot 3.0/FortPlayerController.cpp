@@ -80,7 +80,7 @@ void AFortPlayerController::DropAllItems(const std::vector<UFortItemDefinition*>
 
 	auto PickaxeInstance = WorldInventory->GetPickaxeInstance();
 
-	for (int i = 0; i < ItemInstances.Num(); ++i)
+	for (int i = 0; i < ItemInstances.Num(); i++)
 	{
 		auto ItemInstance = ItemInstances.at(i);
 
@@ -185,7 +185,7 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 					{
 						auto& BackpackCharacterParts = Backpack->Get<TArray<UObject*>>(CharacterPartsOffset);
 
-						for (int i = 0; i < BackpackCharacterParts.Num(); ++i)
+						for (int i = 0; i < BackpackCharacterParts.Num(); i++)
 						{
 							auto BackpackCharacterPart = BackpackCharacterParts.at(i);
 
@@ -222,32 +222,21 @@ void AFortPlayerController::ApplyCosmeticLoadout()
 
 void AFortPlayerController::ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret)
 {
-	LOG_INFO(LogDev, "ServerLoadingScreenDroppedHook!");
-
 	auto PlayerController = (AFortPlayerController*)Context;
 
-	// PlayerController->ApplyCosmeticLoadout();
+	PlayerController->ApplyCosmeticLoadout();
 
 	return ServerLoadingScreenDroppedOriginal(Context, Stack, Ret);
 }
 
 void AFortPlayerController::ServerRepairBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToRepair)
 {
-	if (!BuildingActorToRepair 
-		// || !BuildingActorToRepair->GetWorld()
-		)
+	if (!BuildingActorToRepair)
 		return;
-
-	if (BuildingActorToRepair->GetEditingPlayer())
-	{
-		// ClientSendMessage
-		return;
-	}
 
 	float BuildingHealthPercent = BuildingActorToRepair->GetHealthPercent();
 
-	// todo not hardcode these
-
+	// todo not hardcode these?
 	float BuildingCost = 10;
 	float RepairCostMultiplier = 0.75;
 
@@ -284,9 +273,13 @@ void AFortPlayerController::ServerRepairBuildingActorHook(AFortPlayerController*
 			WorldInventory->Update();
 	}
 
-	struct { AFortPlayerController* RepairingController; int ResourcesSpent; } ABuildingSMActor_RepairBuilding_Params{ PlayerController, RepairCost };
+	struct
+	{
+		AFortPlayerController* RepairingController;                                      // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		int                                                ResourcesSpent;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	}ABuildingSMActor_RepairBuilding_Params{ PlayerController, RepairCost };
 
-	static auto RepairBuildingFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingSMActor.RepairBuilding");
+	static auto RepairBuildingFn = FindObject<UFunction>("/Script/FortniteGame.BuildingSMActor.RepairBuilding");
 	BuildingActorToRepair->ProcessEvent(RepairBuildingFn, &ABuildingSMActor_RepairBuilding_Params);
 	// PlayerController->FortClientPlaySoundAtLocation(PlayerController->StartRepairSound, BuildingActorToRepair->K2_GetActorLocation(), 0, 0);
 }
@@ -524,7 +517,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 			static auto WeaponSeatDefinitionsOffset = WeaponComponent->GetOffset("WeaponSeatDefinitions");
 			auto& WeaponSeatDefinitions = WeaponComponent->Get<TArray<__int64>>(WeaponSeatDefinitionsOffset);
 
-			for (int i = 0; i < WeaponSeatDefinitions.Num(); ++i)
+			for (int i = 0; i < WeaponSeatDefinitions.Num(); i++)
 			{
 				auto WeaponSeat = WeaponSeatDefinitions.AtPtr(i, WeaponSeatDefinitionStructSize);
 
@@ -709,41 +702,12 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 		if (Globals::bLateGame)
 		{
 			NewPawnAsFort->SetShield(100);
-
 			NewPawnAsFort->TeleportTo(AircraftToJumpFrom->GetActorLocation(), FRotator());
 		}
 	}
 
 	// PlayerController->ServerRestartPlayer();
 	// return ServerAttemptAircraftJumpOriginal(PC, ClientRotation);
-}
-
-void AFortPlayerController::ServerSuicideHook(AFortPlayerController* PlayerController)
-{
-	LOG_INFO(LogDev, "Suicide!");
-
-	auto Pawn = PlayerController->GetPawn();
-
-	if (!Pawn)
-		return;
-
-	// theres some other checks here idk
-
-	if (!Pawn->IsA(AFortPlayerPawn::StaticClass())) // Why FortPlayerPawn? Ask Fortnite
-		return;
-
-	// suicide doesn't actually call force kill but its basically the same function
-
-	static auto ForceKillFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.ForceKill"); // exists on 1.2 and 19.10 with same params so I assume it's the same on every other build.
-
-	FGameplayTag DeathReason; // unused on 1.7.2
-	AActor* KillerActor = nullptr; // its just 0 in suicide (not really but easiest way to explain it)
-
-	struct { FGameplayTag DeathReason; AController* KillerController; AActor* KillerActor; } AFortPawn_ForceKill_Params{ DeathReason, PlayerController, KillerActor };
-
-	Pawn->ProcessEvent(ForceKillFn, &AFortPawn_ForceKill_Params);
-
-	//PlayerDeathReport->ServerTimeForRespawn && PlayerDeathReport->ServerTimeForResurrect = 0? // I think this is what they do on 1.7.2 I'm too lazy to double check though.
 }
 
 void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef)
@@ -868,7 +832,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 	}
 
-	for (int i = 0; i < ExistingBuildings.Num(); ++i)
+	for (int i = 0; i < ExistingBuildings.Num(); i++)
 	{
 		auto ExistingBuilding = ExistingBuildings.At(i);
 
@@ -994,17 +958,7 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && (DropBehaviorOffset != -1 ? ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop : true))
 	{
-		PickupCreateData CreateData;
-		CreateData.ItemEntry = ReplicatedEntry;
-		CreateData.SpawnLocation = Pawn->GetActorLocation();
-		CreateData.bToss = true;
-		CreateData.OverrideCount = Count;
-		CreateData.PawnOwner = Pawn;
-		CreateData.bRandomRotation = true;
-		CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
-		CreateData.bShouldFreeItemEntryWhenDeconstructed = false;
-
-		auto Pickup = AFortPickup::SpawnPickup(CreateData);
+		auto Pickup = AFortPickup::SpawnPickup(ReplicatedEntry, Pawn->GetActorLocation(), EFortPickupSourceTypeFlag::GetPlayerValue(), 0, Pawn, nullptr, true, Count);
 
 		if (!Pickup)
 			return;
@@ -1179,7 +1133,7 @@ DWORD WINAPI SpectateThread(LPVOID)
 	while (1)
 	{
 		for (auto PC : PlayerControllersDead)
-		// for (int i = 0; i < PlayerControllersDead.size(); ++i)
+		// for (int i = 0; i < PlayerControllersDead.size(); i++)
 		{
 			// auto PC = PlayerControllersDead.at(i).load();
 
@@ -1375,7 +1329,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 				std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
 
-				for (int i = 0; i < ItemInstances.Num(); ++i)
+				for (int i = 0; i < ItemInstances.Num(); i++)
 				{
 					auto ItemInstance = ItemInstances.at(i);
 
@@ -1423,7 +1377,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
 		LOG_INFO(LogDev, "PlayersLeft: {} IsDBNO: {}", GameState->GetPlayersLeft(), DeadPawn->IsDBNO());
-
+		
 		if (!DeadPawn->IsDBNO())
 		{
 			if (Fortnite_Version > 1.8 || Fortnite_Version == 1.11)
@@ -1507,7 +1461,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 				bool bDidSomeoneWin = AllPlayerStates.Num() == 0;
 
-				for (int i = 0; i < AllPlayerStates.Num(); ++i)
+				for (int i = 0; i < AllPlayerStates.Num(); i++)
 				{
 					auto CurrentPlayerState = (AFortPlayerStateAthena*)AllPlayerStates.at(i);
 
@@ -1601,8 +1555,8 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 
 	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
 	{
-		// LOG_INFO(LogDev, "Cheater?");
-		// LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
+		LOG_INFO(LogDev, "Cheater?");
+		LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
 		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 	}
 

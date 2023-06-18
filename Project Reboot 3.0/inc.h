@@ -59,8 +59,6 @@ inline bool IsRestartingSupported()
 	return Engine_Version >= 419 && Engine_Version < 424;
 }
 
-// #define ABOVE_S20
-
 /*
 
 enum class AllocatorType

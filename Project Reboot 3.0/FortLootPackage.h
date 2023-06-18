@@ -137,7 +137,7 @@ struct LootDrop
 
 static inline float RandomFloatForLoot(float AllWeightsSum)
 {
-	return (rand() * 0.000030518509f) * AllWeightsSum;
+	return (rand() * 0.000030518509) * AllWeightsSum;
 }
 
 template <typename KeyType, typename ValueType>
@@ -165,7 +165,8 @@ FORCEINLINE static ValueType PickWeightedElement(const std::map<KeyType, ValueTy
 			});
 	}
 
-	float RandomNumber = RandMultiplier * RandomFloatGenerator(TotalWeight);
+	float RandomNumber = // UKismetMathLibrary::RandomFloatInRange(0, TotalWeight);
+		RandMultiplier * RandomFloatGenerator(TotalWeight);
 
 	if (bPrint)
 	{

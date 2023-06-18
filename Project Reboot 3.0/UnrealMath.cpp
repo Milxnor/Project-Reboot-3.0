@@ -47,7 +47,7 @@ static FORCEINLINE void SinCos(float* ScalarSin, float* ScalarCos, float  Value)
 	*ScalarCos = sign * p;
 }
 
-struct FQuat FRotator::Quaternion() const
+struct FQuat FRotator::Quaternion()
 {
 #if PLATFORM_ENABLE_VECTORINTRINSICS
 	const VectorRegister Angles = MakeVectorRegister(Rotator.Pitch, Rotator.Yaw, Rotator.Roll, 0.0f);

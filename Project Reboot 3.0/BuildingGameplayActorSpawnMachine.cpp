@@ -42,7 +42,7 @@ void ABuildingGameplayActorSpawnMachine::RebootingDelegateHook(ABuildingGameplay
 	{
 		auto& SquadArray = TeamArrayContainer->SquadsArray.at(SpawnMachine->GetSquadId());
 
-		for (int i = 0; i < SquadArray.Num(); ++i)
+		for (int i = 0; i < SquadArray.Num(); i++)
 		{
 			auto StrongPlayerState = SquadArray.at(i).Get();
 

@@ -137,7 +137,7 @@ namespace Builder
 	{
 		/* auto AllBuildingActors = LoadIntoVolume->GetActorsWithinVolumeByClass(ABuildingActor::StaticClass());
 
-		for (int i = 0; i < AllBuildingActors.Num(); ++i)
+		for (int i = 0; i < AllBuildingActors.Num(); i++)
 		{
 			auto CurrentBuildingActor = (ABuildingActor*)AllBuildingActors[i];
 			CurrentBuildingActor->SilentDie();

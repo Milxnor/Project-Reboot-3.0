@@ -28,14 +28,14 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		static auto GameMode_SafeZonePhaseOffset = GameModeAthena->GetOffset("SafeZonePhase");
 		static auto GameState_SafeZonePhaseOffset = GameState->GetOffset("SafeZonePhase");
 
-		static int ahaaSafeZonePhase = 4;
+		static int ahaaSafeZonePhase = 6;
 		int NewSafeZonePhase = ahaaSafeZonePhase; // GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
 
 		const int OriginalOldSafeZonePhase = GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
 
-		if (NewSafeZonePhase < 4)
+		if (NewSafeZonePhase < 6)
 		{
-			NewSafeZonePhase = 4;
+			NewSafeZonePhase = 6;
 		}
 
 		LOG_INFO(LogDev, "Setting zone to: {} ({})", NewSafeZonePhase, OriginalOldSafeZonePhase);

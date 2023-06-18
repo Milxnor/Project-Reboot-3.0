@@ -321,7 +321,7 @@ public:
     }
     FORCEINLINE void ZeroAll()
     {
-        for (int i = 0; i < MaxBits; ++i)
+        for (int i = 0; i < MaxBits; i++)
         {
             Set(i, false, true);
         }

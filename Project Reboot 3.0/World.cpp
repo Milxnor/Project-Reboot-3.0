@@ -66,17 +66,6 @@ void UWorld::Listen()
 	FURL URL = FURL();
 	URL.Port = Port - (Engine_Version >= 426);
 
-	NewNetDriver->SetWorld(GetWorld());
-
-	// LEVEL COLLECTIONS
-
-	static auto LevelCollectionsOffset = GetWorld()->GetOffset("LevelCollections");
-	auto& LevelCollections = GetWorld()->Get<TArray<__int64>>(LevelCollectionsOffset);
-	static int LevelCollectionSize = FindObject<UStruct>(L"/Script/Engine.LevelCollection")->GetPropertiesSize();
-
-	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
-	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;
-
 	FString Error;
 
 	if (!NewNetDriver->InitListen(GetWorld(), URL, false, Error))
@@ -85,12 +74,16 @@ void UWorld::Listen()
 		return;
 	}
 
-	const bool bLanSpeed = false;
+	NewNetDriver->SetWorld(GetWorld());
 
-	if (!bLanSpeed && (NewNetDriver->GetMaxInternetClientRate() < NewNetDriver->GetMaxClientRate()) && (NewNetDriver->GetMaxInternetClientRate() > 2500))
-	{
-		NewNetDriver->GetMaxClientRate() = NewNetDriver->GetMaxInternetClientRate();
-	}
+	// LEVEL COLLECTIONS
+
+	static auto LevelCollectionsOffset = GetWorld()->GetOffset("LevelCollections");
+	auto& LevelCollections = GetWorld()->Get<TArray<__int64>>(LevelCollectionsOffset);
+	static int LevelCollectionSize = FindObject<UStruct>("/Script/Engine.LevelCollection")->GetPropertiesSize();
+
+	*(UNetDriver**)(__int64(LevelCollections.AtPtr(0, LevelCollectionSize)) + 0x10) = NewNetDriver;
+	*(UNetDriver**)(__int64(LevelCollections.AtPtr(1, LevelCollectionSize)) + 0x10) = NewNetDriver;
 
 	LOG_INFO(LogNet, "Listening on port {}!", Port + Globals::AmountOfListens - 1);
 }

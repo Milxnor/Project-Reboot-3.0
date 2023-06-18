@@ -17,7 +17,7 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 
 	if (ActivatableAbilities && Items)
 	{
-		for (int i = 0; i < Items->Num(); ++i)
+		for (int i = 0; i < Items->Num(); i++)
 		{
 			auto CurrentSpec = Items->AtPtr(i, SpecSize); // (FGameplayAbilitySpec*)(__int64(Items->Data) + (static_cast<long long>(SpecSize) * i));
 			func(CurrentSpec);
@@ -27,7 +27,7 @@ void LoopSpecs(UAbilitySystemComponent* AbilitySystemComponent, std::function<vo
 
 FActiveGameplayEffectHandle UAbilitySystemComponent::ApplyGameplayEffectToSelf(UClass* GameplayEffectClass, float Level, const FGameplayEffectContextHandle& EffectContext)
 {
-	static auto BP_ApplyGameplayEffectToSelfFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.BP_ApplyGameplayEffectToSelf");
+	static auto BP_ApplyGameplayEffectToSelfFn = FindObject<UFunction>("/Script/GameplayAbilities.AbilitySystemComponent.BP_ApplyGameplayEffectToSelf");
 
 	struct
 	{
@@ -74,7 +74,7 @@ void UAbilitySystemComponent::ServerEndAbility(FGameplayAbilitySpecHandle Abilit
 
 void UAbilitySystemComponent::ClientEndAbility(FGameplayAbilitySpecHandle AbilityToEnd, FGameplayAbilityActivationInfo* ActivationInfo)
 {
-	static auto ClientEndAbilityFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.ClientEndAbility");
+	static auto ClientEndAbilityFn = FindObject<UFunction>("/Script/GameplayAbilities.AbilitySystemComponent.ClientEndAbility");
 
 	auto Params = Alloc(ClientEndAbilityFn->GetPropertiesSize());
 
@@ -112,7 +112,7 @@ bool UAbilitySystemComponent::HasAbility(UObject* DefaultAbility)
 
 	auto& Items = ActivatableAbilities->GetItems();
 
-	for (int i = 0; i < Items.Num(); ++i)
+	for (int i = 0; i < Items.Num(); i++)
 	{
 		auto Spec = Items.AtPtr(i, FGameplayAbilitySpec::GetStructSize());
 
@@ -144,7 +144,7 @@ void UAbilitySystemComponent::InternalServerTryActivateAbilityHook(UAbilitySyste
 
 	auto Spec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
 
-	static auto PredictionKeyStruct = FindObject<UStruct>(L"/Script/GameplayAbilities.PredictionKey");
+	static auto PredictionKeyStruct = FindObject<UStruct>("/Script/GameplayAbilities.PredictionKey");
 	static auto PredictionKeySize = PredictionKeyStruct->GetPropertiesSize();
 	static auto CurrentOffset = FindOffsetStruct("/Script/GameplayAbilities.PredictionKey", "Current");
 
@@ -239,7 +239,7 @@ FGameplayAbilitySpec* UAbilitySystemComponent::FindAbilitySpecFromHandle(FGamepl
 
 void UAbilitySystemComponent::RemoveActiveGameplayEffectBySourceEffect(UClass* GameplayEffect, UAbilitySystemComponent* InstigatorAbilitySystemComponent, int StacksToRemove)
 {
-	static auto RemoveActiveGameplayEffectBySourceEffectFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemComponent.RemoveActiveGameplayEffectBySourceEffect");
+	static auto RemoveActiveGameplayEffectBySourceEffectFn = FindObject<UFunction>("/Script/GameplayAbilities.AbilitySystemComponent.RemoveActiveGameplayEffectBySourceEffect");
 
 	struct
 	{
@@ -259,6 +259,6 @@ void UAbilitySystemComponent::ClearAbility(const FGameplayAbilitySpecHandle& Han
 		return;
 	}
 
-	static void (*ClearAbilityOriginal)(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayAbilitySpecHandle& Handle) = decltype(ClearAbilityOriginal)(Addresses::ClearAbility);
+	static void (*ClearAbilityOriginal)(UAbilitySystemComponent * AbilitySystemComponent, const FGameplayAbilitySpecHandle& Handle) = decltype(ClearAbilityOriginal)(Addresses::ClearAbility);
 	ClearAbilityOriginal(this, Handle);
 }

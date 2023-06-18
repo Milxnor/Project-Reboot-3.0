@@ -819,7 +819,14 @@ namespace EExprToken
 
 std::string GetNameSafe(void* Property)
 {
-	return GetFNameOfProp(Property)->ToString();
+	FName* NamePrivate = nullptr;
+
+	if (Engine_Version >= 425)
+		NamePrivate = (FName*)(__int64(Property) + 0x28);
+	else
+		NamePrivate = &((UField*)Property)->NamePrivate;
+
+	return NamePrivate->ToString();
 }
 
 void FKismetBytecodeDisassembler::ProcessCommon(int32& ScriptIndex, uint8 Opcode)

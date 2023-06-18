@@ -80,7 +80,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			player = player.substr(firstBackslash + 1, lastBackslash - firstBackslash - 1);
 
-			for (int i = 0; i < ClientConnections.Num(); ++i)
+			for (int i = 0; i < ClientConnections.Num(); i++)
 			{
 				static auto PlayerControllerOffset = ClientConnections.at(i)->GetOffset("PlayerController");
 				auto CurrentPlayerController = Cast<AFortPlayerControllerAthena>(ClientConnections.at(i)->Get(PlayerControllerOffset));
@@ -228,7 +228,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			auto LootDrops = PickLootDrops(UKismetStringLibrary::Conv_StringToName(std::wstring(lootTierGroup.begin(), lootTierGroup.end()).c_str()), -1, true);
 
-			for (int i = 0; i < LootDrops.size(); ++i)
+			for (int i = 0; i < LootDrops.size(); i++)
 			{
 				
 			}
@@ -247,7 +247,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			SendMessageToConsole(PlayerController, (L"AbilitySystemComponent->GetSpawnedAttributes().Num(): " + std::to_wstring(AbilitySystemComponent->GetSpawnedAttributes().Num())).c_str());
 
-			for (int i = 0; i < AbilitySystemComponent->GetSpawnedAttributes().Num(); ++i)
+			for (int i = 0; i < AbilitySystemComponent->GetSpawnedAttributes().Num(); i++)
 			{
 				auto CurrentAttributePathName = AbilitySystemComponent->GetSpawnedAttributes().at(i)->GetPathName();
 				SendMessageToConsole(PlayerController, (L"SpawnedAttribute Name: " + std::wstring(CurrentAttributePathName.begin(), CurrentAttributePathName.end())).c_str());
@@ -297,7 +297,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			SendMessageToConsole(PlayerController, (L"ReplicatedEntry->GetGenericAttributeValues().Num(): " + std::to_wstring(ReplicatedEntry->GetGenericAttributeValues().Num())).c_str());
 			SendMessageToConsole(PlayerController, (L"ReplicatedEntry->GetStateValues().Num(): " + std::to_wstring(ReplicatedEntry->GetStateValues().Num())).c_str());
 
-			for (int i = 0; i < ReplicatedEntry->GetStateValues().Num(); ++i)
+			for (int i = 0; i < ReplicatedEntry->GetStateValues().Num(); i++)
 			{
 				SendMessageToConsole(PlayerController, (L"[{}] StateValue Type: " 
 					+ std::to_wstring((int)ReplicatedEntry->GetStateValues().at(i, FFortItemEntryStateValue::GetStructSize()).GetStateType())).c_str()
@@ -459,25 +459,14 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			auto& weaponName = Arguments[1];
 			int count = 1;
-			int amount = 1;
 
 			try
 			{
 				if (NumArgs >= 2)
 					count = std::stoi(Arguments[2]);
-				if (NumArgs >= 3)
-					amount = std::stoi(Arguments[3]);
 			}
 			catch (...)
 			{
-			}
-
-			constexpr int Max = 100;
-
-			if (amount > Max)
-			{
-				SendMessageToConsole(PlayerController, (std::wstring(L"You went over the limit! Only spawning ") + std::to_wstring(Max) + L".").c_str());
-				amount = Max;
 			}
 
 			// LOG_INFO(LogDev, "weaponName: {}", weaponName);
@@ -499,10 +488,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CreateData.SpawnLocation = Location;
 			CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
-			for (int i = 0; i < amount; i++)
-			{
-				AFortPickup::SpawnPickup(CreateData);
-			}
+			AFortPickup::SpawnPickup(CreateData);
 		}
 		else if (Command == "listplayers")
 		{
@@ -551,7 +537,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				return;
 			}
 
-			static auto LaunchCharacterFn = FindObject<UFunction>(L"/Script/Engine.Character.LaunchCharacter");
+			static auto LaunchCharacterFn = FindObject<UFunction>("/Script/Engine.Character.LaunchCharacter");
 
 			struct 
 			{
@@ -628,8 +614,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			}
 
 			SendMessageToConsole(PlayerController, L"Applied CID!");
-		} 
-		else if (Command == "summon")
+		}
+        else if (Command == "summon")
 		{
 			if (Arguments.size() <= 1)
 			{
@@ -831,20 +817,6 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CheatManager = nullptr;
 			SendMessageToConsole(PlayerController, L"Teleported!");
 		}
-		else if (Command == "destroytarget")
-		{
-			auto CheatManager = ReceivingController->SpawnCheatManager(UCheatManager::StaticClass());
-
-			if (!CheatManager)
-			{
-				SendMessageToConsole(PlayerController, L"Failed to spawn player's cheat manager!");
-				return;
-			}
-
-			CheatManager->DestroyTarget();
-			CheatManager = nullptr;
-			SendMessageToConsole(PlayerController, L"Destroyed target!");
-		}
 		else if (Command == "bugitgo")
 		{
 			if (Arguments.size() <= 3)
@@ -873,6 +845,53 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			Pawn->TeleportTo(FVector(X, Y, Z), Pawn->GetActorRotation());
 			SendMessageToConsole(PlayerController, L"Teleported!");
 		}
+        else if (Command == "healthall")
+        {
+            for (int i = 0; i < ClientConnections.Num(); i++)
+            {
+                auto PlayerController = Cast<AFortPlayerController>(ClientConnections.at(i)->GetPlayerController());
+
+                if (!PlayerController->IsValidLowLevel())
+                    continue;
+
+                auto Pawn = PlayerController->GetMyFortPawn();
+
+                Pawn->SetHealth(100.f);
+            }
+
+            SendMessageToConsole(PlayerController, L"Healed all players health!\n");
+        }
+        else if (Command == "shieldall")
+        {
+            for (int i = 0; i < ClientConnections.Num(); i++)
+            {
+                auto PlayerController = Cast<AFortPlayerController>(ClientConnections.at(i)->GetPlayerController());
+
+                if (!PlayerController->IsValidLowLevel())
+                    continue;
+
+                auto Pawn = PlayerController->GetMyFortPawn();
+
+                Pawn->SetShield(100.f);
+            }
+
+            SendMessageToConsole(PlayerController, L"Healed all players shield!\n");
+        }
+        else if (Command == "godall")
+        {
+			for (int i = 0; i < ClientConnections.Num(); i++)
+			{
+				auto PlayerController = Cast<AFortPlayerController>(ClientConnections.at(i)->GetPlayerController());
+
+				if (!PlayerController->IsValidLowLevel())
+					continue;
+
+				auto Pawn = PlayerController->GetMyFortPawn();
+				Pawn->SetCanBeDamaged(!Pawn->CanBeDamaged());
+				SendMessageToConsole(PlayerController, std::wstring(L"God of all players set to " + std::to_wstring(!(bool)Pawn->CanBeDamaged())).c_str());
+			}
+        }
+
 		else { bSendHelpMessage = true; };
 	}
 	else { bSendHelpMessage = true; };
@@ -889,11 +908,13 @@ cheat pausesafezone - Pauses the zone.
 cheat sethealth <Health=100.f> - Sets executing player's health.
 cheat setshield <Shield=0.f> - Sets executing player's shield.
 cheat applycid <CIDShortName> - Sets a player's character.
-cheat spawnpickup <ShortWID> <ItemCount=1> <PickupCount=1> - Spawns a pickup at specified player.
+cheat spawnpickup <ShortWID> - Spawns a pickup at specified player.
 cheat teleport - Teleports to what the player is looking at.
 cheat spawnbot <Amount=1> - Spawns a bot at the player (experimental).
 cheat setpickaxe <PickaxeID> - Set player's pickaxe.
-cheat destroytarget - Destroys the actor that the player is looking at.
+cheat healthall - Heals all players health.
+cheat shieldall - Heals all players shield.
+cheat godall - God all
 
 If you want to execute a command on a certain player, surround their name (case sensitive) with \, and put the param anywhere. Example: cheat sethealth \Milxnor\ 100
 )";

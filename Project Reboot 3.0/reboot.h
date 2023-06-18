@@ -152,7 +152,9 @@ inline uint8_t GetFieldMask(void* Property, int additional = 0)
 
 	// 3 = sizeof(FieldSize) + sizeof(ByteOffset) + sizeof(ByteMask)
 
-	if (Engine_Version <= 424 || Fortnite_Version >= 20)
+	if (Engine_Version <= 420)
+		return *(uint8_t*)(__int64(Property) + (112 + 3 + additional));
+	else if (Engine_Version >= 421 && Engine_Version <= 424)
 		return *(uint8_t*)(__int64(Property) + (112 + 3 + additional));
 	else if (Engine_Version >= 425)
 		return *(uint8_t*)(__int64(Property) + (120 + 3 + additional));
@@ -260,13 +262,25 @@ inline void* FindPropertyStruct(const std::string& StructName, const std::string
 
 	// LOG_INFO(LogFinder, "Struct: {}", Struct->GetFullName());
 
+	auto getFNameOfProp = [](void* Property) -> FName*
+	{
+		FName* NamePrivate = nullptr;
+
+		if (Engine_Version >= 425)
+			NamePrivate = (FName*)(__int64(Property) + 0x28);
+		else
+			NamePrivate = &((UField*)Property)->NamePrivate;
+
+		return NamePrivate;
+	};
+
 	for (auto CurrentClass = Struct; CurrentClass; CurrentClass = *(UObject**)(__int64(CurrentClass) + Offsets::SuperStruct))
 	{
 		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
 
 		if (Property)
 		{
-			std::string PropName = GetFNameOfProp(Property)->ToString();
+			std::string PropName = getFNameOfProp(Property)->ToString();
 
 			if (PropName == MemberName)
 			{
@@ -283,7 +297,7 @@ inline void* FindPropertyStruct(const std::string& StructName, const std::string
 				}
 
 				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
-				PropName = Property ? GetFNameOfProp(Property)->ToString() : "";
+				PropName = Property ? getFNameOfProp(Property)->ToString() : "";
 			}
 		}
 	}
@@ -308,13 +322,25 @@ inline int FindOffsetStruct(const std::string& StructName, const std::string& Me
 
 	// LOG_INFO(LogFinder, "Struct: {}", Struct->GetFullName());
 
+	auto getFNameOfProp = [](void* Property) -> FName*
+	{
+		FName* NamePrivate = nullptr;
+
+		if (Engine_Version >= 425)
+			NamePrivate = (FName*)(__int64(Property) + 0x28);
+		else
+			NamePrivate = &((UField*)Property)->NamePrivate;
+
+		return NamePrivate;
+	};
+
 	for (auto CurrentClass = Struct; CurrentClass; CurrentClass = *(UObject**)(__int64(CurrentClass) + Offsets::SuperStruct))
 	{
 		void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
 
 		if (Property)
 		{
-			std::string PropName = GetFNameOfProp(Property)->ToString();
+			std::string PropName = getFNameOfProp(Property)->ToString();
 
 			if (PropName == MemberName)
 			{
@@ -330,8 +356,8 @@ inline int FindOffsetStruct(const std::string& StructName, const std::string& Me
 					return *(int*)(__int64(Property) + Offsets::Offset_Internal);
 				}
 
-				Property = GetNext(Property);
-				PropName = Property ? GetFNameOfProp(Property)->ToString() : "";
+				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
+				PropName = Property ? getFNameOfProp(Property)->ToString() : "";
 			}
 		}
 	}

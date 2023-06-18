@@ -168,9 +168,9 @@ void __fastcall ApplyHomebaseEffectsOnPlayerSetupHook(
                 AthenaHeroTypes.push_back(CurrentHeroType);
         }
 
-        if (AthenaHeroTypes.size() > 0)
+        if (AthenaHeroTypes.size())
         {
-            HeroType = AthenaHeroTypes.at(std::rand() % AthenaHeroTypes.size() /* - 1 */);
+            HeroType = AthenaHeroTypes.at(std::rand() % AthenaHeroTypes.size());
         }
     }
 
@@ -256,28 +256,21 @@ void ChangeLevels()
     constexpr bool bUseSwitchLevel = false;
     constexpr bool bShouldRemoveLocalPlayer = true;
 
-    LOG_INFO(LogDev, "FindGIsClient(): 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
-
-    // auto bruh = std::wstring(CustomMapName.begin(), CustomMapName.end());
-    // auto bruhh = (L"open " + bruh);
-
-    FString LevelB = /* bUseCustomMap ? bruhh.c_str() : */ (Engine_Version < 424
+    FString LevelB = Engine_Version < 424
         ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
         ? L"open Asteria_Terrain"
         : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
         : L"open Artemis_Terrain"
         : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-        : L"open Apollo_Terrain");
+        : L"open Apollo_Terrain";
 
-    FString Level = /* bUseCustomMap ? bruh.c_str() : */ (Engine_Version < 424
+    FString Level = Engine_Version < 424
         ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
         ? L"Asteria_Terrain"
         : Globals::bCreative ? L"Creative_NoApollo_Terrain"
         : L"Artemis_Terrain"
         : Globals::bCreative ? L"Creative_NoApollo_Terrain"
-        : L"Apollo_Terrain");
-
-    LOG_INFO(LogDev, "Using {}.", bUseSwitchLevel ? Level.ToString() : LevelB.ToString());
+        : L"Apollo_Terrain";
 
     if (bUseSwitchLevel)
     {
@@ -378,16 +371,7 @@ DWORD WINAPI Main(LPVOID)
     Addresses::Print();
 
     LOG_INFO(LogDev, "Fortnite_CL: {}", Fortnite_CL);
-    LOG_INFO(LogDev, "Fortnite_Version: {}", Fortnite_Version);
-    LOG_INFO(LogDev, "Engine_Version: {}", Engine_Version);
-
-#ifdef ABOVE_S20
-    if (Fortnite_Version < 20)
-    {
-        MessageBoxA(0, "Please undefined ABOVE_S20", "Project Reboot 3.0", MB_ICONERROR);
-        return 0;
-    }
-#endif
+    LOG_INFO(LogDev, "Version: {}", Fortnite_Version);
 
     CreateThread(0, 0, GuiThread, 0, 0, 0);
 
@@ -450,6 +434,8 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::KickPlayer, (PVOID)AGameSession::KickPlayerHook, (PVOID*)&AGameSession::KickPlayerOriginal);
 
     LOG_INFO(LogDev, "Built on {} {}", __DATE__, __TIME__);
+    LOG_INFO(LogDev, "[bNoMCP] {}", Globals::bNoMCP);
+    LOG_INFO(LogDev, "[bGoingToPlayEvent] {}", Globals::bGoingToPlayEvent);
     LOG_INFO(LogDev, "Size: 0x{:x}", sizeof(TMap<FName, void*>));
 
     Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);
@@ -457,17 +443,13 @@ DWORD WINAPI Main(LPVOID)
     // LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
     // LOG_INFO(LogDev, "FindGIsClient: 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
 
-    /*
-
-    Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
+    /* Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationTransform"),
         ABuildingFoundation::SetDynamicFoundationTransformHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationTransformOriginal, false, true);
 
     Hooking::MinHook::Hook(FindObject<ABuildingFoundation>(L"/Script/FortniteGame.Default__BuildingFoundation"),
         FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.SetDynamicFoundationEnabled"),
-        ABuildingFoundation::SetDynamicFoundationEnabledHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationEnabledOriginal, false, true);
-
-    */
+        ABuildingFoundation::SetDynamicFoundationEnabledHook, (PVOID*)&ABuildingFoundation::SetDynamicFoundationEnabledOriginal, false, true); */
 
     /*
     if (Fortnite_Version == 6.21) // ur trolling
@@ -530,8 +512,6 @@ DWORD WINAPI Main(LPVOID)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x41624C8), (PVOID)ActivatePhaseAtIndexHook, (PVOID*)&ActivatePhaseAtIndexOriginal); // 7FF79E3E24C8  
     }
 
-    /*
-
     if (Fortnite_Version == 6.21)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x191D2E0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
     else if (Fortnite_Version == 10.40)
@@ -539,11 +519,7 @@ DWORD WINAPI Main(LPVOID)
     else if (Fortnite_Version == 12.41)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x2DBCBA0), (PVOID)CanCreateInCurrentContextHook, (PVOID*)&CanCreateInCurrentContextOriginal);
 
-    */
-
     ChangeLevels();
-
-    LOG_INFO(LogDev, "Switch levels.");
 
     auto AddressesToNull = Addresses::GetFunctionsToNull();
 
@@ -676,9 +652,6 @@ DWORD WINAPI Main(LPVOID)
     static auto ServerReturnToMainMenuIdx = GetFunctionIdxOrPtr(ServerReturnToMainMenuFn) / 8;
     auto FortServerRestartPlayer = FortPlayerControllerDefault->VFTable[ServerReturnToMainMenuIdx];
     VirtualSwap(FortPlayerControllerAthenaDefault->VFTable, ServerReturnToMainMenuIdx, FortServerRestartPlayer);
-
-    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerSuicide"),
-        AFortPlayerController::ServerSuicideHook, nullptr, false);
 
     // HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)AFortPlayerControllerAthena::UpdateTrackedAttributesHook, "/Script/Engine.PlayerController.EnableCheats", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
     // HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
@@ -814,7 +787,6 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook(FortPlayerPawnAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerSendZiplineState"),
         AFortPlayerPawn::ServerSendZiplineStateHook, nullptr, false);
-
     Hooking::MinHook::Hook((PVOID)GetFunctionIdxOrPtr(FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerOnExitVehicle"), true), AFortPlayerPawn::ServerOnExitVehicleHook, (PVOID*)&AFortPlayerPawn::ServerOnExitVehicleOriginal);
     
     if (Fortnite_Version == 1.11 || Fortnite_Version > 1.8)
@@ -1015,7 +987,6 @@ DWORD WINAPI Main(LPVOID)
     uint64 ServerRemoveInventoryItemFunctionCallBeginFunctionAddr = 0;
 
     // if (Engine_Version >= 419)
-    if (Fortnite_Version < 20)
     {
         std::vector<uint8_t> ServerRemoveInventoryItemCallFunctionStarts = Engine_Version == 416 
             ? std::vector<uint8_t>{ 0x44, 0x88, 0x4C } 
@@ -1129,7 +1100,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved)
     case DLL_PROCESS_DETACH:
         break;
     }
-
     return TRUE;
 }
 

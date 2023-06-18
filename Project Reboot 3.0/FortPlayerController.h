@@ -140,8 +140,6 @@ public:
 	void DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar = false, bool bRemoveIfNotDroppable = false, bool RemovePickaxe = false);
 	void ApplyCosmeticLoadout();
 
-	static void ServerSuicideHook(AFortPlayerController* PlayerController);
-
 	static void ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret);
 	static void ServerRepairBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToRepair);
 	static void ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid);

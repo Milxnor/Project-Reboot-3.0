@@ -17,11 +17,6 @@ FNetworkObjectList& UNetDriver::GetNetworkObjectList()
 	return *(*(TSharedPtr<FNetworkObjectList>*)(__int64(this) + Offsets::NetworkObjectList));
 }
 
-bool ShouldUseNetworkObjectList()
-{
-	return Fortnite_Version < 20;
-}
-
 void UNetDriver::RemoveNetworkActor(AActor* Actor)
 {
 	GetNetworkObjectList().Remove(Actor);
@@ -40,8 +35,7 @@ void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 	{
 		static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver", false);
 
-		// if (ReplicationDriverOffset == -1)
-		if (ReplicationDriverOffset == -1 || Fortnite_Version >= 20)
+		if (ReplicationDriverOffset == -1)
 		{
 			NetDriver->ServerReplicateActors();
 		}
@@ -155,148 +149,98 @@ void UNetDriver::ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObj
 {
 	std::vector<AActor*> ActorsToRemove;
 
-	if (ShouldUseNetworkObjectList())
+	auto& ActiveObjects = GetNetworkObjectList().ActiveNetworkObjects;
+
+	auto World = GetWorld();
+
+	for (const TSharedPtr<FNetworkObjectInfo>& ActorInfo : ActiveObjects)
 	{
-		auto& ActiveObjects = GetNetworkObjectList().ActiveNetworkObjects;
-
-		auto World = GetWorld();
-
-		for (const TSharedPtr<FNetworkObjectInfo>& ActorInfo : ActiveObjects)
+		if (!ActorInfo->bPendingNetUpdate && UGameplayStatics::GetTimeSeconds(GetWorld()) <= ActorInfo->NextUpdateTime)
 		{
-			if (!ActorInfo->bPendingNetUpdate && UGameplayStatics::GetTimeSeconds(GetWorld()) <= ActorInfo->NextUpdateTime)
-			{
-				continue;
-			}
-
-			auto Actor = ActorInfo->Actor;
-
-			if (!Actor)
-				continue;
-
-			if (Actor->IsPendingKillPending())
-				// if (Actor->IsPendingKill())
-			{
-				ActorsToRemove.push_back(Actor);
-				continue;
-			}
-
-			static auto RemoteRoleOffset = Actor->GetOffset("RemoteRole");
-
-			if (Actor->Get<ENetRole>(RemoteRoleOffset) == ENetRole::ROLE_None)
-			{
-				ActorsToRemove.push_back(Actor);
-				continue;
-			}
-
-			// We should add a NetDriverName check but I don't believe it is needed.
-
-			// We should check if the actor is initialized here.
-
-			// We should check the level stuff here.
-
-			static auto NetDormancyOffset = Actor->GetOffset("NetDormancy");
-
-			if (Actor->Get<ENetDormancy>(NetDormancyOffset) == ENetDormancy::DORM_Initial && Actor->IsNetStartupActor()) // IsDormInitialStartupActor
-			{
-				continue;
-			}
-
-			// We should check NeedsLoadForClient here.
-			// We should make sure the actor is in the same world here but I don't believe it is needed.
-
-			if (ActorInfo->LastNetReplicateTime == 0)
-			{
-				ActorInfo->LastNetReplicateTime = UGameplayStatics::GetTimeSeconds(World);
-				ActorInfo->OptimalNetUpdateDelta = 1.0f / Actor->GetNetUpdateFrequency();
-			}
-
-			const float ScaleDownStartTime = 2.0f;
-			const float ScaleDownTimeRange = 5.0f;
-
-			const float LastReplicateDelta = UGameplayStatics::GetTimeSeconds(World) - ActorInfo->LastNetReplicateTime;
-
-			if (LastReplicateDelta > ScaleDownStartTime)
-			{
-				static auto MinNetUpdateFrequencyOffset = Actor->GetOffset("MinNetUpdateFrequency");
-
-				if (Actor->Get<float>(MinNetUpdateFrequencyOffset) == 0.0f)
-				{
-					Actor->Get<float>(MinNetUpdateFrequencyOffset) = 2.0f;
-				}
-
-				const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();									  // Don't go faster than NetUpdateFrequency
-				const float MaxOptimalDelta = max(1.0f / Actor->GetMinNetUpdateFrequency(), MinOptimalDelta); // Don't go slower than MinNetUpdateFrequency (or NetUpdateFrequency if it's slower)
-
-				const float Alpha = std::clamp((LastReplicateDelta - ScaleDownStartTime) / ScaleDownTimeRange, 0.0f, 1.0f); // should we use fmath?
-				ActorInfo->OptimalNetUpdateDelta = std::lerp(MinOptimalDelta, MaxOptimalDelta, Alpha); // should we use fmath?
-			}
-
-			if (!ActorInfo->bPendingNetUpdate)
-			{
-				constexpr bool bUseAdapativeNetFrequency = false;
-				const float NextUpdateDelta = bUseAdapativeNetFrequency ? ActorInfo->OptimalNetUpdateDelta : 1.0f / Actor->GetNetUpdateFrequency();
-
-				// then set the next update time
-				float ServerTickTime = 1.f / 30;
-				ActorInfo->NextUpdateTime = UGameplayStatics::GetTimeSeconds(World) + FRand() * ServerTickTime + NextUpdateDelta;
-				static auto TimeOffset = GetOffset("Time");
-				ActorInfo->LastNetUpdateTime = Get<float>(TimeOffset);
-			}
-
-			ActorInfo->bPendingNetUpdate = false;
-
-			OutConsiderList.push_back(ActorInfo.Get());
-
-			static void (*CallPreReplication)(AActor*, UNetDriver*) = decltype(CallPreReplication)(Addresses::CallPreReplication);
-			CallPreReplication(Actor, this);
-		}
-	}
-	else
-	{
-		auto Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass());
-
-		for (int i = 0; i < Actors.Num(); ++i)
-		{
-			auto Actor = Actors.at(i);
-
-			if (Actor->IsPendingKillPending())
-				// if (Actor->IsPendingKill())
-			{
-				ActorsToRemove.push_back(Actor);
-				continue;
-			}
-
-			static auto RemoteRoleOffset = Actor->GetOffset("RemoteRole");
-
-			if (Actor->Get<ENetRole>(RemoteRoleOffset) == ENetRole::ROLE_None)
-			{
-				ActorsToRemove.push_back(Actor);
-				continue;
-			}
-
-			// We should add a NetDriverName check but I don't believe it is needed.
-
-			// We should check if the actor is initialized here.
-
-			// We should check the level stuff here.
-
-			static auto NetDormancyOffset = Actor->GetOffset("NetDormancy");
-
-			if (Actor->Get<ENetDormancy>(NetDormancyOffset) == ENetDormancy::DORM_Initial && Actor->IsNetStartupActor()) // IsDormInitialStartupActor
-			{
-				continue;
-			}
-
-			auto ActorInfo = new FNetworkObjectInfo;
-			ActorInfo->Actor = Actor;
-
-			OutConsiderList.push_back(ActorInfo);
-
-			static void (*CallPreReplication)(AActor*, UNetDriver*) = decltype(CallPreReplication)(Addresses::CallPreReplication);
-			CallPreReplication(Actor, this);
+			continue;
 		}
 
-		Actors.Free();
+		auto Actor = ActorInfo->Actor;
+
+		if (!Actor)
+			continue;
+
+		if (Actor->IsPendingKillPending())
+			// if (Actor->IsPendingKill())
+		{
+			ActorsToRemove.push_back(Actor);
+			continue;
+		}
+
+		static auto RemoteRoleOffset = Actor->GetOffset("RemoteRole");
+
+		if (Actor->Get<ENetRole>(RemoteRoleOffset) == ENetRole::ROLE_None)
+		{
+			ActorsToRemove.push_back(Actor);
+			continue;
+		}
+
+		// We should add a NetDriverName check but I don't believe it is needed.
+
+		// We should check if the actor is initialized here.
+
+		// We should check the level stuff here.
+
+		static auto NetDormancyOffset = Actor->GetOffset("NetDormancy");
+
+		if (Actor->Get<ENetDormancy>(NetDormancyOffset) == ENetDormancy::DORM_Initial && Actor->IsNetStartupActor()) // IsDormInitialStartupActor
+		{
+			continue;
+		}
+
+		// We should check NeedsLoadForClient here.
+		// We should make sure the actor is in the same world here but I don't believe it is needed.
+
+		if (ActorInfo->LastNetReplicateTime == 0)
+		{
+			ActorInfo->LastNetReplicateTime = UGameplayStatics::GetTimeSeconds(World);
+			ActorInfo->OptimalNetUpdateDelta = 1.0f / Actor->GetNetUpdateFrequency();
+		}
+
+		const float ScaleDownStartTime = 2.0f;
+		const float ScaleDownTimeRange = 5.0f;
+
+		const float LastReplicateDelta = UGameplayStatics::GetTimeSeconds(World) - ActorInfo->LastNetReplicateTime;
+
+		if (LastReplicateDelta > ScaleDownStartTime)
+		{
+			static auto MinNetUpdateFrequencyOffset = Actor->GetOffset("MinNetUpdateFrequency");
+
+			if (Actor->Get<float>(MinNetUpdateFrequencyOffset) == 0.0f)
+			{
+				Actor->Get<float>(MinNetUpdateFrequencyOffset) = 2.0f;
+			}
+
+			const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();									  // Don't go faster than NetUpdateFrequency
+			const float MaxOptimalDelta = max(1.0f / Actor->GetMinNetUpdateFrequency(), MinOptimalDelta); // Don't go slower than MinNetUpdateFrequency (or NetUpdateFrequency if it's slower)
+
+			const float Alpha = std::clamp((LastReplicateDelta - ScaleDownStartTime) / ScaleDownTimeRange, 0.0f, 1.0f); // should we use fmath?
+			ActorInfo->OptimalNetUpdateDelta = std::lerp(MinOptimalDelta, MaxOptimalDelta, Alpha); // should we use fmath?
+		}
+
+		if (!ActorInfo->bPendingNetUpdate)
+		{
+			constexpr bool bUseAdapativeNetFrequency = false;
+			const float NextUpdateDelta = bUseAdapativeNetFrequency ? ActorInfo->OptimalNetUpdateDelta : 1.0f / Actor->GetNetUpdateFrequency();
+
+			// then set the next update time
+			float ServerTickTime = 1.f / 30;
+			ActorInfo->NextUpdateTime = UGameplayStatics::GetTimeSeconds(World) + FRand() * ServerTickTime + NextUpdateDelta;
+			static auto TimeOffset = GetOffset("Time");
+			ActorInfo->LastNetUpdateTime = Get<float>(TimeOffset);
+		}
+
+		ActorInfo->bPendingNetUpdate = false;
+
+		OutConsiderList.push_back(ActorInfo.Get());
+
+		static void (*CallPreReplication)(AActor*, UNetDriver*) = decltype(CallPreReplication)(Addresses::CallPreReplication);
+		CallPreReplication(Actor, this);
 	}
 
 	for (auto Actor : ActorsToRemove)
@@ -319,7 +263,7 @@ static UActorChannel* FindChannel(AActor * Actor, UNetConnection * Connection)
 
 	// LOG_INFO(LogReplication, "OpenChannels.Num(): {}", OpenChannels.Num());
 
-	for (int i = 0; i < OpenChannels.Num(); ++i)
+	for (int i = 0; i < OpenChannels.Num(); i++)
 	{
 		auto Channel = OpenChannels.at(i);
 
@@ -342,9 +286,7 @@ static UActorChannel* FindChannel(AActor * Actor, UNetConnection * Connection)
 		return (UActorChannel*)Channel;
 	}
 
-	// LOG_INFO(LogDev, "Failed to find channel for {}!", Actor->GetName());
-
-	return nullptr;
+	return NULL;
 }
 
 static bool IsActorRelevantToConnection(AActor * Actor, std::vector<FNetViewer>&ConnectionViewers)
@@ -459,9 +401,9 @@ int32 UNetDriver::ServerReplicateActors()
 	}
 
 	std::vector<FNetworkObjectInfo*> ConsiderList;
+	ConsiderList.reserve(GetNetworkObjectList().ActiveNetworkObjects.Num());
 
-	if (ShouldUseNetworkObjectList())
-		ConsiderList.reserve(GetNetworkObjectList().ActiveNetworkObjects.Num());
+	// std::cout << "ConsiderList.size(): " << GetNetworkObjectList(NetDriver).ActiveNetworkObjects.Num() << '\n';
 
 	auto World = GetWorld();
 
@@ -482,13 +424,10 @@ int32 UNetDriver::ServerReplicateActors()
 		if (!Connection->GetViewTarget())
 			continue;
 
-		if (Addresses::SendClientAdjustment)
+		if (Connection->GetPlayerController())
 		{
-			if (Connection->GetPlayerController())
-			{
-				static void (*SendClientAdjustment)(APlayerController*) = decltype(SendClientAdjustment)(Addresses::SendClientAdjustment);
-				SendClientAdjustment(Connection->GetPlayerController());
-			}
+			static void (*SendClientAdjustment)(APlayerController*) = decltype(SendClientAdjustment)(Addresses::SendClientAdjustment);
+			SendClientAdjustment(Connection->GetPlayerController());
 		}
 
 		// Make weak ptr once for IsActorDormant call
@@ -574,15 +513,8 @@ int32 UNetDriver::ServerReplicateActors()
 				}
 			}
 
-			enum class EChannelCreateFlags : uint32_t
-			{
-				None = (1 << 0),
-				OpenedLocally = (1 << 1)
-			};
-
 			static UChannel* (*CreateChannel)(UNetConnection*, int, bool, int32_t) = decltype(CreateChannel)(Addresses::CreateChannel);
 			static __int64 (*ReplicateActor)(UActorChannel*) = decltype(ReplicateActor)(Addresses::ReplicateActor);
-			static UObject* (*CreateChannelByName)(UNetConnection* Connection, FName* ChName, EChannelCreateFlags CreateFlags, int32_t ChannelIndex) = decltype(CreateChannelByName)(Addresses::CreateChannel);
 			static __int64 (*SetChannelActor)(UActorChannel*, AActor*) = decltype(SetChannelActor)(Addresses::SetChannelActor);
 
 			if (!Channel)
@@ -592,18 +524,7 @@ int32 UNetDriver::ServerReplicateActors()
 
 				if (bLevelInitializedForActor)
 				{
-					if (Engine_Version >= 422)
-					{
-						FString ActorStr = L"Actor";
-						FName ActorName = UKismetStringLibrary::Conv_StringToName(ActorStr);
-
-						int ChannelIndex = -1; // 4294967295
-						Channel = (UActorChannel*)CreateChannelByName(Connection, &ActorName, EChannelCreateFlags::OpenedLocally, ChannelIndex);
-					}
-					else
-					{
-						Channel = (UActorChannel*)CreateChannel(Connection, 2, true, -1);
-					}
+					Channel = (UActorChannel*)CreateChannel(Connection, 2, true, -1);
 
 					if (Channel)
 					{
@@ -621,18 +542,15 @@ int32 UNetDriver::ServerReplicateActors()
 			{
 				if (ReplicateActor(Channel))
 				{
-					if (ShouldUseNetworkObjectList())
-					{
-						// LOG_INFO(LogReplication, "Replicated Actor!");
-						auto TimeSeconds = UGameplayStatics::GetTimeSeconds(World);
-						const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();
-						const float MaxOptimalDelta = max(1.0f / Actor->GetMinNetUpdateFrequency(), MinOptimalDelta);
-						const float DeltaBetweenReplications = (TimeSeconds - ActorInfo->LastNetReplicateTime);
+					// LOG_INFO(LogReplication, "Replicated Actor!");
+					auto TimeSeconds = UGameplayStatics::GetTimeSeconds(World);
+					const float MinOptimalDelta = 1.0f / Actor->GetNetUpdateFrequency();
+					const float MaxOptimalDelta = max(1.0f / Actor->GetMinNetUpdateFrequency(), MinOptimalDelta);
+					const float DeltaBetweenReplications = (TimeSeconds - ActorInfo->LastNetReplicateTime);
 
-						// Choose an optimal time, we choose 70% of the actual rate to allow frequency to go up if needed
-						ActorInfo->OptimalNetUpdateDelta = std::clamp(DeltaBetweenReplications * 0.7f, MinOptimalDelta, MaxOptimalDelta); // should we use fmath?
-						ActorInfo->LastNetReplicateTime = TimeSeconds;
-					}
+					// Choose an optimal time, we choose 70% of the actual rate to allow frequency to go up if needed
+					ActorInfo->OptimalNetUpdateDelta = std::clamp(DeltaBetweenReplications * 0.7f, MinOptimalDelta, MaxOptimalDelta); // should we use fmath?
+					ActorInfo->LastNetReplicateTime = TimeSeconds;
 				}
 			}
 		}

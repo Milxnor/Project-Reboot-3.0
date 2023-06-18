@@ -380,6 +380,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			if (Fortnite_Season == 13)
 			{
 				ShowFoundation(FindObject<AActor>("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation"));
+                ShowFoundation(FindObject<AActor>("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Pleasant_NormalFoundation"));
+                ShowFoundation(FindObject<AActor>("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Sweaty_NormalFoundation"));
+                ShowFoundation(FindObject<AActor>("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Frenzy_NormalFoundation"));
 
 				// SpawnIsland->RepData->Soemthing = FoundationSetup->LobbyLocation;
 			}
@@ -577,24 +580,24 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
-	static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
-	TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
-
-	int ActorsNum = Actors.Num();
-
-	Actors.Free();
-
-	if (ActorsNum == 0)
-		return false;
-
-	auto MapInfo = GameState->GetMapInfo();
-
-	if (!bUseCustomMap)
+	// if (!Globals::bCreative) // ??
 	{
-		if (!MapInfo && Engine_Version >= 421)
+		static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
+		static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
+		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
+
+		int ActorsNum = Actors.Num();
+
+		Actors.Free();
+
+		if (ActorsNum == 0)
 			return false;
 	}
+
+	auto MapInfo = GameState->GetMapInfo();
+	
+	if (!MapInfo && Engine_Version >= 421)
+		return false;
 
 	static int LastNum = 1;
 
@@ -644,8 +647,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		GameSession->Get<int>(MaxPlayersOffset) = 100;
 
 		GameState->OnRep_CurrentPlaylistInfo(); // ?
-		
-		// Calendar::SetSnow(1000);
 
 		static auto bAlwaysDBNOOffset = GameMode->GetOffset("bAlwaysDBNO");
 		// GameMode->Get<bool>(bAlwaysDBNOOffset) = true;
@@ -858,6 +859,44 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 	if (Ret)
 	{
 		LOG_INFO(LogDev, "Athena_ReadyToStartMatchOriginal RET!"); // if u dont see this, not good
+
+		// We are assuming it successfully became warmup.
+
+		std::vector<std::pair<AFortAthenaMutator*, UFunction*>> FunctionsToCall;
+
+		LoopMutators([&](AFortAthenaMutator* Mutator) { LOG_INFO(LogGame, "Mutator {}", Mutator->GetPathName()); });
+		LoopMutators([&](AFortAthenaMutator* Mutator) { FunctionsToCall.push_back(std::make_pair(Mutator, Mutator->FindFunction("OnGamePhaseStepChanged"))); });
+
+		static int LastNum1 = 3125;
+
+		if (LastNum1 != Globals::AmountOfListens)
+		{
+			LastNum1 = Globals::AmountOfListens;
+
+			for (auto& FunctionToCallPair : FunctionsToCall)
+			{
+				// On newer versions there is a second param.
+
+				// LOG_INFO(LogDev, "FunctionToCallPair.second: {}", __int64(FunctionToCallPair.second));
+
+				if (FunctionToCallPair.second)
+				{
+					if (Fortnite_Version < 10)
+					{
+						// mem leak btw
+
+						auto a = ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::None);
+
+						if (a)
+						{
+							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, a);
+							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::Setup));
+							FunctionToCallPair.first->ProcessEvent(FunctionToCallPair.second, ConstructOnGamePhaseStepChangedParams(EAthenaGamePhaseStep::Warmup));
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return Ret;
@@ -1133,8 +1172,6 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 				}
 			}
 
-			LOG_INFO(LogDev, "Spawning loot!");
-
 			auto SpawnIsland_FloorLoot = FindObject<UClass>(L"/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
 			auto BRIsland_FloorLoot = FindObject<UClass>(L"/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
@@ -1147,7 +1184,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			uint8 SpawnFlag = EFortPickupSourceTypeFlag::GetContainerValue();
 
 			bool bTest = false;
-			bool bPrintWarmup = bDebugPrintFloorLoot;
+			bool bPrintWarmup = false;
 
 			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
 			{
@@ -1173,7 +1210,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 					CurrentActor->K2_DestroyActor();
 			}
 
-			bool bPrintIsland = bDebugPrintFloorLoot;
+			bool bPrint = false;
 
 			int spawned = 0;
 
@@ -1184,7 +1221,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * CurrentActor->GetLootSpawnLocation_Athena().X + CurrentActor->GetActorRightVector() * CurrentActor->GetLootSpawnLocation_Athena().Y + CurrentActor->GetActorUpVector() * CurrentActor->GetLootSpawnLocation_Athena().Z;
 
-				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, GameState->GetWorldLevel(), -1, bPrintIsland);
+				std::vector<LootDrop> LootDrops = PickLootDrops(BRIslandTierGroup, GameState->GetWorldLevel(), -1, bPrint);
 
 				for (auto& LootDrop : LootDrops)
 				{

@@ -17,7 +17,7 @@ void AFortMinigame::ClearPlayerInventoryHook(UObject* Context, FFrame& Stack, vo
 
 	auto& ItemInstances = PlayerController->GetWorldInventory()->GetItemList().GetItemInstances();
 
-	for (int i = 0; i < ItemInstances.Num(); ++i)
+	for (int i = 0; i < ItemInstances.Num(); i++)
 	{
 		auto ItemInstance = ItemInstances.at(i);
 

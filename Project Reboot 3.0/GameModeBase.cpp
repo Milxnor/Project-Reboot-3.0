@@ -11,7 +11,7 @@
 
 void AGameModeBase::RestartPlayerAtTransform(AController* NewPlayer, FTransform SpawnTransform)
 {
-	static auto RestartPlayerAtTransformFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.RestartPlayerAtTransform");
+	static auto RestartPlayerAtTransformFn = FindObject<UFunction>("/Script/Engine.GameModeBase.RestartPlayerAtTransform");
 
 	struct
 	{
@@ -24,7 +24,7 @@ void AGameModeBase::RestartPlayerAtTransform(AController* NewPlayer, FTransform 
 
 void AGameModeBase::RestartPlayerAtPlayerStart(AController* NewPlayer, AActor* StartSpot)
 {
-	static auto RestartPlayerAtPlayerStartFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.RestartPlayerAtPlayerStart");
+	static auto RestartPlayerAtPlayerStartFn = FindObject<UFunction>("/Script/Engine.GameModeBase.RestartPlayerAtPlayerStart");
 
 	struct
 	{
@@ -37,13 +37,13 @@ void AGameModeBase::RestartPlayerAtPlayerStart(AController* NewPlayer, AActor* S
 
 void AGameModeBase::RestartPlayer(AController* NewPlayer)
 {
-	static auto RestartPlayerFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.RestartPlayer");
+	static auto RestartPlayerFn = FindObject<UFunction>("/Script/Engine.GameModeBase.RestartPlayer");
 	this->ProcessEvent(RestartPlayerFn, &NewPlayer);
 }
 
 UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InController)
 {
-	static auto GetDefaultPawnClassForControllerFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.GetDefaultPawnClassForController");
+	static auto GetDefaultPawnClassForControllerFn = FindObject<UFunction>("/Script/Engine.GameModeBase.GetDefaultPawnClassForController");
 	struct
 	{
 		AController* InController;                                             // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
@@ -57,7 +57,7 @@ UClass* AGameModeBase::GetDefaultPawnClassForController(AController* InControlle
 
 void AGameModeBase::ChangeName(AController* Controller, const FString& NewName, bool bNameChange)
 {
-	static auto ChangeNameFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.ChangeName");
+	static auto ChangeNameFn = FindObject<UFunction>("/Script/Engine.GameModeBase.ChangeName");
 
 	struct
 	{
@@ -71,7 +71,7 @@ void AGameModeBase::ChangeName(AController* Controller, const FString& NewName, 
 
 AActor* AGameModeBase::K2_FindPlayerStart(AController* Player, FString IncomingName)
 {
-	static auto K2_FindPlayerStartFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.K2_FindPlayerStart");
+	static auto K2_FindPlayerStartFn = FindObject<UFunction>("/Script/Engine.GameModeBase.K2_FindPlayerStart");
 
 	struct
 	{
@@ -99,18 +99,18 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	if (!PlayerStateAthena)
 		return nullptr; // return original?
 
-	static auto PawnClass = FindObject<UClass>(L"/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+	static auto PawnClass = FindObject<UClass>("/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 	static auto DefaultPawnClassOffset = GameMode->GetOffset("DefaultPawnClass");
 	GameMode->Get<UClass*>(DefaultPawnClassOffset) = PawnClass;
 
-	bool bUseSpawnActor = Fortnite_Version >= 20;
+	constexpr bool bUseSpawnActor = false;
 
 	static auto SpawnDefaultPawnAtTransformFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
 
 	FTransform SpawnTransform = StartSpot->GetTransform();
 	APawn* NewPawn = nullptr;
 
-	if (bUseSpawnActor)
+	if constexpr (bUseSpawnActor)
 	{
 		NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn));
 	}
@@ -179,7 +179,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 			NewPlayerAsAthena->AddPickaxeToInventory();
 
-			for (int i = 0; i < StartingItems.Num(); ++i)
+			for (int i = 0; i < StartingItems.Num(); i++)
 			{
 				auto& StartingItem = StartingItems.at(i);
 
@@ -190,7 +190,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			{
 				auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
 
-				for (int i = 0; i < 5; ++i)
+				for (int i = 0; i < 5; i++)
 				{
 					auto LootDrops = PickLootDrops(SpawnIslandTierGroup);
 
@@ -212,7 +212,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 					{
 						auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
 
-						for (int i = 0; i < LoadoutContainer.Loadout.Num(); ++i)
+						for (int i = 0; i < LoadoutContainer.Loadout.Num(); i++)
 						{
 							auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
 							WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());

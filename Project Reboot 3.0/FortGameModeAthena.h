@@ -47,11 +47,16 @@ static void SetFoundationTransform(AActor* BuildingFoundation, const FTransform&
 {
 	static auto DynamicFoundationRepDataOffset = BuildingFoundation->GetOffset("DynamicFoundationRepData", false);
 
+	static auto Enabled = 1;
+	static auto Disabled = 2;
+
 	static auto DynamicFoundationTransformOffset = BuildingFoundation->GetOffset("DynamicFoundationTransform", false);
 
 	if (DynamicFoundationTransformOffset != -1) // needed check?
 	{
-		*BuildingFoundation->GetPtr<FTransform>(DynamicFoundationTransformOffset) = Transform;
+		auto DynamicFoundationTransform = BuildingFoundation->GetPtr<FTransform>(DynamicFoundationTransformOffset);
+
+		*DynamicFoundationTransform = Transform;
 	}
 
 	if (DynamicFoundationRepDataOffset != -1)
@@ -65,15 +70,11 @@ static void SetFoundationTransform(AActor* BuildingFoundation, const FTransform&
 		{
 			auto DynamicFoundationTransform = BuildingFoundation->GetPtr<FTransform>(DynamicFoundationTransformOffset);
 
-			if (Fortnite_Version >= 13)
-				*(FRotator*)(__int64(DynamicFoundationRepData) + RotationOffset) = DynamicFoundationTransform->Rotation.Rotator();
-			else
-				*(FQuat*)(__int64(DynamicFoundationRepData) + RotationOffset) = DynamicFoundationTransform->Rotation;
-
+			*(FRotator*)(__int64(DynamicFoundationRepData) + RotationOffset) = DynamicFoundationTransform->Rotation.Rotator();
 			*(FVector*)(__int64(DynamicFoundationRepData) + TranslationOffset) = DynamicFoundationTransform->Translation;
 		}
 
-		static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
+		static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>("/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
 		BuildingFoundation->ProcessEvent(OnRep_DynamicFoundationRepDataFn);
 	}
 }
@@ -135,15 +136,31 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 	static auto OnRep_ServerStreamedInLevelFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.OnRep_ServerStreamedInLevel");
 	BuildingFoundation->ProcessEvent(OnRep_ServerStreamedInLevelFn);
 
+	static auto DynamicFoundationRepDataOffset = BuildingFoundation->GetOffset("DynamicFoundationRepData", false);
+
 	static auto Enabled = 1;
 	static auto Disabled = 2;
 
-	static auto FoundationEnabledStateOffset = BuildingFoundation->GetOffset("FoundationEnabledState", false);
+	if (DynamicFoundationRepDataOffset != -1)
+	{
+		auto DynamicFoundationRepData = BuildingFoundation->GetPtr<void>(DynamicFoundationRepDataOffset);
 
-	LOG_INFO(LogDev, "BuildingFoundation->Get<uint8_t>(FoundationEnabledStateOffset) Prev: {}", (int)BuildingFoundation->Get<uint8_t>(FoundationEnabledStateOffset));
+		static auto RotationOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "Rotation");
+		static auto TranslationOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "Translation");
+		static auto EnabledStateOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "EnabledState");
+
+		*(uint8_t*)(__int64(DynamicFoundationRepData) + EnabledStateOffset) = bShow ? Enabled : Disabled;
+
+		static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
+		BuildingFoundation->ProcessEvent(OnRep_DynamicFoundationRepDataFn);
+	}
+
+	static auto FoundationEnabledStateOffset = BuildingFoundation->GetOffset("FoundationEnabledState", false);
 
 	if (FoundationEnabledStateOffset != -1)
 		BuildingFoundation->Get<uint8_t>(FoundationEnabledStateOffset) = bShow ? Enabled : Disabled;
+
+	// SetFoundationTransform(BuildingFoundation, BuildingFoundation->GetTransform()); // idk
 
 	static auto LevelToStreamOffset = BuildingFoundation->GetOffset("LevelToStream");
 	auto& LevelToStream = BuildingFoundation->Get<FName>(LevelToStreamOffset);
@@ -157,40 +174,7 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 		UGameplayStatics::UnloadStreamLevel(GetWorld(), LevelToStream, FLatentActionInfo(), false);
 	} */
 
-	static auto OnRep_LevelToStreamFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.OnRep_LevelToStream");
-	BuildingFoundation->ProcessEvent(OnRep_LevelToStreamFn);
-
-	static auto DynamicFoundationRepDataOffset = BuildingFoundation->GetOffset("DynamicFoundationRepData", false);
-
-	if (DynamicFoundationRepDataOffset != -1)
-	{
-		auto DynamicFoundationRepData = BuildingFoundation->GetPtr<void>(DynamicFoundationRepDataOffset);
-
-		static auto EnabledStateOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "EnabledState");
-		*(uint8_t*)(__int64(DynamicFoundationRepData) + EnabledStateOffset) = bShow ? Enabled : Disabled;
-
-		if (false)
-		{
-			static auto TranslationOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "Translation");
-			static auto RotationOffset = FindOffsetStruct("/Script/FortniteGame.DynamicBuildingFoundationRepData", "Rotation");
-
-			*(FVector*)(__int64(DynamicFoundationRepData) + TranslationOffset) = BuildingFoundation->GetActorLocation();
-
-			const FRotator BuildingRotation = BuildingFoundation->GetActorRotation();
-
-			if (Fortnite_Version >= 13)
-				*(FRotator*)(__int64(DynamicFoundationRepData) + RotationOffset) = BuildingRotation;
-			else
-				*(FQuat*)(__int64(DynamicFoundationRepData) + RotationOffset) = BuildingRotation.Quaternion();
-
-			static auto OnRep_DynamicFoundationRepDataFn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingFoundation.OnRep_DynamicFoundationRepData");
-			BuildingFoundation->ProcessEvent(OnRep_DynamicFoundationRepDataFn);
-		}
-		else
-		{
-			SetFoundationTransform(BuildingFoundation, BuildingFoundation->GetTransform());
-		}
-	}
+	// real
 
 	BuildingFoundation->FlushNetDormancy();
 	BuildingFoundation->ForceNetUpdate();

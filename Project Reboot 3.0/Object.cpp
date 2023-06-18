@@ -7,6 +7,18 @@
 #include "UObjectArray.h"
 #include "Package.h"
 
+FName* getFNameOfProp(void* Property)
+{
+	FName* NamePrivate = nullptr;
+
+	if (Engine_Version >= 425)
+		NamePrivate = (FName*)(__int64(Property) + 0x28);
+	else
+		NamePrivate = &((UField*)Property)->NamePrivate;
+
+	return NamePrivate;
+};
+
 void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound) const
 {
 	for (auto CurrentClass = ClassPrivate; CurrentClass; CurrentClass = *(UClass**)(__int64(CurrentClass) + Offsets::SuperStruct))
@@ -17,7 +29,7 @@ void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound) c
 		{
 			// LOG_INFO(LogDev, "Reading prop name..");
 
-			std::string PropName = GetFNameOfProp(Property)->ToString();
+			std::string PropName = getFNameOfProp(Property)->ToString();
 
 			// LOG_INFO(LogDev, "PropName: {}", PropName);
 
@@ -33,8 +45,8 @@ void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound) c
 					return Property;
 				}
 
-				Property = GetNext(Property);
-				PropName = Property ? GetFNameOfProp(Property)->ToString() : "";
+				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
+				PropName = Property ? getFNameOfProp(Property)->ToString() : "";
 			}
 		}
 	}
@@ -55,7 +67,7 @@ void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound)
 		{
 			// LOG_INFO(LogDev, "Reading prop name..");
 
-			std::string PropName = GetFNameOfProp(Property)->ToString();
+			std::string PropName = getFNameOfProp(Property)->ToString();
 
 			// LOG_INFO(LogDev, "PropName: {}", PropName);
 
@@ -71,8 +83,8 @@ void* UObject::GetProperty(const std::string& ChildName, bool bWarnIfNotFound)
 					return Property;
 				}
 
-				Property = GetNext(Property);
-				PropName = Property ? GetFNameOfProp(Property)->ToString() : "";
+				Property = Engine_Version >= 425 ? *(void**)(__int64(Property) + 0x20) : ((UField*)Property)->Next;
+				PropName = Property ? getFNameOfProp(Property)->ToString() : "";
 			}
 		}
 	}

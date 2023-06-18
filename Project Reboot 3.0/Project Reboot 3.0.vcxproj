@@ -194,7 +194,6 @@
     <ClCompile Include="DataTableFunctionLibrary.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EngineTypes.cpp" />
-    <ClCompile Include="finder.cpp" />
     <ClCompile Include="FortAthenaCreativePortal.cpp" />
     <ClCompile Include="FortAthenaMapInfo.cpp" />
     <ClCompile Include="FortAthenaMutator_Barrier.cpp" />
@@ -433,7 +432,6 @@
     <ClInclude Include="NumericLimits.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="ObjectMacros.h" />
-    <ClInclude Include="objectviewer.h" />
     <ClInclude Include="OnlineReplStructs.h" />
     <ClInclude Include="OutputDevice.h" />
     <ClInclude Include="Package.h" />

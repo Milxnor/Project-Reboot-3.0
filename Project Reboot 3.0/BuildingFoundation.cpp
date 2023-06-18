@@ -26,5 +26,10 @@ void ABuildingFoundation::SetDynamicFoundationEnabledHook(UObject* Context, FFra
 
 	ShowFoundation(BuildingFoundation, bEnabled);
 
+	// idk lol
+
+	BuildingFoundation->ForceNetUpdate();
+	BuildingFoundation->FlushNetDormancy();
+
 	return SetDynamicFoundationEnabledOriginal(Context, Stack, Ret);
 }
