@@ -794,7 +794,7 @@ static inline void MainUI() {
                                     static auto ShellsAmmo = FindObject<UFortItemDefinition>(
                                             L"/Game/Athena/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells");
 
-                                    if (Fortnite_Version >= 19.10 || Fortnite_Version <= 19.40) {
+                                    if (Fortnite_Version >= 19.10 && Fortnite_Version <= 19.40) {
                                         static auto WebShooter = FindObject<UFortItemDefinition>(
                                                 L"/ParallelGameplay/Items/WestSausage/WID_WestSausage_Parallel_L_M.WID_WestSausage_Parallel_L_M");
 
@@ -806,7 +806,7 @@ static inline void MainUI() {
                                         WorldInventory->Update();
                                     }
 
-                                    if (Fortnite_Version >= 13.00 || Fortnite_Version <= 17.50) {
+                                    if (Fortnite_Version >= 13.00 && Fortnite_Version <= 17.50) {
                                         static auto JulesGrappler = FindObject<UFortItemDefinition>(
                                                 L"/Game/Athena/Items/Weapons/Boss/WID_Boss_GrapplingHoot.WID_Boss_GrapplingHoot");
 
