@@ -375,6 +375,29 @@ static inline void MainTabs() {
             ImGui::EndTabItem();
         }
 
+        if (ImGui::BeginTabItem("Developer"))
+        {
+            Tab = DEVELOPER_TAB;
+            PlayerTab = -1;
+            bInformationTab = false;
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Debug Logs"))
+        {
+            Tab = DEBUGLOG_TAB;
+            PlayerTab = -1;
+            bInformationTab = false;
+            ImGui::EndTabItem();
+        }
+
+        if (false && ImGui::BeginTabItem(("Credits"))) {
+            Tab = CREDITS_TAB;
+            PlayerTab = -1;
+            bInformationTab = false;
+            ImGui::EndTabItem();
+        }
+
 #if 0
         if (bannedStream.is_open() && ImGui::BeginTabItem("Unban")) // skunked
         {
@@ -955,6 +978,8 @@ static inline void MainUI() {
                 }
             }
         } else if (Tab == PLAYERS_TAB) {
+            if (ImGui::Button("Test")) {
+            }
         } else if (Tab == EVENT_TAB) {
             if (ImGui::Button(std::format("Start {}", GetEventName()).c_str())) {
                 StartEvent();
@@ -1075,8 +1100,10 @@ static inline void MainUI() {
 
                         PlaylistsFile << std::format("[{}] {}\n", PlaylistName, Object->GetPathName());
                     }
-                } else
+                }
+                else {
                     std::cout << "Failed to open playlist file!\n";
+                }
             }
 
             if (ImGui::Button("Dump Weapons (Weapons.txt)")) {
