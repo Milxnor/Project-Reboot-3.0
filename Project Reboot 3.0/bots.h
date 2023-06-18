@@ -137,9 +137,9 @@ public:
 
 		Controller->Possess(Pawn);
 
+		Pawn->SetMaxHealth(100);
 		Pawn->SetHealth(21);
         Pawn->SetShield(21);
-		Pawn->SetMaxHealth(100);
 
 		AFortInventory** Inventory = nullptr;
 

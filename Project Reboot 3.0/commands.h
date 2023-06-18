@@ -891,6 +891,58 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				SendMessageToConsole(PlayerController, std::wstring(L"God of all players set to " + std::to_wstring(!(bool)Pawn->CanBeDamaged())).c_str());
 			}
         }
+		else if (Command == "ammoall")
+		{
+			static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
+			auto WorldNetDriver = GetWorld()->Get<UNetDriver*>(World_NetDriverOffset);
+			auto& ClientConnections = WorldNetDriver->GetClientConnections();
+
+			for (int z = 0; z < ClientConnections.Num(); z++)
+			{
+				auto ClientConnection = ClientConnections.at(z);
+				auto FortPC = Cast<AFortPlayerController>(ClientConnection->GetPlayerController());
+
+				if (!FortPC)
+					continue;
+
+				auto WorldInventory = FortPC->GetWorldInventory();
+
+				if (!WorldInventory)
+					continue;
+
+				static auto Rockets = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AmmoDataRockets.AmmoDataRockets");
+				static auto Heavy = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsHeavy.AthenaAmmoDataBulletsHeavy");
+				static auto Light = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsLight.AthenaAmmoDataBulletsLight");
+				static auto Medium = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsMedium.AthenaAmmoDataBulletsMedium");
+				static auto EnergyCell = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataEnergyCell.AthenaAmmoDataEnergyCell");
+				static auto Hooks = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataHooks.AthenaAmmoDataHooks");
+				static auto Shells = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells");
+				static auto OakCash = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaOakCash.AthenaOakCash");
+				static auto DataHeavy = FindObject<UFortItemDefinition>(L"/Game/Items/Ammo/AmmoDataBulletsHeavy.AmmoDataBulletsHeavy");
+				static auto DataLight = FindObject<UFortItemDefinition>(L"/Game/Items/Ammo/AmmoDataBulletsLight.AmmoDataBulletsLight");
+				static auto DataMedium = FindObject<UFortItemDefinition>(L"/Game/Items/Ammo/AmmoDataBulletsMedium.AmmoDataBulletsMedium");
+				static auto DataEnergyCell = FindObject<UFortItemDefinition>(L"/Game/Items/Ammo/AmmoDataEnergyCell.AmmoDataEnergyCell");
+				static auto DataExplosive = FindObject<UFortItemDefinition>(L"/Game/Items/Ammo/AmmoDataExplosive.AmmoDataExplosive");
+				static auto DataShells = FindObject<UFortItemDefinition>(L"/Game/Items/Ammo/AmmoDataShells.AmmoDataShells");
+
+				WorldInventory->AddItem(Rockets, nullptr, 100);
+				WorldInventory->AddItem(Heavy, nullptr, 100);
+				WorldInventory->AddItem(Light, nullptr, 100);
+				WorldInventory->AddItem(Medium, nullptr, 100);
+				WorldInventory->AddItem(EnergyCell, nullptr, 100);
+				WorldInventory->AddItem(Hooks, nullptr, 100);
+				WorldInventory->AddItem(Shells, nullptr, 100);
+				WorldInventory->AddItem(OakCash, nullptr, 100);
+				WorldInventory->AddItem(DataHeavy, nullptr, 100);
+				WorldInventory->AddItem(DataLight, nullptr, 100);
+				WorldInventory->AddItem(DataMedium, nullptr, 100);
+				WorldInventory->AddItem(DataEnergyCell, nullptr, 100);
+				WorldInventory->AddItem(DataShells, nullptr, 100);
+				WorldInventory->AddItem(DataExplosive, nullptr, 100);
+
+				WorldInventory->Update();
+			}
+		}
 
 		else { bSendHelpMessage = true; };
 	}
