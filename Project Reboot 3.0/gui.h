@@ -799,6 +799,8 @@ static inline void MainUI() {
                                     Sleep(1000);
                                     SafeZoneIndicator->SkipShrinkSafeZone();
                                 }
+
+                                UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
                             } else {
                                 for (int z = 0; z < ClientConnections.Num(); z++) {
                                     auto ClientConnection = ClientConnections.at(z);

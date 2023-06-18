@@ -37,6 +37,13 @@ extern inline std::string PlaylistName =
 // Trios - /Game/Athena/Playlists/Trios/Playlist_Trios.Playlist_Trios
 // Squads - /Game/Athena/Playlists/Playlist_DefaultSquad.Playlist_DefaultSquad
 
+/*
+One Shot:
+Solos - /Game/Athena/Playlists/Low/Playlist_Low_Solo.Playlist_Low_Solo
+Duos - /Game/Athena/Playlists/Low/Playlist_Low_Duos.Playlist_Low_Duos
+Squads - /Game/Athena/Playlists/Low/Playlist_Low_Squad.Playlist_Low_Squad
+*/
+
 // "/Game/Athena/Playlists/gg/Playlist_Gg_Reverse.Playlist_Gg_Reverse";
 // "/Game/Athena/Playlists/Playlist_DefaultDuo.Playlist_DefaultDuo";
 // "/Game/Athena/Playlists/Playground/Playlist_Playground.Playlist_Playground";
