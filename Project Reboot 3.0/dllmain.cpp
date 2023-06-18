@@ -258,21 +258,26 @@ void ChangeLevels()
 
     LOG_INFO(LogDev, "FindGIsClient(): 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
 
-    FString LevelB = Engine_Version < 424
+    // auto bruh = std::wstring(CustomMapName.begin(), CustomMapName.end());
+    // auto bruhh = (L"open " + bruh);
+
+    FString LevelB = /* bUseCustomMap ? bruhh.c_str() : */ (Engine_Version < 424
         ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
         ? L"open Asteria_Terrain"
         : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
         : L"open Artemis_Terrain"
         : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
-        : L"open Apollo_Terrain";
+        : L"open Apollo_Terrain");
 
-    FString Level = Engine_Version < 424
+    FString Level = /* bUseCustomMap ? bruh.c_str() : */ (Engine_Version < 424
         ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
         ? L"Asteria_Terrain"
         : Globals::bCreative ? L"Creative_NoApollo_Terrain"
         : L"Artemis_Terrain"
         : Globals::bCreative ? L"Creative_NoApollo_Terrain"
-        : L"Apollo_Terrain";
+        : L"Apollo_Terrain");
+
+    LOG_INFO(LogDev, "Using {}.", bUseSwitchLevel ? Level.ToString() : LevelB.ToString());
 
     if (bUseSwitchLevel)
     {

@@ -61,6 +61,8 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
+extern inline bool bUseCustomMap = false;
+extern inline std::string CustomMapName = "";
 extern inline int AmountToSubtractIndex = 1;
 extern inline int SecondsUntilTravel = 5;
 extern inline bool bSwitchedInitialLevel = false;
@@ -1291,8 +1293,17 @@ static inline void PregameUI()
 	}
 
 	if (!bSwitchedInitialLevel)
+	{
+		ImGui::Checkbox("Use Custom Map", &bUseCustomMap);
+
+		if (bUseCustomMap)
+		{
+			// ImGui::InputText("Custom Map", &CustomMapName);
+		}
+
 		ImGui::SliderInt("Seconds until load into map", &SecondsUntilTravel, 1, 100);
-	
+	}
+		
 	if (!Globals::bCreative)
 		ImGui::InputText("Playlist", &PlaylistName);
 }

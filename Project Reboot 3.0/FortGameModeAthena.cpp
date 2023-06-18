@@ -577,24 +577,24 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	// if (!Globals::bCreative) // ??
-	{
-		static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
-		static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
-		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
+	static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
+	static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
+	TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
 
-		int ActorsNum = Actors.Num();
+	int ActorsNum = Actors.Num();
 
-		Actors.Free();
+	Actors.Free();
 
-		if (ActorsNum == 0)
-			return false;
-	}
+	if (ActorsNum == 0)
+		return false;
 
 	auto MapInfo = GameState->GetMapInfo();
-	
-	if (!MapInfo && Engine_Version >= 421)
-		return false;
+
+	if (!bUseCustomMap)
+	{
+		if (!MapInfo && Engine_Version >= 421)
+			return false;
+	}
 
 	static int LastNum = 1;
 

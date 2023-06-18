@@ -459,14 +459,25 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 			auto& weaponName = Arguments[1];
 			int count = 1;
+			int amount = 1;
 
 			try
 			{
 				if (NumArgs >= 2)
 					count = std::stoi(Arguments[2]);
+				if (NumArgs >= 3)
+					amount = std::stoi(Arguments[3]);
 			}
 			catch (...)
 			{
+			}
+
+			constexpr int Max = 100;
+
+			if (amount > Max)
+			{
+				SendMessageToConsole(PlayerController, (std::wstring(L"You went over the limit! Only spawning ") + std::to_wstring(Max) + L".").c_str());
+				amount = Max;
 			}
 
 			// LOG_INFO(LogDev, "weaponName: {}", weaponName);
@@ -488,7 +499,10 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CreateData.SpawnLocation = Location;
 			CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
-			AFortPickup::SpawnPickup(CreateData);
+			for (int i = 0; i < amount; i++)
+			{
+				AFortPickup::SpawnPickup(CreateData);
+			}
 		}
 		else if (Command == "listplayers")
 		{
@@ -875,7 +889,7 @@ cheat pausesafezone - Pauses the zone.
 cheat sethealth <Health=100.f> - Sets executing player's health.
 cheat setshield <Shield=0.f> - Sets executing player's shield.
 cheat applycid <CIDShortName> - Sets a player's character.
-cheat spawnpickup <ShortWID> - Spawns a pickup at specified player.
+cheat spawnpickup <ShortWID> <ItemCount=1> <PickupCount=1> - Spawns a pickup at specified player.
 cheat teleport - Teleports to what the player is looking at.
 cheat spawnbot <Amount=1> - Spawns a bot at the player (experimental).
 cheat setpickaxe <PickaxeID> - Set player's pickaxe.
