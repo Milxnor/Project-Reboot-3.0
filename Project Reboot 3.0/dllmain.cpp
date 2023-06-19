@@ -368,7 +368,6 @@ DWORD WINAPI Main(LPVOID)
     Addresses::SetupVersion();
 
     NumElementsPerChunk = std::floor(Fortnite_Version) >= 5 && Fortnite_Version <= 6 ? 0x10400 : 0x10000; // Idk what version tbh
-    bEnableRebooting = Addresses::RebootingDelegate && Addresses::FinishResurrection;
 
     Offsets::FindAll(); // We have to do this before because FindCantBuild uses FortAIController.CreateBuildingActor
     Offsets::Print();
@@ -377,6 +376,8 @@ DWORD WINAPI Main(LPVOID)
     // Addresses::Print();
     Addresses::Init();
     Addresses::Print();
+
+    bEnableRebooting = Addresses::RebootingDelegate && Addresses::FinishResurrection;
 
     LOG_INFO(LogDev, "Fortnite_CL: {}", Fortnite_CL);
     LOG_INFO(LogDev, "Fortnite_Version: {}", Fortnite_Version);
