@@ -50,4 +50,26 @@ namespace Calendar
 			SnowSetup->ProcessEvent(SetSnowFn, &NewValue);
 		}
 	}
+
+    static inline void SetWaterLevel(int WaterLevel)
+    {
+        // There was 7 water levels
+        UObject* WL = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Apollo_WaterSetup_2"); // Is this 13.40 specific?
+
+        if (WL)
+        {
+            static auto SetWaterLevel = FindObject<UFunction>("/Game/Athena/Apollo/Environments/Blueprints/Apollo_WaterSetup.Apollo_WaterSetup_C.SetWaterLevel");
+            static auto OnRep_CurrentWaterLevel = FindObject<UFunction>("/Game/Athena/Apollo/Environments/Blueprints/Apollo_WaterSetup.Apollo_WaterSetup_C.OnRep_CurrentWaterLevel");
+
+            WL->ProcessEvent(SetWaterLevel, &WaterLevel);
+            WL->ProcessEvent(OnRep_CurrentWaterLevel);
+
+            /* UObject* FoundationSetup = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations:PersistentLevel.Apollo_WaterSetup_Foundations_2");
+            if (FoundationSetup)
+            {
+                static auto SetWaterFoundations = FindObject<UFunction>("/Game/Athena/Apollo/Environments/Blueprints/Apollo_WaterSetup_Foundations.Apollo_WaterSetup_Foundations_C.SetWaterFoundations");
+                FoundationSetup->ProcessEvent(SetWaterFoundations, &WaterLevel);
+            } */
+        }
+    }
 }
