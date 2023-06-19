@@ -40,6 +40,7 @@
 #include "FortAthenaMutator_Heist.h"
 #include "BGA.h"
 #include "vendingmachine.h"
+#include "calendar.h"
 
 #define GAME_TAB 1
 #define PLAYERS_TAB 2
@@ -60,7 +61,7 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
-extern inline int SecondsUntilTravel = 5;
+extern inline int SecondsUntilTravel = 50;
 extern inline bool bSwitchedInitialLevel = false;
 extern inline bool bIsInAutoRestart = false;
 extern inline float AutoBusStartSeconds = 60;
@@ -96,6 +97,9 @@ LPARAM lParam
 );
 
 extern inline bool bStartedBus = false;
+
+template <typename T>
+T* Get(void* addr, uint64_t off) { return (T*)(__int64(addr) + off); }
 
 static inline void Restart() // todo move?
 {
@@ -563,6 +567,35 @@ static inline void MainUI() {
                     }
                 }
 
+                if (Fortnite_Version >= 13.00 && Fortnite_Version <= 13.40)
+                {
+                    static UObject* WL = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Apollo_WaterSetup_2"); // Is this 13.40 specific?
+                    static auto last = AmountOfRestarts;
+
+                    if (!WL || AmountOfRestarts != last)
+                    {
+                        last = AmountOfRestarts;
+                        WL = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Apollo_WaterSetup_2");
+                    }
+
+                    if (WL)
+                    {
+
+                        static auto MaxWaterLevelOffset = WL->GetOffset("MaxWaterLevel");
+
+                        static int MaxWaterLevel = *Get<int>(WL, MaxWaterLevelOffset);
+                        static int WaterLevel = 0;
+
+                        ImGui::SliderInt("WaterLevel", &WaterLevel, 0, MaxWaterLevel);
+
+                        if (ImGui::Button("Set Water Level"))
+                        {
+                            Calendar::SetWaterLevel(WaterLevel);
+                            // ApolloSetup->UpdateMinimapData(ApolloSetup->MinimapTextures.At(WaterLevel), ApolloSetup->MinimapDiscoveryMasks.At(WaterLevel));
+                        }
+                    }
+                }
+
                 /*
                 if (ImGui::Button("TEST"))
                 {
@@ -773,10 +806,10 @@ static inline void MainUI() {
                                     WorldInventory->AddItem(StoneItemData, nullptr, 500);
                                     WorldInventory->AddItem(MetalItemData, nullptr, 500);
 
-                                    WorldInventory->AddItem(Shells, nullptr, 999);
-                                    WorldInventory->AddItem(Medium, nullptr, 999);
-                                    WorldInventory->AddItem(Light, nullptr, 999);
-                                    WorldInventory->AddItem(Heavy, nullptr, 999);
+                                    WorldInventory->AddItem(Shells, nullptr, 50);
+                                    WorldInventory->AddItem(Medium, nullptr, 200);
+                                    WorldInventory->AddItem(Light, nullptr, 200);
+                                    WorldInventory->AddItem(Heavy, nullptr, 50);
 
                                     WorldInventory->AddItem(HeavySniper, nullptr, 1);
                                     WorldInventory->AddItem(Hunting, nullptr, 1);
@@ -801,7 +834,7 @@ static inline void MainUI() {
                                 }
 
                                 UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
-                            } else {
+                            }/* else {
                                 for (int z = 0; z < ClientConnections.Num(); z++) {
                                     auto ClientConnection = ClientConnections.at(z);
                                     auto FortPC = Cast<AFortPlayerController>(ClientConnection->GetPlayerController());
@@ -858,7 +891,7 @@ static inline void MainUI() {
 
                                     WorldInventory->Update();
                                 }
-                            }
+                            }*/
 
                             LOG_INFO(LogDev, "Finished!");
                         }
