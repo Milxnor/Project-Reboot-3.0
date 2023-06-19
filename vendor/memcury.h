@@ -1417,8 +1417,7 @@
         VirtualProtect(&VTable[Idx], 8, dwProtection, &dwTemp);
     }
 
-    // Finds a string ref, then goes searches xref of the function that it's in and returns that address.
-    inline uintptr_t FindFunctionCall(const wchar_t* Name, const std::vector<uint8_t>& Bytes = std::vector<uint8_t>{ 0x48, 0x89, 0x5C }, int skip = 0) // credit ender & me
+    inline uintptr_t FindNameRef(const wchar_t* Name, int skip = 0, bool bWarnStringNotFound = true)
     {
         auto StringRef = Memcury::Scanner::FindStringRef(Name, true, skip);
 
@@ -1429,14 +1428,18 @@
 
         auto PtrRef = Memcury::Scanner::FindPointerRef(FunctionPtr);
 
-        /* if (!PtrRef.Get() || PtrRef.Get() == __int64(FunctionPtr))
-        {
-            std::wstring NameWStr = std::wstring(Name);
-            LOG_WARN(LogMemory, "Failed to find pointer reference for {}", std::string(NameWStr.begin(), NameWStr.end()));
-            return 0;
-        } */
+        return PtrRef.Get();
+    }
 
-        return PtrRef.ScanFor(Bytes, false).Get();
+    // Finds a string ref, then goes searches xref of the function that it's in and returns that address.
+    inline uintptr_t FindFunctionCall(const wchar_t* Name, const std::vector<uint8_t>& Bytes = std::vector<uint8_t>{ 0x48, 0x89, 0x5C }, int skip = 0, bool bWarnStringNotFound = true) // credit ender & me
+    {
+        auto NameRef = FindNameRef(Name, skip, bWarnStringNotFound);
+
+        if (!NameRef)
+            return 0;
+
+        return Memcury::Scanner(NameRef).ScanFor(Bytes, false).Get();
     }
 
     inline bool IsNullSub(uint64 Addr) 

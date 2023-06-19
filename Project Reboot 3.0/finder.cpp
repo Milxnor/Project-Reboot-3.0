@@ -18,6 +18,12 @@ uint64 FindGetPlayerViewpoint()
 			FailedToSpawnPawnAddr = FailedToSpawnPawnStrRefAddr - i;
 			break;
 		}
+
+		if (*(uint8_t*)(uint8_t*)(FailedToSpawnPawnStrRefAddr - i) == 0x48 && *(uint8_t*)(uint8_t*)(FailedToSpawnPawnStrRefAddr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(FailedToSpawnPawnStrRefAddr - i + 2) == 0x5C)
+		{
+			FailedToSpawnPawnAddr = FailedToSpawnPawnStrRefAddr - i;
+			break;
+		}
 	}
 
 	if (!FailedToSpawnPawnAddr)

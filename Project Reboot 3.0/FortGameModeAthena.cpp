@@ -687,6 +687,35 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogNet, "WorldLevel {}", GameState->GetWorldLevel());
 
+		if (Globals::AmountOfListens == 1) // we only want to do this one time.
+		{
+			if (bEnableRebooting)
+			{
+				auto GameSessionDedicatedAthenaPatch = Memcury::Scanner::FindPattern("3B 41 38 7F ? 48 8B D0 48 8B 41 30 4C 39 04 D0 75 ? 48 8D 96", false).Get(); // todo check this sig more
+
+				if (GameSessionDedicatedAthenaPatch)
+				{
+					PatchBytes(GameSessionDedicatedAthenaPatch, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
+				}
+				else
+				{
+					auto S19Patch = Memcury::Scanner::FindPattern("74 1A 48 8D 97 ? ? ? ? 49 8B CF E8 ? ? ? ? 88 87 ? ? ? ? E9").Get();
+					
+					if (S19Patch)
+					{
+						PatchByte(S19Patch, 0x75);
+					}
+				}
+
+				if (bEnableRebooting)
+				{
+					HookInstruction(Addresses::RebootingDelegate, (PVOID)ABuildingGameplayActorSpawnMachine::RebootingDelegateHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FindObject("/Script/FortniteGame.Default__BuildingGameplayActorSpawnMachine"));
+				}
+
+				LOG_INFO(LogDev, "Patched GameSession!");
+			}
+		}
+
 		if (auto TeamsArrayContainer = GameState->GetTeamsArrayContainer())
 		{
 			GET_PLAYLIST(GameState);
@@ -700,6 +729,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			LOG_INFO(LogDev, "TeamsArrayContainer->TeamsArray.Num() Before: {}", TeamsArrayContainer->TeamsArray.Num());
 			LOG_INFO(LogDev, "TeamsArrayContainer->SquadsArray.Num() Before: {}", TeamsArrayContainer->SquadsArray.Num());
 
+			/*
 			if (TeamsArrayContainer->TeamsArray.Num() != AllTeamsNum)
 			{
 				LOG_INFO(LogDev, "Filling TeamsArray!");
@@ -713,6 +743,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				TeamsArrayContainer->SquadsArray.Free();
 				TeamsArrayContainer->SquadsArray.AddUninitialized(AllTeamsNum);
 			}
+			*/
 
 			for (int i = 0; i < TeamsArrayContainer->TeamsArray.Num(); i++)
 			{
@@ -745,7 +776,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		{
 			auto CurrentRebootVan = (ABuildingGameplayActorSpawnMachine*)AllRebootVans.at(i);
 			static auto FortPlayerStartClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStart");
-			CurrentRebootVan->GetResurrectLocation() = CurrentRebootVan->GetClosestActor(FortPlayerStartClass, 100);
+			CurrentRebootVan->GetResurrectLocation() = CurrentRebootVan->GetClosestActor(FortPlayerStartClass, 300);
 		}
 
 		AllRebootVans.Free();

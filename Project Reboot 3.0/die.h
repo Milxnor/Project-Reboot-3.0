@@ -7,11 +7,10 @@
 #include "KismetStringLibrary.h"
 #include "DataTableFunctionLibrary.h"
 #include "FortPlaysetItemDefinition.h"
-#include "gui.h"
 
 static inline void (*SetZoneToIndexOriginal)(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK);
 
-static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK)
+static inline void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK)
 {
 	static auto ZoneDurationsOffset = Fortnite_Version >= 15 && Fortnite_Version < 18 ? 0x258
 		: std::floor(Fortnite_Version) >= 18 ? 0x248
@@ -103,7 +102,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		if (!FortGameData)
 			FortGameData = FindObject<UCurveTable>(L"/Game/Balance/AthenaGameData.AthenaGameData");
 
-		LOG_INFO(LogDev, "FortGameData: {}", FortGameData ? FortGameData->GetFullName() : "InvalidObject");
+		// LOG_INFO(LogDev, "FortGameData: {}", FortGameData ? FortGameData->GetFullName() : "InvalidObject");
 
 		auto ShrinkTimeFName = UKismetStringLibrary::Conv_StringToName(L"Default.SafeZone.ShrinkTime");
 		auto HoldTimeFName = UKismetStringLibrary::Conv_StringToName(L"Default.SafeZone.WaitTime");
@@ -130,6 +129,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 			ZoneHoldDurations.at(i) = FortGameData->GetValueOfKey(FortGameData->GetKey(HoldTimeFName, i));
 		}
 
+		/*
 		for (int i = 0; i < ZoneDurations.Num(); i++)
 		{
 			LOG_INFO(LogZone, "Move [{}] {}", i, ZoneDurations.at(i));
@@ -139,6 +139,8 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 		{
 			LOG_INFO(LogZone, "Hold [{}] {}", i, ZoneHoldDurations.at(i));
 		}
+
+		*/
 	}
 
 	LOG_INFO(LogZone, "SafeZonePhase: {}", GameModeAthena->Get<int>(SafeZonePhaseOffset));
@@ -167,7 +169,7 @@ static void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int Override
 	SafeZoneIndicator->Get<float>(SafeZoneFinishShrinkTimeOffset) = SafeZoneIndicator->Get<float>(SafeZoneStartShrinkTimeOffset) + ZoneDuration;
 }
 
-void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
+static inline void ProcessEventHook(UObject* Object, UFunction* Function, void* Parameters)
 {
 	if (!Object || !Function)
 		return;

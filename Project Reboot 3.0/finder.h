@@ -171,20 +171,24 @@ static inline uint64 FindAddToAlivePlayers()
 
 static inline uint64 FindFinishResurrection()
 {
-	auto Addrr = FindFunctionCall(L"OnResurrectionCompleted");
+	uintptr_t Addrr = Engine_Version >= 427 ? FindNameRef(L"OnResurrectionCompleted") : FindFunctionCall(L"OnResurrectionCompleted"); // Call is inlined
 
 	if (!Addrr)
 		return 0;
 
-	auto addr = Memcury::Scanner::FindPattern("40 53 48 83 EC 20 0F B6 81 ? ? ? ? 83 C2 03 48 8B D9 3B D0 0F 85").Get();
-
-	return addr;
+	// auto addr = Memcury::Scanner::FindPattern("40 53 48 83 EC 20 0F B6 81 ? ? ? ? 83 C2 03 48 8B D9 3B D0 0F 85").Get();
+	// return addr;
 
 	LOG_INFO(LogDev, "WTF: 0x{:x}", Addrr - __int64(GetModuleHandleW(0)));
 
 	for (int i = 0; i < 2000; i++)
 	{
 		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x53)
+		{
+			return Addrr - i;
+		}
+
+		if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C)
 		{
 			return Addrr - i;
 		}
@@ -654,8 +658,8 @@ static inline uint64 FindSpecConstructor()
 	if (Engine_Version == 427)
 		return Memcury::Scanner::FindPattern("80 61 31 FE 41 83 C9 FF 80 61 29 F0 48 8B 44 24 ? 48 89 41").Get();
 
-	// if (Engine_Version == 500)
-		// return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 20 83 CD FF").Get();
+	if (Engine_Version == 500)
+		return Memcury::Scanner::FindPattern("4C 8B C9 48 8B 44 24 ? 83 C9 FF 41 80 61 ? ? 41 80 61 ? ? 49 89 41 20 33 C0 41 88 41 30 49 89 41").Get();
 
 	return 0;
 }

@@ -40,6 +40,7 @@
 #include "FortAthenaMutator_Heist.h"
 #include "BGA.h"
 #include "vendingmachine.h"
+#include "die.h"
 
 #define GAME_TAB 1
 #define PLAYERS_TAB 2
@@ -61,6 +62,7 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
+extern inline bool bHandleDeath = true;
 extern inline bool bUseCustomMap = false;
 extern inline std::string CustomMapName = "";
 extern inline int AmountToSubtractIndex = 1;
@@ -783,8 +785,12 @@ static inline void MainUI()
 
 								if (SafeZoneIndicator)
 								{
+									SetZoneToIndexHook(GameMode, -1);
+
 									UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
 									SafeZoneIndicator->SkipShrinkSafeZone();
+
+									/*
 									UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
 									SafeZoneIndicator->SkipShrinkSafeZone();
 
@@ -821,6 +827,8 @@ static inline void MainUI()
 										Sleep(1000);
 										SafeZoneIndicator->SkipShrinkSafeZone();
 									}
+
+									*/
 								}
 								else
 								{
@@ -1152,8 +1160,10 @@ static inline void MainUI()
 			static std::string ClassNameToDump;
 			static std::string FunctionNameToDump;
 
+			ImGui::Checkbox("Handle Death", &bHandleDeath);
 			ImGui::Checkbox("Fill Vending Machines", &Globals::bFillVendingMachines);
 			ImGui::Checkbox("Enable Bot Tick", &bEnableBotTick);
+			ImGui::Checkbox("Enable Rebooting", &bEnableRebooting);
 			ImGui::Checkbox("Enable Combine Pickup", &bEnableCombinePickup);
 			ImGui::InputInt("Amount To Subtract Index", &AmountToSubtractIndex);
 			ImGui::InputText("Class Name to mess with", &ClassNameToDump);

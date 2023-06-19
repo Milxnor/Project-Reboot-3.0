@@ -20,6 +20,17 @@ struct FunctionHooks
 
 static inline std::vector<FunctionHooks> AllFunctionHooks;
 
+inline void PatchByte(uint64 addr, uint8_t byte)
+{
+    DWORD dwProtection;
+    VirtualProtect((PVOID)addr, 1, PAGE_EXECUTE_READWRITE, &dwProtection);
+
+    *(uint8_t*)addr = byte;
+
+    DWORD dwTemp;
+    VirtualProtect((PVOID)addr, 1, dwProtection, &dwTemp);
+}
+
 inline void PatchBytes(uint64 addr, const std::vector<uint8_t>& Bytes)
 {
     if (!addr)
@@ -27,7 +38,7 @@ inline void PatchBytes(uint64 addr, const std::vector<uint8_t>& Bytes)
 
     for (int i = 0; i < Bytes.size(); i++)
     {
-        *(uint8_t*)(addr + i) = Bytes.at(i);
+        PatchByte(addr + i, Bytes.at(i));
     }
 }
 

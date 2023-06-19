@@ -323,6 +323,9 @@ void UFortKismetLibrary::K2_RemoveItemFromPlayerHook(UObject* Context, FFrame& S
 
 	LOG_INFO(LogDev, __FUNCTION__);
 
+	if(!PlayerController)
+		return K2_RemoveItemFromPlayerOriginal(Context, Stack, Ret);
+
 	auto WorldInventory = PlayerController->GetWorldInventory();
 
 	if (!WorldInventory)

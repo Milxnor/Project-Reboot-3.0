@@ -294,7 +294,10 @@ void AFortGameStateAthena::OnRep_PlayersLeft()
 
 TeamsArrayContainer* AFortGameStateAthena::GetTeamsArrayContainer()
 {
-	if (!bEnableRebooting) // todo (milxnor) remove
+	// if (!bEnableRebooting) // todo (milxnor) remove when safer
+		// return nullptr;
+
+	if (Fortnite_Version < 8.0) // I'm pretty sure it got added on 7.40 but idk if it is structured differently.
 		return nullptr;
 
 	static auto FriendlyFireTypeOffset = GetOffset("FriendlyFireType");
@@ -302,7 +305,8 @@ TeamsArrayContainer* AFortGameStateAthena::GetTeamsArrayContainer()
 
 	if (Offset == -1)
 	{
-		Offset = FriendlyFireTypeOffset + 0x5;
+		static int IncreaseBy = Engine_Version >= 424 ? 0x25 : 0x5;
+		Offset = FriendlyFireTypeOffset + IncreaseBy;
 	}
 
 	return Offset != -1 ? (TeamsArrayContainer*)(__int64(this) + Offset) : nullptr;
