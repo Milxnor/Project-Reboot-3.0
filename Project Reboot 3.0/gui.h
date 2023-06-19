@@ -567,6 +567,17 @@ static inline void MainUI() {
                     }
                 }
 
+                if (Fortnite_Version >= 7.00 && Fortnite_Version <= 7.40 || Fortnite_Version >= 11.00 && Fortnite_Version <= 11.50 || Fortnite_Version >= 19.00 && Fortnite_Version <= 19.40)
+				{
+					static int SnowIndex = 0;
+					ImGui::SliderInt("SnowIndex", &SnowIndex, 0, 6);
+
+					if (ImGui::Button("Set Snow Phase"))
+					{
+						Calendar::SetSnowIndex(SnowIndex);
+					}
+				}
+                
                 if (Fortnite_Version >= 13.00 && Fortnite_Version <= 13.40)
                 {
                     static UObject* WL = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Apollo_WaterSetup_2"); // Is this 13.40 specific?
