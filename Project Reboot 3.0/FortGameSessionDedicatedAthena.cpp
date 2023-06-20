@@ -20,10 +20,16 @@ uint8 AFortGameSessionDedicatedAthena::GetSquadIdForCurrentPlayerHook(AFortGameS
 		if (!PlayerState)
 			continue;
 
+		// return PlayerState->GetTeamIndex() - NumToSubtractFromSquadId;
+
 		static auto UniqueIdOffset = PlayerState->GetOffset("UniqueId");
+
+		if (IsBadReadPtr(PlayerState->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset))) 
+			continue;
 
 		if (PlayerState->GetPtr<FUniqueNetIdRepl>(UniqueIdOffset)->IsIdentical((FUniqueNetIdRepl*)&UniqueId))
 		{
+			LOG_INFO(LogDev, "Found!");
 			return PlayerState->GetTeamIndex() - NumToSubtractFromSquadId;
 		}
 	}

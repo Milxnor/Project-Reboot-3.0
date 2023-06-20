@@ -220,7 +220,7 @@ static inline uint64 FindRebootingDelegate()
 	if (Fortnite_Version < 8.3)
 		return 0;
 
-	auto ServerOnAttemptInteractAddr = Memcury::Scanner::FindStringRef(L"[SCM] ABuildingGameplayActorSpawnMachine::ServerOnAttemptInteract - Start Rebooting").Get();
+	auto ServerOnAttemptInteractAddr = Memcury::Scanner::FindStringRef(L"[SCM] ABuildingGameplayActorSpawnMachine::ServerOnAttemptInteract - Start Rebooting", true, 0, Fortnite_Version >= 16).Get();
 	
 	for (int i = 0; i < 10000; i++)
 	{

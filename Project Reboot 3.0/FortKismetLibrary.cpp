@@ -645,7 +645,7 @@ bool UFortKismetLibrary::PickLootDropsHook(UObject* Context, FFrame& Stack, bool
 
 	LOG_INFO(LogDev, "Picking loot for {}.", TierGroupName.ComparisonIndex.Value ? TierGroupName.ToString() : "InvalidName");
 
-	auto LootDrops = PickLootDrops(TierGroupName, GameState->GetWorldLevel(), -1, true);
+	auto LootDrops = PickLootDrops(TierGroupName, WorldLevel, ForcedLootTier);
 
 	for (int i = 0; i < LootDrops.size(); i++)
 	{

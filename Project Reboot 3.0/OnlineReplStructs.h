@@ -8,7 +8,7 @@ struct FUniqueNetIdRepl // : public FUniqueNetIdWrapper
 {
 	static UStruct* GetStruct()
 	{
-		static auto Struct = FindObject<UStruct>("/Script/Engine.UniqueNetIdRepl");
+		static auto Struct = FindObject<UStruct>(L"/Script/Engine.UniqueNetIdRepl");
 		return Struct;
 	}
 
@@ -30,16 +30,20 @@ struct FUniqueNetIdRepl // : public FUniqueNetIdWrapper
 
 		bool bTest = true;
 
-		if (this->GetReplicationBytes().Num() > this->GetReplicationBytes().Num()) // != ?
-			bTest = false;
-
-		for (int i = 0; i < this->GetReplicationBytes().Num(); i++)
+		if (this->GetReplicationBytes().Num() >= OtherUniqueId->GetReplicationBytes().Num())
 		{
-			if (this->GetReplicationBytes().at(i) != OtherUniqueId->GetReplicationBytes().at(i))
+			for (int i = 0; i < this->GetReplicationBytes().Num(); i++)
 			{
-				bTest = false;
-				break;
+				if (this->GetReplicationBytes().at(i) != OtherUniqueId->GetReplicationBytes().at(i))
+				{
+					bTest = false;
+					break;
+				}
 			}
+		}
+		else
+		{
+			bTest = false;
 		}
 
 		// LOG_INFO(LogDev, "btest: {}", bTest);

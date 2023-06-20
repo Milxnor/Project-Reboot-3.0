@@ -367,7 +367,14 @@ namespace Hooking
 static inline void ChangeBytesThing(uint8_t* instrAddr, uint8_t* DetourAddr, int Offset)
 {
     int64_t delta = DetourAddr - (instrAddr + Offset + 4);
-    *(int32_t*)(instrAddr + Offset) = static_cast<int32_t>(delta);
+    auto addr = (int32_t*)(instrAddr + Offset);
+    DWORD dwProtection;
+    VirtualProtect((PVOID)addr, 4, PAGE_EXECUTE_READWRITE, &dwProtection);
+
+    *addr = static_cast<int32_t>(delta);
+
+    DWORD dwTemp;
+    VirtualProtect((PVOID)addr, 1, dwProtection, &dwTemp);
 }
 
 enum ERelativeOffsets

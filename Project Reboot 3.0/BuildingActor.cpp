@@ -28,6 +28,8 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 	if (BuildingSMActor->IsDestroyed())
 		return OnDamageServerOriginal(BuildingActor, Damage, DamageTags, Momentum, HitInfo, InstigatedBy, DamageCauser, EffectContext);
 
+	/*
+
 	static auto LastDamageAmountOffset = BuildingSMActor->GetOffset("LastDamageAmount");
 	static auto LastDamageHitOffset = BuildingSMActor->GetOffset("LastDamageHit", false) != -1 ? BuildingSMActor->GetOffset("LastDamageHit") : BuildingSMActor->GetOffset("LastDamageHitImpulseDir"); // idc
 
@@ -37,6 +39,8 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 
 	BuildingSMActor->Get<float>(LastDamageAmountOffset) = Damage;
 	BuildingSMActor->Get<float>(LastDamageHitOffset) = CurrentBuildingHealth;
+
+	*/
 
 	if (!PlayerController || !Weapon)
 		return OnDamageServerOriginal(BuildingActor, Damage, DamageTags, Momentum, HitInfo, InstigatedBy, DamageCauser, EffectContext);
@@ -84,7 +88,7 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 
 			// LOG_INFO(LogDev, "Out: {}", Out);
 
-			const float DamageThatWillAffect = PreviousLastDamageHit > 0 && Damage > PreviousLastDamageHit ? PreviousLastDamageHit : Damage;
+			const float DamageThatWillAffect = /* PreviousLastDamageHit > 0 && Damage > PreviousLastDamageHit ? PreviousLastDamageHit : */ Damage;
 
 			float skid = Out / (BuildingActor->GetMaxHealth() / DamageThatWillAffect);
 

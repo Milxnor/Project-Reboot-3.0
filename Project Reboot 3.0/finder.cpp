@@ -9,7 +9,7 @@ uint64 FindGetPlayerViewpoint()
 
 	uint64 FailedToSpawnPawnAddr = 0;
 
-	auto FailedToSpawnPawnStrRefAddr = Memcury::Scanner::FindStringRef(L"%s failed to spawn a pawn", true, 0, Fortnite_Version >= 18).Get();
+	auto FailedToSpawnPawnStrRefAddr = Memcury::Scanner::FindStringRef(L"%s failed to spawn a pawn", true, 0, Fortnite_Version >= 19).Get();
 
 	for (int i = 0; i < 1000; i++)
 	{
