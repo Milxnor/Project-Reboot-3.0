@@ -153,30 +153,27 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
 
 FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int ForcedLootTier = -1, FName* OutRowName = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
 {
-    // This like isn't right, at all.
-
     float LootTier = ForcedLootTier;
+    float IdkForcedWeightorsomething = 1;
 
     if (LootTier == -1)
     {
-        // LootTier = ??
+        // IdkForcedWeightorsomething = weightofAlltherowsithink // we don't ened to do this since the pickweightedeleent already does that
     }
     else
     {
-        // buncha code im too lazy to reverse
+        // ITS SO MUCH TO REVERSE AAAAA
     }
 
     // if (fabs(LootTier) <= 0.0000000099999999)
       //  return 0;
-
-    int Multiplier = LootTier == -1 ? 1 : LootTier; // Idk i think we need to fill out the code above for this to work properly maybe
 
     LOOTING_MAP_TYPE<FName, FFortLootTierData*> TierGroupLTDs;
 
     CollectDataTablesRows<FFortLootTierData>(LTDTables, &TierGroupLTDs, [&](FName RowName, FFortLootTierData* TierData) -> bool {
         if (LootTierGroup == TierData->GetTierGroup())
         {
-            if ((LootTier == -1 ? true : LootTier == TierData->GetLootTier()))
+            if ((LootTier == -1 ? true : LootTier == TierData->GetLootTier())) // idek if this is proper
             {
                 return true;
             }
@@ -189,7 +186,7 @@ FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, F
 
     FFortLootTierData* ChosenRowLootTierData = PickWeightedElement<FName, FFortLootTierData*>(TierGroupLTDs,
         [](FFortLootTierData* LootTierData) -> float { return LootTierData->GetWeight(); }, RandomFloatForLoot, -1,
-        true, Multiplier, OutRowName);
+        true, 1, OutRowName, false, false, IdkForcedWeightorsomething);
 
     return ChosenRowLootTierData;
 }

@@ -367,7 +367,7 @@ DWORD WINAPI Main(LPVOID)
 
     Addresses::SetupVersion();
 
-    NumToSubtractFromSquadId = Engine_Version >= 424 ? 2 : 3; // TODO: check this
+    NumToSubtractFromSquadId = Engine_Version >= 424 ? 2 : Engine_Version >= 423 ? 3 : 0; // TODO: check this
     NumElementsPerChunk = std::floor(Fortnite_Version) >= 5 && Fortnite_Version <= 6 ? 0x10400 : 0x10000; // Idk what version tbh
 
     Offsets::FindAll(); // We have to do this before because FindCantBuild uses FortAIController.CreateBuildingActor
