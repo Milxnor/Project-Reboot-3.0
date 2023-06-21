@@ -495,6 +495,7 @@ static inline uint64 FindGetMaxTickRate() // UEngine::getmaxtickrate
 	// return FindBytes(stringRef, Fortnite_Version <= 4.1 ? std::vector<uint8_t>{ 0x40, 0x53 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C }, 1000, 0, true);
 }
 
+uint64 FindGetSessionInterface();
 uint64 FindGetPlayerViewpoint();
 uint64 ApplyGameSessionPatch();
 

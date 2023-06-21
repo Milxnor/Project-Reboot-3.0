@@ -312,6 +312,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding AddToAlivePlayers");
 	Addresses::AddToAlivePlayers = FindAddToAlivePlayers();
 
+	// LOG_INFO(LogDev, "Finding GetSessionInterface");
+	// Addresses::GetSessionInterface = FindGetSessionInterface();
+
 	LOG_INFO(LogDev, "Applying GameSessionPatch");
 	ApplyGameSessionPatch();
 
@@ -388,6 +391,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "GetSquadIdForCurrentPlayer: 0x{:x}", GetSquadIdForCurrentPlayer - Base);
 	LOG_INFO(LogDev, "FinishResurrection: 0x{:x}", FinishResurrection - Base);
 	LOG_INFO(LogDev, "AddToAlivePlayers: 0x{:x}", AddToAlivePlayers - Base);
+	LOG_INFO(LogDev, "GetSessionInterface: 0x{:x}", GetSessionInterface - Base);
 }
 
 void Offsets::FindAll()
@@ -519,6 +523,33 @@ void Addresses::Init()
 	else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);
 }
 
+std::vector<uint64> Addresses::GetFunctionsToReturnTrue()
+{
+	std::vector<uint64> toReturnTrue;
+
+	if (Fortnite_Version == 1.11 || Fortnite_Version >= 2.2 && Fortnite_Version <= 2.4)
+	{
+		toReturnTrue.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B 01 49 8B E9 45 0F B6 F8").Get()); // No Reserve
+	}
+
+	if (std::floor(Fortnite_Version) == 17)
+	{
+		toReturnTrue.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 4D 8B F9 41 8A F0 4C 8B F2 48 8B F9 45 32 E4").Get()); // No Reserve
+	}
+
+	if (Fortnite_Version >= 19)
+	{
+		// toReturnTrue.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B 01 49 8B F0 33 DB FF 50 20 48 8B F8").Get()); // funny session thingy
+	}
+
+	if (Engine_Version >= 426)
+	{
+		toReturnTrue.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 49 8B D9 45 8A").Get()); // No reserve
+	}
+
+	return toReturnTrue;
+}
+
 std::vector<uint64> Addresses::GetFunctionsToNull()
 {
 	std::vector<uint64> toNull;
@@ -526,11 +557,6 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Engine_Version == 416)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 54 24 ? 48 89 4C 24 ? 55 53 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 8B 41 08 C1 E8 05").Get()); // Widget class
-	}
-
-	if (Fortnite_Version == 1.11 || Fortnite_Version >= 2.2 && Fortnite_Version <= 2.4)
-	{
-		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B 01 49 8B E9 45 0F B6 F8").Get()); // No Reserve
 	}
 
 	if (Fortnite_Version > 2.5 && Engine_Version == 420)
@@ -580,7 +606,6 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (std::floor(Fortnite_Version) == 17)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 70 08 48 89 78 10 55 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 ED").Get()); // collectgarbage
-		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 4D 8B F9 41 8A F0 4C 8B F2 48 8B F9 45 32 E4").Get()); // No Reserve
 	}
 
 	if (Engine_Version == 500)
@@ -589,11 +614,6 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A8 48 81 EC ? ? ? ? 45").Get()); // GC
 		// toNull.push_back(Memcury::Scanner::FindPattern("40 53 48 83 EC 20 8B D9 E8 ? ? ? ? B2 01 8B CB E8").Get()); // GC Caller 1
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 55 41 56 48 8B EC 48 83 EC 50 83 65 28 00 40 B6 05 40 38 35 ? ? ? ? 4C").Get()); // InitializeUI
-	}
-
-	if (Engine_Version >= 426)
-	{
-		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 49 8B D9 45 8A").Get()); // No reserve
 	}
 
 	toNull.push_back(Addresses::ChangeGameSessionId);

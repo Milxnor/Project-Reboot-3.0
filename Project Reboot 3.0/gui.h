@@ -572,7 +572,7 @@ static inline void MainUI()
 				}
 				*/
 
-				if (!bIsInAutoRestart && (Engine_Version < 424 && ImGui::Button("Restart")))
+				if (!bIsInAutoRestart && Engine_Version < 424 && ImGui::Button("Restart"))
 				{
 					if (Engine_Version < 424)
 					{
@@ -586,42 +586,16 @@ static inline void MainUI()
 				}
 
 				/*
-				if (ImGui::Button("TEST"))
+				if (ImGui::Button("Test bruh"))
 				{
-					auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
-					auto GameState = GameMode->GetGameState();
+					__int64 bruh;
+					__int64* (*sub_7FF7476F4458)(__int64* a1, UWorld* a2, __int64 a3) = decltype(sub_7FF7476F4458)(Addresses::GetSessionInterface);
 
-					static auto mutatorClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator");
-					auto AllMutators = UGameplayStatics::GetAllActorsOfClass(GetWorld(), mutatorClass);
+					sub_7FF7476F4458(&bruh, GetWorld(), 0);
 
-					for (int i = 0; i < AllMutators.Num(); ++i)
-					{
-						auto Mutator = AllMutators.at(i);
-
-						LOG_INFO(LogDev, "[{}] Mutator: {}", i, Mutator->GetFullName());
-
-						if (auto DiscoMutator = Cast<AFortAthenaMutator_Disco>(Mutator))
-						{
-							auto& ControlPointSpawnData = DiscoMutator->GetControlPointSpawnData();
-
-							LOG_INFO(LogDev, "ControlPointSpawnData.Num(): {}", ControlPointSpawnData.Num());
-						}
-						else if (auto HeistMutator = Cast<AFortAthenaMutator_Heist>(Mutator))
-						{
-							auto& HeistExitCraftSpawnData = HeistMutator->GetHeistExitCraftSpawnData();
-
-							LOG_INFO(LogDev, "HeistExitCraftSpawnData.Num(): {}", HeistExitCraftSpawnData.Num());
-
-							for (int j = 0; j < HeistExitCraftSpawnData.Num(); j++)
-							{
-								auto& CurrentHeistExitCraftSpawnData = HeistExitCraftSpawnData.at(j);
-								auto CurveTable = CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().CurveTable;
-
-								// LOG_INFO(LogDev, "{} {}", CurveTable ? CurveTable->GetFullName() : "InvalidTable",
-									// CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().RowName.IsValid() ? CurrentHeistExitCraftSpawnData.SpawnDelayTime.GetCurve().RowName.ToString() : "InvalidName");
-							}
-						}
-					}
+					LOG_INFO(LogDev, "bruh: 0x{:x}", bruh);
+					auto VFT = *(__int64*)bruh;
+					LOG_INFO(LogDev, "VFT: 0x{:x}", VFT - __int64(GetModuleHandleW(0)));
 				}
 				*/
 

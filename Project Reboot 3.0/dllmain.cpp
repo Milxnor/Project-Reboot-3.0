@@ -549,6 +549,7 @@ DWORD WINAPI Main(LPVOID)
     LOG_INFO(LogDev, "Switch levels.");
 
     auto AddressesToNull = Addresses::GetFunctionsToNull();
+    const auto AddressesToReturnTrue = Addresses::GetFunctionsToReturnTrue();
 
     auto ServerCheatAllIndex = GetFunctionIdxOrPtr(FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerCheatAll"));
 
@@ -569,6 +570,17 @@ DWORD WINAPI Main(LPVOID)
 
         DWORD dwTemp;
         VirtualProtect((PVOID)func, 1, dwProtection, &dwTemp);
+    }
+
+    for (auto func : AddressesToReturnTrue)
+    {
+        if (func == 0)
+            continue;
+
+        LOG_INFO(LogDev, "Forcing return true on 0x{:x}", func - __int64(GetModuleHandleW(0)));
+
+        MH_CreateHook((PVOID)func, ReturnTrueHook, nullptr);
+        MH_EnableHook((PVOID)func);
     }
 
     if (Fortnite_Version != 22.4)

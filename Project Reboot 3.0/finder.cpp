@@ -3,6 +3,32 @@
 #include "reboot.h"
 #include "FortPlayerControllerAthena.h"
 
+uint64 FindGetSessionInterface()
+{
+	auto strRef = Memcury::Scanner::FindStringRef(L"OnDestroyReservedSessionComplete %s bSuccess: %d", true, 0, Fortnite_Version >= 19).Get();
+
+	LOG_INFO(LogDev, "strRef: 0x{:x}", strRef - __int64(GetModuleHandleW(0)));
+
+	int NumCalls = 0;
+	NumCalls -= Fortnite_Version >= 19;
+
+	for (int i = 0; i < 2000; i++)
+	{
+		if (*(uint8_t*)(strRef + i) == 0xE8)
+		{
+			LOG_INFO(LogDev, "Found call 0x{:x}", __int64(strRef + i) - __int64(GetModuleHandleW(0)));
+			NumCalls++;
+
+			if (NumCalls == 2) // First is a FMemory::Free
+			{
+				return Memcury::Scanner(strRef + i).RelativeOffset(1).Get();
+			}
+		}
+	}
+
+	return 0;
+}
+
 uint64 FindGetPlayerViewpoint()
 {
 	// We find FailedToSpawnPawn and then go back on VFT by 1.

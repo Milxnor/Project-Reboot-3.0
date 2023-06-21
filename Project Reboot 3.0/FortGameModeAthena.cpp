@@ -595,6 +595,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	if (ActorsNum == 0)
 		return false;
+	
+	// I don't think this map info check is proper.. We can loop through the Actors in the World's PersistentLevel and check if there is a MapInfo, if there is then we can wait, else don't.
 
 	auto MapInfo = GameState->GetMapInfo();
 
@@ -884,9 +886,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		if (GameState->GetPlayersLeft() >= GameMode->Get<int>(WarmupRequiredPlayerCountOffset))
 		{
-			if (MapInfo)
+			// if (MapInfo)
 			{
-				static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
+				// static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos");
 
 				// if (MapInfo->Get<TArray<__int64>>(FlightInfosOffset).ArrayNum > 0)
 				{
