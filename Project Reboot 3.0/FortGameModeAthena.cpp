@@ -538,9 +538,17 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 
 		static auto bWorldIsReadyOffset = GameMode->GetOffset("bWorldIsReady");
-		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>(bWorldIsReadyOffset), 1, true); // idk when we actually set this (probably after we listen)
+		SetBitfield(GameMode->GetPtr<PlaceholderBitfield>(bWorldIsReadyOffset), 1, true); // idk when we actually set this
 
 		// Calendar::SetSnow(1000);
+
+		static auto DefaultRebootMachineHotfixOffset = GameState->GetOffset("DefaultRebootMachineHotfix", false);
+
+		if (DefaultRebootMachineHotfixOffset != -1)
+		{
+			LOG_INFO(LogDev, "before: {}", GameState->Get<float>(DefaultRebootMachineHotfixOffset));
+			GameState->Get<float>(DefaultRebootMachineHotfixOffset) = 1; // idk i dont think we need to set
+		}
 
 		Globals::bInitializedPlaylist = true;
 	}
@@ -790,12 +798,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		AllRebootVans.Free();
 
-		static auto DefaultRebootMachineHotfixOffset = GameState->GetOffset("DefaultRebootMachineHotfix", false);
-
-		if (DefaultRebootMachineHotfixOffset != -1)
+		if (Engine_Version >= 500)
 		{
-			// LOG_INFO(LogDev, "Beraau: {}", GameState->Get<float>(DefaultRebootMachineHotfixOffset));
-			GameState->Get<float>(DefaultRebootMachineHotfixOffset) = 1; // idk i dont think we need to set
+			GameState->Get<float>("DefaultParachuteDeployTraceForGroundDistance") = 10000;
 		}
 
 		if (AmountOfBotsToSpawn != 0)
@@ -1293,6 +1298,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			PlayerStateAthena->ProcessEvent(OnRep_CharacterPartsFn);
 		}
 	}
+
+	NewPlayer->GetMatchReport() = (UAthenaPlayerMatchReport*)UGameplayStatics::SpawnObject(UAthenaPlayerMatchReport::StaticClass(), NewPlayer); // idk when to do this
 
 	static auto SquadIdOffset = PlayerStateAthena->GetOffset("SquadId", false);
 

@@ -253,6 +253,7 @@
     <ClCompile Include="NetDriver.cpp" />
     <ClCompile Include="NetworkObjectList.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="objectviewer.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerState.cpp" />
     <ClCompile Include="reboot.cpp" />
@@ -279,6 +280,7 @@
     <ClInclude Include="AthenaBarrierObjective.h" />
     <ClInclude Include="AthenaBigBaseWall.h" />
     <ClInclude Include="AthenaMarkerComponent.h" />
+    <ClInclude Include="AthenaPlayerMatchReport.h" />
     <ClInclude Include="AthenaResurrectionComponent.h" />
     <ClInclude Include="AttributeSet.h" />
     <ClInclude Include="BGA.h" />

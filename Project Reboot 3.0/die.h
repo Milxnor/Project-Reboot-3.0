@@ -16,41 +16,42 @@ static inline void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int O
 		: std::floor(Fortnite_Version) >= 18 ? 0x248
 		: 0x1F8; // S13-S14
 
-	LOG_INFO(LogDev, "SetZoneToIndexHook!");
+	static auto GameMode_SafeZonePhaseOffset = GameModeAthena->GetOffset("SafeZonePhase");
+	LOG_INFO(LogDev, "Old SafeZonePhase: {}", GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset));
 
 	auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
 
+	if (!GameState)
+		return SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
+
 	LOG_INFO(LogDev, "GamePhaseStep: {}", (int)GameState->GetGamePhaseStep());
 
-	if (Globals::bLateGame)
+	if (false)
 	{
-		static auto GameMode_SafeZonePhaseOffset = GameModeAthena->GetOffset("SafeZonePhase");
-		static auto GameState_SafeZonePhaseOffset = GameState->GetOffset("SafeZonePhase");
-
-		static int ahaaSafeZonePhase = 4;
-		int NewSafeZonePhase = ahaaSafeZonePhase; // GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
-
-		const int OriginalOldSafeZonePhase = GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
-
-		if (NewSafeZonePhase < 4)
+		if (Globals::bLateGame)
 		{
-			NewSafeZonePhase = 4;
+			static auto GameMode_SafeZonePhaseOffset = GameModeAthena->GetOffset("SafeZonePhase");
+			static auto GameState_SafeZonePhaseOffset = GameState->GetOffset("SafeZonePhase");
+
+			static int ahaaSafeZonePhase = 4;
+			int NewSafeZonePhase = ahaaSafeZonePhase; // GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
+
+			const int OriginalOldSafeZonePhase = GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset);
+
+			if (NewSafeZonePhase < 4)
+			{
+				NewSafeZonePhase = 4;
+			}
+
+			LOG_INFO(LogDev, "Setting zone to: {} ({})", NewSafeZonePhase, OriginalOldSafeZonePhase);
+
+			GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset) = NewSafeZonePhase;
+			GameState->Get<int>(GameState_SafeZonePhaseOffset) = NewSafeZonePhase;
+			ahaaSafeZonePhase++;
 		}
-
-		LOG_INFO(LogDev, "Setting zone to: {} ({})", NewSafeZonePhase, OriginalOldSafeZonePhase);
-
-		GameModeAthena->Get<int>(GameMode_SafeZonePhaseOffset) = NewSafeZonePhase;
-		GameState->Get<int>(GameState_SafeZonePhaseOffset) = NewSafeZonePhase;
-		ahaaSafeZonePhase++;
 	}
 
 	if (Fortnite_Version < 13)
-	{
-		SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
-		return;
-	}
-
-	if (!GameState)
 		return SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
 
 	static auto SafeZoneIndicatorOffset = GameModeAthena->GetOffset("SafeZoneIndicator");

@@ -5,5 +5,5 @@
 class AFortGameSessionDedicatedAthena : public AActor
 {
 public:
-	static uint8 GetSquadIdForCurrentPlayerHook(AFortGameSessionDedicatedAthena* GameSessionDedicated, __int64 UniqueId);
+	static uint8 GetSquadIdForCurrentPlayerHook(AFortGameSessionDedicatedAthena* GameSessionDedicated, void* UniqueId);
 };

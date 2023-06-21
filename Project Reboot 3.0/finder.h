@@ -199,7 +199,7 @@ static inline uint64 FindFinishResurrection()
 
 static inline uint64 FindGetSquadIdForCurrentPlayer()
 {
-	auto Addrr = Memcury::Scanner::FindStringRef(L"GetSquadIdForCurrentPlayer failed to find a squad id for player %s").Get();
+	auto Addrr = Memcury::Scanner::FindStringRef(L"GetSquadIdForCurrentPlayer failed to find a squad id for player %s", true, 0, Fortnite_Version >= 19).Get();
 
 	if (!Addrr)
 		return 0;

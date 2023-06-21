@@ -86,6 +86,7 @@ inline void InitLogger()
     MakeLogger("LogCosmetics");
     MakeLogger("LogMatchmaker");
     MakeLogger("LogRebooting");
+    MakeLogger("LogObjectViewer");
 }
 
 #define LOG_DEBUG(loggerName, ...)                                            \

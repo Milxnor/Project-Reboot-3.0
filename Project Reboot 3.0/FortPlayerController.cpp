@@ -1436,26 +1436,59 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 				UFortWeaponItemDefinition* KillerWeaponDef = nullptr;
 
 				static auto FortProjectileBaseClass = FindObject<UClass>(L"/Script/FortniteGame.FortProjectileBase");
-				LOG_INFO(LogDev, "FortProjectileBaseClass: {}", __int64(FortProjectileBaseClass));
 
 				if (DamageCauser)
 				{
 					if (DamageCauser->IsA(FortProjectileBaseClass))
 					{
-						// LOG_INFO(LogDev, "From a projectile!");
 						auto Owner = Cast<AFortWeapon>(DamageCauser->GetOwner());
 						KillerWeaponDef = Owner->IsValidLowLevel() ? Owner->GetWeaponData() : nullptr; // I just added the IsValidLowLevel check because what if the weapon destroys?
 					}
 					if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
 					{
-						// LOG_INFO(LogDev, "From a weapon!");
 						KillerWeaponDef = Weapon->GetWeaponData();
 					}
 				}
 
-				// LOG_INFO(LogDev, "KillerWeaponDef: {}", KillerWeaponDef ? KillerWeaponDef->GetFullName() : "InvalidObject");
-
 				RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
+
+				/*
+
+				STATS:
+
+				Note: This isn't the exact order relative to other functions.
+
+				ClientSendMatchStatsForPlayer
+				ClientSendTeamStatsForPlayer
+				ClientSendEndBattleRoyaleMatchForPlayer
+
+				*/
+
+				// FAthenaMatchStats.Stats[ERewardSource] // hmm
+
+				/*
+				
+				// We need to check if their entire team is dead then I think we send it????
+				
+				auto DeadControllerAthena = Cast<AFortPlayerControllerAthena>(PlayerController);
+
+				if (DeadControllerAthena && FAthenaMatchTeamStats::GetStruct())
+				{
+					auto MatchReport = DeadControllerAthena->GetMatchReport();
+					
+					LOG_INFO(LogDev, "MatchReport: {}", __int64(MatchReport));
+					
+					if (MatchReport)
+					{
+						MatchReport->GetTeamStats()->GetPlace() = DeadPlayerState->GetPlace();
+						MatchReport->GetTeamStats()->GetTotalPlayers() = AmountOfPlayersWhenBusStart; // hmm
+						MatchReport->HasTeamStats() = true;
+
+						DeadControllerAthena->ClientSendTeamStatsForPlayer(MatchReport->GetTeamStats());
+					}
+				}
+
+				*/
 
 				LOG_INFO(LogDev, "Removed!");
 

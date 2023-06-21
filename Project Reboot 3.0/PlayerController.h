@@ -16,6 +16,12 @@ public:
 		return this->Get<UCheatManager*>(CheatManagerOffset);
 	}
 
+	class UNetConnection*& GetNetConnection()
+	{
+		static auto NetConnectionOffset = GetOffset("NetConnection");
+		return Get<class UNetConnection*>(NetConnectionOffset);
+	}
+
 	void SetPlayerIsWaiting(bool NewValue);
 	void ServerChangeName(FString& S);
 	UCheatManager*& SpawnCheatManager(UClass* CheatManagerClass);

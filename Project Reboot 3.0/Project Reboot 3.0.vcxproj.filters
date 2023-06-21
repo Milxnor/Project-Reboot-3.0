@@ -295,6 +295,9 @@
     <ClCompile Include="finder.cpp">
       <Filter>Reboot\Private</Filter>
     </ClCompile>
+    <ClCompile Include="objectviewer.cpp">
+      <Filter>Reboot\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -945,6 +948,9 @@
     <ClInclude Include="objectviewer.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
+    <ClInclude Include="AthenaPlayerMatchReport.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Stats</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -1210,6 +1216,9 @@
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Vehicle">
       <UniqueIdentifier>{702a4ab1-e5e1-46e1-b8cd-2fab1c4fb48c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Stats">
+      <UniqueIdentifier>{3c8e3f87-8a4c-4220-b952-39b0e0315e85}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

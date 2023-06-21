@@ -22,6 +22,7 @@
 #include <fstream>
 #include <olectl.h>
 
+#include "objectviewer.h"
 #include "FortAthenaMutator_Disco.h"
 #include "globals.h"
 #include "Fonts/ruda-bold.h"
@@ -62,6 +63,7 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
+extern inline int AmountOfPlayersWhenBusStart = 0; 
 extern inline bool bHandleDeath = true;
 extern inline bool bUseCustomMap = false;
 extern inline std::string CustomMapName = "";
@@ -514,6 +516,23 @@ static inline void MainUI()
 					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
 				}
 
+				auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
+				if (GameState)
+				{
+					static auto DefaultGliderRedeployCanRedeployOffset = FindOffsetStruct("/Script/FortniteGame.FortGameStateAthena", "DefaultGliderRedeployCanRedeploy");
+
+					if (DefaultGliderRedeployCanRedeployOffset != -1)
+					{
+						bool EnableGliderRedeploy = (bool)GameState->Get<float>(DefaultGliderRedeployCanRedeployOffset);
+
+						if (ImGui::Checkbox("Enable Glider Redeploy", &EnableGliderRedeploy))
+						{
+							GameState->Get<float>(DefaultGliderRedeployCanRedeployOffset) = EnableGliderRedeploy;
+						}
+					}
+				}
+
 				/* if (ImGui::Button("Spawn BGAs"))
 				{
 					SpawnBGAs();
@@ -615,7 +634,9 @@ static inline void MainUI()
 							bStartedBus = true;
 
 							auto GameMode = (AFortGameModeAthena*)GetWorld()->GetGameMode();
-							auto GameState = GameMode->GetGameState();
+							auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
+
+							AmountOfPlayersWhenBusStart = GameState->GetPlayersLeft();
 
 							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
 
@@ -846,7 +867,9 @@ static inline void MainUI()
 							bStartedBus = true;
 
 							auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
-							auto GameState = GameMode->GetGameState();
+							auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
+
+							AmountOfPlayersWhenBusStart = GameState->GetPlayersLeft(); // scuffed!!!!
 
 							if (Fortnite_Version == 1.11)
 							{
@@ -1159,14 +1182,20 @@ static inline void MainUI()
 		{
 			static std::string ClassNameToDump;
 			static std::string FunctionNameToDump;
+			static std::string ObjectToDump;
+			static std::string FileNameToSaveTo;
+			static bool bExcludeUnhandled = true;
 
 			ImGui::Checkbox("Handle Death", &bHandleDeath);
 			ImGui::Checkbox("Fill Vending Machines", &Globals::bFillVendingMachines);
 			ImGui::Checkbox("Enable Bot Tick", &bEnableBotTick);
 			ImGui::Checkbox("Enable Rebooting", &bEnableRebooting);
 			ImGui::Checkbox("Enable Combine Pickup", &bEnableCombinePickup);
+			ImGui::Checkbox("Exclude unhandled", &bExcludeUnhandled);
 			ImGui::InputInt("Amount To Subtract Index", &AmountToSubtractIndex);
 			ImGui::InputText("Class Name to mess with", &ClassNameToDump);
+			ImGui::InputText("Object to dump", &ObjectToDump);
+			ImGui::InputText("File to save to", &FileNameToSaveTo);
 
 			ImGui::InputText("Function Name to mess with", &FunctionNameToDump);
 
@@ -1178,6 +1207,42 @@ static inline void MainUI()
 				{
 					LOG_INFO(LogDev, "GamePhaseStep: {}", (int)GameState->GetGamePhaseStep());
 				}
+			}
+
+			if (ImGui::Button("Dump Object Info"))
+			{
+				ObjectViewer::DumpContentsToFile(ObjectToDump, FileNameToSaveTo, bExcludeUnhandled);
+			}
+
+			if (ImGui::Button("Print all instances of class"))
+			{
+				auto ClassToScuff = FindObject<UClass>(ClassNameToDump);
+
+				if (ClassToScuff)
+				{
+					auto ObjectNum = ChunkedObjects ? ChunkedObjects->Num() : UnchunkedObjects ? UnchunkedObjects->Num() : 0;
+
+					for (int i = 0; i < ObjectNum; i++)
+					{
+						auto CurrentObject = GetObjectByIndex(i);
+
+						if (!CurrentObject)
+							continue;
+
+						if (!CurrentObject->IsA(ClassToScuff))
+							continue;
+
+						LOG_INFO(LogDev, "Object Name: {}", CurrentObject->GetPathName());
+					}
+				}
+			}
+
+			if (ImGui::Button("Load BGA Class"))
+			{
+				static auto BlueprintGeneratedClassClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
+				auto Class = LoadObject(ClassNameToDump, BlueprintGeneratedClassClass);
+
+				LOG_INFO(LogDev, "New Class: {}", __int64(Class));
 			}
 
 			if (ImGui::Button("Find all classes that inherit"))

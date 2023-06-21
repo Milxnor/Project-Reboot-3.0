@@ -154,7 +154,7 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
 FFortLootTierData* PickLootTierData(const std::vector<UDataTable*>& LTDTables, FName LootTierGroup, int ForcedLootTier = -1, FName* OutRowName = nullptr) // Fortnite returns the row name and then finds the tier data again, but I really don't see the point of this.
 {
     float LootTier = ForcedLootTier;
-    float IdkForcedWeightorsomething = 1;
+    float IdkForcedWeightorsomething = -1;
 
     if (LootTier == -1)
     {
