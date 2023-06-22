@@ -56,7 +56,7 @@ public:
 	{
 		auto CurveTableMode = GetCurveTableMode();
 
-		LOG_INFO(LogDev, "RowName {} CurveTableMode {} Size {}", RowName.ComparisonIndex.Value ? RowName.ToString() : "InvalidComparision", (int)CurveTableMode, GetCurveTableSize());
+		// LOG_INFO(LogDev, "RowName {} CurveTableMode {} Size {}", RowName.ComparisonIndex.Value ? RowName.ToString() : "InvalidComparision", (int)CurveTableMode, GetCurveTableSize());
 
 		if (CurveTableMode == ECurveTableMode::SimpleCurves)
 		{
@@ -67,7 +67,7 @@ public:
 		}
 		else if (CurveTableMode == ECurveTableMode::RichCurves)
 		{
-
+			LOG_INFO(LogDev, "RICHCURVE UNIMPLEMENTED!");
 		}
 
 		return nullptr;

@@ -193,7 +193,7 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function, bool bBreakWhenHitRet = 
             }
         }
 
-        if ((*(uint8_t*)(NativeAddr + i) == 0x48 && *(uint8_t*)(NativeAddr + i + 1) == 0xFF) && *(uint8_t*)(NativeAddr + i + 2) == 0xA0) // jmp qword ptr
+        if (*(uint8_t*)(NativeAddr + i) == 0x48 && *(uint8_t*)(NativeAddr + i + 1) == 0xFF && *(uint8_t*)(NativeAddr + i + 2) == 0xA0) // jmp qword ptr
         {
             if (bFoundValidate)
             {
@@ -295,7 +295,7 @@ namespace Hooking
             // *(int32_t*)(instrAddr + 1) = static_cast<int32_t>(delta);
         }
 
-        static bool Hook(UObject* DefaultClass, UFunction* Function, void* Detour, void** Original = nullptr, bool bUseSecondMethod = true, bool bHookExec = false, bool bOverride = true) // Native hook
+        static bool Hook(UObject* DefaultClass, UFunction* Function, void* Detour, void** Original = nullptr, bool bUseSecondMethod = true, bool bHookExec = false, bool bOverride = true, bool bBreakWhenRet = false) // Native hook
 		{
             if (!bOverride)
                 return false;
@@ -324,7 +324,7 @@ namespace Hooking
                 return true;
             }
 
-            auto AddrOrIdx = bUseSecondMethod ? GetFunctionIdxOrPtr2(Function) : GetFunctionIdxOrPtr(Function);
+            auto AddrOrIdx = bUseSecondMethod ? GetFunctionIdxOrPtr2(Function) : GetFunctionIdxOrPtr(Function, bBreakWhenRet);
 
             if (AddrOrIdx == -1)
             {

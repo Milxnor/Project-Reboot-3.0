@@ -2,6 +2,7 @@
 
 #include "FortGameModeAthena.h"
 #include "reboot.h"
+#include "KismetSystemLibrary.h"
 
 void AFortSafeZoneIndicator::SkipShrinkSafeZone()
 {

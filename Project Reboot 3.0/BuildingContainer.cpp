@@ -15,8 +15,7 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 
 	FVector LocationToSpawnLoot = this->GetActorLocation() + this->GetActorForwardVector() * this->GetLootSpawnLocation_Athena().X + this->GetActorRightVector() * this->GetLootSpawnLocation_Athena().Y + this->GetActorUpVector() * this->GetLootSpawnLocation_Athena().Z;
 
-	static auto SearchLootTierGroupOffset = this->GetOffset("SearchLootTierGroup");
-	auto RedirectedLootTier = GameMode->RedirectLootTier(this->Get<FName>(SearchLootTierGroupOffset));
+	auto RedirectedLootTier = GameMode->RedirectLootTier(GetSearchLootTierGroup());
 
 	// LOG_INFO(LogInteraction, "RedirectedLootTier: {}", RedirectedLootTier.ToString());
 

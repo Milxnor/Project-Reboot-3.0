@@ -479,6 +479,190 @@ static inline void PlayerTabs()
 	}
 }
 
+static inline DWORD WINAPI LateGameThread(LPVOID)
+{
+	float MaxTickRate = 30;
+
+	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+	auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
+
+	auto GetAircrafts = [&]() -> std::vector<AActor*>
+	{
+		static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
+		std::vector<AActor*> Aircrafts;
+
+		if (AircraftsOffset == -1)
+		{
+			// GameState->Aircraft
+
+			static auto FortAthenaAircraftClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaAircraft");
+			auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
+
+			for (int i = 0; i < AllAircrafts.Num(); i++)
+			{
+				Aircrafts.push_back(AllAircrafts.at(i));
+			}
+
+			AllAircrafts.Free();
+		}
+		else
+		{
+			const auto& GameStateAircrafts = GameState->Get<TArray<AActor*>>(AircraftsOffset);
+
+			for (int i = 0; i < GameStateAircrafts.Num(); i++)
+			{
+				Aircrafts.push_back(GameStateAircrafts.at(i));
+			}
+		}
+
+		return Aircrafts;
+	};
+
+	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
+
+	while (GetAircrafts().size() <= 0)
+	{
+		Sleep(1000 / MaxTickRate);
+	}
+
+	static auto SafeZoneLocationsOffset = GameMode->GetOffset("SafeZoneLocations");
+	const TArray<FVector>& SafeZoneLocations = GameMode->Get<TArray<FVector>>(SafeZoneLocationsOffset);
+
+	if (SafeZoneLocations.Num() < 4)
+	{
+		LOG_WARN(LogLateGame, "Unable to find SafeZoneLocation! Disabling lategame..");
+		Globals::bLateGame.store(false);
+		return 0;
+	}
+
+	const FVector ZoneCenterLocation = SafeZoneLocations.at(3);
+
+	FVector LocationToStartAircraft = ZoneCenterLocation;
+	LocationToStartAircraft.Z += 10000;
+
+	auto Aircrafts = GetAircrafts();
+
+	float DropStartTime = GameState->GetServerWorldTimeSeconds() + 5.f;
+	float FlightSpeed = 0.0f;
+
+	for (int i = 0; i < Aircrafts.size(); ++i)
+	{
+		auto CurrentAircraft = Aircrafts.at(i);
+		CurrentAircraft->TeleportTo(LocationToStartAircraft, FRotator());
+
+		static auto FlightInfoOffset = CurrentAircraft->GetOffset("FlightInfo", false);
+
+		if (FlightInfoOffset == -1)
+		{
+			static auto FlightStartLocationOffset = CurrentAircraft->GetOffset("FlightStartLocation");
+			static auto FlightSpeedOffset = CurrentAircraft->GetOffset("FlightSpeed");
+			static auto DropStartTimeOffset = CurrentAircraft->GetOffset("DropStartTime");
+
+			CurrentAircraft->Get<FVector>(FlightStartLocationOffset) = LocationToStartAircraft;
+			CurrentAircraft->Get<float>(FlightSpeedOffset) = FlightSpeed;
+			CurrentAircraft->Get<float>(DropStartTimeOffset) = DropStartTime;
+		}
+		else
+		{
+			auto FlightInfo = CurrentAircraft->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
+
+			FlightInfo->GetFlightSpeed() = FlightSpeed;
+			FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
+			FlightInfo->GetTimeTillDropStart() = DropStartTime;
+		}
+	}
+
+	while (GameState->GetGamePhase() != EAthenaGamePhase::Aircraft)
+	{
+		Sleep(1000 / MaxTickRate);
+	}
+
+	/*
+	static auto MapInfoOffset = GameState->GetOffset("MapInfo");
+	auto MapInfo = GameState->Get(MapInfoOffset);
+
+	if (MapInfo)
+	{
+		static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos", false);
+
+		if (FlightInfosOffset != -1)
+		{
+			auto& FlightInfos = MapInfo->Get<TArray<FAircraftFlightInfo>>(FlightInfosOffset);
+
+			for (int i = 0; i < FlightInfos.Num(); i++)
+			{
+				auto FlightInfo = FlightInfos.AtPtr(i, FAircraftFlightInfo::GetStructSize());
+
+				FlightInfo->GetFlightSpeed() = FlightSpeed;
+				FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
+				FlightInfo->GetTimeTillDropStart() = DropStartTime;
+			}
+		}
+	}
+	*/
+
+	while (GameState->GetGamePhase() == EAthenaGamePhase::Aircraft)
+	{
+		Sleep(1000 / MaxTickRate);
+	}
+
+	static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
+	auto WorldNetDriver = GetWorld()->Get<UNetDriver*>(World_NetDriverOffset);
+	auto& ClientConnections = WorldNetDriver->GetClientConnections();
+
+	for (int z = 0; z < ClientConnections.Num(); z++)
+	{
+		auto ClientConnection = ClientConnections.at(z);
+		auto FortPC = Cast<AFortPlayerController>(ClientConnection->GetPlayerController());
+
+		if (!FortPC)
+			continue;
+
+		auto WorldInventory = FortPC->GetWorldInventory();
+
+		if (!WorldInventory)
+			continue;
+
+		static auto WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
+		static auto StoneItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
+		static auto MetalItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
+
+		static auto Rifle = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03.WID_Assault_AutoHigh_Athena_SR_Ore_T03");
+		static auto Shotgun = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03")
+			? FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03")
+			: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_C_Ore_T03.WID_Shotgun_Standard_Athena_C_Ore_T03");
+		static auto SMG = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03")
+			? FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03")
+			: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavySuppressed_Athena_R_Ore_T03.WID_Pistol_AutoHeavySuppressed_Athena_R_Ore_T03");
+
+		static auto MiniShields = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/ShieldSmall/Athena_ShieldSmall.Athena_ShieldSmall");
+
+		static auto Shells = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells");
+		static auto Medium = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsMedium.AthenaAmmoDataBulletsMedium");
+		static auto Light = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsLight.AthenaAmmoDataBulletsLight");
+		static auto Heavy = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsHeavy.AthenaAmmoDataBulletsHeavy");
+
+		WorldInventory->AddItem(WoodItemData, nullptr, 500);
+		WorldInventory->AddItem(StoneItemData, nullptr, 500);
+		WorldInventory->AddItem(MetalItemData, nullptr, 500);
+		WorldInventory->AddItem(Rifle, nullptr, 1);
+		WorldInventory->AddItem(Shotgun, nullptr, 1);
+		WorldInventory->AddItem(SMG, nullptr, 1);
+		WorldInventory->AddItem(MiniShields, nullptr, 6);
+		WorldInventory->AddItem(Shells, nullptr, 999);
+		WorldInventory->AddItem(Medium, nullptr, 999);
+		WorldInventory->AddItem(Light, nullptr, 999);
+		WorldInventory->AddItem(Heavy, nullptr, 999);
+
+		WorldInventory->Update();
+	}
+
+	static auto SafeZonesStartTimeOffset = GameState->GetOffset("SafeZonesStartTime");
+	GameState->Get<float>(SafeZonesStartTimeOffset) = 0.001f;
+
+	return 0;
+}
+
 static inline void MainUI()
 {
 	bool bLoaded = true;
@@ -520,7 +704,7 @@ static inline void MainUI()
 
 				if (GameState)
 				{
-					static auto DefaultGliderRedeployCanRedeployOffset = FindOffsetStruct("/Script/FortniteGame.FortGameStateAthena", "DefaultGliderRedeployCanRedeploy");
+					static auto DefaultGliderRedeployCanRedeployOffset = FindOffsetStruct("/Script/FortniteGame.FortGameStateAthena", "DefaultGliderRedeployCanRedeploy", false);
 
 					if (DefaultGliderRedeployCanRedeployOffset != -1)
 					{
@@ -612,226 +796,14 @@ static inline void MainUI()
 
 							AmountOfPlayersWhenBusStart = GameState->GetPlayersLeft();
 
-							UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
-
 							if (Globals::bLateGame.load())
 							{
-								auto GetAircrafts = [&]() -> TArray<AActor*>
-								{
-									static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
-
-									if (AircraftsOffset == -1)
-									{
-										// GameState->Aircraft
-
-										static auto FortAthenaAircraftClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaAircraft");
-										auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
-
-										return AllAircrafts;
-									}
-
-									return GameState->Get<TArray<AActor*>>(AircraftsOffset);
-								};
-
-								while (GetAircrafts().Num() <= 0) // hmm
-								{
-									Sleep(500);
-								}
-
-								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startsafezone", nullptr);
-
-								static auto SafeZoneIndicatorOffset = GameState->GetOffset("SafeZoneIndicator");
-
-								static auto SafeZonesStartTimeOffset = GameState->GetOffset("SafeZonesStartTime");
-								GameState->Get<float>(SafeZonesStartTimeOffset) = 0;
-
-								LOG_INFO(LogDev, "Waiting for SafeZoneIndicator..");
-
-								while (!GameState->Get(SafeZoneIndicatorOffset))
-								{
-									Sleep(500);
-								}
-
-								LOG_INFO(LogDev, "SafeZoneIndicator is valid!");
-
-								while (GetAircrafts().Num() <= 0) // hmm
-								{
-									Sleep(500);
-								}
-
-								static auto NextNextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextNextCenter", false);
-								static auto NextCenterOffset = GameState->Get(SafeZoneIndicatorOffset)->GetOffset("NextCenter");
-								FVector LocationToStartAircraft = GameState->Get(SafeZoneIndicatorOffset)->Get<FVector>(NextNextCenterOffset == -1 ? NextCenterOffset : NextNextCenterOffset); // SafeZoneLocations.at(4);
-								LocationToStartAircraft.Z += 10000;
-
-								for (int i = 0; i < GetAircrafts().Num(); i++)
-								{
-									auto CurrentAircraft = GetAircrafts().at(i);
-
-									CurrentAircraft->TeleportTo(LocationToStartAircraft, FRotator());
-
-									static auto FlightInfoOffset = CurrentAircraft->GetOffset("FlightInfo", false);
-
-									float FlightSpeed = 0.0f;
-
-									if (FlightInfoOffset == -1)
-									{
-										static auto FlightStartLocationOffset = CurrentAircraft->GetOffset("FlightStartLocation");
-										static auto FlightSpeedOffset = CurrentAircraft->GetOffset("FlightSpeed");
-										static auto DropStartTimeOffset = CurrentAircraft->GetOffset("DropStartTime");
-
-										CurrentAircraft->Get<FVector>(FlightStartLocationOffset) = LocationToStartAircraft;
-										CurrentAircraft->Get<float>(FlightSpeedOffset) = FlightSpeed;
-										CurrentAircraft->Get<float>(DropStartTimeOffset) = GameState->GetServerWorldTimeSeconds();
-									}
-									else
-									{
-										auto FlightInfo = CurrentAircraft->GetPtr<FAircraftFlightInfo>(FlightInfoOffset);
-
-										FlightInfo->GetFlightSpeed() = FlightSpeed;
-										FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
-										FlightInfo->GetTimeTillDropStart() = 0.0f;
-									}
-								}
-
-								static auto MapInfoOffset = GameState->GetOffset("MapInfo");
-								auto MapInfo = GameState->Get(MapInfoOffset);
-
-								if (MapInfo)
-								{
-									static auto FlightInfosOffset = MapInfo->GetOffset("FlightInfos", false);
-
-									if (FlightInfosOffset != -1)
-									{
-										auto& FlightInfos = MapInfo->Get<TArray<FAircraftFlightInfo>>(FlightInfosOffset);
-
-										LOG_INFO(LogDev, "FlightInfos.Num(): {}", FlightInfos.Num());
-
-										for (int i = 0; i < FlightInfos.Num(); i++)
-										{
-											auto FlightInfo = FlightInfos.AtPtr(i, FAircraftFlightInfo::GetStructSize());
-
-											FlightInfo->GetFlightSpeed() = 0;
-											FlightInfo->GetFlightStartLocation() = LocationToStartAircraft;
-											FlightInfo->GetTimeTillDropStart() = 0.0f;
-										}
-									}
-								}
-
-								static auto bAircraftIsLockedOffset = GameState->GetOffset("bAircraftIsLocked");
-								static auto bAircraftIsLockedFieldMask = GetFieldMask(GameState->GetProperty("bAircraftIsLocked"));
-								GameState->SetBitfieldValue(bAircraftIsLockedOffset, bAircraftIsLockedFieldMask, false);
-
-								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
-								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipaircraft", nullptr);
-
-								static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
-								auto WorldNetDriver = GetWorld()->Get<UNetDriver*>(World_NetDriverOffset);
-								auto& ClientConnections = WorldNetDriver->GetClientConnections();
-
-								for (int z = 0; z < ClientConnections.Num(); z++)
-								{
-									auto ClientConnection = ClientConnections.at(z);
-									auto FortPC = Cast<AFortPlayerController>(ClientConnection->GetPlayerController());
-
-									if (!FortPC)
-										continue;
-
-									auto WorldInventory = FortPC->GetWorldInventory();
-
-									if (!WorldInventory)
-										continue;
-
-									static auto WoodItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/WoodItemData.WoodItemData");
-									static auto StoneItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
-									static auto MetalItemData = FindObject<UFortItemDefinition>(L"/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
-
-									static auto Rifle = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03.WID_Assault_AutoHigh_Athena_SR_Ore_T03");
-									static auto Shotgun = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03") 
-										? FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_SR_Ore_T03.WID_Shotgun_Standard_Athena_SR_Ore_T03")
-										: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Shotgun_Standard_Athena_C_Ore_T03.WID_Shotgun_Standard_Athena_C_Ore_T03");
-									static auto SMG = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03")
-										? FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03.WID_Pistol_AutoHeavyPDW_Athena_R_Ore_T03")
-										: FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Weapons/WID_Pistol_AutoHeavySuppressed_Athena_R_Ore_T03.WID_Pistol_AutoHeavySuppressed_Athena_R_Ore_T03");
-
-									static auto MiniShields = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Consumables/ShieldSmall/Athena_ShieldSmall.Athena_ShieldSmall");
-
-									static auto Shells = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells");
-									static auto Medium = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsMedium.AthenaAmmoDataBulletsMedium");
-									static auto Light = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsLight.AthenaAmmoDataBulletsLight");
-									static auto Heavy = FindObject<UFortItemDefinition>(L"/Game/Athena/Items/Ammo/AthenaAmmoDataBulletsHeavy.AthenaAmmoDataBulletsHeavy");
-
-									WorldInventory->AddItem(WoodItemData, nullptr, 500);
-									WorldInventory->AddItem(StoneItemData, nullptr, 500);
-									WorldInventory->AddItem(MetalItemData, nullptr, 500);
-									WorldInventory->AddItem(Rifle, nullptr, 1);
-									WorldInventory->AddItem(Shotgun, nullptr, 1);
-									WorldInventory->AddItem(SMG, nullptr, 1);
-									WorldInventory->AddItem(MiniShields, nullptr, 6);
-									WorldInventory->AddItem(Shells, nullptr, 999);
-									WorldInventory->AddItem(Medium, nullptr, 999);
-									WorldInventory->AddItem(Light, nullptr, 999);
-									WorldInventory->AddItem(Heavy, nullptr, 999);
-
-									WorldInventory->Update();
-								}
-
-								auto SafeZoneIndicator = GameMode->GetSafeZoneIndicator();
-
-								if (SafeZoneIndicator)
-								{
-									SetZoneToIndexHook(GameMode, -1);
-
-									UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
-									SafeZoneIndicator->SkipShrinkSafeZone();
-
-									/*
-									UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startshrinksafezone", nullptr);
-									SafeZoneIndicator->SkipShrinkSafeZone();
-
-									bool bBreak = false;
-									int a = 0;
-
-									while (!bBreak)
-									{
-										for (int z = 0; z < ClientConnections.Num(); z++)
-										{
-											auto ClientConnection = ClientConnections.at(z);
-											auto FortPC = Cast<AFortPlayerController>(ClientConnection->GetPlayerController());
-
-											if (!FortPC)
-												continue;
-
-											if (FortPC->GetMyFortPawn())
-											{
-												bBreak = true;
-												break;
-											}
-										}
-
-										if (++a >= 5)
-											bBreak = true;
-
-										Sleep(1000);
-									}
-
-									SafeZoneIndicator->SkipShrinkSafeZone();
-
-									if (Engine_Version >= 424)
-									{
-										Sleep(1000);
-										SafeZoneIndicator->SkipShrinkSafeZone();
-									}
-
-									*/
-								}
-								else
-								{
-									LOG_WARN(LogDev, "Invalid Indicator!");
-								}
+								CreateThread(0, 0, LateGameThread, 0, 0, 0);
 							}
-
-							LOG_INFO(LogDev, "Finished!");
+							else
+							{
+								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
+							}
 						}
 					}
 					else
@@ -1343,7 +1315,7 @@ static inline void PregameUI()
 
 	if (!bSwitchedInitialLevel)
 	{
-		ImGui::Checkbox("Use Custom Map", &bUseCustomMap);
+		// ImGui::Checkbox("Use Custom Map", &bUseCustomMap);
 
 		if (bUseCustomMap)
 		{

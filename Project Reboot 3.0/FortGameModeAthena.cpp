@@ -62,7 +62,7 @@ static UFortPlaylist* GetPlaylistToUse()
 	// SET OVERRIDE PLAYLIST DOWN HERE
 
 	if (Globals::bCreative)
-		Playlist = FindObject<UFortPlaylist>("/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
+		Playlist = FindObject<UFortPlaylist>(L"/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
 	return Playlist;
 }
@@ -141,7 +141,7 @@ void AFortGameModeAthena::SkipAircraft()
 	if (bGameModeWillSkipAircraftOffset != -1) // hmm?
 		GameState->Get<bool>(bGameModeWillSkipAircraftOffset) = true; 
 
-	static auto OnAircraftExitedDropZoneFn = FindObject<UFunction>("/Script/FortniteGame.FortGameModeAthena.OnAircraftExitedDropZone");
+	static auto OnAircraftExitedDropZoneFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameModeAthena.OnAircraftExitedDropZone");
 
 	static auto AircraftsOffset = GameState->GetOffset("Aircrafts", false);
 
@@ -192,6 +192,19 @@ void AFortGameModeAthena::PauseSafeZone(bool bPaused)
 		this->Get<float>(TimeRemainingWhenPhasePausedOffset) = SafeZoneIndicator->GetSafeZoneFinishShrinkTime() - GameState->GetServerWorldTimeSeconds();
 	else
 		SafeZoneIndicator->GetSafeZoneFinishShrinkTime() = GameState->GetServerWorldTimeSeconds() + this->Get<float>(TimeRemainingWhenPhasePausedOffset);
+}
+
+void AFortGameModeAthena::OnAircraftEnteredDropZoneHook(AFortGameModeAthena* GameModeAthena, AActor* Aircraft)
+{
+	LOG_INFO(LogDev, "OnAircraftEnteredDropZoneHook!");
+
+	OnAircraftEnteredDropZoneOriginal(GameModeAthena, Aircraft);
+
+	if (Globals::bLateGame.load())
+	{
+		auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
+		GameState->SkipAircraft();
+	}
 }
 
 bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode)
@@ -600,11 +613,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	auto MapInfo = GameState->GetMapInfo();
 
-	if (!bUseCustomMap)
-	{
-		if (!MapInfo && Engine_Version >= 421)
-			return false;
-	}
+	if (!MapInfo && Engine_Version >= 421)
+		return false;
 
 	static int LastNum = 1;
 
@@ -1228,6 +1238,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
 				spawned++;
+
+				// LOG_INFO(LogDev, "Test: {}", CurrentActor->GetSearchLootTierGroup().ToString());
 
 				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * CurrentActor->GetLootSpawnLocation_Athena().X + CurrentActor->GetActorRightVector() * CurrentActor->GetLootSpawnLocation_Athena().Y + CurrentActor->GetActorUpVector() * CurrentActor->GetLootSpawnLocation_Athena().Z;
 

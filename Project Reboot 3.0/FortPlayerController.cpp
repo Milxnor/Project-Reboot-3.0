@@ -226,7 +226,7 @@ void AFortPlayerController::ServerLoadingScreenDroppedHook(UObject* Context, FFr
 
 	auto PlayerController = (AFortPlayerController*)Context;
 
-	// PlayerController->ApplyCosmeticLoadout();
+	PlayerController->ApplyCosmeticLoadout();
 
 	return ServerLoadingScreenDroppedOriginal(Context, Stack, Ret);
 }

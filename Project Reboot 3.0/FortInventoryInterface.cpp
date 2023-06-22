@@ -15,7 +15,7 @@ char UFortInventoryInterface::RemoveInventoryItemHook(__int64 a1, FGuid a2, int 
 	// LOG_INFO(LogDev, "FortPlayerControllerSuperSize: {}", FortPlayerControllerSuperSize);
 	// LOG_INFO(LogDev, "ControllerObject: {}", ControllerObject->GetFullName());
 
-	LOG_INFO(LogDev, __FUNCTION__);
+	// LOG_INFO(LogDev, __FUNCTION__);
 
 	if (!ControllerObject)
 		return false;

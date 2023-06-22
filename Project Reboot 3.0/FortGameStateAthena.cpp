@@ -74,6 +74,57 @@ void AFortGameStateAthena::AddPlayerStateToGameMemberInfo(AFortPlayerStateAthena
 	GameMemberInfoArray->MarkArrayDirty();
 }
 
+void AFortGameStateAthena::SkipAircraft()
+{
+	// return UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"skipaircraft", nullptr);
+
+	if (GetGamePhase() != EAthenaGamePhase::Aircraft)
+		return;
+
+	// this->bGameModeWillSkipAircraft = true;
+
+	auto GetAircrafts = [&]() -> std::vector<AActor*>
+	{
+		static auto AircraftsOffset = this->GetOffset("Aircrafts", false);
+		std::vector<AActor*> Aircrafts;
+
+		if (AircraftsOffset == -1)
+		{
+			// GameState->Aircraft
+
+			static auto FortAthenaAircraftClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaAircraft");
+			auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
+
+			for (int i = 0; i < AllAircrafts.Num(); i++)
+			{
+				Aircrafts.push_back(AllAircrafts.at(i));
+			}
+
+			AllAircrafts.Free();
+		}
+		else
+		{
+			const auto& GameStateAircrafts = this->Get<TArray<AActor*>>(AircraftsOffset);
+
+			for (int i = 0; i < GameStateAircrafts.Num(); i++)
+			{
+				Aircrafts.push_back(GameStateAircrafts.at(i));
+			}
+		}
+
+		return Aircrafts;
+	};
+
+	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
+	for (auto Aircraft : GetAircrafts())
+	{
+		// haha skunked we should do GetAircraft!!
+		static auto OnAircraftExitedDropZoneFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameModeAthena.OnAircraftExitedDropZone");
+		GameMode->ProcessEvent(OnAircraftExitedDropZoneFn, &Aircraft);
+	}
+}
+
 TScriptInterface<UFortSafeZoneInterface> AFortGameStateAthena::GetSafeZoneInterface()
 {
 	int Offset = -1;

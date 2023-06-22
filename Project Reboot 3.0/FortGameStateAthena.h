@@ -153,6 +153,7 @@ public:
 	TScriptInterface<UFortSafeZoneInterface> GetSafeZoneInterface();
 
 	void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
+	void SkipAircraft();
 
 	int GetAircraftIndex(AFortPlayerState* PlayerState);
 	bool IsRespawningAllowed(AFortPlayerState* PlayerState); // actually in zone

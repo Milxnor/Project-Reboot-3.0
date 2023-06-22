@@ -127,25 +127,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	if (!NewPawn)
 		return nullptr;
 
-	bool bIsRespawning = false;
-
-	/*
-	static auto RespawnDataOffset = PlayerStateAthena->GetOffset("RespawnData", false);
-
-	if (RespawnDataOffset != -1)
-	{
-		auto RespawnDataPtr = PlayerStateAthena->GetRespawnData();
-
-		if (RespawnDataPtr->IsServerReady() && RespawnDataPtr->IsClientReady()) // && GameState->IsRespawningAllowed(PlayerState);
-		{
-			bIsRespawning = true;
-		}
-	} */
-
-	/* auto DeathInfo = (void*)(__int64(PlayerStateAthena) + MemberOffsets::FortPlayerStateAthena::DeathInfo);
-	FVector DeathLocation = MemberOffsets::DeathInfo::DeathLocation != -1 ? *(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) : FVector(0, 0, 0);
-
-	bIsRespawning = !(DeathLocation.CompareVectors(FVector(0, 0, 0))); // bro kms */
+	bool bIsRespawning = false; // reel
 
 	auto ASC = PlayerStateAthena->GetAbilitySystemComponent();
 	auto GameState = ((AFortGameModeAthena*)GameMode)->GetGameStateAthena();
@@ -168,62 +150,62 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	{
 		auto WorldInventory = NewPlayerAsAthena->GetWorldInventory();
 
-		if (!WorldInventory)
-			return NewPawn;
-
-		if (!WorldInventory->GetPickaxeInstance())
+		if (WorldInventory->IsValidLowLevel())
 		{
-			// TODO Check Playlist->bRequirePickaxeInStartingInventory
-
-			auto& StartingItems = ((AFortGameModeAthena*)GameMode)->GetStartingItems();
-
-			NewPlayerAsAthena->AddPickaxeToInventory();
-
-			for (int i = 0; i < StartingItems.Num(); ++i)
+			if (!WorldInventory->GetPickaxeInstance())
 			{
-				auto& StartingItem = StartingItems.at(i);
+				// TODO Check Playlist->bRequirePickaxeInStartingInventory
 
-				WorldInventory->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
-			}
+				auto& StartingItems = ((AFortGameModeAthena*)GameMode)->GetStartingItems();
 
-			/* if (Globals::bLateGame)
-			{
-				auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
+				NewPlayerAsAthena->AddPickaxeToInventory();
 
-				for (int i = 0; i < 5; ++i)
+				for (int i = 0; i < StartingItems.Num(); ++i)
 				{
-					auto LootDrops = PickLootDrops(SpawnIslandTierGroup);
+					auto& StartingItem = StartingItems.at(i);
 
-					for (auto& LootDrop : LootDrops)
-					{
-						WorldInventory->AddItem(LootDrop.ItemDefinition, nullptr, LootDrop.Count, LootDrop.LoadedAmmo);
-					}
+					WorldInventory->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
 				}
-			} */
 
-			auto AddInventoryOverrideTeamLoadouts = [&](AFortAthenaMutator* Mutator)
-			{
-				if (auto InventoryOverride = Cast<AFortAthenaMutator_InventoryOverride>(Mutator))
+				/* if (Globals::bLateGame)
 				{
-					auto TeamIndex = PlayerStateAthena->GetTeamIndex();
-					auto LoadoutTeam = InventoryOverride->GetLoadoutTeamForTeamIndex(TeamIndex);
+					auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
 
-					if (LoadoutTeam.UpdateOverrideType == EAthenaInventorySpawnOverride::Always)
+					for (int i = 0; i < 5; ++i)
 					{
-						auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
+						auto LootDrops = PickLootDrops(SpawnIslandTierGroup);
 
-						for (int i = 0; i < LoadoutContainer.Loadout.Num(); ++i)
+						for (auto& LootDrop : LootDrops)
 						{
-							auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
-							WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());
+							WorldInventory->AddItem(LootDrop.ItemDefinition, nullptr, LootDrop.Count, LootDrop.LoadedAmmo);
 						}
 					}
-				}
-			};
+				} */
 
-			LoopMutators(AddInventoryOverrideTeamLoadouts);
+				auto AddInventoryOverrideTeamLoadouts = [&](AFortAthenaMutator* Mutator)
+				{
+					if (auto InventoryOverride = Cast<AFortAthenaMutator_InventoryOverride>(Mutator))
+					{
+						auto TeamIndex = PlayerStateAthena->GetTeamIndex();
+						auto LoadoutTeam = InventoryOverride->GetLoadoutTeamForTeamIndex(TeamIndex);
 
-			WorldInventory->Update();
+						if (LoadoutTeam.UpdateOverrideType == EAthenaInventorySpawnOverride::Always)
+						{
+							auto LoadoutContainer = InventoryOverride->GetLoadoutContainerForTeamIndex(TeamIndex);
+
+							for (int i = 0; i < LoadoutContainer.Loadout.Num(); ++i)
+							{
+								auto& ItemAndCount = LoadoutContainer.Loadout.at(i);
+								WorldInventory->AddItem(ItemAndCount.GetItem(), nullptr, ItemAndCount.GetCount());
+							}
+						}
+					}
+				};
+
+				LoopMutators(AddInventoryOverrideTeamLoadouts);
+
+				WorldInventory->Update();
+			}
 		}
 	}
 	else
@@ -248,6 +230,8 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		// NewPlayerAsAthena->ClientClearDeathNotification();
 		// NewPlayerAsAthena->RespawnPlayerAfterDeath(true);
 	}
+
+	// LOG_INFO(LogDev, "Finish SpawnDefaultPawnFor!");
 
 	return NewPawn;
 }

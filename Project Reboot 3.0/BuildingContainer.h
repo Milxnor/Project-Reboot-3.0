@@ -13,6 +13,12 @@ public:
 		return this->ReadBitfieldValue(bDestroyContainerOnSearchOffset, bDestroyContainerOnSearchFieldMask);
 	}
 
+	FName& GetSearchLootTierGroup()
+	{
+		static auto SearchLootTierGroupOffset = this->GetOffset("SearchLootTierGroup");
+		return Get<FName>(SearchLootTierGroupOffset);
+	}
+
 	bool IsAlreadySearched()
 	{
 		static auto bAlreadySearchedOffset = this->GetOffset("bAlreadySearched");
