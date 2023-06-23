@@ -55,7 +55,7 @@ struct FVehicleClassDetails
 {
 	static UStruct* GetStruct()
 	{
-		static auto Struct = FindObject<UStruct>("/Script/FortniteGame.VehicleClassDetails");
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.VehicleClassDetails");
 		return Struct;
 	}
 

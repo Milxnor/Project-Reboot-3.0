@@ -152,20 +152,20 @@ TScriptInterface<UFortSafeZoneInterface> AFortGameStateAthena::GetSafeZoneInterf
 	return ScriptInterface;
 }
 
-UFortPlaylist*& AFortGameStateAthena::GetCurrentPlaylist()
+UFortPlaylistAthena*& AFortGameStateAthena::GetCurrentPlaylist()
 {
 	static auto CurrentPlaylistInfoOffset = GetOffset("CurrentPlaylistInfo", false);
 
 	if (CurrentPlaylistInfoOffset == -1)
 	{
 		static auto CurrentPlaylistDataOffset = GetOffset("CurrentPlaylistData");
-		return Get<UFortPlaylist*>(CurrentPlaylistDataOffset);
+		return (Get<UFortPlaylistAthena*>(CurrentPlaylistDataOffset));
 	}
 
 	auto CurrentPlaylistInfo = this->GetPtr<FFastArraySerializer>(CurrentPlaylistInfoOffset);
 
 	static auto BasePlaylistOffset = FindOffsetStruct("/Script/FortniteGame.PlaylistPropertyArray", "BasePlaylist");
-	return *(UFortPlaylist**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset);
+	return (*(UFortPlaylistAthena**)(__int64(CurrentPlaylistInfo) + BasePlaylistOffset));
 }
 
 int AFortGameStateAthena::GetAircraftIndex(AFortPlayerState* PlayerState)

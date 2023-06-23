@@ -374,7 +374,6 @@ DWORD WINAPI Main(LPVOID)
     Offsets::Print();
 
     Addresses::FindAll();
-    // Addresses::Print();
     Addresses::Init();
     Addresses::Print();
 
@@ -387,7 +386,13 @@ DWORD WINAPI Main(LPVOID)
 #ifdef ABOVE_S20
     if (Fortnite_Version < 20)
     {
-        MessageBoxA(0, "Please undefined ABOVE_S20", "Project Reboot 3.0", MB_ICONERROR);
+        MessageBoxA(0, "Please undefine ABOVE_S20", "Project Reboot 3.0", MB_ICONERROR);
+        return 0;
+    }
+#else
+    if (Fortnite_Version > 20)
+    {
+        MessageBoxA(0, "Please define ABOVE_S20", "Project Reboot 3.0", MB_ICONERROR);
         return 0;
     }
 #endif
@@ -456,9 +461,6 @@ DWORD WINAPI Main(LPVOID)
     LOG_INFO(LogDev, "Size: 0x{:x}", sizeof(TMap<FName, void*>));
 
     Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);
-
-    // LOG_INFO(LogDev, "FindGIsServer: 0x{:x}", FindGIsServer() - __int64(GetModuleHandleW(0)));
-    // LOG_INFO(LogDev, "FindGIsClient: 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
 
     /*
 
@@ -587,11 +589,12 @@ DWORD WINAPI Main(LPVOID)
     {
         auto matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? 01 7F 18 49 8D 4D D8 48 8B D6 E8 ? ? ? ? 48", false).Get();
 
-        matchmaking = matchmaking ? matchmaking : Memcury::Scanner::FindPattern("83 7D 88 01 7F 0D 48 8B CE E8", false).Get();
+        if (!matchmaking)
+            matchmaking = Memcury::Scanner::FindPattern("83 7D 88 01 7F 0D 48 8B CE E8", false).Get();
+        // if (!matchmaking)
+            // matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? ? 7F 18 49 8D 4D D8 48 8B D7 E8").Get(); // 4.20
 
-        bool bMatchmakingSupported = false;
-
-        bMatchmakingSupported = matchmaking && Engine_Version >= 420;
+        bool bMatchmakingSupported = matchmaking && Engine_Version >= 420;
         int idx = 0;
 
         if (bMatchmakingSupported) // now check if it leads to the right place and where the jg is at
@@ -605,7 +608,7 @@ DWORD WINAPI Main(LPVOID)
 
                 // std::cout << std::format("[{}] 0x{:x}\n", i, (int)*byte);
 
-                if (*byte == 0x7F)
+                if (*byte == 0x7F) // jump if greater
                 {
                     bMatchmakingSupported = true;
                     idx = i;
@@ -626,7 +629,7 @@ DWORD WINAPI Main(LPVOID)
 
             std::cout << "before byte: " << (int)*before << '\n';
 
-            *before = 0x74;
+            *before = 0x74; // jump if zero
         }
     }
 

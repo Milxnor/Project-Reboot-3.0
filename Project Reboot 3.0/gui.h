@@ -63,6 +63,7 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
+extern inline bool bEnableReverseZone = false;
 extern inline int AmountOfPlayersWhenBusStart = 0; 
 extern inline bool bHandleDeath = true;
 extern inline bool bUseCustomMap = false;
@@ -700,23 +701,6 @@ static inline void MainUI()
 					UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), cmd, nullptr);
 				}
 
-				auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
-
-				if (GameState)
-				{
-					static auto DefaultGliderRedeployCanRedeployOffset = FindOffsetStruct("/Script/FortniteGame.FortGameStateAthena", "DefaultGliderRedeployCanRedeploy", false);
-
-					if (DefaultGliderRedeployCanRedeployOffset != -1)
-					{
-						bool EnableGliderRedeploy = (bool)GameState->Get<float>(DefaultGliderRedeployCanRedeployOffset);
-
-						if (ImGui::Checkbox("Enable Glider Redeploy", &EnableGliderRedeploy))
-						{
-							GameState->Get<float>(DefaultGliderRedeployCanRedeployOffset) = EnableGliderRedeploy;
-						}
-					}
-				}
-
 				/* if (ImGui::Button("Spawn BGAs"))
 				{
 					SpawnBGAs();
@@ -1119,10 +1103,45 @@ static inline void MainUI()
 					LOG_WARN(LogUI, "Invalid Item Definition!");
 				}
 			}
+
+			auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+
+			if (GameState)
+			{
+				static auto DefaultGliderRedeployCanRedeployOffset = FindOffsetStruct("/Script/FortniteGame.FortGameStateAthena", "DefaultGliderRedeployCanRedeploy", false);
+				static auto DefaultParachuteDeployTraceForGroundDistanceOffset = GameState->GetOffset("DefaultParachuteDeployTraceForGroundDistance", false);
+
+				if (DefaultParachuteDeployTraceForGroundDistanceOffset != -1)
+				{
+					ImGui::InputFloat("Automatic Parachute Pullout Distance", GameState->GetPtr<float>(DefaultParachuteDeployTraceForGroundDistanceOffset));
+				}
+
+				if (DefaultGliderRedeployCanRedeployOffset != -1)
+				{
+					bool EnableGliderRedeploy = (bool)GameState->Get<float>(DefaultGliderRedeployCanRedeployOffset);
+
+					if (ImGui::Checkbox("Enable Glider Redeploy", &EnableGliderRedeploy))
+					{
+						GameState->Get<float>(DefaultGliderRedeployCanRedeployOffset) = EnableGliderRedeploy;
+					}
+				}
+
+				GET_PLAYLIST(GameState);
+
+				if (CurrentPlaylist)
+				{
+					bool bRespawning = CurrentPlaylist->GetRespawnType() == EAthenaRespawnType::InfiniteRespawn || CurrentPlaylist->GetRespawnType() == EAthenaRespawnType::InfiniteRespawnExceptStorm;
+
+					if (ImGui::Checkbox("Respawning", &bRespawning))
+					{
+						CurrentPlaylist->GetRespawnType() = (EAthenaRespawnType)bRespawning;
+					}
+				}
+			}
 		}
 		else if (Tab == LATEGAME_TAB)
 		{
-
+			ImGui::Checkbox("Enable Reverse Zone (EXPERIMENTAL)", &bEnableReverseZone);
 		}
 		else if (Tab == DEVELOPER_TAB)
 		{

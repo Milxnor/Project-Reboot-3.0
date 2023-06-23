@@ -24,6 +24,7 @@
 #include "vehicles.h"
 #include "globals.h"
 #include "events.h"
+#include "FortPlaylistAthena.h"
 #include "reboot.h"
 #include "ai.h"
 #include "Map.h"
@@ -35,11 +36,11 @@
 #include "gui.h"
 #include <random>
 
-static UFortPlaylist* GetPlaylistToUse()
+static UFortPlaylistAthena* GetPlaylistToUse()
 {
 	// LOG_DEBUG(LogDev, "PlaylistName: {}", PlaylistName);
 
-	auto Playlist = FindObject<UFortPlaylist>(PlaylistName);
+	auto Playlist = FindObject<UFortPlaylistAthena>(PlaylistName);
 
 	if (Globals::bGoingToPlayEvent)
 	{
@@ -62,7 +63,7 @@ static UFortPlaylist* GetPlaylistToUse()
 	// SET OVERRIDE PLAYLIST DOWN HERE
 
 	if (Globals::bCreative)
-		Playlist = FindObject<UFortPlaylist>(L"/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
+		Playlist = FindObject<UFortPlaylistAthena>(L"/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
 	return Playlist;
 }
@@ -922,6 +923,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint8 preferredTeam, AActor* Controller)
 {
+#if 0
+	static int bruh = 3;
+	return bruh++;
+#endif
 	bool bIsBot = false;
 
 	auto PlayerState = ((APlayerController*)Controller)->GetPlayerState();

@@ -72,7 +72,7 @@ void ObjectViewer::DumpContentsToFile(UObject* Object, const std::string& FileNa
 					auto PropertyClass = *(UClass**)(__int64(Property) + Offsets::PropertyClass);
 
 					if (PropertyClass->IsValidLowLevel())
-						log(std::format("{} Object: {}\n", PropertyName, PropertyClass->GetPathName()));
+						log(std::format("{} Object: {}\n", PropertyName, PropertyClass->GetFullName()));
 				}
 
 				/*

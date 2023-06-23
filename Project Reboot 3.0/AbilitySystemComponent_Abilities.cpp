@@ -197,6 +197,12 @@ void UAbilitySystemComponent::InternalServerTryActivateAbilityHook(UAbilitySyste
 
 FGameplayAbilitySpecHandle UAbilitySystemComponent::GiveAbilityEasy(UClass* AbilityClass, UObject* SourceObject, bool bDoNotRegive)
 {
+	if (!AbilityClass)
+	{
+		LOG_WARN(LogAbilities, "Invalid AbilityClass passed into GiveAbilityEasy!");
+		return FGameplayAbilitySpecHandle();
+	}
+
 	// LOG_INFO(LogDev, "Making spec!");
 
 	auto DefaultAbility = AbilityClass->CreateDefaultObject();

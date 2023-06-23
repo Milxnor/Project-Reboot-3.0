@@ -298,6 +298,12 @@
     <ClCompile Include="objectviewer.cpp">
       <Filter>Reboot\Private</Filter>
     </ClCompile>
+    <ClCompile Include="commands.cpp">
+      <Filter>Reboot\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="extra.cpp">
+      <Filter>Reboot\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -950,6 +956,9 @@
     </ClInclude>
     <ClInclude Include="AthenaPlayerMatchReport.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="FortPlaylistAthena.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -7,7 +7,7 @@
 
 #include "json.hpp"
 
-bool IsBanned(APlayerController* PlayerController)
+inline bool IsBanned(APlayerController* PlayerController)
 {
 	std::ifstream input_file(("banned-ips.json"));
 	std::string line;
@@ -33,13 +33,13 @@ bool IsBanned(APlayerController* PlayerController)
 	return false;
 }
 
-std::string GetFilePath()
+inline std::string GetFilePath()
 {
 	std::string str = "banned-ips.json";
 	return str;
 }
 
-void Ban(APlayerController* PlayerController, const std::string& Name = "")
+inline void Ban(APlayerController* PlayerController, const std::string& Name = "")
 {
 	std::ofstream stream(("banned-ips.json"), std::ios::app);
 
@@ -62,7 +62,7 @@ void Ban(APlayerController* PlayerController, const std::string& Name = "")
 	// KickPlayer(PlayerController, L"You have been banned!");
 }
 
-void Unban(APlayerController* PlayerController)
+inline void Unban(APlayerController* PlayerController)
 {
 	std::ifstream input_file(("banned-ips.json"));
 
@@ -101,7 +101,7 @@ void Unban(APlayerController* PlayerController)
 	// return ipToRemove != 1;
 }
 
-void Op(APlayerController* PlayerController)
+inline void Op(APlayerController* PlayerController)
 {
 	std::ofstream stream(("op-ips.json"), std::ios::app);
 
@@ -123,7 +123,7 @@ void Op(APlayerController* PlayerController)
 }
 
 
-void Deop(APlayerController* PlayerController)
+inline void Deop(APlayerController* PlayerController)
 {
 	std::ifstream input_file(("op-ips.json"));
 
@@ -163,7 +163,7 @@ void Deop(APlayerController* PlayerController)
 }
 
 
-bool IsOp(APlayerController* PlayerController)
+inline bool IsOp(APlayerController* PlayerController)
 {
 	std::ifstream input_file(("op-ips.json"));
 	std::string line;

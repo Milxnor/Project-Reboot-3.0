@@ -699,6 +699,7 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	{
 		static auto StormEffectClass = FindObject<UClass>(L"/Game/Athena/SafeZone/GE_OutsideSafeZoneDamage.GE_OutsideSafeZoneDamage_C");
 		auto PlayerState = PlayerController->GetPlayerStateAthena();
+
 		PlayerState->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(StormEffectClass, 1, PlayerState->GetAbilitySystemComponent());
 	}
 
@@ -1324,6 +1325,10 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 				int MaxHealth = 100;
 				int MaxShield = 100;
 				int AmountGiven = 0;
+				/*
+				int ShieldGiven = 0;
+				int HealthGiven = 0;
+				*/
 
 				if ((MaxHealth - Health) > 0)
 				{
@@ -1342,6 +1347,11 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 						KillerPawn->SetShield(Shield + AmountToGive);
 						AmountGiven += AmountToGive;
 					}
+				}
+				
+				if (AmountGiven > 0)
+				{
+
 				}
 			}
 		}

@@ -2,7 +2,7 @@
 
 #include "GameState.h"
 #include "FortPlayerStateAthena.h"
-#include "FortPlaylist.h"
+#include "FortPlaylistAthena.h"
 #include "BuildingStructuralSupportSystem.h"
 #include "ScriptInterface.h"
 #include "Interface.h"
@@ -149,7 +149,7 @@ public:
 		return Get<EAthenaGamePhaseStep>(GamePhaseStepOffset);
 	}
 
-	UFortPlaylist*& GetCurrentPlaylist();
+	UFortPlaylistAthena*& GetCurrentPlaylist();
 	TScriptInterface<UFortSafeZoneInterface> GetSafeZoneInterface();
 
 	void AddPlayerStateToGameMemberInfo(class AFortPlayerStateAthena* PlayerState);
