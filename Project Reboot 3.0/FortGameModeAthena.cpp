@@ -273,9 +273,12 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "Presetup!");
 
-		SetupAIGoalManager();
-		SetupAIDirector();
-		SetupServerBotManager();
+		if (false)
+		{
+			SetupAIGoalManager();
+			SetupAIDirector();
+			SetupServerBotManager();
+		}
 		// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"MANG"));
 
 		/*
@@ -564,6 +567,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			GameState->Get<float>(DefaultRebootMachineHotfixOffset) = 1; // idk i dont think we need to set
 		}
 
+		LOG_INFO(LogDev, "Finished presetup!");
+
 		Globals::bInitializedPlaylist = true;
 	}
 
@@ -625,7 +630,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "Initializing!");
 
-		if (std::floor(Fortnite_Version) == 3)
+		if (Fortnite_Version == 3)
 			SetPlaylist(GetPlaylistToUse(), true);
 
 		LOG_INFO(LogDev, "GameMode 0x{:x}", __int64(GameMode));

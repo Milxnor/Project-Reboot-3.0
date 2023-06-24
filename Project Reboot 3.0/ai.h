@@ -146,6 +146,9 @@ static void SetupAIGoalManager()
 
     static auto AIGoalManagerClass = FindObject<UClass>(L"/Script.FortniteGame.FortAIGoalManager");
 
+    if (!AIGoalManagerClass)
+        return;
+
     LOG_INFO(LogDev, "AIGoalManager Before: {}", __int64(GameMode->Get(AIGoalManagerOffset)));
 
     if (!GameMode->Get(AIGoalManagerOffset))

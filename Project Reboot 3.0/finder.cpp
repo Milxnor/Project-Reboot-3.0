@@ -150,10 +150,12 @@ uint64 ApplyGameSessionPatch()
 		return 0;
 	}
 
+	LOG_INFO(LogDev, "ByteToPatch: 0x{:x}", __int64(ByteToPatch) - __int64(GetModuleHandleW(0)));
+
 	DWORD dwProtection;
 	VirtualProtect((PVOID)ByteToPatch, 1, PAGE_EXECUTE_READWRITE, &dwProtection);
 
-	*ByteToPatch = 0x85;
+	*ByteToPatch = 0x85; // jz -> jnz
 
 	DWORD dwTemp;
 	VirtualProtect((PVOID)ByteToPatch, 1, dwProtection, &dwTemp);

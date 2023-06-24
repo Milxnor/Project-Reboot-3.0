@@ -8,7 +8,7 @@
 #include "DataTableFunctionLibrary.h"
 #include "FortPlaysetItemDefinition.h"
 
-static inline void (*SetZoneToIndexOriginal)(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK);
+extern inline void (*SetZoneToIndexOriginal)(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK) = nullptr;
 
 void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMaybeIDFK);
 
