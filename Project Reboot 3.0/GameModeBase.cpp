@@ -206,6 +206,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 			}
 
 			const auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
+			const auto& ReplicatedEntries = WorldInventory->GetItemList().GetReplicatedEntries();
 
 			for (int i = 0; i < ItemInstances.Num(); ++i)
 			{
@@ -219,6 +220,18 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 				ItemInstance->GetItemEntry()->GetLoadedAmmo() = WeaponItemDefinition->GetClipSize();
 				WorldInventory->GetItemList().MarkItemDirty(ItemInstance->GetItemEntry());
+			}
+
+			for (int i = 0; i < ReplicatedEntries.Num(); ++i)
+			{
+				auto ReplicatedEntry = ReplicatedEntries.AtPtr(i, FFortItemEntry::GetStructSize());
+
+				auto WeaponItemDefinition = Cast<UFortWeaponItemDefinition>(ReplicatedEntry->GetItemDefinition());
+
+				if (!WeaponItemDefinition) continue;
+
+				ReplicatedEntry->GetLoadedAmmo() = WeaponItemDefinition->GetClipSize();
+				WorldInventory->GetItemList().MarkItemDirty(ReplicatedEntry);
 			}
 
 			WorldInventory->Update();

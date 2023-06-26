@@ -22,8 +22,6 @@ void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMa
 
 	LOG_INFO(LogDev, "NewLateGameSafeZonePhase: {}", NewLateGameSafeZonePhase);
 
-	static bool bReversing = false;
-
 	if (Fortnite_Version < 13)
 	{
 		if (Globals::bLateGame.load())
@@ -34,7 +32,7 @@ void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMa
 
 			if (NewLateGameSafeZonePhase == EndReverseZonePhase)
 			{
-				bReversing = false;
+				bZoneReversing = false;
 			}
 
 			if (NewLateGameSafeZonePhase == 2 || NewLateGameSafeZonePhase == 3)
@@ -47,10 +45,10 @@ void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMa
 
 			if (NewLateGameSafeZonePhase >= StartReverseZonePhase) // This means instead of going to the 8th phase its gonna go down.
 			{
-				bReversing = true;
+				bZoneReversing = true;
 			}
 
-			if (bReversing && bEnableReverseZone) NewLateGameSafeZonePhase--;
+			if (bZoneReversing && bEnableReverseZone) NewLateGameSafeZonePhase--;
 			else NewLateGameSafeZonePhase++;
 
 			return;
@@ -130,15 +128,15 @@ void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMa
 
 		if (NewLateGameSafeZonePhase == EndReverseZonePhase)
 		{
-			bReversing = false;
+			bZoneReversing = false;
 		}
 
 		if (NewLateGameSafeZonePhase >= StartReverseZonePhase) // This means instead of going to the 8th phase its gonna go down.
 		{
-			bReversing = true;
+			bZoneReversing = true;
 		}
 
-		if (bReversing && bEnableReverseZone) NewLateGameSafeZonePhase--;
+		if (bZoneReversing && bEnableReverseZone) NewLateGameSafeZonePhase--;
 		else NewLateGameSafeZonePhase++;
 	}
 	else
