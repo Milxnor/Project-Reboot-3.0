@@ -32,7 +32,7 @@ void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMa
 			GameState->Get<int>(GameState_SafeZonePhaseOffset) = NewLateGameSafeZonePhase;
 			SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
 
-			if (NewLateGameSafeZonePhase == 5)
+			if (NewLateGameSafeZonePhase == EndReverseZonePhase)
 			{
 				bReversing = false;
 			}
@@ -45,7 +45,7 @@ void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMa
 					LOG_WARN(LogZone, "Invalid SafeZoneIndicator!");
 			}
 
-			if (NewLateGameSafeZonePhase >= 7) // This means instead of going to the 8th phase its gonna go down.
+			if (NewLateGameSafeZonePhase >= StartReverseZonePhase) // This means instead of going to the 8th phase its gonna go down.
 			{
 				bReversing = true;
 			}
@@ -128,12 +128,12 @@ void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMa
 		GameState->Get<int>(GameState_SafeZonePhaseOffset) = NewLateGameSafeZonePhase;
 		SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
 
-		if (NewLateGameSafeZonePhase == 5)
+		if (NewLateGameSafeZonePhase == EndReverseZonePhase)
 		{
 			bReversing = false;
 		}
 
-		if (NewLateGameSafeZonePhase >= 7) // This means instead of going to the 8th phase its gonna go down.
+		if (NewLateGameSafeZonePhase >= StartReverseZonePhase) // This means instead of going to the 8th phase its gonna go down.
 		{
 			bReversing = true;
 		}

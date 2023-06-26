@@ -203,9 +203,25 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 				};
 
 				LoopMutators(AddInventoryOverrideTeamLoadouts);
-
-				WorldInventory->Update();
 			}
+
+			const auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
+
+			for (int i = 0; i < ItemInstances.Num(); ++i)
+			{
+				auto ItemInstance = ItemInstances.at(i);
+
+				if (!ItemInstance) continue;
+
+				auto WeaponItemDefinition = Cast<UFortWeaponItemDefinition>(ItemInstance->GetItemEntry()->GetItemDefinition());
+
+				if (!WeaponItemDefinition) continue;
+
+				ItemInstance->GetItemEntry()->GetLoadedAmmo() = WeaponItemDefinition->GetClipSize();
+				WorldInventory->GetItemList().MarkItemDirty(ItemInstance->GetItemEntry());
+			}
+
+			WorldInventory->Update();
 		}
 	}
 	else

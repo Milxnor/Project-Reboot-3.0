@@ -63,6 +63,9 @@
 #define LOADOUT_PLAYERTAB 4
 #define FUN_PLAYERTAB 5
 
+extern inline int StartReverseZonePhase = 7;
+extern inline int EndReverseZonePhase = 5;
+extern inline float StartingShield = 0;
 extern inline bool bEnableReverseZone = false;
 extern inline int AmountOfPlayersWhenBusStart = 0; 
 extern inline bool bHandleDeath = true;
@@ -82,6 +85,7 @@ extern inline bool bEnableCombinePickup = false;
 extern inline int AmountOfBotsToSpawn = 0;
 extern inline bool bEnableRebooting = false;
 extern inline bool bEngineDebugLogs = false;
+extern inline bool bStartedBus = false;
 extern inline int AmountOfHealthSiphon = 0;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
@@ -96,7 +100,11 @@ static inline void CleanupDeviceD3D();
 static inline void ResetDevice();
 static inline LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-extern inline bool bStartedBus = false;
+static inline void SetIsLategame(bool Value)
+{
+	Globals::bLateGame.store(Value);
+	StartingShield = 100;
+}
 
 static inline void Restart() // todo move?
 {
@@ -532,7 +540,7 @@ static inline DWORD WINAPI LateGameThread(LPVOID)
 	if (SafeZoneLocations.Num() < 4)
 	{
 		LOG_WARN(LogLateGame, "Unable to find SafeZoneLocation! Disabling lategame..");
-		Globals::bLateGame.store(false);
+		SetIsLategame(false);
 		return 0;
 	}
 
@@ -681,8 +689,8 @@ static inline void MainUI()
 				if (!bStartedBus)
 				{
 					bool bWillBeLategame = Globals::bLateGame.load();
-					ImGui::Checkbox("Lategame (HIGHLY EXPERIMENTAL)", &bWillBeLategame);
-					Globals::bLateGame.store(bWillBeLategame);
+					ImGui::Checkbox("Lategame", &bWillBeLategame);
+					SetIsLategame(bWillBeLategame);
 				}
 
 				ImGui::Text(std::format("Joinable {}", Globals::bStartedListening).c_str());
@@ -1065,8 +1073,25 @@ static inline void MainUI()
 			static std::string ItemToGrantEveryone;
 			static int AmountToGrantEveryone = 1;
 
+			ImGui::InputFloat("Starting Shield", &StartingShield);
 			ImGui::InputText("Item to Give", &ItemToGrantEveryone);
 			ImGui::InputInt("Amount to Give", &AmountToGrantEveryone);
+
+			if (ImGui::Button("Destroy all player builds"))
+			{
+				auto AllBuildingSMActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuildingSMActor::StaticClass());
+
+				for (int i = 0; i < AllBuildingSMActors.Num(); i++)
+				{
+					auto CurrentBuildingSMActor = (ABuildingSMActor*)AllBuildingSMActors.at(i);
+
+					if (!CurrentBuildingSMActor->IsPlayerPlaced()) continue;
+
+					CurrentBuildingSMActor->K2_DestroyActor();
+				}
+
+				AllBuildingSMActors.Free();
+			}
 
 			if (ImGui::Button("Give Item to Everyone"))
 			{
@@ -1142,6 +1167,12 @@ static inline void MainUI()
 		else if (Tab == LATEGAME_TAB)
 		{
 			ImGui::Checkbox("Enable Reverse Zone (EXPERIMENTAL)", &bEnableReverseZone);
+
+			if (bEnableReverseZone)
+			{
+				ImGui::InputInt("Start Reversing Phase", &StartReverseZonePhase);
+				ImGui::InputInt("End Reversing Phase", &EndReverseZonePhase);
+			}
 		}
 		else if (Tab == DEVELOPER_TAB)
 		{
@@ -1324,7 +1355,7 @@ static inline void PregameUI()
 	{
 		bool bWillBeLategame = Globals::bLateGame.load();
 		ImGui::Checkbox("Lategame", &bWillBeLategame);
-		Globals::bLateGame.store(bWillBeLategame);
+		SetIsLategame(bWillBeLategame);
 	}
 
 	if (HasEvent())

@@ -390,6 +390,8 @@ void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFor
 void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerController* Controller, APawn* Pawn)
 {
 	static auto AcknowledgedPawnOffset = Controller->GetOffset("AcknowledgedPawn");
+
+	const APawn* OldAcknowledgedPawn = Controller->Get<APawn*>(AcknowledgedPawnOffset);
 	Controller->Get<APawn*>(AcknowledgedPawnOffset) = Pawn;
 
 	auto ControllerAsFort = Cast<AFortPlayerController>(Controller);
@@ -398,6 +400,11 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 
 	if (!PawnAsFort)
 		return;
+
+	if (OldAcknowledgedPawn != PawnAsFort)
+	{
+		PawnAsFort->SetShield(StartingShield);
+	}
 
 	if (Globals::bNoMCP)
 	{
