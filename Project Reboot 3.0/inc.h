@@ -20,7 +20,7 @@ extern inline int Engine_Version = 0; // For example, 420, 421, etc. // Prevent 
 extern inline double Fortnite_Version = 0; // For example, 4.1, 6.21, etc. // Prevent using this when possible.
 extern inline int Fortnite_CL = 0;
 
-// #define PROD // this doesnt do anything besides remove processeventhook and some assert stuff
+#define PROD // this doesnt do anything besides remove processeventhook and some assert stuff
 
 struct PlaceholderBitfield
 {
