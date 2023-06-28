@@ -141,6 +141,15 @@ public:
 	static inline void (*StartGhostModeOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 	static inline void (*EndGhostModeOriginal)(AFortPlayerControllerAthena* PlayerController);
 
+	void SpectateOnDeath() // actually in zone
+	{
+		static auto SpectateOnDeathFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") ?
+			FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") :
+			FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.SpectateOnDeath");
+
+		this->ProcessEvent(SpectateOnDeathFn);
+	}
+
 	class UAthenaResurrectionComponent*& GetResurrectionComponent()
 	{
 		static auto ResurrectionComponentOffset = GetOffset("ResurrectionComponent");

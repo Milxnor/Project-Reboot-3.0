@@ -263,6 +263,7 @@ public:
 	UClass* GetVehicleClassOverride(UClass* DefaultClass);
 	void SkipAircraft();
 	void PauseSafeZone(bool bPaused = true);
+	void StartAircraftPhase();
 
 	static void HandleSpawnRateForActorClass(UClass* ActorClass, float SpawnPercentage); // idk where to put
 

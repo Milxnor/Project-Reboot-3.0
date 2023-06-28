@@ -249,7 +249,7 @@ std::pair<std::vector<UFortItem*>, std::vector<UFortItem*>> AFortInventory::AddI
 	return Ret;
 }
 
-bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count, bool bForceRemoval)
+bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int Count, bool bForceRemoval, bool bIgnoreVariables)
 {
 	if (bShouldUpdate)
 		*bShouldUpdate = false;
@@ -280,7 +280,7 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 	bool bOverrideChangeStackSize = false;
 
-	if (ItemDefinition->ShouldPersistWhenFinalStackEmpty())
+	if (!bIgnoreVariables && ItemDefinition->ShouldPersistWhenFinalStackEmpty())
 	{
 		bool bIsFinalStack = true;
 

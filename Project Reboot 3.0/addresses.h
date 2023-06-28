@@ -76,7 +76,8 @@ namespace Addresses
 	extern inline uint64 AddToAlivePlayers = 0;
 	extern inline uint64 GameSessionPatch = 0;
 	extern inline uint64 GetSessionInterface = 0; // Matchmaking
-	
+	extern inline uint64 StartAircraftPhase = 0;
+
 	void SetupVersion(); // Finds Engine Version
 	void FindAll();
 	void Print();

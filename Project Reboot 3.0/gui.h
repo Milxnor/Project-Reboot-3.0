@@ -104,7 +104,7 @@ static inline LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM 
 static inline void SetIsLategame(bool Value)
 {
 	Globals::bLateGame.store(Value);
-	StartingShield = 100;
+	StartingShield = Value ? 100 : 0;
 }
 
 static inline void Restart() // todo move?
@@ -528,7 +528,7 @@ static inline DWORD WINAPI LateGameThread(LPVOID)
 		return Aircrafts;
 	};
 
-	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
+	GameMode->StartAircraftPhase();
 
 	while (GetAircrafts().size() <= 0)
 	{
@@ -795,7 +795,7 @@ static inline void MainUI()
 							}
 							else
 							{
-								UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
+								GameMode->StartAircraftPhase();
 							}
 						}
 					}
@@ -1086,9 +1086,10 @@ static inline void MainUI()
 				{
 					auto CurrentBuildingSMActor = (ABuildingSMActor*)AllBuildingSMActors.at(i);
 
-					if (!CurrentBuildingSMActor->IsPlayerPlaced()) continue;
+					if (CurrentBuildingSMActor->IsDestroyed() || CurrentBuildingSMActor->IsActorBeingDestroyed() || !CurrentBuildingSMActor->IsPlayerPlaced()) continue;
 
-					CurrentBuildingSMActor->K2_DestroyActor();
+					CurrentBuildingSMActor->SilentDie();
+					// CurrentBuildingSMActor->K2_DestroyActor();
 				}
 
 				AllBuildingSMActors.Free();
@@ -1137,9 +1138,12 @@ static inline void MainUI()
 				static auto DefaultGliderRedeployCanRedeployOffset = FindOffsetStruct("/Script/FortniteGame.FortGameStateAthena", "DefaultGliderRedeployCanRedeploy", false);
 				static auto DefaultParachuteDeployTraceForGroundDistanceOffset = GameState->GetOffset("DefaultParachuteDeployTraceForGroundDistance", false);
 
-				if (DefaultParachuteDeployTraceForGroundDistanceOffset != -1)
+				if (Globals::bStartedListening) // it resets accordingly to ProHenis b4 this
 				{
-					ImGui::InputFloat("Automatic Parachute Pullout Distance", GameState->GetPtr<float>(DefaultParachuteDeployTraceForGroundDistanceOffset));
+					if (DefaultParachuteDeployTraceForGroundDistanceOffset != -1)
+					{
+						ImGui::InputFloat("Automatic Parachute Pullout Distance", GameState->GetPtr<float>(DefaultParachuteDeployTraceForGroundDistanceOffset));
+					}
 				}
 
 				if (DefaultGliderRedeployCanRedeployOffset != -1)

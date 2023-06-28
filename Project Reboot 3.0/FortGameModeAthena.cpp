@@ -175,6 +175,19 @@ void AFortGameModeAthena::HandleSpawnRateForActorClass(UClass* ActorClass, float
 	}
 }
 
+void AFortGameModeAthena::StartAircraftPhase()
+{
+	if (Addresses::StartAircraftPhase)
+	{
+		static void (*StartAircraftPhaseOriginal)(AFortGameModeAthena*, bool bDoNotSpawnAircraft) = decltype(StartAircraftPhaseOriginal)(Addresses::StartAircraftPhase);
+		StartAircraftPhaseOriginal(this, false); // love the double negative fortnite
+	}
+	else
+	{
+		UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"startaircraft", nullptr);
+	}
+}
+
 void AFortGameModeAthena::PauseSafeZone(bool bPaused)
 {
 	auto GameState = GetGameStateAthena();

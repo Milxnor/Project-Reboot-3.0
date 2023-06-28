@@ -312,6 +312,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding AddToAlivePlayers");
 	Addresses::AddToAlivePlayers = FindAddToAlivePlayers();
 
+	LOG_INFO(LogDev, "Finding StartAircraftPhase");
+	Addresses::StartAircraftPhase = FindStartAircraftPhase();
+
 	// LOG_INFO(LogDev, "Finding GetSessionInterface");
 	// Addresses::GetSessionInterface = FindGetSessionInterface();
 
@@ -392,6 +395,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "FinishResurrection: 0x{:x}", FinishResurrection - Base);
 	LOG_INFO(LogDev, "AddToAlivePlayers: 0x{:x}", AddToAlivePlayers - Base);
 	LOG_INFO(LogDev, "GetSessionInterface: 0x{:x}", GetSessionInterface - Base);
+	LOG_INFO(LogDev, "StartAircraftPhase: 0x{:x}", StartAircraftPhase - Base);
 }
 
 void Offsets::FindAll()

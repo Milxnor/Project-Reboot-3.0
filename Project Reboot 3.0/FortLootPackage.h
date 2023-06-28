@@ -141,10 +141,10 @@ static inline float RandomFloatForLoot(float AllWeightsSum)
 }
 
 template <typename KeyType, typename ValueType>
-FORCEINLINE static ValueType PickWeightedElement(const std::map<KeyType, ValueType>& Elements, 
+FORCEINLINE static ValueType PickWeightedElement(const std::map<KeyType, ValueType>& Elements,
 	std::function<float(ValueType)> GetWeightFn,
-	std::function<float(float)> RandomFloatGenerator = RandomFloatForLoot, 
-	float TotalWeightParam = -1, bool bCheckIfWeightIsZero = false, int RandMultiplier = 1, KeyType* OutName = nullptr, bool bPrint = false, bool bKeepGoingUntilWeGetValue = false, float AHHH = 1)
+	std::function<float(float)> RandomFloatGenerator = RandomFloatForLoot,
+	float TotalWeightParam = -1, bool bCheckIfWeightIsZero = false, int RandMultiplier = 1, KeyType* OutName = nullptr, bool bPrint = false, bool bKeepGoingUntilWeGetValue = false)
 {
 	float TotalWeight = TotalWeightParam;
 
@@ -158,14 +158,15 @@ FORCEINLINE static ValueType PickWeightedElement(const std::map<KeyType, ValueTy
 				// if (Weight != 0)
 				{
 					LOG_INFO(LogLoot, "Adding weight {}", Weight);
-				}			
+				}
 			}
 
 			return acc + Weight;
 			});
 	}
 
-	float RandomNumber = RandMultiplier * RandomFloatGenerator(AHHH == -1 ? TotalWeight : AHHH);
+	float RandomNumber = // UKismetMathLibrary::RandomFloatInRange(0, TotalWeight);
+		RandMultiplier * RandomFloatGenerator(TotalWeight);
 
 	if (bPrint)
 	{

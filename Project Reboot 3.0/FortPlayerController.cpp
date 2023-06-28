@@ -37,7 +37,9 @@ void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor
 
 void AFortPlayerController::ClientEquipItem(const FGuid& ItemGuid, bool bForceExecution)
 {
-	static auto ClientEquipItemFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") ? FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") : FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ClientEquipItem");
+	static auto ClientEquipItemFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") 
+		? FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ClientEquipItem") 
+		: FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ClientEquipItem");
 
 	if (ClientEquipItemFn)
 	{
@@ -920,7 +922,9 @@ AActor* AFortPlayerController::SpawnToyInstanceHook(UObject* Context, FFrame* St
 	if (!ToyClass)
 		return nullptr;
 
-	auto NewToy = GetWorld()->SpawnActor<AActor>(ToyClass, SpawnPosition, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, false, PlayerController));
+	auto Params = CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, false, PlayerController);
+	auto NewToy = GetWorld()->SpawnActor<AActor>(ToyClass, SpawnPosition, Params);
+	// free(Params); // ?
 
 	static auto ActiveToyInstancesOffset = PlayerController->GetOffset("ActiveToyInstances");
 	auto& ActiveToyInstances = PlayerController->Get<TArray<AActor*>>(ActiveToyInstancesOffset);
@@ -993,7 +997,9 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	static auto DropBehaviorOffset = ItemDefinition->GetOffset("DropBehavior", false);
 
-	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && (DropBehaviorOffset != -1 ? ItemDefinition->GetDropBehavior() != EWorldItemDropBehavior::DestroyOnDrop : true))
+	EWorldItemDropBehavior DropBehavior = DropBehaviorOffset != -1 ? ItemDefinition->GetDropBehavior() : EWorldItemDropBehavior::EWorldItemDropBehavior_MAX;
+
+	if (!ItemDefinition->ShouldIgnoreRespawningOnDrop() && DropBehavior != EWorldItemDropBehavior::DestroyOnDrop)
 	{
 		PickupCreateData CreateData;
 		CreateData.ItemEntry = ReplicatedEntry;
@@ -1013,7 +1019,7 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 
 	bool bShouldUpdate = false;
 
-	if (!WorldInventory->RemoveItem(ItemGuid, &bShouldUpdate, Count, true))
+	if (!WorldInventory->RemoveItem(ItemGuid, &bShouldUpdate, Count, true, DropBehavior == EWorldItemDropBehavior::DropAsPickupDestroyOnEmpty))
 		return;
 
 	if (bShouldUpdate)
@@ -1171,28 +1177,23 @@ uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = fa
 	return sub_7FF7AB499410(TagContainer, bWasDBNO);
 }
 
-std::vector<APlayerController*> PlayerControllersDead; // make atomic?
-// std::array<std::atomic<APlayerController*>, 100> PlayerControllersDead;
-std::atomic<int> numValidElements(0);
-
-DWORD WINAPI SpectateThread(LPVOID)
+DWORD WINAPI SpectateThread(LPVOID PC)
 {
-	while (1)
-	{
-		for (auto PC : PlayerControllersDead)
-		// for (int i = 0; i < PlayerControllersDead.size(); ++i)
-		{
-			// auto PC = PlayerControllersDead.at(i).load();
+	auto PlayerController = (UObject*)PC;
 
-			static auto SpectateOnDeathFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") ? 
-				FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") :
-				FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.SpectateOnDeath");
+	if (!PlayerController->IsValidLowLevel())
+		return 0;
 
-			PC->ProcessEvent(SpectateOnDeathFn);
-		}
+	auto SpectatingPC = Cast<AFortPlayerControllerAthena>(PlayerController);
 
-		Sleep(4000);
-	}
+	if (!SpectatingPC)
+		return 0;
+
+	Sleep(3000);
+
+	LOG_INFO(LogDev, "bugha!");
+
+	SpectatingPC->SpectateOnDeath();
 
 	return 0;
 }
@@ -1434,110 +1435,98 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		LOG_INFO(LogDev, "PlayersLeft: {} IsDBNO: {}", GameState->GetPlayersLeft(), DeadPawn->IsDBNO());
 
-		if (bHandleDeath && !DeadPawn->IsDBNO())
+		if (!DeadPawn->IsDBNO())
 		{
-			if (Fortnite_Version > 1.8 || Fortnite_Version == 1.11)
+			if (bHandleDeath)
 			{
-				static void (*RemoveFromAlivePlayers)(AFortGameModeAthena * GameMode, AFortPlayerController * PlayerController, APlayerState * PlayerState, APawn * FinisherPawn,
-					UFortWeaponItemDefinition * FinishingWeapon, uint8_t DeathCause, char a7)
-					= decltype(RemoveFromAlivePlayers)(Addresses::RemoveFromAlivePlayers);
-
-				AActor* DamageCauser = *(AActor**)(__int64(DeathReport) + MemberOffsets::DeathReport::DamageCauser);
-				UFortWeaponItemDefinition* KillerWeaponDef = nullptr;
-
-				static auto FortProjectileBaseClass = FindObject<UClass>(L"/Script/FortniteGame.FortProjectileBase");
-
-				if (DamageCauser)
+				if (Fortnite_Version > 1.8 || Fortnite_Version == 1.11)
 				{
-					if (DamageCauser->IsA(FortProjectileBaseClass))
+					static void (*RemoveFromAlivePlayers)(AFortGameModeAthena * GameMode, AFortPlayerController * PlayerController, APlayerState * PlayerState, APawn * FinisherPawn,
+						UFortWeaponItemDefinition * FinishingWeapon, uint8_t DeathCause, char a7)
+						= decltype(RemoveFromAlivePlayers)(Addresses::RemoveFromAlivePlayers);
+
+					AActor* DamageCauser = *(AActor**)(__int64(DeathReport) + MemberOffsets::DeathReport::DamageCauser);
+					UFortWeaponItemDefinition* KillerWeaponDef = nullptr;
+
+					static auto FortProjectileBaseClass = FindObject<UClass>(L"/Script/FortniteGame.FortProjectileBase");
+
+					if (DamageCauser)
 					{
-						auto Owner = Cast<AFortWeapon>(DamageCauser->GetOwner());
-						KillerWeaponDef = Owner->IsValidLowLevel() ? Owner->GetWeaponData() : nullptr; // I just added the IsValidLowLevel check because what if the weapon destroys?
-					}
-					if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
-					{
-						KillerWeaponDef = Weapon->GetWeaponData();
-					}
-				}
-
-				RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
-
-				/*
-
-				STATS:
-
-				Note: This isn't the exact order relative to other functions.
-
-				ClientSendMatchStatsForPlayer
-				ClientSendTeamStatsForPlayer
-				ClientSendEndBattleRoyaleMatchForPlayer
-
-				*/
-
-				// FAthenaMatchStats.Stats[ERewardSource] // hmm
-
-				/*
-				
-				// We need to check if their entire team is dead then I think we send it????
-				
-				auto DeadControllerAthena = Cast<AFortPlayerControllerAthena>(PlayerController);
-
-				if (DeadControllerAthena && FAthenaMatchTeamStats::GetStruct())
-				{
-					auto MatchReport = DeadControllerAthena->GetMatchReport();
-					
-					LOG_INFO(LogDev, "MatchReport: {}", __int64(MatchReport));
-					
-					if (MatchReport)
-					{
-						MatchReport->GetTeamStats()->GetPlace() = DeadPlayerState->GetPlace();
-						MatchReport->GetTeamStats()->GetTotalPlayers() = AmountOfPlayersWhenBusStart; // hmm
-						MatchReport->HasTeamStats() = true;
-
-						DeadControllerAthena->ClientSendTeamStatsForPlayer(MatchReport->GetTeamStats());
-					}
-				}
-
-				*/
-
-				LOG_INFO(LogDev, "Removed!");
-
-				if (Fortnite_Version < 6) // Spectating
-				{
-					static auto bAllowSpectateAfterDeathOffset = GameMode->GetOffset("bAllowSpectateAfterDeath");
-
-					bool bAllowSpectate = false; // GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
-
-					LOG_INFO(LogDev, "bAllowSpectate: {}", bAllowSpectate);
-
-					if (bAllowSpectate)
-					{
-						LOG_INFO(LogDev, "Starting Spectating!");
-
-						static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
-						PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
-
-						PlayerControllersDead.push_back(PlayerController);
-
-						/* if (numValidElements < PlayerControllersDead.size())
+						if (DamageCauser->IsA(FortProjectileBaseClass))
 						{
-							PlayerControllersDead[numValidElements].store(PlayerController);
-							numValidElements.fetch_add(1);
-						} */
-
-						static bool bCreatedThread = false;
-
-						if (!bCreatedThread)
+							auto Owner = Cast<AFortWeapon>(DamageCauser->GetOwner());
+							KillerWeaponDef = Owner->IsValidLowLevel() ? Owner->GetWeaponData() : nullptr; // I just added the IsValidLowLevel check because what if the weapon destroys (idk)?
+						}
+						if (auto Weapon = Cast<AFortWeapon>(DamageCauser))
 						{
-							bCreatedThread = true;
-
-							CreateThread(0, 0, SpectateThread, 0, 0, 0);
+							KillerWeaponDef = Weapon->GetWeaponData();
 						}
 					}
+
+					RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
+
+					/*
+
+					STATS:
+
+					Note: This isn't the exact order relative to other functions.
+
+					ClientSendMatchStatsForPlayer
+					ClientSendTeamStatsForPlayer
+					ClientSendEndBattleRoyaleMatchForPlayer
+
+					*/
+
+					// FAthenaMatchStats.Stats[ERewardSource] // hmm
+
+					/*
+
+					// We need to check if their entire team is dead then I think we send it????
+
+					auto DeadControllerAthena = Cast<AFortPlayerControllerAthena>(PlayerController);
+
+					if (DeadControllerAthena && FAthenaMatchTeamStats::GetStruct())
+					{
+						auto MatchReport = DeadControllerAthena->GetMatchReport();
+
+						LOG_INFO(LogDev, "MatchReport: {}", __int64(MatchReport));
+
+						if (MatchReport)
+						{
+							MatchReport->GetTeamStats()->GetPlace() = DeadPlayerState->GetPlace();
+							MatchReport->GetTeamStats()->GetTotalPlayers() = AmountOfPlayersWhenBusStart; // hmm
+							MatchReport->HasTeamStats() = true;
+
+							DeadControllerAthena->ClientSendTeamStatsForPlayer(MatchReport->GetTeamStats());
+						}
+					}
+
+					*/
+
+					LOG_INFO(LogDev, "Removed!");
 				}
+
+				// LOG_INFO(LogDev, "KillerPlayerState->Place: {}", KillerPlayerState ? KillerPlayerState->GetPlace() : -1);
 			}
 
-			// LOG_INFO(LogDev, "KillerPlayerState->Place: {}", KillerPlayerState ? KillerPlayerState->GetPlace() : -1);
+			if (Fortnite_Version < 6) // Spectating (is this the actual build or is it like 6.10 when they added it auto).
+			{
+				static auto bAllowSpectateAfterDeathOffset = GameMode->GetOffset("bAllowSpectateAfterDeath");
+
+				bool bAllowSpectate = GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
+
+				LOG_INFO(LogDev, "bAllowSpectate: {}", bAllowSpectate);
+
+				if (bAllowSpectate)
+				{
+					LOG_INFO(LogDev, "Starting Spectating!");
+
+					static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
+					PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
+
+					CreateThread(0, 0, SpectateThread, (LPVOID)PlayerController, 0, 0);
+				}
+			}
 		}
 
 		if (IsRestartingSupported() && Globals::bAutoRestart && !bIsInAutoRestart)

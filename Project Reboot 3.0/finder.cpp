@@ -3,6 +3,47 @@
 #include "reboot.h"
 #include "FortPlayerControllerAthena.h"
 
+uint64 FindStartAircraftPhase()
+{
+	if (Engine_Version < 427) // they scuf it
+	{
+		auto strRef = Memcury::Scanner::FindStringRef(L"STARTAIRCRAFT").Get();
+
+		if (!strRef)
+			return 0;
+
+		int NumCalls = 0;
+
+		for (int i = 0; i < 150; i++)
+		{
+			if (*(uint8_t*)(strRef + i) == 0xE8)
+			{
+				LOG_INFO(LogDev, "Found call 0x{:x}", __int64(strRef + i) - __int64(GetModuleHandleW(0)));
+				NumCalls++;
+
+				if (NumCalls == 2) // First is the str compare ig
+				{
+					return Memcury::Scanner(strRef + i).RelativeOffset(1).Get();
+				}
+			}
+		}
+	}
+	else
+	{
+		auto StatAddress = Memcury::Scanner::FindStringRef(L"STAT_StartAircraftPhase").Get();
+
+		for (int i = 0; i < 1000; i++)
+		{
+			if (*(uint8_t*)(uint8_t*)(StatAddress - i) == 0x48 && *(uint8_t*)(uint8_t*)(StatAddress - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(StatAddress - i + 2) == 0xC4)
+			{
+				return StatAddress - i;
+			}
+		}
+	}
+
+	return 0;
+}
+
 uint64 FindGetSessionInterface()
 {
 	auto strRef = Memcury::Scanner::FindStringRef(L"OnDestroyReservedSessionComplete %s bSuccess: %d", true, 0, Fortnite_Version >= 19).Get();
