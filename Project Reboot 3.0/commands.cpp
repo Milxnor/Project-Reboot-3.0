@@ -1,5 +1,46 @@
 #include "commands.h"
 
+bool Summon(AFortPlayerControllerAthena* PlayerController, std::string Class, int Count)
+{
+	auto Pawn = PlayerController->GetPawn();
+
+	if (!Pawn)
+	{
+		SendMessageToConsole(PlayerController, L"No pawn to spawn class at!");
+		return false;
+	}
+
+	static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
+	static auto ClassClass = FindObject<UClass>(L"/Script/CoreUObject.Class");
+	auto ClassObj = Class.contains("/Script/") ? FindObject<UClass>(Class, ClassClass) : LoadObject<UClass>(Class, BGAClass); // scuffy
+
+	if (ClassObj)
+	{
+		int AmountSpawned = 0;
+
+		for (int i = 0; i < Count; i++)
+		{
+			auto Loc = Pawn->GetActorLocation();
+			Loc.Z += 1000;
+			auto NewActor = GetWorld()->SpawnActor<AActor>(ClassObj, Loc, FQuat(), FVector(1, 1, 1));
+
+			if (!NewActor)
+			{
+				SendMessageToConsole(PlayerController, L"Failed to spawn an actor!");
+			}
+			else
+			{
+				AmountSpawned++;
+			}
+		}
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 {
 	if (!Msg.Data.Data || Msg.Data.Num() <= 0)
@@ -587,6 +628,66 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			static auto ServerSuicideFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerController.ServerSuicide");
 			ReceivingController->ProcessEvent(ServerSuicideFn);
 		}
+		else if (Command == "vehicle")
+		{
+			if (NumArgs < 1)
+			{
+				SendMessageToConsole(ReceivingController, L"Please provide a vehicle name.");
+				return;
+			}
+			
+			std::string vehicle = GetVehicle(Arguments[1]);
+			
+			if (
+				
+				
+				(ReceivingController, vehicle, 1))
+			{
+				SendMessageToConsole(ReceivingController, L"Vehicle spawned successfully.");
+			}
+			else
+			{
+				SendMessageToConsole(ReceivingController, L"Failed to spawn the vehicle, make sure it exists in your fortnite version.");
+			}
+		}
+		else if (Command == "npc")
+		{
+			if (NumArgs < 1)
+			{
+				SendMessageToConsole(ReceivingController, L"Please provide an NPC name.");
+				return;
+			}
+
+			std::string npc = GetNPC(Arguments[1]);
+
+			if (Summon(ReceivingController, npc, 1))
+			{
+				SendMessageToConsole(ReceivingController, L"NPC spawned successfully.");
+			}
+			else
+			{
+				SendMessageToConsole(ReceivingController, L"Failed to spawn the NPC, make sure it exists in your fortnite version.");
+			}
+		}
+		else if (Command == "weather")
+		{
+			if (NumArgs < 1)
+			{
+				SendMessageToConsole(ReceivingController, L"Please provide a weather condition name.");
+				return;
+			}
+
+			std::string condition = GetWeatherCondition(Arguments[1]);
+
+			if (Summon(ReceivingController, condition, 1))
+			{
+				SendMessageToConsole(ReceivingController, L"Weather condition spawned successfully.");
+			}
+			else
+			{
+				SendMessageToConsole(ReceivingController, L"Failed to spawn the weather condition, make sure your fortnite version is >= 19.10");
+			}
+		}
 		else if (Command == "summon")
 		{
 			if (Arguments.size() <= 1)
@@ -943,6 +1044,9 @@ cheat destroytarget - Destroys the actor that the player is looking at.
 cheat wipequickbar <Primary|Secondary> <RemoveUndroppables=false> - Wipes the specified quickbar (parameters is not case sensitive).
 cheat wipequickbars <RemoveUndroppables=false> - Wipes primary and secondary quickbar of targeted player (parameter is not case sensitive).
 cheat suicide - Makes targeted player suicide. 
+cheat vehicle <VehicleName> - Spawns a vehicle at player's position
+cheat npc <NpcName> - Spawns an NPC at player's position
+cheat weather <WeatherConditionName> - Summons a weather condition (Storm etc.) at player's position
 
 If you want to execute a command on a certain player, surround their name (case sensitive) with \, and put the param with their name anywhere. Example: cheat sethealth \Milxnor\ 100
 )";
