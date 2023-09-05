@@ -129,7 +129,7 @@ static inline std::string GetNPC(std::string NPCToCheck)
 			NPCClass = "/Irwin/AI/Simple/Avian/Pawns/NPC_Pawn_Irwin_Simple_Avian_Crow.NPC_Pawn_Irwin_Simple_Avian_Crow_C";
 	}
 	
-	if (Fortnite_Version >= 17.00 || Fortnite_Version < 18.00) // removed in s18 or not?
+	if (Fortnite_Version >= 17.00)
 	{
 		if (NPCToCheck == "alien")
 			NPCClass = "/MotherGameplay/Items/AvacadoEaterBird/BGA_Athena_AvacadoEaterBird.BGA_Athena_AvacadoEaterBird_C";

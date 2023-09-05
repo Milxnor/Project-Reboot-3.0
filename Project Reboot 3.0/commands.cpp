@@ -638,10 +638,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			
 			std::string vehicle = GetVehicle(Arguments[1]);
 			
-			if (
-				
-				
-				(ReceivingController, vehicle, 1))
+			if (Summon(ReceivingController, vehicle, 1))
 			{
 				SendMessageToConsole(ReceivingController, L"Vehicle spawned successfully.");
 			}
@@ -685,7 +682,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			}
 			else
 			{
-				SendMessageToConsole(ReceivingController, L"Failed to spawn the weather condition, make sure your fortnite version is >= 19.10");
+				SendMessageToConsole(ReceivingController, L"Failed to spawn the weather condition, make sure your fortnite version is at least 19.01");
 			}
 		}
 		else if (Command == "summon")
