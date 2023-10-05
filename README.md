@@ -1,6 +1,8 @@
 # Project Reboot 3.0
 
-S3-S15
+I have quit the community and the project is discontinued 😢.
+
+S3-S15 (S16-S19 is slightly supported)
 
 ## TODO
 
