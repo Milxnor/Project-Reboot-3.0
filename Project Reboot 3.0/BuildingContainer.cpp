@@ -12,8 +12,10 @@ bool ABuildingContainer::SpawnLoot(AFortPawn* Pawn)
 	this->ForceNetUpdate();
 
 	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+	// idk
+   /* this->GetActorForwardVector() * this->GetLootSpawnLocation_Athena().X + this->GetActorRightVector() * this->GetLootSpawnLocation_Athena().Y + this->GetActorUpVector() * this->GetLootSpawnLocation_Athena().Z*/
 
-	FVector LocationToSpawnLoot = this->GetActorLocation() + this->GetActorForwardVector() * this->GetLootSpawnLocation_Athena().X + this->GetActorRightVector() * this->GetLootSpawnLocation_Athena().Y + this->GetActorUpVector() * this->GetLootSpawnLocation_Athena().Z;
+	FVector LocationToSpawnLoot = this->GetActorLocation() + this->GetActorRightVector() * 70.0f + FVector{ 0,0,50 }  ;
 
 	auto RedirectedLootTier = GameMode->RedirectLootTier(GetSearchLootTierGroup());
 
