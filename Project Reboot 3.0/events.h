@@ -476,7 +476,7 @@ static inline Event GetOurEvent()
 
 static inline bool HasEvent()
 {
-	return GetOurEvent().Version == Fortnite_Version;
+	return GetOurEvent().Version == Fortnite_Version || Fortnite_Version == 9.41;
 }
 
 static inline bool RequiresEventPlaylist()
