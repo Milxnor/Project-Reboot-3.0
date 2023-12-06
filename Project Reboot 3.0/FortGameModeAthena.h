@@ -121,8 +121,12 @@ static void ShowFoundation(AActor* BuildingFoundation, bool bShow = true)
 
 	static auto DynamicFoundationTypeOffset = BuildingFoundation->GetOffset("DynamicFoundationType", false);
 
-	if (DynamicFoundationTypeOffset != -1)
+	bool bChangeDynamicFoundationType = Fortnite_Version < 13;
+
+	if (DynamicFoundationTypeOffset != -1 && bChangeDynamicFoundationType)
+	{
 		BuildingFoundation->Get<uint8_t>(DynamicFoundationTypeOffset) = bShow ? Static : StartDisabled;
+	}
 
 	/* static auto bShowHLODWhenDisabledOffset = BuildingFoundation->GetOffset("bShowHLODWhenDisabled", false);
 
