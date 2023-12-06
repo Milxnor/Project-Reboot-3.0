@@ -7,6 +7,7 @@
 - comand to fly
 - comand to go more fast speed up
 - fix s9 event
+- fix 9.10 volcano not work
 
 
 I just wana add some cool shits to this reboot
