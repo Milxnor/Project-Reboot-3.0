@@ -919,6 +919,75 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			Pawn->TeleportTo(FVector(X, Y, Z), Pawn->GetActorRotation());
 			SendMessageToConsole(PlayerController, L"Teleported!");
 		}
+		else if (Command == "fly")
+		{
+			auto Pawn = Cast<APawn>(ReceivingController->GetPawn());
+			
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn found!");
+				return;
+			}
+
+			static auto CharMovementOffset = Pawn->GetOffset("CharacterMovement");
+			if (CharMovementOffset != -1)
+			{
+				auto CharMovement = Pawn->Get<UObject*>(CharMovementOffset);
+
+				static auto MovementOffset = CharMovement->GetOffset("MovementMode", false);
+				if (MovementOffset != -1)
+				{
+					uint8_t MovementMode = CharMovement->Get<uint8_t>(MovementOffset);
+					static auto SetMovementModeFn = FindObject<UFunction>(L"/Script/Engine.CharacterMovementComponent.SetMovementMode");
+					uint8_t NewMode = 1;		
+					if (MovementMode != 5)
+					{
+						NewMode = 5;
+					}
+					if (SetMovementModeFn)
+					{
+						CharMovement->ProcessEvent(SetMovementModeFn, &NewMode);
+					}
+				}
+				else
+				{
+					SendMessageToConsole(PlayerController, L"Movement mode not found!");
+					return;
+				}
+			}
+			else
+			{
+				SendMessageToConsole(PlayerController, L"Character movement not found!");
+				return;
+			}
+		}
+		else if (Command == "setspeed")
+		{
+			float Speed = 1.0f;
+
+			if (Arguments.size() > 1 && Arguments[1] != " ")
+			{
+				try { Speed = std::stof(Arguments[1]); }
+				catch (...) {}
+			}
+
+			auto Pawn = Cast<APawn>(ReceivingController->GetPawn());
+
+			if (!Pawn)
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to set speed!");
+				return;
+			}
+
+			static auto SetMovementSpeedFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.SetMovementSpeed");
+			SetMovementSpeedFn = SetMovementSpeedFn ? SetMovementSpeedFn : FindObject<UFunction>(L"/Script/FortniteGame.FortPawn.SetMovementSpeedMultiplier"); // extremely clean code that totally works
+			if (!SetMovementSpeedFn)
+			{
+				SendMessageToConsole(PlayerController, L"Function not found!");
+				return;
+			}
+			Pawn->ProcessEvent(SetMovementSpeedFn, &Speed);
+		}
 		else { bSendHelpMessage = true; };
 	}
 	else { bSendHelpMessage = true; };
