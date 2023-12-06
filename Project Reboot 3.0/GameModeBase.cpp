@@ -8,7 +8,7 @@
 #include "DataTableFunctionLibrary.h"
 #include "FortAthenaMutator_GG.h"
 #include "FortAthenaMutator_InventoryOverride.h"
-#include "calendar.h
+#include "calendar.h"
 
 void AGameModeBase::RestartPlayerAtTransform(AController* NewPlayer, FTransform SpawnTransform)
 {
