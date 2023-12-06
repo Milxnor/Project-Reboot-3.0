@@ -6,6 +6,7 @@
 - snow map 15.10
 - comand to fly
 - comand to go more fast speed up
+- fix s9 event
 
 
 I just wana add some cool shits to this reboot
