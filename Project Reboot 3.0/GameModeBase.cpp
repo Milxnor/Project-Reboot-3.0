@@ -260,6 +260,13 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		// NewPlayerAsAthena->RespawnPlayerAfterDeath(true);
 	}
 
+        static bool bFirst = true;
+
+	if (bFirst)
+	{
+		bFirst = false;
+		Calendar::SetSnow(100);
+	}
 	// LOG_INFO(LogDev, "Finish SpawnDefaultPawnFor!");
 
 	return NewPawn;
