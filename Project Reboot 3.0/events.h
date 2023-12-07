@@ -186,34 +186,6 @@ static inline std::vector<Event> Events =
 	),
 	Event
 	(
-		"The Showdown",
-		"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C",
-		"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C.LoadCattusLevel",
-		1,
-		{
-			{
-				true,
-				"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C.OnReady_C11CA7624A74FBAEC54753A3C2BD4506"
-			}
-		},
-	{
-		{
-			{
-				true,
-				"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C.startevent"
-			},
-
-			0
-		}
-	},
-
-		"/Game/Athena/Prototype/Blueprints/Cattus/BP_CattusDoggus_Scripting.BP_CattusDoggus_Scripting_C",
-		"/Game/Athena/Playlists/Music/Playlist_Music_High.Playlist_Music_High",
-		9.41, // also 9.41
-		false
-	),
-	Event
-	(
 		"The Unvaulting",
 		"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C",
 		"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.LoadSnowLevel",
@@ -484,7 +456,6 @@ static inline UFortPlaylistAthena* GetEventPlaylist()
 	{
 		if (CurrentEvent.Version == Fortnite_Version)
 			return FindObject<UFortPlaylistAthena>(CurrentEvent.PlaylistName, nullptr, ANY_PACKAGE);
-		
 	}
 
 	return nullptr;

@@ -8,7 +8,7 @@ namespace Calendar
 {
 	static inline bool HasSnowModification()
 	{
-		return Fortnite_Version == 7.30 || Fortnite_Version == 11.31 || Fortnite_Version == 15.10 || Fortnite_Version == 19.10;
+		return Fortnite_Version == 7.30 || Fortnite_Version == 11.31 || Fortnite_Version == 19.10;
 	}
 
 	static inline UObject* GetSnowSetup()
@@ -42,7 +42,7 @@ namespace Calendar
 
 	static inline void SetSnow(float NewValue)
 	{
-		static auto SetSnowFn = FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.SetSnow") ? FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.SetSnow") :
+		static auto SetSnowFn = FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.OnReady_0A511B314AE165C51798519FB84738B8") ? FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.OnReady_0A511B314AE165C51798519FB84738B8") :
 			FindObject<UFunction>(L"/Game/Athena/Environments/Landscape/Blueprints/BP_SnowSetup.BP_SnowSetup_C.SetSnow");
 		auto SnowSetup = GetSnowSetup();
 
@@ -53,8 +53,6 @@ namespace Calendar
 			auto GameState = (AFortGameStateAthena*)GetWorld()->GetGameState();
 
 			GET_PLAYLIST(GameState)
-
-				/*
 			struct { UObject* GameState; UObject* Playlist; FGameplayTagContainer PlaylistContextTags; } OnReadyParams{ GameState, CurrentPlaylist, FGameplayTagContainer()};
 
 			UFunction* OnReadyFunc = FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.OnReady_0A511B314AE165C51798519FB84738B8");
@@ -66,13 +64,7 @@ namespace Calendar
 				SnowSetup->ProcessEvent(OnReadyFunc, &OnReadyParams);
 			}
 
-			*/
-
 			LOG_INFO(LogDev, "Called OnReady!");
-
-			SnowSetup->ProcessEvent(SetSnowFn, &NewValue);
-
-			LOG_INFO(LogDev, "Called SetSnow!");
 
 			return;
 
@@ -93,12 +85,6 @@ namespace Calendar
 
 			static auto ada = FindObject<UFunction>(L"/Game/Athena/Apollo/Environments/Blueprints/CalendarEvents/BP_ApolloSnowSetup.BP_ApolloSnowSetup_C.SetFullSnowEd");
 			SnowSetup->ProcessEvent(ada);
-
-
-		}
-		else
-		{
-			LOG_INFO(LogDev, "Failed TO FIND!");
 		}
 	}
 }
