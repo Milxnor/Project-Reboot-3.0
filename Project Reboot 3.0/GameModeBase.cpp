@@ -8,6 +8,7 @@
 #include "DataTableFunctionLibrary.h"
 #include "FortAthenaMutator_GG.h"
 #include "FortAthenaMutator_InventoryOverride.h"
+#include "calendar.h"
 
 void AGameModeBase::RestartPlayerAtTransform(AController* NewPlayer, FTransform SpawnTransform)
 {
@@ -258,6 +259,14 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 		// NewPlayerAsAthena->ClientClearDeathNotification();
 		// NewPlayerAsAthena->RespawnPlayerAfterDeath(true);
+	}
+
+        static bool bFirst = true;
+
+	if (bFirst)
+	{
+		bFirst = false;
+		Calendar::SetSnow(100);
 	}
 
 	// LOG_INFO(LogDev, "Finish SpawnDefaultPawnFor!");
