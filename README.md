@@ -1,11 +1,15 @@
 # Project Reboot 3.0
 
-I have quit the community and the project is discontinued 😢.
+# what i add alr?
+- snow map 11.31
+- snow map 7.30
+- snow map 15.10
+- comand to fly
+- comand to go more fast speed up
+- fix s9 event
+- fix 9.10 volcano not work
 
-S3-S15 (S16-S19 is slightly supported)
 
-## TODO
+I just wana add some cool shits to this reboot
 
-- Rewrite picking up code.
-- Rewrite dllmain
-- Move hooking to each class (for example, AFortGameModeAthena::InitHooks).
+discord https://discord.gg/VeptRzDkDu
