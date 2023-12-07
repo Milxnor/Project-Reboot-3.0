@@ -8,7 +8,6 @@
 #include "DataTableFunctionLibrary.h"
 #include "FortAthenaMutator_GG.h"
 #include "FortAthenaMutator_InventoryOverride.h"
-#include "calendar.h"
 
 void AGameModeBase::RestartPlayerAtTransform(AController* NewPlayer, FTransform SpawnTransform)
 {
@@ -263,14 +262,5 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 	// LOG_INFO(LogDev, "Finish SpawnDefaultPawnFor!");
 
-	static bool bFirst = Fortnite_Version == 11.31 || Fortnite_Version == 15.10;
-
-	if (bFirst)
-	{
-		bFirst = false;
-		// Calendar::EnableFog();
-		Calendar::SetSnow(100);
-		// Calendar::EnableFog();
-	}
 	return NewPawn;
 }
