@@ -14,7 +14,7 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 	bool bFromSweep;
 	auto SweepResultPtr = (FHitResult*)std::realloc(0, FHitResult::GetStructSize());
 
-	// LOG_INFO(LogDev, "OnCapsuleBeginOverlapHook!");
+	LOG_INFO(LogDev, "OnCapsuleBeginOverlapHook!");
 
 	Stack->StepCompiledIn(&OverlappedComp);
 	Stack->StepCompiledIn(&OtherActor);
@@ -27,82 +27,29 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 
 	// LOG_INFO(LogDev, "OtherActor: {}", __int64(OtherActor));
 	// LOG_INFO(LogDev, "OtherActorName: {}", OtherActor->IsValidLowLevel() ? OtherActor->GetName() : "BadRead")
-
-	if (auto Pickup = Cast<AFortPickup>(OtherActor))
+	
+	if (!Pawn->IsDBNO())
 	{
-		static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
-
-		if (Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) != Pawn)
+		if (auto Pickup = Cast<AFortPickup>(OtherActor))
 		{
-			auto ItemDefinition = Pickup->GetPrimaryPickupItemEntry()->GetItemDefinition();
+			static auto PawnWhoDroppedPickupOffset = Pickup->GetOffset("PawnWhoDroppedPickup");
 
-			if (!ItemDefinition)
+			if (Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset) != Pawn)
 			{
-				return;
-			}
+				auto ItemDefinition = Pickup->GetPrimaryPickupItemEntry()->GetItemDefinition();
 
-			auto PlayerController = Cast<AFortPlayerControllerAthena>(Pawn->GetController());
-
-			if (!PlayerController)
-			{
-				return;
-			}
-
-			auto WorldInventory = PlayerController->GetWorldInventory();
-
-			if (!WorldInventory)
-			{
-				return;
-			}
-
-			auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
-
-			bool  ItemDefGoingInPrimary = IsPrimaryQuickbar(ItemDefinition);
-			int   PrimarySlotsFilled = 0;
-			bool  bCanStack = false;
-			bool  bFoundStack = false;
-
-			for (int i = 0; i < ItemInstances.Num(); ++i)
-			{
-				auto ItemInstance = ItemInstances.at(i);
-
-				if (!ItemInstance)
-					continue;
-
-				auto CurrentItemDefinition = ItemInstance->GetItemEntry()->GetItemDefinition();
-
-				if (!CurrentItemDefinition)
-					continue;
-
-				if (ItemDefGoingInPrimary && IsPrimaryQuickbar(CurrentItemDefinition))
-					PrimarySlotsFilled++;
-
-				bool bIsInventoryFull = (PrimarySlotsFilled /* - 6 */) >= 5;
-
-				if (CurrentItemDefinition == ItemDefinition)
-				{
-					bFoundStack = true;
-
-					if (ItemInstance->GetItemEntry()->GetCount() < ItemDefinition->GetMaxStackSize())
-					{
-						bCanStack = true;
-						break;
-					}
-				}
-
-				if (bIsInventoryFull)
+				if (!ItemDefinition)
 				{
 					return;
 				}
+
+				if (!IsPrimaryQuickbar(ItemDefinition))
+				{
+					ServerHandlePickupHook(Pawn, Pickup, 0.4f, FVector(), true);
+				}
 			}
-
-			// std::cout << "bCanStack: " << bCanStack << '\n';
-			// std::cout << "bFoundStack: " << bFoundStack << '\n';
-
-			if (!bCanStack ? (!bFoundStack ? true : ItemDefinition->DoesAllowMultipleStacks()) : true)
-				ServerHandlePickupHook(Pawn, Pickup, 0.4f, FVector(), true);
 		}
 	}
 
-	// return OnCapsuleBeginOverlapOriginal(Context, Stack, Ret);
+	// return OnCapsuleBeginOverlapOriginal(Context, Stack, Ret); // we love explicit
 }

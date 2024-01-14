@@ -12,8 +12,8 @@ struct FAthenaMatchTeamStats
 
 	static auto GetStructSize() { return GetStruct()->GetPropertiesSize(); }
 
-	int                                                Place;                                                    // 0x0000(0x0004) (Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	int                                                TotalPlayers;                                             // 0x0004(0x0004) (Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	int Place;
+	int TotalPlayers;
 
 	int& GetPlace()
 	{
@@ -49,7 +49,7 @@ public:
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/FortniteGame.AthenaPlayerMatchReport");
+		static auto Class = FindObject<UClass>(L"/Script/FortniteGame.AthenaPlayerMatchReport");
 		return Class;
 	}
 };
