@@ -31,6 +31,24 @@ void UNetDriver::RemoveNetworkActor(AActor* Actor)
 
 void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 {
+	if (bShouldDestroyAllPlayerBuilds) // i hate this
+	{
+		auto AllBuildingSMActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuildingSMActor::StaticClass());
+
+		for (int i = 0; i < AllBuildingSMActors.Num(); i++)
+		{
+			auto CurrentBuildingSMActor = (ABuildingSMActor*)AllBuildingSMActors.at(i);
+
+			if (CurrentBuildingSMActor->IsDestroyed() || CurrentBuildingSMActor->IsActorBeingDestroyed() || !CurrentBuildingSMActor->IsPlayerPlaced()) continue;
+
+			CurrentBuildingSMActor->SilentDie();
+			// CurrentBuildingSMActor->K2_DestroyActor();
+		}
+
+		AllBuildingSMActors.Free();
+		bShouldDestroyAllPlayerBuilds = false;
+	}
+	
 	/* if (bEnableBotTick)
 	{
 		Bots::Tick();

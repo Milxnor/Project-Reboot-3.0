@@ -87,6 +87,7 @@ extern inline int AmountOfBotsToSpawn = 0;
 extern inline bool bEnableRebooting = false;
 extern inline bool bEngineDebugLogs = false;
 extern inline bool bStartedBus = false;
+extern inline bool bShouldDestroyAllPlayerBuilds = false;
 extern inline int AmountOfHealthSiphon = 0;
 
 // THE BASE CODE IS FROM IMGUI GITHUB
@@ -1080,19 +1081,7 @@ static inline void MainUI()
 
 			if (ImGui::Button("Destroy all player builds"))
 			{
-				auto AllBuildingSMActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuildingSMActor::StaticClass());
-
-				for (int i = 0; i < AllBuildingSMActors.Num(); i++)
-				{
-					auto CurrentBuildingSMActor = (ABuildingSMActor*)AllBuildingSMActors.at(i);
-
-					if (CurrentBuildingSMActor->IsDestroyed() || CurrentBuildingSMActor->IsActorBeingDestroyed() || !CurrentBuildingSMActor->IsPlayerPlaced()) continue;
-
-					CurrentBuildingSMActor->SilentDie();
-					// CurrentBuildingSMActor->K2_DestroyActor();
-				}
-
-				AllBuildingSMActors.Free();
+				bShouldDestroyAllPlayerBuilds = true;
 			}
 
 			if (ImGui::Button("Give Item to Everyone"))
