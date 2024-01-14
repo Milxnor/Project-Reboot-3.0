@@ -429,6 +429,9 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 	static auto ReceivingActorOffset = FindOffsetStruct(StructName, "ReceivingActor");
 	auto ReceivingActor = *(AActor**)(__int64(Params) + ReceivingActorOffset);
 
+	static auto InteractionBeingAttemptedOffset = FindOffsetStruct(StructName, "InteractionBeingAttempted");
+	auto InteractionBeingAttempted = *(EInteractionBeingAttempted*)(__int64(Params) + InteractionBeingAttemptedOffset);
+	
 	// LOG_INFO(LogInteraction, "ReceivingActor: {}", __int64(ReceivingActor));
 
 	if (!ReceivingActor)
@@ -549,7 +552,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 	}
 	else if (ReceivingActor->IsA(BuildingItemCollectorActorClass))
 	{
-		if (Engine_Version >= 424 && /*Fortnite_Version < 15 && */ReceivingActor->GetFullName().contains("Wumba"))
+		if (Engine_Version >= 424 && Fortnite_Version < 15 && ReceivingActor->GetFullName().contains("Wumba"))
 		{
 			bool bIsSidegrading = InteractionBeingAttempted == EInteractionBeingAttempted::SecondInteraction ? true : false;
 	
