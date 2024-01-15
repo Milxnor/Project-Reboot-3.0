@@ -756,6 +756,42 @@ static inline void StartEvent()
 		auto SpecialEventScriptMeshActorClass = FindObject<UClass>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor");
 		auto AllSpecialEventScriptMeshActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpecialEventScriptMeshActorClass);
 
+		if (Fortnite_Version == 17.50)
+		{
+			auto Scripting = FindObject<UObject>("/Kiwi/Levels/Kiwi_P.Kiwi_P:PersistentLevel.BP_Kiwi_Master_Scripting_2");
+
+			float SecondsSinceEventBegan = 0;
+
+			auto EventPlaylist = GetEventPlaylist();
+
+			struct { UObject* GameState; UObject* Playlist; FGameplayTagContainer PlaylistContextTags; } OnReadyParams{ Cast<AFortGameStateAthena>(GetWorld()->GetGameState()), EventPlaylist };
+			if (EventPlaylist)
+			{
+				static auto GameplayTagContainerOffset = EventPlaylist->GetOffset("GameplayTagContainer");
+				OnReadyParams.PlaylistContextTags = EventPlaylist->Get<FGameplayTagContainer>(GameplayTagContainerOffset);
+			}
+			else
+			{
+				OnReadyParams.PlaylistContextTags = FGameplayTagContainer();
+			}
+			auto BB = FindObject<UFunction>("/Kiwi/Gameplay/BP_Kiwi_Master_Scripting.BP_Kiwi_Master_Scripting_C.OnReady_F1A32853487CB7603278E6847A5F2625");
+			Scripting->ProcessEvent(BB, &OnReadyParams);
+
+			auto eventscript = FindObject("/Kiwi/Levels/Kiwi_P.Kiwi_P:PersistentLevel.Kiwi_EventScript_2");
+			auto CC = FindObject<UFunction>("/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C.OnReady_F51BF8E143832CE6C552938B26BEFA93");
+			auto DD = FindObject<UFunction>("/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C.LoadKiwiAssets");
+			auto StartEventAtIndex = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScript.StartEventAtIndex");
+			auto BP_OnScriptReady = FindObject<UFunction>("/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C.BP_OnScriptReady");
+
+			// eventscript->ProcessEvent(CC, &bbparms);
+			eventscript->ProcessEvent(DD, &OnReadyParams);
+			eventscript->ProcessEvent(BP_OnScriptReady, &OnReadyParams);
+			eventscript->ProcessEvent(StartEventAtIndex, &SecondsSinceEventBegan);
+
+			static auto StartEvent = FindObject<UFunction>("/Kiwi/Gameplay/BP_Kiwi_Master_Scripting.BP_Kiwi_Master_Scripting_C.startevent");
+			Scripting->ProcessEvent(StartEvent, &SecondsSinceEventBegan);
+		}
+
 		if (AllSpecialEventScriptMeshActors.Num() > 0)
 		{
 			auto SpecialEventScriptMeshActor = AllSpecialEventScriptMeshActors.at(0);

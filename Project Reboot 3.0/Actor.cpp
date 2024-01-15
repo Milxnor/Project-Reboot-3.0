@@ -205,6 +205,28 @@ bool AActor::IsPendingKillPending()
 	return IsActorBeingDestroyed() || !IsValidChecked(this);
 }
 
+UObject* AActor::AddComponentByClass(UClass* Class)
+{
+	struct
+	{
+		UClass* Class;
+		bool bManualAttachment;
+		FTransform RelativeTransform;
+		bool bDeferredFinish;
+		UObject* ReturnValue;
+	} params;
+	params.Class = Class;
+	params.bManualAttachment = false;
+	params.RelativeTransform = FTransform();
+	params.bDeferredFinish = true;
+
+	static UFunction* AddComp = FindObject<UFunction>("/Script/Engine.Actor:AddComponentByClass");
+
+	this->ProcessEvent(AddComp, &params);
+
+	return params.ReturnValue;
+}
+
 float& AActor::GetNetUpdateFrequency()
 {
 	static auto NetUpdateFrequencyOffset = GetOffset("NetUpdateFrequency");
