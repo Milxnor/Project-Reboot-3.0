@@ -261,9 +261,9 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		// NewPlayerAsAthena->RespawnPlayerAfterDeath(true);
 	}
 
-        static bool bFirst = true;
+    static bool bFirst = true;
 
-	if (bFirst)
+	if (bFirst && Calendar::HasSnowModification())
 	{
 		bFirst = false;
 		Calendar::SetSnow(100);

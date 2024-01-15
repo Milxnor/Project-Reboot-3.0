@@ -42,21 +42,23 @@
 #include "BGA.h"
 #include "vendingmachine.h"
 #include "die.h"
+#include "calendar.h"
 
 #define GAME_TAB 1
 #define PLAYERS_TAB 2
 #define GAMEMODE_TAB 3
 #define THANOS_TAB 4
 #define EVENT_TAB 5
-#define ZONE_TAB 6
-#define DUMP_TAB 7
-#define UNBAN_TAB 8
-#define FUN_TAB 9
-#define LATEGAME_TAB 10
-#define DEVELOPER_TAB 11
-#define DEBUGLOG_TAB 12
-#define SETTINGS_TAB 13
-#define CREDITS_TAB 14
+#define CALENDAR_TAB 6
+#define ZONE_TAB 7
+#define DUMP_TAB 8
+#define UNBAN_TAB 9
+#define FUN_TAB 10
+#define LATEGAME_TAB 11
+#define DEVELOPER_TAB 12
+#define DEBUGLOG_TAB 13
+#define SETTINGS_TAB 14
+#define CREDITS_TAB 15
 
 #define MAIN_PLAYERTAB 1
 #define INVENTORY_PLAYERTAB 2
@@ -374,6 +376,14 @@ static inline void MainTabs()
 				bInformationTab = false;
 				ImGui::EndTabItem();
 			}
+		}
+
+		if (ImGui::BeginTabItem("Calendar Events"))
+		{
+			Tab = CALENDAR_TAB;
+			PlayerTab = -1;
+			bInformationTab = false;
+			ImGui::EndTabItem();
 		}
 
 		if (ImGui::BeginTabItem(("Zone")))
@@ -906,6 +916,60 @@ static inline void MainUI()
 
 						static auto PillarsConcludedFn = FindObject<UFunction>(L"/Game/Athena/Prototype/Blueprints/White/BP_SnowScripting.BP_SnowScripting_C.PillarsConcluded");
 						EventScripting->ProcessEvent(PillarsConcludedFn, &Name);
+					}
+				}
+			}
+		}
+
+		else if (Tab == CALENDAR_TAB)
+		{
+			if (Calendar::HasSnowModification())
+			{
+				static bool bFirst = false;
+
+				static float FullSnowValue = Calendar::GetFullSnowMapValue();
+				static float NoSnowValue = 0.0f;
+				static float SnowValue = 0.0f;
+
+				ImGui::SliderFloat(("Snow Level"), &SnowValue, 0, FullSnowValue);
+
+				if (ImGui::Button("Set Snow Level"))
+				{
+					Calendar::SetSnow(SnowValue);
+				}
+
+				if (ImGui::Button("Toggle Full Snow Map"))
+				{
+					bFirst ? Calendar::SetSnow(NoSnowValue) : Calendar::SetSnow(FullSnowValue);
+
+					bFirst = !bFirst;
+				}
+			}
+
+			if (Calendar::HasNYE())
+			{
+				if (ImGui::Button("Start New Years Eve Event"))
+				{
+					Calendar::StartNYE();
+				}
+			}
+
+			if (std::floor(Fortnite_Version) == 13)
+			{
+				static UObject* WL = FindObject("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Apollo_WaterSetup_2");
+
+				if (WL)
+				{
+					static auto MaxWaterLevelOffset = WL->GetOffset("MaxWaterLevel");
+
+					static int MaxWaterLevel = WL->Get<int>(MaxWaterLevelOffset);
+					static int WaterLevel = 0;
+
+					ImGui::SliderInt("WaterLevel", &WaterLevel, 0, MaxWaterLevel);
+
+					if (ImGui::Button("Set Water Level"))
+					{
+						Calendar::SetWaterLevel(WaterLevel);
 					}
 				}
 			}
