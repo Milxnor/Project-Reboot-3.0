@@ -1346,6 +1346,18 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		DeathCause = ToDeathCause(Tags, false, DeadPawn); // DeadPawn->IsDBNO() ??
 
+		FGameplayTagContainer CopyTags;
+
+		for (int i = 0; i < Tags.GameplayTags.Num(); ++i)
+		{
+			CopyTags.GameplayTags.Add(Tags.GameplayTags.at(i));
+		}
+
+		for (int i = 0; i < Tags.ParentTags.Num(); ++i)
+		{
+			CopyTags.ParentTags.Add(Tags.ParentTags.at(i));
+		}
+
 		LOG_INFO(LogDev, "DeathCause: {}", (int)DeathCause);
 		LOG_INFO(LogDev, "DeadPawn->IsDBNO(): {}", DeadPawn->IsDBNO());
 		LOG_INFO(LogDev, "KillerPlayerState: {}", __int64(KillerPlayerState));
@@ -1358,7 +1370,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			*(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) = DeathLocation;
 
 		if (MemberOffsets::DeathInfo::DeathTags != -1)
-			*(FGameplayTagContainer*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathTags) = Tags;
+			*(FGameplayTagContainer*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathTags) = CopyTags;
 
 		if (MemberOffsets::DeathInfo::bInitialized != -1)
 			*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bInitialized) = true;
