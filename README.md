@@ -1,6 +1,6 @@
 # Project Reboot 3.0
 
-I have quit the community and the project is discontinued 😢.
+I update this when I feel bored but atleast I still do!
 
 S3-S15 (S16-S19 is slightly supported)
 
@@ -8,4 +8,7 @@ S3-S15 (S16-S19 is slightly supported)
 
 - Rewrite picking up code.
 - Rewrite dllmain
-- Move hooking to each class (for example, AFortGameModeAthena::InitHooks).
+- Move hooking to each class
+
+- Marvelco was here
+
