@@ -48,6 +48,7 @@ public:
 	void ForceNetUpdate();
 	bool IsNetStartupActor();
 	bool IsPendingKillPending();
+	UObject* AddComponentByClass(UClass* Class);
 	float& GetNetUpdateFrequency();
 	float& GetMinNetUpdateFrequency();
 	const AActor* GetNetOwner() const;

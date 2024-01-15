@@ -159,7 +159,20 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 				auto& StartingItems = ((AFortGameModeAthena*)GameMode)->GetStartingItems();
 
-				NewPlayerAsAthena->AddPickaxeToInventory();
+				if (Globals::bGoingToPlayEvent && Fortnite_Version >= 16.00)
+				{
+					auto WID = Cast<UFortWorldItemDefinition>(FindObject("WID_EventMode_Activator", nullptr, ANY_PACKAGE)); // Empty Hands
+
+					bool bShouldUpdate = false;
+					WorldInventory->AddItem(WID, &bShouldUpdate, 1);
+
+					if (bShouldUpdate)
+						WorldInventory->Update();
+				}
+				else
+				{
+					NewPlayerAsAthena->AddPickaxeToInventory();
+				}
 
 				for (int i = 0; i < StartingItems.Num(); ++i)
 				{
