@@ -66,7 +66,8 @@ static inline void ServerVehicleUpdate(UObject* Context, FFrame& Stack, void* Re
 
 	static auto K2_SetWorldTransformFn = FindObject<UFunction>(L"/Script/Engine.SceneComponent.K2_SetWorldTransform");
 	static auto SetPhysicsLinearVelocityFn = FindObject<UFunction>(L"/Script/Engine.PrimitiveComponent.SetPhysicsLinearVelocity");
-	static auto SetPhysicsAngularVelocityFn = FindObject<UFunction>(L"/Script/Engine.PrimitiveComponent.SetPhysicsAngularVelocity");
+	static auto SetPhysicsAngularVelocityFn = FindObject<UFunction>(L"/Script/Engine.PrimitiveComponent.SetPhysicsAngularVelocity") ? FindObject<UFunction>(L"/Script/Engine.PrimitiveComponent.SetPhysicsAngularVelocity") :
+		FindObject<UFunction>(L"/Script/Engine.PrimitiveComponent.SetPhysicsAngularVelocityInDegrees");
 	static auto LinearVelocityOffset = FindOffsetStruct(StateStructName, "LinearVelocity");
 	static auto AngularVelocityOffset = FindOffsetStruct(StateStructName, "AngularVelocity");
 	static auto K2_SetWorldTransformParamSize = K2_SetWorldTransformFn->GetPropertiesSize();
