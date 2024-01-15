@@ -97,7 +97,7 @@ public:
 		return ReadBitfieldValue(bIgnoreRespawningForDroppingAsPickupOffset, bIgnoreRespawningForDroppingAsPickupFieldMask);
 	}
 
-	bool ShouldPersistWhenFinalStackEmpty()
+	bool ShouldPersistWhenFinalStackEmpty() // Used for Batman Grapnel
 	{
 		static auto bPersistInInventoryWhenFinalStackEmptyOffset = GetOffset("bPersistInInventoryWhenFinalStackEmpty", false);
 

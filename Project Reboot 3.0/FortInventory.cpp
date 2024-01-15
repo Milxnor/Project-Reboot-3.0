@@ -276,11 +276,12 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 	auto& ItemInstances = GetItemList().GetItemInstances();
 	auto& ReplicatedEntries = GetItemList().GetReplicatedEntries();
 
+	auto OldItemCount = ReplicatedEntry->GetCount();
 	auto NewCount = ReplicatedEntry->GetCount() - Count;
 
 	bool bOverrideChangeStackSize = false;
 
-	if (!bIgnoreVariables && ItemDefinition->ShouldPersistWhenFinalStackEmpty())
+	if (!bIgnoreVariables && ItemDefinition->ShouldPersistWhenFinalStackEmpty()) // idk this whole branch is brain damage and definitely doesnt work as intended
 	{
 		bool bIsFinalStack = true;
 
@@ -297,8 +298,10 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 
 		if (bIsFinalStack)
 		{
-			NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot
-			bOverrideChangeStackSize = true;
+			NewCount = NewCount < 0 ? 0 : NewCount; // min(NewCount, 0) or something i forgot // hm?
+			
+			if (OldItemCount == 0) // hm?
+				bOverrideChangeStackSize = true;
 		}
 	}
 
