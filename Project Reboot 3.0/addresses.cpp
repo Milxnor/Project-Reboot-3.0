@@ -324,6 +324,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
+#define PRINT_CRITICAL_OFFSET(offset) if (!offset) LOG_ERROR(LogDev, "Failed to find {}", #offset) \
+	else LOG_INFO(LogDev, "{}: 0x{:x}", #offset, offset - __int64(GetModuleHandleW(0)));
+
 void Addresses::Print()
 {
 	auto Base = __int64(GetModuleHandleW(0));
@@ -382,7 +385,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "ApplyCharacterCustomization: 0x{:x}", ApplyCharacterCustomization - Base);
 	LOG_INFO(LogDev, "EnterAircraft: 0x{:x}", EnterAircraft - Base);
 	LOG_INFO(LogDev, "SetTimer: 0x{:x}", SetTimer - Base);
-	LOG_INFO(LogDev, "PickupInitialize: 0x{:x}", PickupInitialize - Base);
+	PRINT_CRITICAL_OFFSET(PickupInitialize);
 	LOG_INFO(LogDev, "FreeEntry: 0x{:x}", FreeEntry - Base);
 	LOG_INFO(LogDev, "FreeArrayOfEntries: 0x{:x}", FreeArrayOfEntries - Base);
 	LOG_INFO(LogDev, "UpdateTrackedAttributesLea: 0x{:x}", UpdateTrackedAttributesLea - Base);
