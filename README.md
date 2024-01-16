@@ -10,5 +10,5 @@ S3-S15 (S16-S19 is slightly supported)
 - Rewrite dllmain
 - Move hooking to each class
 
-- Marvelco was here
+
 
