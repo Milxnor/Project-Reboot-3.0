@@ -334,6 +334,13 @@ void AFortPlayerControllerAthena::ServerRestartPlayerHook(AFortPlayerControllerA
 	static auto ZoneServerRestartPlayer = __int64(FortPlayerControllerZoneDefault->VFTable[GetFunctionIdxOrPtr(ServerRestartPlayerFn) / 8]);
 	static void (*ZoneServerRestartPlayerOriginal)(AFortPlayerController*) = decltype(ZoneServerRestartPlayerOriginal)(__int64(ZoneServerRestartPlayer));
 	
+	// auto NAME_Spectating = UKismetStringLibrary::Conv_StringToName(L"NAME_Spectating");
+
+	// LOG_INFO(LogDev, "ISplayerwaiting: {}", Controller->IsPlayerWaiting());
+
+	// Controller->GetStateName() = NAME_Spectating;
+	// Controller->SetPlayerIsWaiting(true);
+
 	LOG_INFO(LogDev, "ServerRestartPlayerHook Call 0x{:x} returning with 0x{:x}!", ZoneServerRestartPlayer - __int64(_ReturnAddress()), __int64(ZoneServerRestartPlayerOriginal) - __int64(GetModuleHandleW(0)));
 	return ZoneServerRestartPlayerOriginal(Controller);
 }

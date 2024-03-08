@@ -499,54 +499,30 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		if (!WorldInventory)
 			return;
 
-		auto NewAndModifiedInstances = WorldInventory->AddItem(VehicleWeaponDefinition, nullptr);
+		auto NewAndModifiedInstances = WorldInventory->AddItem(VehicleWeaponDefinition, nullptr, 1, 9999);
+
 		auto NewVehicleInstance = NewAndModifiedInstances.first[0];
 
 		if (!NewVehicleInstance)
 			return;
 
-		WorldInventory->Update();
+		static auto FortItemEntrySize = FFortItemEntry::GetStructSize();
 
-		auto VehicleWeapon = Pawn->EquipWeaponDefinition(VehicleWeaponDefinition, NewVehicleInstance->GetItemEntry()->GetItemGuid());
-		// PlayerController->ServerExecuteInventoryItemHook(PlayerController, newitem->GetItemEntry()->GetItemGuid());
+		auto& ReplicatedEntries = WorldInventory->GetItemList().GetReplicatedEntries();
 
-		/* static auto GetSeatWeaponComponentFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.GetSeatWeaponComponent");
-
-		if (GetSeatWeaponComponentFn)
+		for (int i = 0; i < ReplicatedEntries.Num(); i++)
 		{
-			struct { int SeatIndex; UObject* ReturnValue; } AFortAthenaVehicle_GetSeatWeaponComponent_Params{};
+			auto ReplicatedEntry = ReplicatedEntries.AtPtr(i, FortItemEntrySize);
 
-			Vehicle->ProcessEvent(GetSeatWeaponComponentFn, &AFortAthenaVehicle_GetSeatWeaponComponent_Params);
-
-			UObject* WeaponComponent = AFortAthenaVehicle_GetSeatWeaponComponent_Params.ReturnValue;
-
-			if (!WeaponComponent)
-				return;
-
-			static auto WeaponSeatDefinitionStructSize = FindObject<UClass>("/Script/FortniteGame.WeaponSeatDefinition")->GetPropertiesSize();
-			static auto VehicleWeaponOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "VehicleWeapon");
-			static auto SeatIndexOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "SeatIndex");
-			static auto WeaponSeatDefinitionsOffset = WeaponComponent->GetOffset("WeaponSeatDefinitions");
-			auto& WeaponSeatDefinitions = WeaponComponent->Get<TArray<__int64>>(WeaponSeatDefinitionsOffset);
-
-			for (int i = 0; i < WeaponSeatDefinitions.Num(); ++i)
+			if (ReplicatedEntry->GetItemGuid() == NewVehicleInstance->GetItemEntry()->GetItemGuid())
 			{
-				auto WeaponSeat = WeaponSeatDefinitions.AtPtr(i, WeaponSeatDefinitionStructSize);
+				WorldInventory->GetItemList().MarkItemDirty(ReplicatedEntry);
+				WorldInventory->GetItemList().MarkItemDirty(NewVehicleInstance->GetItemEntry());
+				WorldInventory->HandleInventoryLocalUpdate();
 
-				if (*(int*)(__int64(WeaponSeat) + SeatIndexOffset) != Vehicle->FindSeatIndex(Pawn))
-					continue;
-
-				auto VehicleGrantedWeaponItem = (TWeakObjectPtr<UFortItem>*)(__int64(WeaponSeat) + 0x20);
-
-				VehicleGrantedWeaponItem->ObjectIndex = NewVehicleInstance->InternalIndex;
-				VehicleGrantedWeaponItem->ObjectSerialNumber = GetItemByIndex(NewVehicleInstance->InternalIndex)->SerialNumber;
-
-				static auto bWeaponEquippedOffset = WeaponComponent->GetOffset("bWeaponEquipped");
-				WeaponComponent->Get<bool>(bWeaponEquippedOffset) = true;
-
-				break;
+				PlayerController->ServerExecuteInventoryItemHook(PlayerController, NewVehicleInstance->GetItemEntry()->GetItemGuid());
 			}
-		} */
+		}
 
 		return;
 	}
@@ -776,7 +752,7 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	{
 		if (false)
 		{
-			// honestly idk why this doesnt work
+			// honestly idk why this doesnt work ( ithink its suppsoed to be spectator)
 
 			auto NAME_Inactive = UKismetStringLibrary::Conv_StringToName(L"NAME_Inactive");
 

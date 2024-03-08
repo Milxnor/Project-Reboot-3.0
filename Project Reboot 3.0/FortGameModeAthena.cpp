@@ -65,6 +65,8 @@ static UFortPlaylistAthena* GetPlaylistToUse()
 	if (Globals::bCreative)
 		Playlist = FindObject<UFortPlaylistAthena>(L"/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
+	// Playlist = FindObject<UFortPlaylistAthena>(L"/Game/Athena/Playlists/Respawn/Variants/Respawn_Vamp/Playlist_Respawn_Vamp_Solo.Playlist_Respawn_Vamp_Solo");
+
 	return Playlist;
 }
 

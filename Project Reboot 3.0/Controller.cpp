@@ -15,3 +15,9 @@ void AController::Possess(class APawn* Pawn)
 	auto PossessFn = FindFunction("Possess");
 	this->ProcessEvent(PossessFn, &Pawn);
 }
+
+void AController::UnPossess()
+{
+	auto UnPossessFn = FindFunction("UnPossess");
+	this->ProcessEvent(UnPossessFn);
+}

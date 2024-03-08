@@ -79,6 +79,7 @@ static ENetMode GetNetModeHook2() { return NetMode; }
 static bool ReturnTrueHook() { return true; }
 static bool ReturnFalseHook() { return false; }
 static int Return2Hook() { return 2; }
+static void EmptyHook() { return; }
 
 static bool NoMCPHook() { return Globals::bNoMCP; }
 static void CollectGarbageHook() { return; }
@@ -305,7 +306,7 @@ void ActivatePhaseAtIndexHook(UObject* SpecialEventScript, int Index)
                         auto WorldInventory = CurrentController->GetWorldInventory();
 
                         bool bShouldUpdate = false;
-                        WorldInventory->AddItem(WID, &bShouldUpdate, 1);
+                        WorldInventory->AddItem(WID, &bShouldUpdate, 1, 9999);
 
                         if (bShouldUpdate)
                             WorldInventory->Update();
@@ -808,6 +809,8 @@ DWORD WINAPI Main(LPVOID)
 
     if (Fortnite_Version == 17.30) // Rift Tour stuff
     {
+        auto busCrash = Hooking::MinHook::Hook(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 54 41 56 41 57 48 83 EC 40 48 8B 59 28 45 33 E4").GetAs<PVOID>(), (PVOID)EmptyHook);
+
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D158  
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DECFC8), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556CFC8
