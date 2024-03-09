@@ -110,6 +110,11 @@ static inline void SetIsLategame(bool Value)
 	StartingShield = Value ? 100 : 0;
 }
 
+static inline bool HasAnyCalendarModification()
+{
+	return Calendar::HasSnowModification() || Calendar::HasNYE() || std::floor(Fortnite_Version) == 13;
+}
+
 static inline void Restart() // todo move?
 {
 	FString LevelA = Engine_Version < 424
@@ -378,7 +383,7 @@ static inline void MainTabs()
 			}
 		}
 
-		if (ImGui::BeginTabItem("Calendar Events"))
+		if (HasAnyCalendarModification() && ImGui::BeginTabItem("Calendar Events"))
 		{
 			Tab = CALENDAR_TAB;
 			PlayerTab = -1;
