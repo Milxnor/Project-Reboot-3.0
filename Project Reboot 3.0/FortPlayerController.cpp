@@ -1694,8 +1694,7 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (!EditTool)
 		return;
 
-	EditTool->GetEditActor() = BuildingActorToEdit;
-	EditTool->OnRep_EditActor();
+	EditTool->SetEditActor(BuildingActorToEdit);
 }
 
 void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret)
@@ -1762,21 +1761,17 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (!WorldInventory)
 		return;
 
+	BuildingActorToStopEditing->SetEditingPlayer(nullptr);
+
 	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
 
 	if (!EditToolInstance)
 		return;
 
-	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
+	// Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid()); // ERM
 
-	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
-
-	BuildingActorToStopEditing->GetEditingPlayer() = nullptr;
-	// BuildingActorToStopEditing->OnRep_EditingPlayer();
-
-	if (EditTool)
+	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon()))
 	{
-		EditTool->GetEditActor() = nullptr;
-		EditTool->OnRep_EditActor();
+		EditTool->SetEditActor(nullptr);
 	}
 }
