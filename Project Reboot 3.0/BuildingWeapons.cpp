@@ -4,7 +4,7 @@
 
 void AFortWeap_EditingTool::OnRep_EditActor()
 {
-	static auto OnRep_EditActorFn = FindObject<UFunction>("/Script/FortniteGame.FortWeap_EditingTool.OnRep_EditActor");
+	static auto OnRep_EditActorFn = FindObject<UFunction>(L"/Script/FortniteGame.FortWeap_EditingTool.OnRep_EditActor");
 	this->ProcessEvent(OnRep_EditActorFn);
 }
 

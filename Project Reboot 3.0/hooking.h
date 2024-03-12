@@ -253,7 +253,9 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function, bool bBreakWhenHitRet = 
         {
             // LOG_INFO(LogDev, "[{}] 0x{:x}", i, *(uint8_t*)CurrentAddy);
 
-            if (*(uint8_t*)CurrentAddy == 0xE8)
+            if (*(uint8_t*)CurrentAddy == 0xE8 
+                // || *(uint8_t*)CurrentAddy == 0xE9
+                )
             {
                 // LOG_INFO(LogDev, "CurrentAddy 0x{:x}", CurrentAddy - __int64(GetModuleHandleW(0)));
                 functionAddy = (CurrentAddy + 1 + 4) + *(int*)(CurrentAddy + 1);

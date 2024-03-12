@@ -71,5 +71,11 @@ public:
 		return Get<TArray<AActor*>>(SentTemporariesOffset);
 	}
 
+	UObject*& GetPackageMap()
+	{
+		static auto PackageMapOffset = GetOffset("PackageMap");
+		return Get<UObject*>(PackageMapOffset);
+	}
+
 	bool ClientHasInitializedLevelFor(const AActor* TestActor) const;
 };

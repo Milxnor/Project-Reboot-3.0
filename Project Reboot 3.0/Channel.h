@@ -23,5 +23,11 @@ public:
 		return ((PlaceholderBitfield*)(__int64(this) + BitfieldOffset))->Third;
 	}
 
+	class UNetConnection*& GetConnection()
+	{
+		static auto ConnectionOffset = GetOffset("Connection");
+		return *(UNetConnection**)(__int64(this) + ConnectionOffset);
+	}
+
 	int32 IsNetReady(bool Saturate);
 };

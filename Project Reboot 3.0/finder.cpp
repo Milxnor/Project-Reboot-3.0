@@ -58,7 +58,7 @@ uint64 FindGIsClient()
 		// {0x44, 0x88} // IDK WHAT VERSION This for but it scuffs older builds
 	};
 
-	int Skip = Engine_Version <= 420 ? 1 : 2; // Skip GIsServer and some variable i forgot
+	int Skip = 2; // Skip GIsServer and some variable i forgot
 
 	uint64 Addy;
 
