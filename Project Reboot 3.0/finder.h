@@ -1760,18 +1760,15 @@ static inline uint64 FindReplaceBuildingActor()
 
 static inline uint64 FindSendClientAdjustment()
 {
-	if (Fortnite_Version <= 3.2)
-		return Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 99 ? ? ? ? 48 39 99 ? ? ? ? 74 0A 48 83 B9").Get();
-	if (Fortnite_Version >= 20)
-		return Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 99 ? ? ? ? 48 39 99 ? ? ? ? 74 0A 48 83 B9").Get();
-
-	return 0;
+	return Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 99 ? ? ? ? 48 39 99 ? ? ? ? 74 0A 48 83 B9", false).Get();
 }
 
 static inline uint64 FindReplicateActor()
 {
 	if (Engine_Version == 416)
 		return Memcury::Scanner::FindPattern("40 55 53 57 41 56 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8D 59 68 4C 8B F1 48 8B").Get();
+	if (Fortnite_Version == 3.3)
+		return Memcury::Scanner::FindPattern("48 8B C4 55 53 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 0F 29 70 A8 0F 29 78 98 48 89 70 E8 4C").Get();
 	if (Engine_Version >= 419 && Fortnite_Version <= 3.2)
 	{
 		auto addr = Memcury::Scanner::FindPattern("40 55 56 57 41 54 41 55 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 4C", false).Get(); // 3.0, we could just use this sig for everything?
@@ -1790,7 +1787,7 @@ static inline uint64 FindReplicateActor()
 
 static inline uint64 FindCreateChannel()
 {
-	if (Fortnite_Version <= 3.2)
+	if (Fortnite_Version <= 3.3)
 		return Memcury::Scanner::FindPattern("40 56 57 41 54 41 55 41 57 48 83 EC 60 48 8B 01 41 8B F9 45 0F B6 E0").Get();
 	if (Fortnite_Version >= 20)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 44 89 4C 24 ? 55 57 41 54 41 56 41 57 48 8B EC 48 83 EC 50 45 33 E4 48 8D 05 ? ? ? ? 44 38 25").Get();
@@ -1800,14 +1797,19 @@ static inline uint64 FindCreateChannel()
 
 static inline uint64 FindSetChannelActor()
 {
+	// string ref??
+
 	if (Engine_Version == 416)
 		return Memcury::Scanner::FindPattern("4C 8B DC 55 53 57 41 54 49 8D AB ? ? ? ? 48 81 EC ? ? ? ? 45 33").Get();
-	if (Engine_Version >= 419 && Fortnite_Version <= 3.2)
+	if (Engine_Version >= 419 && Fortnite_Version <= 3.3)
 	{
+		if (Fortnite_Version == 3.3)
+			return Memcury::Scanner::FindPattern("48 8B C4 55 53 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 89 70 10 48 8B D9 48 89 78 18 48 8D 35").Get();
+
 		auto aa = Memcury::Scanner::FindPattern("48 8B C4 55 53 57 41 54 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 45 33 E4 48 89 70", false).Get();
 
 		if (!aa)
-			return Memcury::Scanner::FindPattern("48 8B C4 55 53 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 89 70 E8 48 8B D9").Get();
+			return Memcury::Scanner::FindPattern("48 8B C4 55 53 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 89 70 E8 48 8B D9").Get(); // 3.2
 		
 		return aa;
 	}
@@ -1823,7 +1825,7 @@ static inline uint64 FindCallPreReplication()
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 8B C4 55 57 41 57 48 8D 68 A1 48 81 EC").Get();
 	if (Engine_Version == 419)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 8B C4 55 57 41 54 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C").Get();
-	if (Fortnite_Version >= 2.5 && Fortnite_Version <= 3.2)
+	if (Fortnite_Version >= 2.5 && Fortnite_Version <= 3.3)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 56 41 56 48 83 EC 38 4C 8B F2").Get();
 	if (Fortnite_Version >= 20)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 56 41 57 48 83 EC 40 F6 41 58 30 48 8B EA 48 8B D9 40 B6 01").Get();

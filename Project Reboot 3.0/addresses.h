@@ -95,7 +95,7 @@ namespace Offsets
 	extern inline uint64 SuperStruct = 0;
 	extern inline uint64 Offset_Internal = 0;
 	extern inline uint64 ServerReplicateActors = 0;
-	extern inline uint64 ReplicationFrame = 0;
+	extern inline uint64 ReplicationFrame = 0; // Attempt to replicate function '%s' on Actor '%s' while it is in the middle of variable replication!
 	extern inline uint64 IsNetRelevantFor = 0;
 	extern inline uint64 NetworkObjectList = 0;
 	extern inline uint64 ClientWorldPackageName = 0;

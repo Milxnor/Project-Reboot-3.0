@@ -201,10 +201,10 @@ public:
 			this->ProcessEvent(ClientClearDeathNotificationFn);
 	}
 
-	UAthenaPlayerMatchReport*& GetMatchReport()
+	UAthenaPlayerMatchReport** GetMatchReport()
 	{
-		static auto MatchReportOffset = GetOffset("MatchReport");
-		return Get<UAthenaPlayerMatchReport*>(MatchReportOffset);
+		static auto MatchReportOffset = GetOffset("MatchReport", false);
+		return MatchReportOffset == -1 ? nullptr : GetPtr<UAthenaPlayerMatchReport*>(MatchReportOffset);
 	}
 
 	void ClientSendTeamStatsForPlayer(FAthenaMatchTeamStats* TeamStats)

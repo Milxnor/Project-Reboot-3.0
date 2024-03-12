@@ -471,10 +471,24 @@ void Offsets::FindAll()
 		Offsets::NetworkObjectList = 0x4F0;
 		Offsets::ReplicationFrame = 0x328;
 	}
-	if (Fortnite_Version == 3.1 || Fortnite_Version == 3.2)
+	if (Fortnite_Version == 3.1)
 	{
 		Offsets::NetworkObjectList = 0x4F8;
 		Offsets::ClientWorldPackageName = 0x1818;
+	}
+	if (Fortnite_Version == 3.2)
+	{
+		Offsets::NetworkObjectList = 0x4F8;
+		Offsets::ClientWorldPackageName = 0x1820;
+	}
+	if (Fortnite_Version == 3.2 || Fortnite_Version == 3.3)
+	{
+		Offsets::ReplicationFrame = 0x330;
+	}
+	if (Fortnite_Version == 3.3)
+	{
+		Offsets::NetworkObjectList = 0x508;
+		Offsets::ClientWorldPackageName = 0x1828;
 	}
 	if (Engine_Version == 419) // checked 2.4.2 & 2.2 & 1.11
 	{

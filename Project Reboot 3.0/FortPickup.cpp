@@ -26,7 +26,15 @@ void AFortPickup::SpawnMovementComponent()
 	static auto ProjectileMovementComponentClass = FindObject<UClass>("/Script/Engine.ProjectileMovementComponent"); // UFortProjectileMovementComponent
 
 	static auto MovementComponentOffset = this->GetOffset("MovementComponent");
-	this->Get(MovementComponentOffset) = UGameplayStatics::SpawnObject(ProjectileMovementComponentClass, this);
+	
+	if (auto NewComponent = UGameplayStatics::SpawnObject(ProjectileMovementComponentClass, this))
+	{
+		this->Get(MovementComponentOffset) = NewComponent;
+	}
+	else
+	{
+
+	}
 }
 
 AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)

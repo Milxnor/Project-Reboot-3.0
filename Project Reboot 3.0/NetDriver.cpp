@@ -56,17 +56,14 @@ void UNetDriver::TickFlushHook(UNetDriver* NetDriver)
 
 	if (Globals::bStartedListening)
 	{
-		static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver"/*, false */);
-
-		// LOG_INFO(LogDev, "ReplicationDriverOffset{}", ReplicationDriverOffset);
-
-		// if (ReplicationDriverOffset == -1)
-		if (ReplicationDriverOffset == -1 || Fortnite_Version >= 20)
+		if (!Globals::bShouldUseReplicationGraph)
 		{
 			NetDriver->ServerReplicateActors();
 		}
 		else
 		{
+			static auto ReplicationDriverOffset = NetDriver->GetOffset("ReplicationDriver"/*, false */);
+
 			if (auto ReplicationDriver = NetDriver->Get(ReplicationDriverOffset))
 			{
 				reinterpret_cast<void(*)(UObject*)>(ReplicationDriver->VFTable[Offsets::ServerReplicateActors])(ReplicationDriver);
@@ -654,6 +651,7 @@ int32 UNetDriver::ServerReplicateActors()
 
 		std::vector<FActorDestructionInfo*> DeletionEntries;
 
+#if 0
 		auto ConnectionDestroyedStartupOrDormantActors = GetDestroyedStartupOrDormantActors(Connection);
 
 		if (ConnectionDestroyedStartupOrDormantActors)
@@ -683,6 +681,7 @@ int32 UNetDriver::ServerReplicateActors()
 		}
 
 		LOG_INFO(LogDev, "DeletionEntries: {}", DeletionEntries.size());
+#endif
 
 		for (FActorDestructionInfo* DeletionEntry : DeletionEntries)
 		{
