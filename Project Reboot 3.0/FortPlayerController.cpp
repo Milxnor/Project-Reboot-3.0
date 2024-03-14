@@ -834,8 +834,8 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 {
 	auto PlayerController = (AFortPlayerController*)Context;
 
-	if (!PlayerController) // ??
-		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+	// if (!PlayerController) // ??
+		// return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 
@@ -862,7 +862,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 		bMirrored = CreateBuildingData->bMirrored;
 
 		static auto BroadcastRemoteClientInfoOffset = PlayerController->GetOffset("BroadcastRemoteClientInfo");
-		auto BroadcastRemoteClientInfo = PlayerController->Get(BroadcastRemoteClientInfoOffset);
+		UObject* BroadcastRemoteClientInfo = PlayerController->Get(BroadcastRemoteClientInfoOffset);
 
 		static auto RemoteBuildableClassOffset = BroadcastRemoteClientInfo->GetOffset("RemoteBuildableClass");
 		BuildingClass = BroadcastRemoteClientInfo->Get<UClass*>(RemoteBuildableClassOffset);
@@ -885,7 +885,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	if (!BuildingClass)
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
-	auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)GetWorld()->GetGameMode())->GetGameState());
+	auto GameState = Cast<AFortGameStateAthena>(Cast<AFortGameMode>(GetWorld()->GetGameMode(), false)->GetGameState(), false);
 
 	auto StructuralSupportSystem = GameState->GetStructuralSupportSystem();
 
@@ -1766,13 +1766,18 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 
 	AFortWeap_EditingTool* EditTool = nullptr;
 
-#if 0
+#if 1
 	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
 
 	if (!EditToolInstance)
 		return;
 
+#if 1
 	EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid())); // ERM
+#else
+	Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid())); // ERM
+	EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+#endif
 #else
 	EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
 #endif

@@ -297,7 +297,7 @@ static inline std::vector<Event> Events =
 		},
 
 		"/Junior/Blueprints/BP_Junior_Scripting.BP_Junior_Scripting_C",
-		"/Game/Athena/Playlists/Music/Playlist_Junior_32.Playlist_Junior_32",
+		"/Game/Athena/Playlists/Music/Playlist_Junior_32.Playlist_Junior_32", // ?
 		14.60
 	),
 		Event(

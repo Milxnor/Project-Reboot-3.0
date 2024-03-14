@@ -65,10 +65,13 @@ struct FActorSpawnParametersUE500
 	TFunction<void(UObject*)> CustomPreSpawnInitalization; // my favorite
 };
 
+// #define USE_VIRTUALALLOC_SPAWNPARAMS
+
 static inline void* CreateSpawnParameters(ESpawnActorCollisionHandlingMethod SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::Undefined, bool bDeferConstruction = false, UObject* Owner = nullptr)
 {
 	if (Engine_Version >= 500)
 	{
+#ifdef USE_VIRTUALALLOC_SPAWNPARAMS
 		auto addr = (FActorSpawnParametersUE500*)VirtualAlloc(0, sizeof(FActorSpawnParametersUE500), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
 		if (!addr)
@@ -78,9 +81,18 @@ static inline void* CreateSpawnParameters(ESpawnActorCollisionHandlingMethod Spa
 		addr->bDeferConstruction = bDeferConstruction;
 		addr->SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
 		return addr;
+#else
+		FActorSpawnParametersUE500 addr{};
+
+		addr.Owner = Owner;
+		addr.bDeferConstruction = bDeferConstruction;
+		addr.SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
+		return &addr;
+#endif
 	}
 	else
 	{
+#ifdef USE_VIRTUALALLOC_SPAWNPARAMS
 		auto addr = (FActorSpawnParameters*)VirtualAlloc(0, sizeof(FActorSpawnParameters), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
 		if (!addr)
@@ -90,6 +102,14 @@ static inline void* CreateSpawnParameters(ESpawnActorCollisionHandlingMethod Spa
 		addr->bDeferConstruction = bDeferConstruction;
 		addr->SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
 		return addr;
+#else
+		FActorSpawnParameters addr{};
+
+		addr.Owner = Owner;
+		addr.bDeferConstruction = bDeferConstruction;
+		addr.SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
+		return &addr;
+#endif
 	}
 
 	return nullptr;
@@ -134,12 +154,21 @@ public:
 	template <typename ActorType>
 	ActorType* SpawnActor(UClass* Class, FTransform UserTransformPtr = FTransform(), void* SpawnParameters = nullptr)
 	{
-		if (!SpawnParameters)
+		const bool bCreatedSpawnParameters = !SpawnParameters;
+
+		if (bCreatedSpawnParameters)
+		{
 			SpawnParameters = CreateSpawnParameters();
+		}
 
 		auto actor = (ActorType*)SpawnActorOriginal(this, Class, &UserTransformPtr, SpawnParameters);
 
-		VirtualFree(SpawnParameters, 0, MEM_RELEASE);
+		// if (bCreatedSpawnParameters)
+		{
+#ifdef USE_VIRTUALALLOC_SPAWNPARAMS
+			VirtualFree(SpawnParameters, 0, MEM_RELEASE);
+#endif
+		}
 
 		return actor;
 	}

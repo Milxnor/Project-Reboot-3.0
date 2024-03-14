@@ -532,7 +532,7 @@ static inline uint64 FindStepExplicitProperty()
 
 static inline uint64 FindIsNetRelevantForOffset()
 {
-	if (Engine_Version == 416) // checked on 1.7.2 & 1.8
+	if (Engine_Version == 416 || Fortnite_Version == 3.3) // checked on 1.7.2 & 1.8 & 3.3
 		return 0x420 / 8;
 	if (Fortnite_Version == 1.11 || (Fortnite_Version >= 2.42 && Fortnite_Version <= 3.2)) // checked 1.11, 2.4.2, 2.5, 3.0, 3.1
 		return 0x418 / 8;
@@ -1476,7 +1476,7 @@ static inline uint64 FindDispatchRequest()
 
 static inline uint64 FindMcpIsDedicatedServerOffset()
 {
-	if (Engine_Version == 421 || Engine_Version == 422) // checked on 5.41 & 6.21 & 7.30
+	if (Fortnite_Version >= 4.5 && Engine_Version <= 422) // checked on 4.5 & 5.41 & 6.21 & 7.30
 		return 0x28;
 
 	return 0x60; // 1.7.2 & 1.11 3.3 & & 4.1
