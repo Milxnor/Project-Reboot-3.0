@@ -253,6 +253,7 @@ public:
 
 	static void StartGhostModeHook(UObject* Context, FFrame* Stack, void* Ret); // we could native hook this but eh
 	static void EndGhostModeHook(AFortPlayerControllerAthena* PlayerController);
+	static void ServerCreativeSetFlightSpeedIndexHook(UObject* Context, FFrame* Stack);
 	static void EnterAircraftHook(UObject* PC, AActor* Aircraft);
 	static void ServerRequestSeatChangeHook(AFortPlayerControllerAthena* PlayerController, int TargetSeatIndex); // actually in zone
 	static void ServerRestartPlayerHook(AFortPlayerControllerAthena* Controller);

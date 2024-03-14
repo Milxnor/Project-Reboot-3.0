@@ -4,11 +4,6 @@
 #include "GameplayAbilitySpec.h"
 #include "AttributeSet.h"
 
-struct PadHex10 { char Pad[0x10]; };
-struct PadHex18 { char Pad[0x18]; };
-struct PadHexA8 { char Pad[0xA8]; };
-struct PadHexB0 { char Pad[0xB0]; };
-
 // using FPredictionKey = PadHex18;
 // using FGameplayEventData = PadHexA8;
 
