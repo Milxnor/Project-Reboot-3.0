@@ -986,19 +986,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "bShouldUseReplicationGraph: {}", Globals::bShouldUseReplicationGraph);
 
-		if (Fortnite_Version >= 2.42 && Fortnite_Version < 3.4)
-		{
-			static auto FortHLODSMActorClass = FindObject<UClass>("/Script/FortniteGame.FortHLODSMActor");
-			auto FortHLODSMActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortHLODSMActorClass);
-
-			for (int i = 0; i < FortHLODSMActors.Num(); ++i)
-			{
-				FortHLODSMActors.at(i)->K2_DestroyActor();
-			}
-
-			LOG_INFO(LogDev, "Destroyed HLODs!");
-		}
-
 		Globals::bStartedListening = true;
 	}
 
@@ -1169,7 +1156,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		}
 	}
 
-	LOG_INFO(LogTeams, "Spreading Teams {} Player is going on team {}/{} with {} members.", bShouldSpreadTeams, NextTeamIndex, TeamsNum, CurrentTeamMembers);
+	LOG_INFO(LogTeams, "Spreading Teams {} Player is going on team {}/{} with {} members.", bShouldSpreadTeams, NextTeamIndex - 2, TeamsNum, CurrentTeamMembers);
 
 	CurrentTeamMembers++;
 
@@ -1239,7 +1226,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
 	UObject* OverrideBattleBusSkin = nullptr;
-	UClass* OverrideSupplyDropClass = LoadObject<UClass>(L"/Game/Athena/SupplyDrops/AthenaSupplyDrop.AthenaSupplyDrop_C", BGAClass);
+	UClass* OverrideSupplyDropClass = LoadObject<UClass>(L"/Game/Athena/SupplyDrops/AthenaSupplyDrop.AthenaSupplyDrop_C", BGAClass); // wrong for some builds but its ok
 
 	if (Fortnite_Version == 1.11 || Fortnite_Version == 7.30 || Fortnite_Version == 11.31 || Fortnite_Version == 15.10 || Fortnite_Version == 19.10)
 	{

@@ -18,7 +18,7 @@ public:
 			UObject* ReplacedBuilding; // this also not on like below 18.00
 		} IBAParams{ BuildingOwner, Controller, bUsePlayerBuildAnimations, ReplacedBuilding };
 
-		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingActor.InitializeKismetSpawnedBuildingActor");
+		static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.BuildingActor.InitializeKismetSpawnedBuildingActor");
 		this->ProcessEvent(fn, &IBAParams);
 	}
 
