@@ -1460,6 +1460,7 @@ static inline DWORD WINAPI GuiThread(LPVOID)
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(hwnd))
 	{
+		LOG_ERROR(LogDev, "Failed to create D3D Device!");
 		CleanupDeviceD3D();
 		::UnregisterClass(wc.lpszClassName, wc.hInstance);
 		return 1;

@@ -1156,7 +1156,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		}
 	}
 
-	LOG_INFO(LogTeams, "Spreading Teams {} Player is going on team {}/{} with {} members.", bShouldSpreadTeams, NextTeamIndex, TeamsNum, CurrentTeamMembers);
+	LOG_INFO(LogTeams, "Spreading Teams {} Player is going on team {}/{} with {} members.", bShouldSpreadTeams, NextTeamIndex - 2, TeamsNum, CurrentTeamMembers);
 
 	CurrentTeamMembers++;
 
@@ -1226,7 +1226,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 	static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
 	UObject* OverrideBattleBusSkin = nullptr;
-	UClass* OverrideSupplyDropClass = LoadObject<UClass>(L"/Game/Athena/SupplyDrops/AthenaSupplyDrop.AthenaSupplyDrop_C", BGAClass);
+	UClass* OverrideSupplyDropClass = LoadObject<UClass>(L"/Game/Athena/SupplyDrops/AthenaSupplyDrop.AthenaSupplyDrop_C", BGAClass); // wrong for some builds but its ok
 
 	if (Fortnite_Version == 1.11 || Fortnite_Version == 7.30 || Fortnite_Version == 11.31 || Fortnite_Version == 15.10 || Fortnite_Version == 19.10)
 	{

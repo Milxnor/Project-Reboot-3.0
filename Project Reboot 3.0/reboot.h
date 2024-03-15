@@ -122,8 +122,8 @@ static inline UObject* GetLocalPlayerController()
 	return LocalPlayer->Get(PlayerControllerOffset);
 }
 
-template <typename T>
-static __forceinline T* Cast(UObject* Object, bool bCheckType = true)
+template <typename T, bool bCheckType = true>
+static __forceinline T* Cast(UObject* Object)
 {
 	if (bCheckType)
 	{

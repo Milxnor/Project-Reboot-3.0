@@ -478,7 +478,7 @@ void Offsets::FindAll()
 	}
 	if (Fortnite_Version == 3.2)
 	{
-		Offsets::NetworkObjectList = 0x4F8;
+		Offsets::NetworkObjectList = 0x500;
 		Offsets::ClientWorldPackageName = 0x1820;
 	}
 	if (Fortnite_Version == 3.2 || Fortnite_Version == 3.3)
