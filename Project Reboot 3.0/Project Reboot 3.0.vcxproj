@@ -471,6 +471,7 @@
     <ClInclude Include="Text.h" />
     <ClInclude Include="TimerManager.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="TSubclassOf.h" />
     <ClInclude Include="Tuple.h" />
     <ClInclude Include="TypeCompatibleBytes.h" />
     <ClInclude Include="TypeWrapper.h" />
