@@ -201,10 +201,10 @@ void AFortGameModeAthena::OverrideBattleBus(AFortGameStateAthena* GameState, UOb
 	static auto DefaultBattleBusOffset = GameState->GetOffset("DefaultBattleBus");
 	GameState->Get(DefaultBattleBusOffset) = OverrideBattleBusSkin;
 
-	static auto FortAthenaAircraftClass = FindObject<UClass>("/Script/FortniteGame.FortAthenaAircraft");
+	static auto FortAthenaAircraftClass = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaAircraft");
 	auto AllAircrafts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortAthenaAircraftClass);
 
-	for (int i = 0; i < AllAircrafts.Num(); i++)
+	for (int i = 0; i < AllAircrafts.Num(); ++i)
 	{
 		auto Aircraft = AllAircrafts.at(i);
 
@@ -234,10 +234,10 @@ void AFortGameModeAthena::OverrideSupplyDrop(AFortGameStateAthena* GameState, UC
 	auto MapInfo = GameState->Get<AFortAthenaMapInfo*>(MapInfoOffset);
 
 	static auto SupplyDropInfoListOffset = MapInfo->GetOffset("SupplyDropInfoList");
-	auto SupplyDropInfoList = MapInfo->Get<TArray<UFortSupplyDropInfo*>>(SupplyDropInfoListOffset);
+	auto& SupplyDropInfoList = MapInfo->Get<TArray<UFortSupplyDropInfo*>>(SupplyDropInfoListOffset);
 
-	static auto SupplyDropClassOffset = SupplyDropInfoList[0]->GetOffset("SupplyDropClass");
-	SupplyDropInfoList[0]->Get<TSubclassOf<AFortAthenaSupplyDrop*>>(SupplyDropClassOffset) = OverrideSupplyDropBusClass;
+	static auto SupplyDropClassOffset = SupplyDropInfoList.at(0)->GetOffset("SupplyDropClass");
+	SupplyDropInfoList.at(0)->Get<TSubclassOf<AFortAthenaSupplyDrop*>>(SupplyDropClassOffset) = OverrideSupplyDropBusClass;
 
 	LOG_INFO(LogGame, "Overridden SupplyDropClass: {}", OverrideSupplyDropBusClass->GetFullName());
 }
@@ -397,7 +397,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			}
 			else
 			{
-				if (Fortnite_Version >= 4)
+				if (Fortnite_Version >= 4.0) // ????
 				{
 					SetPlaylist(PlaylistToUse, true);
 
@@ -492,7 +492,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				}
 			}
 
+			LOG_INFO(LogDev, "Getting playlist!");
 			GET_PLAYLIST(GameState);
+			LOG_INFO(LogDev, "Got playlist!");
 
 			if (CurrentPlaylist)
 			{
@@ -1200,8 +1202,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	}
 
 	static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
-	static UObject* OverrideBattleBusSkin = nullptr;
-	static UClass* OverrideSupplyDropClass = LoadObject<UClass>(L"/Game/Athena/SupplyDrops/AthenaSupplyDrop.AthenaSupplyDrop_C", BGAClass);
+	UObject* OverrideBattleBusSkin = nullptr;
+	UClass* OverrideSupplyDropClass = LoadObject<UClass>(L"/Game/Athena/SupplyDrops/AthenaSupplyDrop.AthenaSupplyDrop_C", BGAClass);
 
 	if (Fortnite_Version == 1.11 || Fortnite_Version == 7.30 || Fortnite_Version == 11.31 || Fortnite_Version == 15.10 || Fortnite_Version == 19.10)
 	{

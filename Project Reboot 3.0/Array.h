@@ -413,8 +413,10 @@ public:
 		return false;
 	}
 
+	/*
 	inline InElementType& operator[](uint32 Index)
 	{
 		return Data[Index];
 	}
+	*/
 };
