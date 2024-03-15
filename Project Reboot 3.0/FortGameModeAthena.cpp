@@ -986,6 +986,19 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "bShouldUseReplicationGraph: {}", Globals::bShouldUseReplicationGraph);
 
+		if (Fortnite_Version >= 2.42 && Fortnite_Version < 3.4)
+		{
+			static auto FortHLODSMActorClass = FindObject<UClass>("/Script/FortniteGame.FortHLODSMActor");
+			auto FortHLODSMActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortHLODSMActorClass);
+
+			for (int i = 0; i < FortHLODSMActors.Num(); ++i)
+			{
+				FortHLODSMActors.at(i)->K2_DestroyActor();
+			}
+
+			LOG_INFO(LogDev, "Destroyed HLODs!");
+		}
+
 		Globals::bStartedListening = true;
 	}
 

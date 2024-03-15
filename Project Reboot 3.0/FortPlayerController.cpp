@@ -1793,7 +1793,7 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 
 	FGuid EditToolGuid = EditToolInstance->GetItemEntry()->GetItemGuid(); // Should we ref?
 
-#if 1
+#if 0
 	EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolGuid)); // ERM
 #else
 	Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolGuid)); // ERM

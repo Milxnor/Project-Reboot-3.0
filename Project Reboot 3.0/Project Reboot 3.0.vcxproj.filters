@@ -961,7 +961,8 @@
     </ClInclude>
     <ClInclude Include="TSubclassOf.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
-    <ClInclude Include="finder.h">
+	</ClInclude>
+	<ClInclude Include="finder.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
   </ItemGroup>
