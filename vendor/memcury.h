@@ -512,9 +512,9 @@
                     return _address != address._address;
                 }
 
-                auto RelativeOffset(uint32_t offset) -> Address
+                auto RelativeOffset(uint32_t offset, uint32_t off2 = 0) -> Address
                 {
-                    _address = ((_address + offset + 4) + *(int32_t*)(_address + offset));
+                    _address = ((_address + offset + 4 + off2) + *(int32_t*)(_address + offset));
                     return *this;
                 }
 
@@ -1010,7 +1010,7 @@
                 return *this;
             }
 
-            auto RelativeOffset(uint32_t offset) -> Scanner
+            auto RelativeOffset(uint32_t offset, uint32_t off2 = 0) -> Scanner
             {
                 if (!_address.Get())
                 {
@@ -1018,7 +1018,7 @@
                     return *this;
                 }
 
-                _address.RelativeOffset(offset);
+                _address.RelativeOffset(offset, off2);
 
                 return *this;
             }

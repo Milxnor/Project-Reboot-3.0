@@ -429,9 +429,6 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 	static auto ReceivingActorOffset = FindOffsetStruct(StructName, "ReceivingActor");
 	auto ReceivingActor = *(AActor**)(__int64(Params) + ReceivingActorOffset);
 
-	static auto InteractionBeingAttemptedOffset = FindOffsetStruct(StructName, "InteractionBeingAttempted");
-	auto InteractionBeingAttempted = *(EInteractionBeingAttempted*)(__int64(Params) + InteractionBeingAttemptedOffset);
-	
 	// LOG_INFO(LogInteraction, "ReceivingActor: {}", __int64(ReceivingActor));
 
 	if (!ReceivingActor)
@@ -499,54 +496,30 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 		if (!WorldInventory)
 			return;
 
-		auto NewAndModifiedInstances = WorldInventory->AddItem(VehicleWeaponDefinition, nullptr);
+		auto NewAndModifiedInstances = WorldInventory->AddItem(VehicleWeaponDefinition, nullptr, 1, 9999);
+
 		auto NewVehicleInstance = NewAndModifiedInstances.first[0];
 
 		if (!NewVehicleInstance)
 			return;
 
-		WorldInventory->Update();
+		static auto FortItemEntrySize = FFortItemEntry::GetStructSize();
 
-		auto VehicleWeapon = Pawn->EquipWeaponDefinition(VehicleWeaponDefinition, NewVehicleInstance->GetItemEntry()->GetItemGuid());
-		// PlayerController->ServerExecuteInventoryItemHook(PlayerController, newitem->GetItemEntry()->GetItemGuid());
+		auto& ReplicatedEntries = WorldInventory->GetItemList().GetReplicatedEntries();
 
-		/* static auto GetSeatWeaponComponentFn = FindObject<UFunction>("/Script/FortniteGame.FortAthenaVehicle.GetSeatWeaponComponent");
-
-		if (GetSeatWeaponComponentFn)
+		for (int i = 0; i < ReplicatedEntries.Num(); i++)
 		{
-			struct { int SeatIndex; UObject* ReturnValue; } AFortAthenaVehicle_GetSeatWeaponComponent_Params{};
+			auto ReplicatedEntry = ReplicatedEntries.AtPtr(i, FortItemEntrySize);
 
-			Vehicle->ProcessEvent(GetSeatWeaponComponentFn, &AFortAthenaVehicle_GetSeatWeaponComponent_Params);
-
-			UObject* WeaponComponent = AFortAthenaVehicle_GetSeatWeaponComponent_Params.ReturnValue;
-
-			if (!WeaponComponent)
-				return;
-
-			static auto WeaponSeatDefinitionStructSize = FindObject<UClass>("/Script/FortniteGame.WeaponSeatDefinition")->GetPropertiesSize();
-			static auto VehicleWeaponOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "VehicleWeapon");
-			static auto SeatIndexOffset = FindOffsetStruct("/Script/FortniteGame.WeaponSeatDefinition", "SeatIndex");
-			static auto WeaponSeatDefinitionsOffset = WeaponComponent->GetOffset("WeaponSeatDefinitions");
-			auto& WeaponSeatDefinitions = WeaponComponent->Get<TArray<__int64>>(WeaponSeatDefinitionsOffset);
-
-			for (int i = 0; i < WeaponSeatDefinitions.Num(); ++i)
+			if (ReplicatedEntry->GetItemGuid() == NewVehicleInstance->GetItemEntry()->GetItemGuid())
 			{
-				auto WeaponSeat = WeaponSeatDefinitions.AtPtr(i, WeaponSeatDefinitionStructSize);
+				WorldInventory->GetItemList().MarkItemDirty(ReplicatedEntry);
+				WorldInventory->GetItemList().MarkItemDirty(NewVehicleInstance->GetItemEntry());
+				WorldInventory->HandleInventoryLocalUpdate();
 
-				if (*(int*)(__int64(WeaponSeat) + SeatIndexOffset) != Vehicle->FindSeatIndex(Pawn))
-					continue;
-
-				auto VehicleGrantedWeaponItem = (TWeakObjectPtr<UFortItem>*)(__int64(WeaponSeat) + 0x20);
-
-				VehicleGrantedWeaponItem->ObjectIndex = NewVehicleInstance->InternalIndex;
-				VehicleGrantedWeaponItem->ObjectSerialNumber = GetItemByIndex(NewVehicleInstance->InternalIndex)->SerialNumber;
-
-				static auto bWeaponEquippedOffset = WeaponComponent->GetOffset("bWeaponEquipped");
-				WeaponComponent->Get<bool>(bWeaponEquippedOffset) = true;
-
-				break;
+				PlayerController->ServerExecuteInventoryItemHook(PlayerController, NewVehicleInstance->GetItemEntry()->GetItemGuid());
 			}
-		} */
+		}
 
 		return;
 	}
@@ -554,6 +527,9 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 	{
 		if (Engine_Version >= 424 && Fortnite_Version < 15 && ReceivingActor->GetFullName().contains("Wumba"))
 		{
+			static auto InteractionBeingAttemptedOffset = FindOffsetStruct(StructName, "InteractionBeingAttempted");
+			auto InteractionBeingAttempted = *(EInteractionBeingAttempted*)(__int64(Params) + InteractionBeingAttemptedOffset);
+
 			bool bIsSidegrading = InteractionBeingAttempted == EInteractionBeingAttempted::SecondInteraction ? true : false;
 	
 			LOG_INFO(LogDev, "bIsSidegrading: {}", (bool)bIsSidegrading);
@@ -776,7 +752,7 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 	{
 		if (false)
 		{
-			// honestly idk why this doesnt work
+			// honestly idk why this doesnt work ( ithink its suppsoed to be spectator)
 
 			auto NAME_Inactive = UKismetStringLibrary::Conv_StringToName(L"NAME_Inactive");
 
@@ -858,8 +834,8 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 {
 	auto PlayerController = (AFortPlayerController*)Context;
 
-	if (!PlayerController) // ??
-		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+	// if (!PlayerController) // ??
+		// return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 
@@ -886,7 +862,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 		bMirrored = CreateBuildingData->bMirrored;
 
 		static auto BroadcastRemoteClientInfoOffset = PlayerController->GetOffset("BroadcastRemoteClientInfo");
-		auto BroadcastRemoteClientInfo = PlayerController->Get(BroadcastRemoteClientInfoOffset);
+		UObject* BroadcastRemoteClientInfo = PlayerController->Get(BroadcastRemoteClientInfoOffset);
 
 		static auto RemoteBuildableClassOffset = BroadcastRemoteClientInfo->GetOffset("RemoteBuildableClass");
 		BuildingClass = BroadcastRemoteClientInfo->Get<UClass*>(RemoteBuildableClassOffset);
@@ -909,7 +885,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	if (!BuildingClass)
 		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
 
-	auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)GetWorld()->GetGameMode())->GetGameState());
+	auto GameState = Cast<AFortGameStateAthena>(Cast<AFortGameMode>(GetWorld()->GetGameMode(), false)->GetGameState(), false);
 
 	auto StructuralSupportSystem = GameState->GetStructuralSupportSystem();
 
@@ -954,20 +930,28 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	auto MatDefinition = UFortKismetLibrary::K2_GetResourceItemDefinition(BuildingActor->GetResourceType());
 
-	auto MatInstance = WorldInventory->FindItemInstance(MatDefinition);
-
 	bool bBuildFree = PlayerController->DoesBuildFree();
 
 	// LOG_INFO(LogDev, "MatInstance->GetItemEntry()->GetCount(): {}", MatInstance->GetItemEntry()->GetCount());
-
-	int MinimumMaterial = 10;
-	bool bShouldDestroy = MatInstance && MatInstance->GetItemEntry() ? MatInstance->GetItemEntry()->GetCount() < MinimumMaterial : true;
-
-	if (bShouldDestroy && !bBuildFree)
+	
+	if (!bBuildFree)
 	{
-		ExistingBuildings.Free();
-		BuildingActor->SilentDie();
-		return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+		int MaterialCost = 10;
+
+		UFortItem* MatInstance = WorldInventory->FindItemInstance(MatDefinition);
+
+		if (!MatInstance || MatInstance->GetItemEntry()->GetCount() < MaterialCost)
+		{
+			ExistingBuildings.Free();
+			BuildingActor->SilentDie();
+			return ServerCreateBuildingActorOriginal(Context, Stack, Ret);
+		}
+
+		bool bShouldUpdate = false;
+		WorldInventory->RemoveItem(MatInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, MaterialCost);
+
+		if (bShouldUpdate)
+			WorldInventory->Update();
 	}
 
 	for (int i = 0; i < ExistingBuildings.Num(); ++i)
@@ -982,15 +966,6 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 	BuildingActor->SetPlayerPlaced(true);
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
 	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex()); // required?
-
-	if (!bBuildFree)
-	{
-		bool bShouldUpdate = false;
-		WorldInventory->RemoveItem(MatInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, 10);
-
-		if (bShouldUpdate)
-			WorldInventory->Update();
-	}
 
 	/*
 
@@ -1290,7 +1265,7 @@ DWORD WINAPI SpectateThread(LPVOID PC)
 
 	Sleep(3000);
 
-	LOG_INFO(LogDev, "bugha!");
+	LOG_INFO(LogDev, "Spectate!");
 
 	SpectatingPC->SpectateOnDeath();
 
@@ -1346,6 +1321,18 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		DeathCause = ToDeathCause(Tags, false, DeadPawn); // DeadPawn->IsDBNO() ??
 
+		FGameplayTagContainer CopyTags;
+
+		for (int i = 0; i < Tags.GameplayTags.Num(); ++i)
+		{
+			CopyTags.GameplayTags.Add(Tags.GameplayTags.at(i));
+		}
+
+		for (int i = 0; i < Tags.ParentTags.Num(); ++i)
+		{
+			CopyTags.ParentTags.Add(Tags.ParentTags.at(i));
+		}
+
 		LOG_INFO(LogDev, "DeathCause: {}", (int)DeathCause);
 		LOG_INFO(LogDev, "DeadPawn->IsDBNO(): {}", DeadPawn->IsDBNO());
 		LOG_INFO(LogDev, "KillerPlayerState: {}", __int64(KillerPlayerState));
@@ -1358,7 +1345,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			*(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) = DeathLocation;
 
 		if (MemberOffsets::DeathInfo::DeathTags != -1)
-			*(FGameplayTagContainer*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathTags) = Tags;
+			*(FGameplayTagContainer*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathTags) = CopyTags;
 
 		if (MemberOffsets::DeathInfo::bInitialized != -1)
 			*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bInitialized) = true;
@@ -1630,7 +1617,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		if (IsRestartingSupported() && Globals::bAutoRestart && !bIsInAutoRestart)
 		{
-			// wtf
+			// wht
 
 			if (GameState->GetGamePhase() > EAthenaGamePhase::Warmup)
 			{
@@ -1670,6 +1657,22 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 }
 
+bool Idk(ABuildingSMActor* BuildingActor)
+{
+	return true; // bIsPlayerBuildable && EditModeSupport && EditModePatternData && GameState->StructuralSupportSystem && ?? && ??
+}
+
+bool IsOkForEditing(ABuildingSMActor* BuildingActor, AFortPlayerController* Controller)
+{
+	if (BuildingActor->GetEditingPlayer() && 
+		BuildingActor->GetEditingPlayer() != Controller->GetPlayerState())
+		return false;
+
+	return !BuildingActor->IsDestroyed() &&
+		// BuildingActor->GetWorld() &&
+		Idk(BuildingActor);
+}
+
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)
 {
 	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced()) // We need more checks.
@@ -1678,6 +1681,9 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	auto Pawn = PlayerController->GetMyFortPawn();
 
 	if (!Pawn)
+		return;
+
+	if (!IsOkForEditing(BuildingActorToEdit, PlayerController))
 		return;
 
 	auto PlayerState = PlayerController->GetPlayerState();
@@ -1699,15 +1705,18 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (!EditToolInstance)
 		return;
 
-	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
+	AFortWeap_EditingTool* EditTool = nullptr;
 
-	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+#if 1
+	EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid()));
+#else
+	EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+#endif
 
 	if (!EditTool)
 		return;
 
-	EditTool->GetEditActor() = BuildingActorToEdit;
-	EditTool->OnRep_EditActor();
+	EditTool->SetEditActor(BuildingActorToEdit);
 }
 
 void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret)
@@ -1740,7 +1749,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
 		//return ServerEditBuildingActorOriginal(Context, Frame, Ret);
 
-	BuildingActorToEdit->SetEditingPlayer(nullptr);
+	// BuildingActorToEdit->SetEditingPlayer(nullptr); // uh?
 
 	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
 		decltype(BuildingSMActorReplaceBuildingActor)(Addresses::ReplaceBuildingActor);
@@ -1774,21 +1783,33 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (!WorldInventory)
 		return;
 
+	AFortWeap_EditingTool* EditTool = nullptr;
+
+#if 1
 	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
 
 	if (!EditToolInstance)
 		return;
 
-	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
+	FGuid EditToolGuid = EditToolInstance->GetItemEntry()->GetItemGuid(); // Should we ref?
 
-	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
-
-	BuildingActorToStopEditing->GetEditingPlayer() = nullptr;
-	// BuildingActorToStopEditing->OnRep_EditingPlayer();
+#if 1
+	EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolGuid)); // ERM
+#else
+	Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolGuid)); // ERM
+	EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+#endif
+#else
+	EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+#endif
 
 	if (EditTool)
 	{
-		EditTool->GetEditActor() = nullptr;
-		EditTool->OnRep_EditActor();
+		static auto bEditConfirmedOffset = EditTool->GetOffset("bEditConfirmed");
+
+		if (bEditConfirmedOffset != -1)
+			EditTool->Get<bool>(bEditConfirmedOffset) = true; // this probably does nothing on server	
+
+		EditTool->SetEditActor(nullptr);
 	}
 }

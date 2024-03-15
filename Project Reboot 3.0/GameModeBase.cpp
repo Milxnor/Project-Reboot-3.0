@@ -86,6 +86,22 @@ AActor* AGameModeBase::K2_FindPlayerStart(AController* Player, FString IncomingN
 	return AGameModeBase_K2_FindPlayerStart_Params.ReturnValue;
 }
 
+bool AGameModeBase::PlayerCanRestartHook(UObject* Context, FFrame& Stack, bool* Ret)
+{
+	auto ret = PlayerCanRestartOriginal(Context, Stack, Ret);
+	
+	LOG_INFO(LogDev, "PlayerCanRestartHook ret: {}", ret);
+
+	if (Globals::bGoingToPlayEvent && Fortnite_Version == 14.60)
+	{
+		// 1:1
+		ret = true;
+		*Ret = true;
+	}
+
+	return ret;
+}
+
 APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AController* NewPlayer, AActor* StartSpot)
 {
 	LOG_INFO(LogDev, "SpawnDefaultPawnForHook!");
@@ -159,7 +175,20 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 				auto& StartingItems = ((AFortGameModeAthena*)GameMode)->GetStartingItems();
 
-				NewPlayerAsAthena->AddPickaxeToInventory();
+				if (Globals::bGoingToPlayEvent && Fortnite_Version >= 16.00)
+				{
+					auto WID = Cast<UFortWorldItemDefinition>(FindObject("WID_EventMode_Activator", nullptr, ANY_PACKAGE)); // Empty Hands
+
+					bool bShouldUpdate = false;
+					WorldInventory->AddItem(WID, &bShouldUpdate, 1);
+
+					if (bShouldUpdate)
+						WorldInventory->Update();
+				}
+				else
+				{
+					NewPlayerAsAthena->AddPickaxeToInventory();
+				}
 
 				for (int i = 0; i < StartingItems.Num(); ++i)
 				{

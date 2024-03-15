@@ -65,10 +65,102 @@ struct FActorSpawnParametersUE500
 	TFunction<void(UObject*)> CustomPreSpawnInitalization; // my favorite
 };
 
+#if 0
+
+static inline PadHexB0 CreateSpawnParameters(ESpawnActorCollisionHandlingMethod SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::Undefined, bool bDeferConstruction = false, UObject* Owner = nullptr)
+{
+	if (Engine_Version >= 500)
+	{
+		FActorSpawnParametersUE500 addr{};
+
+		addr.Owner = Owner;
+		addr.bDeferConstruction = bDeferConstruction;
+		addr.SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
+		return *(PadHexB0*)&addr;
+	}
+	else
+	{
+		FActorSpawnParameters addr{};
+
+		addr.Owner = Owner;
+		addr.bDeferConstruction = bDeferConstruction;
+		addr.SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
+		return *(PadHexB0*)&addr;
+	}
+
+	return PadHexB0();
+}
+
+class UWorld : public UObject, public FNetworkNotify
+{
+public:
+	static inline UObject* (*SpawnActorOriginal)(UWorld* World, UClass* Class, FTransform const* UserTransformPtr, void* SpawnParameters);
+
+	template <typename T = AActor>
+	T*& GetGameMode()
+	{
+		static auto AuthorityGameModeOffset = GetOffset("AuthorityGameMode");
+		return this->Get<T*>(AuthorityGameModeOffset);
+	}
+
+	class AGameState*& GetGameState()
+	{
+		static auto GameStateOffset = GetOffset("GameState");
+		return this->Get<class AGameState*>(GameStateOffset);
+	}
+
+	class UNetDriver*& GetNetDriver()
+	{
+		static auto NetDriverOffset = GetOffset("NetDriver");
+		return this->Get<class UNetDriver*>(NetDriverOffset);
+	}
+
+	UGameInstance* GetOwningGameInstance()
+	{
+		static auto OwningGameInstanceOffset = GetOffset("OwningGameInstance");
+		return this->Get<UGameInstance*>(OwningGameInstanceOffset);
+	}
+
+	inline FTimerManager& GetTimerManager()
+	{
+		return GetOwningGameInstance()->GetTimerManager();
+		// return (GetOwningGameInstance() ? GetOwningGameInstance()->GetTimerManager() : *TimerManager);
+	}
+
+	template <typename ActorType>
+	ActorType* SpawnActor(UClass* Class, FTransform UserTransformPtr = FTransform(), PadHexB0 SpawnParameters = CreateSpawnParameters())
+	{
+		auto actor = (ActorType*)SpawnActorOriginal(this, Class, &UserTransformPtr, &SpawnParameters);
+
+		return actor;
+	}
+
+	template <typename ActorType>
+	ActorType* SpawnActor(UClass* Class, FVector Location, FQuat Rotation = FQuat(), FVector Scale3D = FVector(1, 1, 1), PadHexB0 SpawnParameters = CreateSpawnParameters())
+	{
+		FTransform UserTransformPtr{};
+		UserTransformPtr.Translation = Location;
+		UserTransformPtr.Rotation = Rotation;
+		UserTransformPtr.Scale3D = Scale3D;
+
+		auto actor = SpawnActor<ActorType>(Class, UserTransformPtr, SpawnParameters);
+
+		return actor;
+	}
+
+	AWorldSettings* GetWorldSettings(bool bCheckStreamingPersistent = false, bool bChecked = true) const;
+	AWorldSettings* K2_GetWorldSettings(); // DONT USE WHEN POSSIBLE
+
+	void Listen();
+};
+#else
+// #define USE_VIRTUALALLOC_SPAWNPARAMS
+
 static inline void* CreateSpawnParameters(ESpawnActorCollisionHandlingMethod SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::Undefined, bool bDeferConstruction = false, UObject* Owner = nullptr)
 {
 	if (Engine_Version >= 500)
 	{
+#ifdef USE_VIRTUALALLOC_SPAWNPARAMS
 		auto addr = (FActorSpawnParametersUE500*)VirtualAlloc(0, sizeof(FActorSpawnParametersUE500), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
 		if (!addr)
@@ -78,9 +170,18 @@ static inline void* CreateSpawnParameters(ESpawnActorCollisionHandlingMethod Spa
 		addr->bDeferConstruction = bDeferConstruction;
 		addr->SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
 		return addr;
+#else
+		FActorSpawnParametersUE500 addr{};
+
+		addr.Owner = Owner;
+		addr.bDeferConstruction = bDeferConstruction;
+		addr.SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
+		return &addr;
+#endif
 	}
 	else
 	{
+#ifdef USE_VIRTUALALLOC_SPAWNPARAMS
 		auto addr = (FActorSpawnParameters*)VirtualAlloc(0, sizeof(FActorSpawnParameters), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
 		if (!addr)
@@ -90,6 +191,14 @@ static inline void* CreateSpawnParameters(ESpawnActorCollisionHandlingMethod Spa
 		addr->bDeferConstruction = bDeferConstruction;
 		addr->SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
 		return addr;
+#else
+		FActorSpawnParameters addr{};
+
+		addr.Owner = Owner;
+		addr.bDeferConstruction = bDeferConstruction;
+		addr.SpawnCollisionHandlingOverride = SpawnCollisionHandlingOverride;
+		return &addr;
+#endif
 	}
 
 	return nullptr;
@@ -134,12 +243,21 @@ public:
 	template <typename ActorType>
 	ActorType* SpawnActor(UClass* Class, FTransform UserTransformPtr = FTransform(), void* SpawnParameters = nullptr)
 	{
-		if (!SpawnParameters)
+		const bool bCreatedSpawnParameters = !SpawnParameters;
+
+		if (bCreatedSpawnParameters)
+		{
 			SpawnParameters = CreateSpawnParameters();
+		}
 
 		auto actor = (ActorType*)SpawnActorOriginal(this, Class, &UserTransformPtr, SpawnParameters);
 
-		VirtualFree(SpawnParameters, 0, MEM_RELEASE);
+		// if (bCreatedSpawnParameters)
+		{
+#ifdef USE_VIRTUALALLOC_SPAWNPARAMS
+			VirtualFree(SpawnParameters, 0, MEM_RELEASE);
+#endif
+		}
 
 		return actor;
 	}
@@ -167,3 +285,4 @@ public:
 
 	void Listen();
 };
+#endif

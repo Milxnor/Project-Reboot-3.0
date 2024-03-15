@@ -44,6 +44,90 @@ uint64 FindStartAircraftPhase()
 	return 0;
 }
 
+uint64 FindGIsClient()
+{
+	/* if (Fortnite_Version >= 20)
+		return 0; */
+
+	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
+
+	std::vector<std::vector<uint8_t>> BytesArray = {
+		// {0x88, 0x05}, // Idk what version this is 
+		{0xC6, 0x05}, // mov cs X // Checked on 1.11, 12.41
+		{0x88, 0x1D}, // mov cs bl // Checked on 17.50, 19.10
+		// {0x44, 0x88} // IDK WHAT VERSION This for but it scuffs older builds
+	};
+
+	int Skip = 2; // Skip GIsServer and some variable i forgot
+
+	uint64 Addy;
+
+	for (int i = 0; i < 50; i++) // we should subtract from skip if go up
+	{
+		auto CurrentByte = *(Memcury::ASM::MNEMONIC*)(Addr.Get() - i);
+
+		// if (bPrint)
+			// std::cout << "CurrentByte: " << std::hex << (int)CurrentByte << '\n';
+
+		bool ShouldBreak = false;
+
+		// LOG_INFO(LogDev, "[{}] Byte: 0x{:x}", i, (int)CurrentByte);
+
+		for (auto& Bytes : BytesArray)
+		{
+			if (CurrentByte == Bytes[0])
+			{
+				bool Found = true;
+				for (int j = 1; j < Bytes.size(); j++)
+				{
+					if (*(Memcury::ASM::MNEMONIC*)(Addr.Get() - i + j) != Bytes[j])
+					{
+						Found = false;
+						break;
+					}
+				}
+				if (Found)
+				{
+					int Relative = Bytes[0] == 0x44 ? 3 : 2;
+					auto current = Memcury::Scanner(Addr.Get() - i);
+					// LOG_INFO(LogDev, "[{}] No Rel 0x{:x} Rel: 0x{:x}", Skip, current.Get() - __int64(GetModuleHandleW(0)), Memcury::Scanner(Addr.Get() - i).RelativeOffset(Relative).Get() - __int64(GetModuleHandleW(0)));
+
+					if (Skip > 0)
+					{
+						Skip--;
+						continue;
+					}
+
+					Addy = Bytes[0] == 0xC6 
+						? current.RelativeOffset(Relative, 1).Get() // If mov cs then we add 1 because the last byte is the value and makes whole instructions 1 byte longer
+						: current.RelativeOffset(Relative).Get();
+					ShouldBreak = true;
+					break;
+				}
+			}
+		}
+
+		if (ShouldBreak)
+			break;
+
+		// std::cout << std::format("CurrentByte: 0x{:x}\n", (uint8_t)CurrentByte);
+	}
+
+	// LOG_INFO(LogDev, "Addy: 0x{:x}", Addy - __int64(GetModuleHandleW(0)));
+
+	return Addy; // 0; // Memcury::Scanner(Addy3).RelativeOffset(2).Get();
+
+	/*
+	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
+	int Skip = 1;
+	auto Addy = FindBytes(Addr, { 0xC6, 0x05 }, 50, 0, true, Skip);
+	Addy = Addy ? Addy : FindBytes(Addr, { 0x44, 0x88 }, 50, 0, true, Skip);
+	Addy = Addy ? Addy : FindBytes(Addr, { 0x88, 0x1D }, 50, 0, true, Skip);
+
+	return Memcury::Scanner(Addy).RelativeOffset(2).Get();
+	*/
+}
+
 uint64 FindGetSessionInterface()
 {
 	auto strRef = Memcury::Scanner::FindStringRef(L"OnDestroyReservedSessionComplete %s bSuccess: %d", true, 0, Fortnite_Version >= 19).Get();

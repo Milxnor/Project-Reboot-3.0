@@ -110,6 +110,11 @@ static inline void SetIsLategame(bool Value)
 	StartingShield = Value ? 100 : 0;
 }
 
+static inline bool HasAnyCalendarModification()
+{
+	return Calendar::HasSnowModification() || Calendar::HasNYE() || std::floor(Fortnite_Version) == 13;
+}
+
 static inline void Restart() // todo move?
 {
 	FString LevelA = Engine_Version < 424
@@ -378,7 +383,7 @@ static inline void MainTabs()
 			}
 		}
 
-		if (ImGui::BeginTabItem("Calendar Events"))
+		if (HasAnyCalendarModification() && ImGui::BeginTabItem("Calendar Events"))
 		{
 			Tab = CALENDAR_TAB;
 			PlayerTab = -1;
@@ -853,6 +858,23 @@ static inline void MainUI()
 			if (ImGui::Button(std::format("Start {}", GetEventName()).c_str()))
 			{
 				StartEvent();
+			}
+
+			if (Fortnite_Version == 18.40)
+			{
+				if (ImGui::Button("Remove Storm Effect"))
+				{
+					auto ClientConnections = GetWorld()->GetNetDriver()->GetClientConnections();
+
+					for (int i = 0; i < ClientConnections.Num(); i++)
+					{
+						auto CurrentController = (AFortPlayerControllerAthena*)ClientConnections.At(i)->GetPlayerController();
+
+						static auto StormEffectClass = FindObject<UClass>(L"/Game/Athena/SafeZone/GE_OutsideSafeZoneDamage.GE_OutsideSafeZoneDamage_C");
+						auto PlayerState = CurrentController->GetPlayerStateAthena();
+						PlayerState->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(StormEffectClass, 1, PlayerState->GetAbilitySystemComponent());
+					}
+				}
 			}
 
 			if (Fortnite_Version == 8.51)

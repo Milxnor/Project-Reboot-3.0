@@ -67,6 +67,8 @@ static UFortPlaylistAthena* GetPlaylistToUse()
 	if (Globals::bCreative)
 		Playlist = FindObject<UFortPlaylistAthena>(L"/Game/Athena/Playlists/Creative/Playlist_PlaygroundV2.Playlist_PlaygroundV2");
 
+	// Playlist = FindObject<UFortPlaylistAthena>(L"/Game/Athena/Playlists/Respawn/Variants/Respawn_Vamp/Playlist_Respawn_Vamp_Solo.Playlist_Respawn_Vamp_Solo");
+
 	return Playlist;
 }
 
@@ -468,6 +470,12 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				// SpawnIsland->RepData->Soemthing = FoundationSetup->LobbyLocation;
 			}
 
+			if (Fortnite_Version == 14.60 && Globals::bGoingToPlayEvent)
+			{
+				// Auto with SetDynamicFoundationEnabled
+				// ShowFoundation(FindObject<AActor>(L"/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation3")); // Aircraft Carrier
+			}
+
 			if (Fortnite_Version == 12.41)
 			{
 				ShowFoundation(FindObject<AActor>("/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.LF_Athena_POI_19x19_2"));
@@ -596,12 +604,16 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			}
 		}
 
-		if (Fortnite_Version == 14.60 && Globals::bGoingToPlayEvent)
-		{
-			ShowFoundation(FindObject<AActor>(L"/Game/Athena/Apollo/Maps/Apollo_POI_Foundations.Apollo_POI_Foundations.PersistentLevel.Lobby_Foundation3")); // Aircraft Carrier
-		}
+		AActor* TheBlock = nullptr;
 
-		auto TheBlock = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.SLAB_2"); // SLAB_3 is blank
+		if (Fortnite_Version > 10) // todo only checked on 10.40
+		{
+			TheBlock = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.SLAB_4");
+		}
+		else
+		{
+			TheBlock = FindObject<AActor>(L"/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.SLAB_2"); // SLAB_3 is blank
+		}
 
 		if (TheBlock)
 			ShowFoundation(TheBlock);
@@ -933,6 +945,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			WorldNamesToStreamAllFoundationsIn.push_back("/Temp/Game/Athena/Maps/POI/Athena_POI_CommunityPark_003_M_5c711338");
 		}
 
+		static auto PawnClass = FindObject<UClass>(L"/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+		static auto DefaultPawnClassOffset = GameMode->GetOffset("DefaultPawnClass");
+		GameMode->Get<UClass*>(DefaultPawnClassOffset) = PawnClass; // I think it would be better if we didn't talk about this.
+
 		if (WorldNamesToStreamAllFoundationsIn.size() > 0)
 		{
 			auto ObjectNum = ChunkedObjects ? ChunkedObjects->Num() : UnchunkedObjects ? UnchunkedObjects->Num() : 0;
@@ -962,6 +978,13 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				}
 			}
 		}
+
+		static auto ReplicationDriverOffset = GetWorld()->GetNetDriver()->GetOffset("ReplicationDriver", false); // If netdriver is null the world blows up
+
+		Globals::bShouldUseReplicationGraph = (!(ReplicationDriverOffset == -1 || Fortnite_Version >= 20))
+			&& Fortnite_Version != 3.3; // RepGraph is half implemented
+
+		LOG_INFO(LogDev, "bShouldUseReplicationGraph: {}", Globals::bShouldUseReplicationGraph);
 
 		Globals::bStartedListening = true;
 	}
@@ -1133,7 +1156,7 @@ int AFortGameModeAthena::Athena_PickTeamHook(AFortGameModeAthena* GameMode, uint
 		}
 	}
 
-	LOG_INFO(LogTeams, "Spreading Teams {} [{}] Player is going on team {} with {} members.", bShouldSpreadTeams, TeamsNum, NextTeamIndex, CurrentTeamMembers);
+	LOG_INFO(LogTeams, "Spreading Teams {} Player is going on team {}/{} with {} members.", bShouldSpreadTeams, NextTeamIndex, TeamsNum, CurrentTeamMembers);
 
 	CurrentTeamMembers++;
 
@@ -1429,7 +1452,8 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 		}
 	}
 
-	NewPlayer->GetMatchReport() = (UAthenaPlayerMatchReport*)UGameplayStatics::SpawnObject(UAthenaPlayerMatchReport::StaticClass(), NewPlayer); // idk when to do this
+	if (auto MatchReportPtr = NewPlayer->GetMatchReport())
+		*MatchReportPtr = (UAthenaPlayerMatchReport*)UGameplayStatics::SpawnObject(UAthenaPlayerMatchReport::StaticClass(), NewPlayer); // idk when to do this
 
 	static auto SquadIdOffset = PlayerStateAthena->GetOffset("SquadId", false);
 

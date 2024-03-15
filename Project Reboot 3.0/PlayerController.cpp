@@ -16,6 +16,13 @@ void APlayerController::SetPlayerIsWaiting(bool NewValue)
 	this->SetBitfieldValue(bPlayerIsWaitingOffset, bPlayerIsWaitingFieldMask, NewValue);
 }
 
+bool APlayerController::IsPlayerWaiting()
+{
+	static auto bPlayerIsWaitingOffset = GetOffset("bPlayerIsWaiting");
+	static auto bPlayerIsWaitingFieldMask = GetFieldMask(this->GetProperty("bPlayerIsWaiting"));
+	return this->ReadBitfieldValue(bPlayerIsWaitingOffset, bPlayerIsWaitingFieldMask);
+}
+
 UCheatManager*& APlayerController::SpawnCheatManager(UClass* CheatManagerClass)
 {
 	GetCheatManager() = UGameplayStatics::SpawnObject<UCheatManager>(CheatManagerClass, this, true);

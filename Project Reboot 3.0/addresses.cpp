@@ -471,10 +471,24 @@ void Offsets::FindAll()
 		Offsets::NetworkObjectList = 0x4F0;
 		Offsets::ReplicationFrame = 0x328;
 	}
-	if (Fortnite_Version == 3.1 || Fortnite_Version == 3.2)
+	if (Fortnite_Version == 3.1)
 	{
 		Offsets::NetworkObjectList = 0x4F8;
 		Offsets::ClientWorldPackageName = 0x1818;
+	}
+	if (Fortnite_Version == 3.2)
+	{
+		Offsets::NetworkObjectList = 0x4F8;
+		Offsets::ClientWorldPackageName = 0x1820;
+	}
+	if (Fortnite_Version == 3.2 || Fortnite_Version == 3.3)
+	{
+		Offsets::ReplicationFrame = 0x330;
+	}
+	if (Fortnite_Version == 3.3)
+	{
+		Offsets::NetworkObjectList = 0x508;
+		Offsets::ClientWorldPackageName = 0x1828;
 	}
 	if (Engine_Version == 419) // checked 2.4.2 & 2.2 & 1.11
 	{
@@ -583,8 +597,13 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor({ 0x40, 0x55 }, false).Get()); // Widget class
 	}
 
-	if (Engine_Version == 422)
+	if (Engine_Version == 422 
+		|| Engine_Version == 423 
+		|| Engine_Version == 424 // guessed
+		)
 	{
+		// This sig is valid on 7.40, 8.51, 11.31 (3 refs), but on 12.41 it has 1 ref which isn't widget class
+		// Also this isn't the actual function but something the widget class thing calls
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 30 48 8B 41 28 48 8B DA 48 8B F9 48 85 C0 74 34 48 8B 4B 08 48 8D").Get()); // widget class
 	}
 

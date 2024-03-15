@@ -132,6 +132,27 @@ void AFortPlayerControllerAthena::EndGhostModeHook(AFortPlayerControllerAthena* 
 	return EndGhostModeOriginal(PlayerController);
 }
 
+void AFortPlayerControllerAthena::ServerCreativeSetFlightSpeedIndexHook(UObject* Context, FFrame* Stack)
+{
+	int Index;
+	Stack->StepCompiledIn(&Index);
+
+	// LOG_INFO(LogDev, "Player {} wanting to change creative flight speed at index {}", Context->GetName(), Index);
+
+	static auto WantedFlightSpeedChangedFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerGameplay:OnRep_FlyingModifierIndex");
+
+	if (!WantedFlightSpeedChangedFn)
+	{
+		return;
+	}
+
+	static auto FlyingModifierIndexOffset = Context->GetOffset("FlyingModifierIndex");
+	Context->Get<int>(FlyingModifierIndexOffset) = Index;
+
+	return Context->ProcessEvent(WantedFlightSpeedChangedFn);
+}
+
+
 void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraft)
 {
 	auto PlayerController = Cast<AFortPlayerController>(Engine_Version < 424 ? PC : ((UActorComponent*)PC)->GetOwner());
@@ -334,6 +355,13 @@ void AFortPlayerControllerAthena::ServerRestartPlayerHook(AFortPlayerControllerA
 	static auto ZoneServerRestartPlayer = __int64(FortPlayerControllerZoneDefault->VFTable[GetFunctionIdxOrPtr(ServerRestartPlayerFn) / 8]);
 	static void (*ZoneServerRestartPlayerOriginal)(AFortPlayerController*) = decltype(ZoneServerRestartPlayerOriginal)(__int64(ZoneServerRestartPlayer));
 	
+	// auto NAME_Spectating = UKismetStringLibrary::Conv_StringToName(L"NAME_Spectating");
+
+	// LOG_INFO(LogDev, "ISplayerwaiting: {}", Controller->IsPlayerWaiting());
+
+	// Controller->GetStateName() = NAME_Spectating;
+	// Controller->SetPlayerIsWaiting(true);
+
 	LOG_INFO(LogDev, "ServerRestartPlayerHook Call 0x{:x} returning with 0x{:x}!", ZoneServerRestartPlayer - __int64(_ReturnAddress()), __int64(ZoneServerRestartPlayerOriginal) - __int64(GetModuleHandleW(0)));
 	return ZoneServerRestartPlayerOriginal(Controller);
 }

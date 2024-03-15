@@ -307,7 +307,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
-    <ClInclude Include="finder.h" />
     <ClInclude Include="Array.h">
       <Filter>Engine\Source\Runtime\Core\Public\Containers</Filter>
     </ClInclude>
@@ -962,6 +961,8 @@
     </ClInclude>
     <ClInclude Include="TSubclassOf.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    <ClInclude Include="finder.h">
+      <Filter>Reboot\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

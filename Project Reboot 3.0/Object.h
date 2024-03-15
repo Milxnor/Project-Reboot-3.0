@@ -68,7 +68,7 @@ public:
 	int GetOffset(const std::string& ChildName, bool bWarnIfNotFound = true) const;
 
 	template <typename T = UObject*>
-	T& Get(int Offset) const { return *(T*)(__int64(this) + Offset); }
+	inline T& Get(int Offset) const { return *(T*)(__int64(this) + Offset); }
 
 	void* GetInterfaceAddress(UClass* InterfaceClass);
 
