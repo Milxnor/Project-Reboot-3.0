@@ -1519,6 +1519,9 @@ static inline uint64 FindGetNetMode()
 
 static inline uint64 FindApplyCharacterCustomization()
 {
+	if (std::floor(Fortnite_Version) == 4) // RetrieveCharacterParts return null if dedicated server?????
+		return 0;
+
 	auto Addrr = Memcury::Scanner::FindStringRef(L"AFortPlayerState::ApplyCharacterCustomization - Failed initialization, using default parts. Player Controller: %s PlayerState: %s, HeroId: %s", false, 0, Fortnite_Version >= 20, true).Get();
 
 	if (!Addrr)

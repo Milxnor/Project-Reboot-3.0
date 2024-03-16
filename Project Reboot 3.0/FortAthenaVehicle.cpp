@@ -6,7 +6,7 @@ UFortWeaponItemDefinition* AFortAthenaVehicle::GetVehicleWeaponForSeat(int SeatI
 
 	UFortWeaponItemDefinition* VehicleWeaponDefinition = nullptr;
 
-	LOG_INFO(LogDev, "SeatIndex: {}", SeatIdx);
+	LOG_INFO(LogDev, "[GetVehicleWeaponForSeat] SeatIndex: {}", SeatIdx);
 
 	UObject* WeaponComponent = nullptr;
 

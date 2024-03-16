@@ -436,7 +436,7 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(APlayerControl
 
 	if (Globals::bNoMCP)
 	{
-		static auto CustomCharacterPartClass = FindObject<UClass>("/Script/FortniteGame.CustomCharacterPart");
+		static auto CustomCharacterPartClass = FindObject<UClass>(L"/Script/FortniteGame.CustomCharacterPart");
 		static auto backpackPart = LoadObject("/Game/Characters/CharacterParts/Backpacks/NoBackpack.NoBackpack", CustomCharacterPartClass);
 
 		// PawnAsFort->ServerChoosePart(EFortCustomPartType::Backpack, backpackPart);

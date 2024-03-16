@@ -1597,20 +1597,23 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 			if (Fortnite_Version < 6) // Spectating (is this the actual build or is it like 6.10 when they added it auto).
 			{
-				static auto bAllowSpectateAfterDeathOffset = GameMode->GetOffset("bAllowSpectateAfterDeath");
-
-				bool bAllowSpectate = GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
-
-				LOG_INFO(LogDev, "bAllowSpectate: {}", bAllowSpectate);
-
-				if (bAllowSpectate)
+				if (GameState->GetGamePhase() > EAthenaGamePhase::Warmup)
 				{
-					LOG_INFO(LogDev, "Starting Spectating!");
+					static auto bAllowSpectateAfterDeathOffset = GameMode->GetOffset("bAllowSpectateAfterDeath");
 
-					static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
-					PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
+					bool bAllowSpectate = GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
 
-					CreateThread(0, 0, SpectateThread, (LPVOID)PlayerController, 0, 0);
+					LOG_INFO(LogDev, "bAllowSpectate: {}", bAllowSpectate);
+
+					if (bAllowSpectate)
+					{
+						LOG_INFO(LogDev, "Starting Spectating!");
+
+						static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
+						PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
+
+						CreateThread(0, 0, SpectateThread, (LPVOID)PlayerController, 0, 0);
+					}
 				}
 			}
 		}

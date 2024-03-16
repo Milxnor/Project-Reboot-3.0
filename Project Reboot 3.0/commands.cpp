@@ -118,6 +118,9 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 	bool bSendHelpMessage = false;
 
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
 	if (Arguments.size() >= 1)
 	{
 		auto& Command = Arguments[0];
@@ -769,15 +772,12 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		}
 		else if (Command == "pausesafezone")
 		{
-			auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
-			auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
-
 			UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"pausesafezone", nullptr);
 			// GameMode->PauseSafeZone(GameState->IsSafeZonePaused() == 0);
 		}
 		else if (Command == "teleport" || Command == "tp")
 		{
-			auto CheatManager = ReceivingController->SpawnCheatManager(UCheatManager::StaticClass());
+			UCheatManager*& CheatManager = ReceivingController->SpawnCheatManager(UCheatManager::StaticClass());
 
 			if (!CheatManager)
 			{
@@ -788,6 +788,11 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CheatManager->Teleport();
 			CheatManager = nullptr;
 			SendMessageToConsole(PlayerController, L"Teleported!");
+		}
+		else if (Command == "startaircraft")
+		{
+			GameMode->StartAircraftPhase();
+			SendMessageToConsole(PlayerController, L"Started aircraft!");
 		}
 		else if (Command == "wipequickbar" || Command == "wipequickbars")
 		{
@@ -879,7 +884,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		}
 		else if (Command == "destroytarget")
 		{
-			auto CheatManager = ReceivingController->SpawnCheatManager(UCheatManager::StaticClass());
+			UCheatManager*& CheatManager = ReceivingController->SpawnCheatManager(UCheatManager::StaticClass());
 
 			if (!CheatManager)
 			{
@@ -942,7 +947,8 @@ cheat setpickaxe <PickaxeID> - Set player's pickaxe. Can be either the PID or WI
 cheat destroytarget - Destroys the actor that the player is looking at.
 cheat wipequickbar <Primary|Secondary> <RemoveUndroppables=false> - Wipes the specified quickbar (parameters is not case sensitive).
 cheat wipequickbars <RemoveUndroppables=false> - Wipes primary and secondary quickbar of targeted player (parameter is not case sensitive).
-cheat suicide - Makes targeted player suicide. 
+cheat suicide - Makes targeted player suicide.
+cheat startaircraft - Starts the aircraft (may work).
 
 If you want to execute a command on a certain player, surround their name (case sensitive) with \, and put the param with their name anywhere. Example: cheat sethealth \Milxnor\ 100
 )";
