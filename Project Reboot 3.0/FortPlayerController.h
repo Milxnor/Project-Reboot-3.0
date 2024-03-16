@@ -94,7 +94,7 @@ class AFortPlayerController : public APlayerController
 public:
 	static inline void (*ClientOnPawnDiedOriginal)(AFortPlayerController* PlayerController, void* DeathReport);
 	static inline void (*ServerCreateBuildingActorOriginal)(UObject* Context, FFrame* Stack, void* Ret);
-	static inline void (*ServerAttemptInteractOriginal)(UObject* Context, FFrame* Stack, void* Ret);
+	static inline void (*ServerAttemptInteractOriginal)(UObject* Context, FFrame* Stack);
 	static inline void (*ServerEditBuildingActorOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline void (*DropSpecificItemOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline AActor* (*SpawnToyInstanceOriginal)(UObject* Context, FFrame* Stack, AActor** Ret);
@@ -198,7 +198,7 @@ public:
 	static void ServerLoadingScreenDroppedHook(UObject* Context, FFrame* Stack, void* Ret);
 	static void ServerRepairBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToRepair);
 	static void ServerExecuteInventoryItemHook(AFortPlayerController* PlayerController, FGuid ItemGuid);
-	static void ServerAttemptInteractHook(UObject* Context, FFrame* Stack, void* Ret);
+	static void ServerAttemptInteractHook(UObject* Context, FFrame* Stack);
 
 	static void ServerAttemptAircraftJumpHook(AFortPlayerController* PC, FRotator ClientRotation);
 	// static void ServerCreateBuildingActorHook(AFortPlayerController* PlayerController, FCreateBuildingActorData CreateBuildingData);

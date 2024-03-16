@@ -295,8 +295,8 @@ static inline uint64 FindLoadAsset()
 
 static inline uint64 FindKickPlayer()
 {
-	if (Engine_Version == 416)
-		return Memcury::Scanner::FindPattern("40 53 56 48 81 EC ? ? ? ? 48 8B DA 48 8B F1 E8 ? ? ? ? 48 8B 06 48 8B CE").Get();
+	if (Engine_Version == 416) // <1.8
+		return Memcury::Scanner::FindPattern("40 53 56 48 81 EC ? ? ? ? 48 8B DA 48 8B F1 E8 ? ? ? ? 48 8B 06 48 8B CE").Get(); // postlogin
 	if (std::floor(Fortnite_Version) == 18)
 		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 48 83 65 ? ? 4C 8B F2 83 65 E8 00 4C 8B E1 83 65 EC").Get();
 	if (std::floor(Fortnite_Version) == 19)
@@ -532,9 +532,9 @@ static inline uint64 FindStepExplicitProperty()
 
 static inline uint64 FindIsNetRelevantForOffset()
 {
-	if (Engine_Version == 416 || Fortnite_Version == 3.3) // checked on 1.7.2 & 1.8 & 3.3
+	if (Engine_Version == 416 || Fortnite_Version == 3.3) // checked on 1.7.2, 1.8, 3.3
 		return 0x420 / 8;
-	if (Fortnite_Version == 1.11 || (Fortnite_Version >= 2.42 && Fortnite_Version <= 3.2)) // checked 1.11, 2.4.2, 2.5, 3.0, 3.1
+	if (Fortnite_Version == 1.10 || Fortnite_Version == 1.11 || (Fortnite_Version >= 2.42 && Fortnite_Version <= 3.2)) // checked 1.10, 1.11, 2.4.2, 2.5, 3.0, 3.1, 3.2
 		return 0x418 / 8;
 
 	return 0;

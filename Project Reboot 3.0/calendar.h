@@ -100,17 +100,18 @@ namespace Calendar
 		if (SnowSetup && SetSnowFn)
 		{
 			if (Engine_Version >= 500)
-				NewValue = static_cast<int>(NewValue);
+				NewValue = (int)NewValue;
 
 			SnowSetup->ProcessEvent(SetSnowFn, &NewValue);
 
-			if (NewValue != -1 && Engine_Version >= 500)
+			LOG_INFO(LogDev, "Called SetSnow!");
+
+			if (NewValue != -1 && Engine_Version >= 500 && !Addresses::GIsClient)
 			{
 				auto UpdateSnowVisualsOnClientFn = FindObject<UFunction>("/SpecialSurfaceCoverage/Items/BP_Artemis_S19Progression.BP_Artemis_S19Progression_C.UpdateSnowVisualsOnClient");
 				SnowSetup->ProcessEvent(UpdateSnowVisualsOnClientFn);
+				LOG_INFO(LogDev, "Called UpdateSnowVisualsOnClientFn!");
 			}
-
-			LOG_INFO(LogDev, "Called SetSnow!");
 		}
 		else
 		{

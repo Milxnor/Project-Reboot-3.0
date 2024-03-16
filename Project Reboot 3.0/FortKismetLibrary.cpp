@@ -309,16 +309,21 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 
 void UFortKismetLibrary::K2_RemoveItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret)
 {
+	// int32 K2_RemoveItemFromPlayer(class AFortPlayerController* PlayerController, class UFortWorldItemDefinition* ItemDefinition, const struct FGuid& ItemVariantGuid, int32 AmountToRemove, bool bForceRemoval); // S18+
 	static auto PlayerControllerOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer", "PlayerController");
 	static auto ItemDefinitionOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer", "ItemDefinition");
+	static auto ItemVariantGuidOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer", "ItemVariantGuid", false);
 	static auto AmountToRemoveOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.K2_RemoveItemFromPlayer", "AmountToRemove");
 
 	AFortPlayerController* PlayerController = nullptr;
 	UFortWorldItemDefinition* ItemDefinition = nullptr;
+	FGuid ItemVariantGuid{};
 	int AmountToRemove;
 
 	Stack.StepCompiledIn(&PlayerController);
 	Stack.StepCompiledIn(&ItemDefinition);
+	if (ItemVariantGuidOffset != -1)
+		Stack.StepCompiledIn(&ItemVariantGuid);
 	Stack.StepCompiledIn(&AmountToRemove);
 
 	LOG_INFO(LogDev, __FUNCTION__);

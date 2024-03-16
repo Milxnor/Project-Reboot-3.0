@@ -90,14 +90,18 @@ void Addresses::SetupVersion()
 
 	FFastArraySerializer::bNewSerializer = Fortnite_Version >= 8.30;
 
-	if (Fortnite_CL == 3807424)
-		Fortnite_Version = 1.11;
 	if (Fortnite_CL == 3700114)
 		Fortnite_Version = 1.72;
 	if (Fortnite_CL == 3724489)
 		Fortnite_Version = 1.8;
 	if (Fortnite_CL == 3757339)
 		Fortnite_Version = 1.9;
+	if (Fortnite_CL == 3775276)
+		Fortnite_Version = 1.9; // 1.9.1
+	if (Fortnite_CL == 3790078)
+		Fortnite_Version = 1.10;
+	if (Fortnite_CL == 3807424)
+		Fortnite_Version = 1.11;
 	if (Fortnite_CL == 3841827)
 		Fortnite_Version = 2.2;
 	if (Fortnite_CL == 3847564)
@@ -446,6 +450,11 @@ void Offsets::FindAll()
 		Offsets::NetworkObjectList = 0x3F8;
 		Offsets::ReplicationFrame = 0x288;
 	}
+	if (Engine_Version == 419) // checked 2.4.2 & 2.2 & 1.10 & 1.11
+	{
+		Offsets::NetworkObjectList = 0x490;
+		Offsets::ReplicationFrame = 0x2C8;
+	}
 	if (Fortnite_Version == 1.72)
 	{
 		Offsets::ClientWorldPackageName = 0x336A8;
@@ -453,6 +462,10 @@ void Offsets::FindAll()
 	if (Fortnite_Version == 1.8 || Fortnite_Version == 1.9)
 	{
 		Offsets::ClientWorldPackageName = 0x33788;
+	}
+	if (Fortnite_Version == 1.10)
+	{
+		Offsets::ClientWorldPackageName = 0x337A8;
 	}
 	if (Fortnite_Version == 1.11)
 	{
@@ -489,11 +502,6 @@ void Offsets::FindAll()
 	{
 		Offsets::NetworkObjectList = 0x508;
 		Offsets::ClientWorldPackageName = 0x1828;
-	}
-	if (Engine_Version == 419) // checked 2.4.2 & 2.2 & 1.11
-	{
-		Offsets::NetworkObjectList = 0x490;
-		Offsets::ReplicationFrame = 0x2C8;
 	}
 	if (Fortnite_Version >= 20 && Fortnite_Version < 22)
 	{
@@ -548,7 +556,7 @@ std::vector<uint64> Addresses::GetFunctionsToReturnTrue()
 {
 	std::vector<uint64> toReturnTrue;
 
-	if (Fortnite_Version == 1.11 || Fortnite_Version >= 2.2 && Fortnite_Version <= 2.4)
+	if (Fortnite_Version == 1.10 || Fortnite_Version == 1.11 || Fortnite_Version >= 2.2 && Fortnite_Version <= 2.4)
 	{
 		toReturnTrue.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B 01 49 8B E9 45 0F B6 F8").Get()); // No Reserve
 	}

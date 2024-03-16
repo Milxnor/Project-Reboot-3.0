@@ -46,8 +46,7 @@ uint64 FindStartAircraftPhase()
 
 uint64 FindGIsClient()
 {
-	/* if (Fortnite_Version >= 20)
-		return 0; */
+	// if (Fortnite_Version >= 19) return 0;
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
 
