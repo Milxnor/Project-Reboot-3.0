@@ -9,13 +9,13 @@ AFortWeapon* AFortPawn::EquipWeaponDefinition(UFortWeaponItemDefinition* WeaponD
 
 	FGuid TrackerGuid{};
 
-	if (Fortnite_Version < 16)
+	if (Fortnite_Version < 15.50)
 	{
 		struct { UObject* Def; FGuid Guid; AFortWeapon* Wep; } params{ WeaponData, ItemEntryGuid };
 		this->ProcessEvent(EquipWeaponDefinitionFn, &params);
 		return params.Wep;
 	}
-	else if (std::floor(Fortnite_Version) == 16)
+	else if (Fortnite_Version >= 15.50 && Fortnite_Version < 17)
 	{
 		struct { UObject* Def; FGuid Guid; FGuid TrackerGuid; AFortWeapon* Wep; } S16_params{ WeaponData, ItemEntryGuid, TrackerGuid };
 		this->ProcessEvent(EquipWeaponDefinitionFn, &S16_params);

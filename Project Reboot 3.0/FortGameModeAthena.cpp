@@ -384,9 +384,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		*/
 
-		static auto WarmupRequiredPlayerCountOffset = GameMode->GetOffset("WarmupRequiredPlayerCount");
-		GameMode->Get<int>(WarmupRequiredPlayerCountOffset) = 1;
-
 		static auto CurrentPlaylistDataOffset = GameState->GetOffset("CurrentPlaylistData", false);
 
 		if (CurrentPlaylistDataOffset != -1 || Fortnite_Version >= 6) // idk when they switched off id
@@ -794,6 +791,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		LOG_INFO(LogNet, "Attempting to listen!");
 
 		GetWorld()->Listen();
+
+		static auto WarmupRequiredPlayerCountOffset = GameMode->GetOffset("WarmupRequiredPlayerCount");
+		GameMode->Get<int>(WarmupRequiredPlayerCountOffset) = WarmupRequiredPlayerCount;
 
 		LOG_INFO(LogNet, "WorldLevel {}", GameState->GetWorldLevel());
 

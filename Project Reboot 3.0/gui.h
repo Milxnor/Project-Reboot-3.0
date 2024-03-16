@@ -86,6 +86,7 @@ extern inline bool bEnableBotTick = false;
 extern inline bool bZoneReversing = false;
 extern inline bool bEnableCombinePickup = false;
 extern inline int AmountOfBotsToSpawn = 0;
+extern inline int WarmupRequiredPlayerCount = 1;
 extern inline bool bEnableRebooting = false;
 extern inline bool bEngineDebugLogs = false;
 extern inline bool bStartedBus = false;
@@ -708,6 +709,11 @@ static inline void MainUI()
 					bool bWillBeLategame = Globals::bLateGame.load();
 					ImGui::Checkbox("Lategame", &bWillBeLategame);
 					SetIsLategame(bWillBeLategame);
+				}
+
+				if (!Globals::bStartedListening) // hm
+				{
+					ImGui::SliderInt("Players required to start the match", &WarmupRequiredPlayerCount, 1, 100);
 				}
 
 				ImGui::Text(std::format("Joinable {}", Globals::bStartedListening).c_str());
@@ -1412,6 +1418,8 @@ static inline void PregameUI()
 
 		ImGui::SliderInt("Seconds until load into map", &SecondsUntilTravel, 1, 100);
 	}
+
+	ImGui::SliderInt("Players required to start the match", &WarmupRequiredPlayerCount, 1, 100);
 		
 	if (!Globals::bCreative)
 		ImGui::InputText("Playlist", &PlaylistName);
