@@ -711,12 +711,12 @@ static inline void MainUI()
 					SetIsLategame(bWillBeLategame);
 				}
 
+				ImGui::Text(std::format("Joinable {}", Globals::bStartedListening).c_str());
+
 				if (!Globals::bStartedListening) // hm
 				{
 					ImGui::SliderInt("Players required to start the match", &WarmupRequiredPlayerCount, 1, 100);
 				}
-
-				ImGui::Text(std::format("Joinable {}", Globals::bStartedListening).c_str());
 
 				static std::string ConsoleCommand;
 

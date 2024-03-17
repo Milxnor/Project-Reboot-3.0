@@ -594,7 +594,7 @@ static inline std::string GetEventName()
 	return "";
 }
 
-static inline void LoadEvent(bool* bWereAllSuccessful = nullptr)
+static inline void LoadEvent(bool* bWereAllSuccessful = nullptr) // did i forget return values existed
 {
 	if (bWereAllSuccessful)
 		*bWereAllSuccessful = false;
@@ -638,7 +638,26 @@ static inline void LoadEvent(bool* bWereAllSuccessful = nullptr)
 		return; // GetEventLoader handles the printing
 	}
 
-	Loader->ProcessEvent(LoaderFunction, &OurEvent.AdditionalLoaderParams);
+	if (Fortnite_Version == 7.20)
+	{
+		static auto LoadMooneyMapOffset = Loader->GetOffset("LoadMooneyMap");
+		static auto OnRep_LoadMooneyMapFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyLoader.BP_MooneyLoader_C.OnRep_LoadMooneyMap");
+		
+		if (LoadMooneyMapOffset == -1 || !OnRep_LoadMooneyMapFn)
+		{
+			if (bWereAllSuccessful)
+				*bWereAllSuccessful = false;
+
+			return;
+		}
+
+		Loader->Get<bool>(LoadMooneyMapOffset) = true;
+		Loader->ProcessEvent(OnRep_LoadMooneyMapFn);
+	}
+	else
+	{
+		Loader->ProcessEvent(LoaderFunction, &OurEvent.AdditionalLoaderParams);
+	}
 }
 
 static inline bool CallOnReadys(bool* bWereAllSuccessful = nullptr)

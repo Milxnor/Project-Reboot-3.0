@@ -521,6 +521,8 @@ void Offsets::Print()
 	LOG_INFO(LogDev, "Func: 0x{:x}", Func);
 	LOG_INFO(LogDev, "ServerReplicateActors: 0x{:x}", ServerReplicateActors);
 	LOG_INFO(LogDev, "ReplicationFrame: 0x{:x}", ReplicationFrame);
+	LOG_INFO(LogDev, "ClientWorldPackageName: 0x{:x}", ClientWorldPackageName);
+	LOG_INFO(LogDev, "NetworkObjectList: 0x{:x}", NetworkObjectList);
 	LOG_INFO(LogDev, "Script: 0x{:x}", Script);
 	LOG_INFO(LogDev, "PropertyClass: 0x{:x}", PropertyClass);
 }

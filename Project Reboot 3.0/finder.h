@@ -859,8 +859,18 @@ static inline uint64 FindNoMCP()
 		return 0;
 
 	auto scanner = Memcury::Scanner(__int64(fn->GetFunc()));
-	auto noMcpIthink = Memcury::Scanner(FindBytes(scanner, { 0xE8 })).RelativeOffset(1).Get(); // GetFunctionIdxOrPtr(fn);
-	return noMcpIthink;
+	auto noMcpIthink = Memcury::Scanner(FindBytes(scanner, { 0xE8 })).RelativeOffset(1); // GetFunctionIdxOrPtr(fn);
+
+	if (noMcpIthink.Get())
+	{
+		if (*noMcpIthink.GetAs<uint8_t*>() == 0xE8 || *noMcpIthink.GetAs<uint8_t*>() == 0xE9) // ex 7.20
+		{
+			LOG_INFO(LogDev, "Weird MCP thing!");
+			noMcpIthink.RelativeOffset(1); // we are in the weird thing that compiler does when the func is just in a jmp
+		}
+	}
+
+	return noMcpIthink.Get();
 
 	if (Engine_Version == 421 || Engine_Version == 422)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 CE").RelativeOffset(1).Get();
