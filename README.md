@@ -1,6 +1,6 @@
 ![Banner](https://i.imgur.com/p0P4tcI.png)
 
-Project Reboot is an tough battled and widely used game server for Fortnite.  Below are the key points about this project:
+Project Reboot is a tough battled and widely used game server for Fortnite.  Below are the key points about this project:
 Join our discord at https://discord.gg/reboot
 
 ## Features
