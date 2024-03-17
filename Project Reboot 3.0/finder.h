@@ -1486,7 +1486,7 @@ static inline uint64 FindDispatchRequest()
 
 static inline uint64 FindMcpIsDedicatedServerOffset()
 {
-	if (Fortnite_Version >= 4.5 && Engine_Version <= 422) // checked on 4.5 & 5.41 & 6.21 & 7.30
+	if (Fortnite_Version >= 4.2 && Engine_Version <= 422) // checked on 4.5 & 5.41 & 6.21 & 7.30
 		return 0x28;
 
 	return 0x60; // 1.7.2 & 1.11 3.3 & & 4.1
@@ -1840,7 +1840,7 @@ static inline uint64 FindCallPreReplication()
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 8B C4 55 57 41 54 48 8D 68 A1 48 81 EC ? ? ? ? 48 89 58 08 4C").Get();
 	if (Fortnite_Version >= 2.5 && Fortnite_Version <= 3.3)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 56 41 56 48 83 EC 38 4C 8B F2").Get();
-	if (Fortnite_Version >= 20)
+	if (std::floor(Fortnite_Version) == 20)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 56 41 57 48 83 EC 40 F6 41 58 30 48 8B EA 48 8B D9 40 B6 01").Get();
 
 	return 0;

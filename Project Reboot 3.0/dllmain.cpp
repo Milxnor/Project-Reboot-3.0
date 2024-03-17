@@ -874,7 +874,8 @@ DWORD WINAPI Main(LPVOID)
     static auto FortOctopusVehicleDefault = FindObject<AFortOctopusVehicle>(L"/Script/FortniteGame.Default__FortOctopusVehicle");
     static auto FortPlayerControllerAthenaDefault = FindObject<AFortPlayerControllerAthena>(L"/Script/FortniteGame.Default__FortPlayerControllerAthena"); // FindObject<UClass>(L"/Game/Athena/Athena_PlayerController.Default__Athena_PlayerController_C");
 
-    ApplyNullAndRetTrues();
+    if (Fortnite_Version >= 20)
+        ApplyNullAndRetTrues();
 
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetPackageMap VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetTraffic VeryVerbose", nullptr);
@@ -1023,6 +1024,9 @@ DWORD WINAPI Main(LPVOID)
     ChangeLevels();
 
     LOG_INFO(LogDev, "Switch levels.");
+
+    if (Fortnite_Version < 20)
+        ApplyNullAndRetTrues();
 
     if (Fortnite_Version != 22.4)
     {

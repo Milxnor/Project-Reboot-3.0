@@ -235,6 +235,12 @@ void AFortGameModeAthena::OverrideSupplyDrop(AFortGameStateAthena* GameState, UC
 	static auto MapInfoOffset = GameState->GetOffset("MapInfo");
 	auto MapInfo = GameState->Get<AFortAthenaMapInfo*>(MapInfoOffset);
 
+	if (!MapInfo)
+	{
+		LOG_WARN(LogGame, "No MapInfo!");
+		return;
+	}
+
 	static auto SupplyDropInfoListOffset = MapInfo->GetOffset("SupplyDropInfoList");
 	auto& SupplyDropInfoList = MapInfo->Get<TArray<UFortSupplyDropInfo*>>(SupplyDropInfoListOffset);
 
@@ -396,7 +402,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			}
 			else
 			{
-				if (Fortnite_Version >= 4.0) // ????
+				if (Fortnite_Version >= 4.1) // ????
 				{
 					SetPlaylist(PlaylistToUse, true);
 
