@@ -319,6 +319,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding StartAircraftPhase");
 	Addresses::StartAircraftPhase = FindStartAircraftPhase();
 
+	LOG_INFO(LogDev, "Finding GIsClient");
+	Addresses::GIsClient = FindGIsClient();
+
 	// LOG_INFO(LogDev, "Finding GetSessionInterface");
 	// Addresses::GetSessionInterface = FindGetSessionInterface();
 
@@ -644,12 +647,32 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 70 08 48 89 78 10 55 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 ED").Get()); // collectgarbage
 	}
 
+	if (Fortnite_Version >= 17)
+	{
+		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 10 48 89 6C 24 20 56 57 41 54 41 56 41 57 48 81 EC ? ? ? ? 65 48 8B 04 25 ? ? ? ? 4C 8B F9").Get()); // Crash after 5 mins
+	}
+
 	if (Engine_Version == 500)
 	{
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 55 53 56 57 41 54 41 55 41 56 41 57 48 8D 68 A1 48 81 EC ? ? ? ? 45 33 F6 0F 29 70 A8 44 38 35").Get()); // zone
 		// toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A8 48 81 EC ? ? ? ? 45").Get()); // GC
 		// toNull.push_back(Memcury::Scanner::FindPattern("40 53 48 83 EC 20 8B D9 E8 ? ? ? ? B2 01 8B CB E8").Get()); // GC Caller 1
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 55 41 56 48 8B EC 48 83 EC 50 83 65 28 00 40 B6 05 40 38 35 ? ? ? ? 4C").Get()); // InitializeUI
+	}
+
+	if (Fortnite_Version >= 20)
+	{
+		if (Addresses::GIsClient)
+		{
+			// all from 20.40
+			// 99% of these are renderer crashes
+			// toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 8B EC 48 83 EC 50 83 65 28 00 40 B6 05 40 38 35").Get()); // InitializeUI
+			toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 4C 89 40 18 48 89 50 10 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 98 48 81 EC ? ? ? ? 49 8B 48 20 45 33").Get()); // Calls func below
+			toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B 41 20 48 8B FA 48 8B D9 BA ? ? ? ? 83 78 08 03 0F 8D").Get()); // some constructor crash
+			toNull.push_back(Memcury::Scanner::FindPattern("4C 89 44 24 ? 53 55 56 57 41 54 41 55 41 56 41 57 48 83 EC 68 48 8D 05 ? ? ? ? 0F").Get()); // soem constructor crash (gets called by ^)
+			toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 30 48 8B F9 48 8B CA E8").Get());
+			toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 55 41 56 48 83 EC 60 45 33 F6 4C 8D 2D ? ? ? ? 48 8B DA 48 8B E9 48 85").Get());
+		}
 	}
 
 	toNull.push_back(Addresses::ChangeGameSessionId);

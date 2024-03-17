@@ -8,7 +8,7 @@ void ABuildingFoundation::SetDynamicFoundationTransformHook(UObject* Context, FF
 
 	auto BuildingFoundation = (ABuildingFoundation*)Context;
 
-	LOG_INFO(LogDev, "Bruh: {}", BuildingFoundation->GetName());
+	LOG_INFO(LogDev, "SetDynamicFoundationTransformHook: {}", BuildingFoundation->GetName());
 
 	SetFoundationTransform(BuildingFoundation, NewTransform);
 

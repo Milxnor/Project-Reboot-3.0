@@ -51,7 +51,7 @@ uint64 FindGIsClient()
 	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
 
 	std::vector<std::vector<uint8_t>> BytesArray = {
-		// {0x88, 0x05}, // Idk what version this is 
+		{0x88, 0x05}, // 20.40
 		{0xC6, 0x05}, // mov cs X // Checked on 1.11, 12.41
 		{0x88, 0x1D}, // mov cs bl // Checked on 17.50, 19.10
 		// {0x44, 0x88} // IDK WHAT VERSION This for but it scuffs older builds

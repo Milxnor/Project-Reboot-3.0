@@ -797,6 +797,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogNet, "WorldLevel {}", GameState->GetWorldLevel());
 
+#ifndef ABOVE_S20
 		if (Globals::AmountOfListens == 1) // we only want to do this one time.
 		{
 			if (bEnableRebooting)
@@ -900,17 +901,10 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		AllRebootVans.Free();
 
-		if (Engine_Version >= 500)
-		{
-			GameState->Get<float>("DefaultParachuteDeployTraceForGroundDistance") = 10000;
-		}
-
 		if (AmountOfBotsToSpawn != 0)
 		{
 			Bots::SpawnBotsAtPlayerStarts(AmountOfBotsToSpawn);
 		}
-
-		UptimeWebHook.send_message(std::format("Server up! {} {}", Fortnite_Version, PlaylistName)); // PlaylistName sometimes isn't always what we use!
 
 		if (std::floor(Fortnite_Version) == 5)
 		{
@@ -978,6 +972,14 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 				}
 			}
 		}
+
+#endif
+		if (Engine_Version >= 500)
+		{
+			GameState->Get<float>("DefaultParachuteDeployTraceForGroundDistance") = 10000;
+		}
+
+		UptimeWebHook.send_message(std::format("Server up! {} {}", Fortnite_Version, PlaylistName)); // PlaylistName sometimes isn't always what we use!
 
 		static auto ReplicationDriverOffset = GetWorld()->GetNetDriver()->GetOffset("ReplicationDriver", false); // If netdriver is null the world blows up
 

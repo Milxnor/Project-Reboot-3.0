@@ -641,7 +641,7 @@ static inline void LoadEvent(bool* bWereAllSuccessful = nullptr) // did i forget
 	if (Fortnite_Version == 7.20)
 	{
 		static auto LoadMooneyMapOffset = Loader->GetOffset("LoadMooneyMap");
-		static auto OnRep_LoadMooneyMapFn = FindObject<UFunction>("/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyLoader.BP_MooneyLoader_C.OnRep_LoadMooneyMap");
+		static auto OnRep_LoadMooneyMapFn = FindObject<UFunction>(L"/Game/Athena/Prototype/Blueprints/Mooney/BP_MooneyLoader.BP_MooneyLoader_C.OnRep_LoadMooneyMap");
 		
 		if (LoadMooneyMapOffset == -1 || !OnRep_LoadMooneyMapFn)
 		{
@@ -798,14 +798,14 @@ static inline void StartEvent()
 
 	if (Fortnite_Version >= 17.30)
 	{
-		static auto OnRep_RootStartTimeFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.OnRep_RootStartTime");
-		static auto MeshRootStartEventFn = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.MeshRootStartEvent");
-		auto SpecialEventScriptMeshActorClass = FindObject<UClass>("/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor");
+		static auto OnRep_RootStartTimeFn = FindObject<UFunction>(L"/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.OnRep_RootStartTime");
+		static auto MeshRootStartEventFn = FindObject<UFunction>(L"/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.MeshRootStartEvent");
+		auto SpecialEventScriptMeshActorClass = FindObject<UClass>(L"/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor");
 		auto AllSpecialEventScriptMeshActors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpecialEventScriptMeshActorClass);
 
 		if (Fortnite_Version == 17.50)
 		{
-			auto Scripting = FindObject<UObject>("/Kiwi/Levels/Kiwi_P.Kiwi_P:PersistentLevel.BP_Kiwi_Master_Scripting_2");
+			auto Scripting = FindObject<UObject>(L"/Kiwi/Levels/Kiwi_P.Kiwi_P:PersistentLevel.BP_Kiwi_Master_Scripting_2");
 
 			float SecondsSinceEventBegan = 0;
 
@@ -821,7 +821,7 @@ static inline void StartEvent()
 			{
 				OnReadyParams.PlaylistContextTags = FGameplayTagContainer();
 			}
-			auto BB = FindObject<UFunction>("/Kiwi/Gameplay/BP_Kiwi_Master_Scripting.BP_Kiwi_Master_Scripting_C.OnReady_F1A32853487CB7603278E6847A5F2625");
+			auto BB = FindObject<UFunction>(L"/Kiwi/Gameplay/BP_Kiwi_Master_Scripting.BP_Kiwi_Master_Scripting_C.OnReady_F1A32853487CB7603278E6847A5F2625");
 			Scripting->ProcessEvent(BB, &OnReadyParams);
 
 			auto eventscript = FindObject("/Kiwi/Levels/Kiwi_P.Kiwi_P:PersistentLevel.Kiwi_EventScript_2");
