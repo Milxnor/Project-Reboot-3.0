@@ -1,5 +1,9 @@
 ![Banner](https://i.imgur.com/p0P4tcI.png)
 
+
+# this is project reboot recode will add bosses and alot more fixes
+
+
 Project Reboot is a tough battled and widely used game server for Fortnite.  Below are the key points about this project:
 Join our discord at https://discord.gg/reboot
 
