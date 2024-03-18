@@ -328,6 +328,9 @@
     <ClInclude Include="FortAIEncounterInfo.h" />
     <ClInclude Include="FortAthenaAIBotCharacterCustomization.h" />
     <ClInclude Include="FortAthenaAIBotCustomizationData.h" />
+    <ClInclude Include="FortAthenaAIBotSpawnerData.h" />
+    <ClInclude Include="FortAthenaAISpawnerDataComponent_CosmeticLoadout.h" />
+    <ClInclude Include="FortAthenaAISpawnerDataComponent_SpawnParams.h" />
     <ClInclude Include="FortAthenaCreativePortal.h" />
     <ClInclude Include="FortAthenaMapInfo.h" />
     <ClInclude Include="FortAthenaMutator.h" />

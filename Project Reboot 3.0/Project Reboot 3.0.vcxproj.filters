@@ -961,9 +961,18 @@
     </ClInclude>
     <ClInclude Include="TSubclassOf.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
-	</ClInclude>
-	<ClInclude Include="finder.h">
+    </ClInclude>
+    <ClInclude Include="finder.h">
       <Filter>Reboot\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaAIBotSpawnerData.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaAISpawnerDataComponent_SpawnParams.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="FortAthenaAISpawnerDataComponent_CosmeticLoadout.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

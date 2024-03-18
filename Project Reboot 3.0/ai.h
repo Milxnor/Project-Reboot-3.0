@@ -14,6 +14,7 @@
 #include "FortBotNameSettings.h"
 #include "KismetTextLibrary.h"
 #include "FortAthenaAIBotCustomizationData.h"
+#include "FortAthenaAIBotSpawnerData.h"
 
 using UNavigationSystemV1 = UObject;
 using UNavigationSystemConfig = UObject;
@@ -233,6 +234,42 @@ static void SetupNavConfig(const FName& AgentName)
     NavSystemOverride->Get("NavigationSystemConfig") = AthenaNavConfig;
 
     SetNavigationSystem(NavSystemOverride);
+}
+
+static AFortPlayerPawn* SpawnAIFromSpawnerData(const FVector& Location, UFortAthenaAIBotSpawnerData* SpawnerData)
+{
+    auto SpawnParamsComponent = SpawnerData->GetSpawnParamsComponent();
+
+    if (!SpawnParamsComponent)
+    {
+        LOG_INFO(LogAI, "Invalid SpawnParamsComponent for AI!");
+        return nullptr;
+    }
+
+    auto PawnClass = SpawnerData->GetSpawnParamsComponent()->GetPawnClass();
+
+    LOG_INFO(LogAI, "PawnClass: {}", __int64(PawnClass));
+
+    if (!PawnClass)
+    {
+        LOG_INFO(LogAI, "Invalid PawnClass for AI!");
+        return nullptr;
+    }
+
+    LOG_INFO(LogAI, "PawnClass Name: {}", PawnClass->GetFullName());
+    auto Pawn = GetWorld()->SpawnActor<AFortPlayerPawn>(PawnClass, Location);
+
+    if (!Pawn)
+    {
+        LOG_INFO(LogAI, "Failed to spawn pawn!");
+        return nullptr;
+    }
+
+    auto CharacterToApply = SpawnerData->GetCosmeticComponent()->GetCosmeticLoadout()->GetCharacter();
+    LOG_INFO(LogAI, "CharacterToApply: {}", __int64(CharacterToApply));
+    ApplyCID(Pawn, CharacterToApply, true); // bruhh
+
+    return Pawn;
 }
 
 static AFortPlayerPawn* SpawnAIFromCustomizationData(const FVector& Location, UFortAthenaAIBotCustomizationData* CustomizationData)

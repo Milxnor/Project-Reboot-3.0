@@ -152,13 +152,15 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function, bool bBreakWhenHitRet = 
 
     auto NativeAddr = __int64(Function->GetFunc());
 
+    LOG_INFO(LogDev, "Getting name!")
+
     auto FuncName = Function->GetName();
 
     std::wstring ValidateWStr = (std::wstring(FuncName.begin(), FuncName.end()) + L"_Validate");
     const wchar_t* ValidateWCStr = ValidateWStr.c_str();
     bool bHasValidateFunc = Memcury::Scanner::FindStringRef(ValidateWCStr, false).Get();
 
-    // LOG_INFO(LogDev, "[{}] bHasValidateFunc: {}", Function->GetName(), bHasValidateFunc);
+    LOG_INFO(LogDev, "[{}] bHasValidateFunc: {}", Function->GetName(), bHasValidateFunc);
     // LOG_INFO(LogDev, "NativeAddr: 0x{:x}", __int64(NativeAddr) - __int64(GetModuleHandleW(0)));
 
     bool bFoundValidate = !bHasValidateFunc;

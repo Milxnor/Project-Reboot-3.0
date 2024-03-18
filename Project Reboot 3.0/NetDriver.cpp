@@ -565,6 +565,13 @@ void SetChannelActorForDestroy(UActorChannel* Channel, FActorDestructionInfo* De
 	}
 }
 
+enum ESetChannelActorFlags
+{
+	None = 0,
+	SkipReplicatorCreation = (1 << 0),
+	SkipMarkActive = (1 << 1),
+};
+
 TSet<FName>* GetClientVisibleLevelNames(UNetConnection* NetConnection)
 {
 	return (TSet<FName>*)(__int64(NetConnection) + 0x336C8);
@@ -613,6 +620,7 @@ int32 UNetDriver::ServerReplicateActors()
 	static __int64 (*ReplicateActor)(UActorChannel*) = decltype(ReplicateActor)(Addresses::ReplicateActor);
 	static UObject* (*CreateChannelByName)(UNetConnection * Connection, FName * ChName, EChannelCreateFlags CreateFlags, int32_t ChannelIndex) = decltype(CreateChannelByName)(Addresses::CreateChannel);
 	static __int64 (*SetChannelActor)(UActorChannel*, AActor*) = decltype(SetChannelActor)(Addresses::SetChannelActor);
+	static __int64 (*SetChannelActor2)(UActorChannel*, AActor*, ESetChannelActorFlags) = decltype(SetChannelActor2)(Addresses::SetChannelActor);
 
 	for (int32 i = 0; i < this->GetClientConnections().Num(); i++)
 	{
@@ -823,7 +831,10 @@ int32 UNetDriver::ServerReplicateActors()
 
 					if (Channel)
 					{
-						SetChannelActor(Channel, Actor);
+						if (Engine_Version >= 500)
+							SetChannelActor(Channel, Actor);
+						else
+							SetChannelActor2(Channel, Actor, ESetChannelActorFlags::None);
 					}
 				}
 

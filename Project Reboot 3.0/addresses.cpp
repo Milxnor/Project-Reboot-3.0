@@ -526,6 +526,7 @@ void Offsets::Print()
 	LOG_INFO(LogDev, "ReplicationFrame: 0x{:x}", ReplicationFrame);
 	LOG_INFO(LogDev, "ClientWorldPackageName: 0x{:x}", ClientWorldPackageName);
 	LOG_INFO(LogDev, "NetworkObjectList: 0x{:x}", NetworkObjectList);
+	LOG_INFO(LogDev, "IsNetRelevantFor: 0x{:x}", IsNetRelevantFor);
 	LOG_INFO(LogDev, "Script: 0x{:x}", Script);
 	LOG_INFO(LogDev, "PropertyClass: 0x{:x}", PropertyClass);
 }
@@ -671,7 +672,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 			toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B 41 20 48 8B FA 48 8B D9 BA ? ? ? ? 83 78 08 03 0F 8D").Get()); // some constructor crash
 			toNull.push_back(Memcury::Scanner::FindPattern("4C 89 44 24 ? 53 55 56 57 41 54 41 55 41 56 41 57 48 83 EC 68 48 8D 05 ? ? ? ? 0F").Get()); // soem constructor crash (gets called by ^)
 			toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC 30 48 8B F9 48 8B CA E8").Get());
-			toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 55 41 56 48 83 EC 60 45 33 F6 4C 8D 2D ? ? ? ? 48 8B DA 48 8B E9 48 85").Get());
+			toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 ? 41 ? 48 83 EC 60 45 33 F6 4C 8D ? ? ? ? ? 48 8B DA").Get()); // crash 2 (20.40 & 21.00)
 		}
 	}
 
