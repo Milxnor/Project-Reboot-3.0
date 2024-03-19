@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "FortPlayerPawnAthena.h"
 #include "FortAthenaAIBotCustomizationData.h"
+#include "FortAthenaMutator_Bots.h"
 
 struct FFortAthenaAIBotRunTimeCustomizationData
 {
@@ -15,6 +16,12 @@ class UFortServerBotManagerAthena : public UObject
 {
 public:
 	static inline AFortPlayerPawnAthena* (*SpawnBotOriginal)(UFortServerBotManagerAthena* BotManager, FVector InSpawnLocation, FRotator InSpawnRotation, UFortAthenaAIBotCustomizationData* InBotData, FFortAthenaAIBotRunTimeCustomizationData InRuntimeBotData);
+
+	AFortAthenaMutator_Bots*& GetCachedBotMutator()
+	{
+		static auto CachedBotMutatorOffset = GetOffset("CachedBotMutator");
+		return Get<AFortAthenaMutator_Bots*>(CachedBotMutatorOffset);
+	}
 
 	static AFortPlayerPawnAthena* SpawnBotHook(UFortServerBotManagerAthena* BotManager, FVector& InSpawnLocation, FRotator& InSpawnRotation, UFortAthenaAIBotCustomizationData* InBotData, FFortAthenaAIBotRunTimeCustomizationData* InRuntimeBotData);
 };

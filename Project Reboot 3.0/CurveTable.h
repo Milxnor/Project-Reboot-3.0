@@ -42,7 +42,7 @@ class UCurveTable : public UObject
 public:
 	static int GetCurveTableSize()
 	{
-		static auto CurveTableClass = FindObject<UClass>("/Script/Engine.CurveTable");
+		static auto CurveTableClass = FindObject<UClass>(L"/Script/Engine.CurveTable");
 		return CurveTableClass->GetPropertiesSize();
 	}
 

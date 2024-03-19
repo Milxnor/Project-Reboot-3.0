@@ -105,6 +105,27 @@ static bool SetNavigationSystem(AAthenaNavSystemConfigOverride* NavSystemOverrid
     return true;
 }
 
+static inline AFortAthenaMutator_Bots* SpawnBotMutator() //sets up all the classes for phoebe
+{
+    auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
+    static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
+    static auto PhoebeMutatorClass = LoadObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_Phoebe_Mutator.BP_Phoebe_Mutator_C", BGAClass);
+
+    auto BotMutator = GetWorld()->SpawnActor<AFortAthenaMutator_Bots>(PhoebeMutatorClass);
+
+    static auto CachedGameModeOffset = BotMutator->GetOffset("CachedGameMode");
+    BotMutator->Get(CachedGameModeOffset) = GameMode;
+
+    static auto CachedGameStateOffset = BotMutator->GetOffset("CachedGameState", false);
+
+    if (CachedGameStateOffset != -1)
+        BotMutator->Get(CachedGameStateOffset) = GameState;
+
+    return BotMutator;
+}
+
 static void SetupServerBotManager()
 {
     auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
@@ -115,11 +136,10 @@ static void SetupServerBotManager()
     if (!FortServerBotManagerClass)
         return;
 
-    static auto ServerBotManagerOffset = GameMode->GetOffset("ServerBotManager");
-    UObject*& ServerBotManager = GameMode->Get(ServerBotManagerOffset);
+    UFortServerBotManagerAthena*& ServerBotManager = GameMode->GetServerBotManager();
 
     if (!ServerBotManager)
-        ServerBotManager = UGameplayStatics::SpawnObject(FortServerBotManagerClass, GetTransientPackage());
+        ServerBotManager = (UFortServerBotManagerAthena*)UGameplayStatics::SpawnObject(FortServerBotManagerClass, GetTransientPackage());
 
     if (ServerBotManager)
     {
@@ -132,7 +152,20 @@ static void SetupServerBotManager()
             ServerBotManager->Get(CachedGameStateOffset) = GameState;
 
         static auto CachedBotMutatorOffset = ServerBotManager->GetOffset("CachedBotMutator");
-        ServerBotManager->Get(CachedBotMutatorOffset) = FindFirstMutator(FindObject<UClass>(L"/Script/FortniteGame.FortAthenaMutator_Bots"));
+        auto BotMutator = FindFirstMutator(FindObject<UClass>(L"/Script/FortniteGame.FortAthenaMutator_Bots"));
+
+        if (!BotMutator)
+        {
+            LOG_WARN(LogAI, "Failed to find Bot Mutator! Spawning it..");
+            BotMutator = SpawnBotMutator();
+        }
+
+        if (!BotMutator)
+        {
+            LOG_ERROR(LogAI, "Failed to spawn or find Bot Mutator!");
+        }
+
+        ServerBotManager->Get(CachedBotMutatorOffset) = BotMutator;
     }
 }
 

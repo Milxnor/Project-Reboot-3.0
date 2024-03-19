@@ -978,6 +978,12 @@
     <ClInclude Include="FortServerBotManagerAthena.h">
       <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
     </ClInclude>
+    <ClInclude Include="FortAthenaAIBotController.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="AIController.h">
+      <Filter>Engine\Source\Runtime\AIModule\Classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">

@@ -789,7 +789,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				Transform.Translation = Loc;
 				Transform.Scale3D = FVector(1, 1, 1);
 
-				auto NewActor = Bots::SpawnBot(Transform);
+				auto NewActor = Bots::SpawnBot(Transform, Pawn);
 
 				if (!NewActor)
 				{
@@ -801,7 +801,8 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 				}
 			}
 
-			SendMessageToConsole(PlayerController, L"Summoned!");
+			if (AmountSpawned > 0)
+				SendMessageToConsole(PlayerController, L"Summoned!");
 		}
 		else if (Command == "sethealth")
 		{

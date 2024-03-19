@@ -70,6 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>$(ProjectName)</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -274,6 +277,7 @@
     <ClInclude Include="ActorComponent.h" />
     <ClInclude Include="addresses.h" />
     <ClInclude Include="ai.h" />
+    <ClInclude Include="AIController.h" />
     <ClInclude Include="AndOrNot.h" />
     <ClInclude Include="anticheat.h" />
     <ClInclude Include="Array.h" />
@@ -328,6 +332,7 @@
     <ClInclude Include="FortAbilitySet.h" />
     <ClInclude Include="FortAIEncounterInfo.h" />
     <ClInclude Include="FortAthenaAIBotCharacterCustomization.h" />
+    <ClInclude Include="FortAthenaAIBotController.h" />
     <ClInclude Include="FortAthenaAIBotCustomizationData.h" />
     <ClInclude Include="FortAthenaAIBotSpawnerData.h" />
     <ClInclude Include="FortAthenaAISpawnerDataComponent_CosmeticLoadout.h" />

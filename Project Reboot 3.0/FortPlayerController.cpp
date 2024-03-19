@@ -1817,7 +1817,8 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon()))
 	{
 		EditTool->SetEditActor(nullptr);
+		// PlayerController->ClientForceCancelBuildingTool();
 	}
 
-	PlayerController->ClientForceCancelBuildingTool();
+	// PlayerController->ClientForceCancelBuildingTool();
 }

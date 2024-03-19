@@ -585,8 +585,10 @@ static inline uint64 FindSetWorld()
 		SetWorldIndex = 0x73;
 	else if (Fortnite_Season >= 19 && Fortnite_Season < 21)
 		SetWorldIndex = 0x7A;
-	if (Fortnite_Version == 20.40)
+	if (Fortnite_Season == 20) // 20.40
 		SetWorldIndex = 0x7B;
+	if (Fortnite_Season == 21)
+		SetWorldIndex = 0x7C; // 21.00
 
 	// static auto DefaultNetDriver = FindObject("/Script/Engine.Default__NetDriver");
 	return SetWorldIndex;
@@ -606,6 +608,9 @@ static inline uint64 FindInitListen()
 
 static inline uint64 FindOnDamageServer()
 {
+	if (Fortnite_Version >= 20) // 8B 15 on name ref???
+		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 41 39 B4 24").RelativeOffset(1).Get(); // 20.40 (not 21.00)
+
 	auto Addr = FindFunctionCall(L"OnDamageServer", 
 		Engine_Version == 416 ? std::vector<uint8_t>{ 0x4C, 0x89, 0x4C } : 
 		Engine_Version == 419 || Engine_Version >= 427 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x40, 0x55 }

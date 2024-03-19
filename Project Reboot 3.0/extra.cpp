@@ -95,13 +95,17 @@ void SetZoneToIndexHook(AFortGameModeAthena* GameModeAthena, int OverridePhaseMa
 		bFilledDurations = true;
 
 		auto CurrentPlaylist = GameState->GetCurrentPlaylist();
-		UCurveTable* FortGameData = nullptr;
-
 		static auto GameDataOffset = CurrentPlaylist->GetOffset("GameData");
-		FortGameData = CurrentPlaylist ? CurrentPlaylist->Get<TSoftObjectPtr<UCurveTable>>(GameDataOffset).Get() : nullptr;
+		UCurveTable* FortGameData = CurrentPlaylist ? CurrentPlaylist->Get<TSoftObjectPtr<UCurveTable>>(GameDataOffset).Get() : nullptr;
 
 		if (!FortGameData)
 			FortGameData = FindObject<UCurveTable>(L"/Game/Balance/AthenaGameData.AthenaGameData");
+
+		if (!FortGameData)
+		{
+			LOG_ERROR(LogZone, "Unable to get FortGameData.");
+			return SetZoneToIndexOriginal(GameModeAthena, OverridePhaseMaybeIDFK);
+		}
 
 		auto ShrinkTimeFName = UKismetStringLibrary::Conv_StringToName(L"Default.SafeZone.ShrinkTime");
 		auto HoldTimeFName = UKismetStringLibrary::Conv_StringToName(L"Default.SafeZone.WaitTime");

@@ -21,9 +21,7 @@ extern inline double Fortnite_Version = 0; // For example, 4.1, 6.21, etc. // Pr
 extern inline int Fortnite_CL = 0;
 
 // #define PROD // this doesnt do anything besides remove processeventhook and some assert stuff
-// DEPRACTERD ^^^
-
-
+// DEPRACTERD ^^^ (see Globals::bDeveloperMode)
 
 // #define ABOVE_S20
 

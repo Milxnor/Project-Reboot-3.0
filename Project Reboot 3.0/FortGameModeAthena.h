@@ -10,6 +10,7 @@
 #include "FortAbilitySet.h"
 #include "FortPlayerControllerAthena.h"
 #include "FortItemDefinition.h"
+#include "FortServerBotManagerAthena.h"
 
 struct FAircraftFlightInfo
 {
@@ -82,9 +83,8 @@ static inline UFortAbilitySet* GetPlayerAbilitySet()
 {
 	// There are some variables that contain this but it changes through versions soo..
 
-	static auto GameplayAbilitySet = (UFortAbilitySet*)(Fortnite_Version >= 8.30
-		? LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer", UFortAbilitySet::StaticClass()) 
-		: LoadObject(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer", UFortAbilitySet::StaticClass()));
+	static auto GameplayAbilitySet = (Fortnite_Version >= 8.30 ? LoadObject<UFortAbilitySet>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer")
+		: LoadObject<UFortAbilitySet>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer"));
 
 	return GameplayAbilitySet;
 }
@@ -249,6 +249,12 @@ public:
 	{
 		static auto SafeZoneIndicatorOffset = GetOffset("SafeZoneIndicator");
 		return Get<AFortSafeZoneIndicator*>(SafeZoneIndicatorOffset);
+	}
+
+	UFortServerBotManagerAthena*& GetServerBotManager()
+	{
+		static auto ServerBotManagerOffset = GetOffset("ServerBotManager");
+		return Get<UFortServerBotManagerAthena*>(ServerBotManagerOffset);
 	}
 
 	AFortGameStateAthena* GetGameStateAthena()

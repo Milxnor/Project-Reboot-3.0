@@ -241,11 +241,22 @@ void AFortGameModeAthena::OverrideSupplyDrop(AFortGameStateAthena* GameState, UC
 		return;
 	}
 
-	static auto SupplyDropInfoListOffset = MapInfo->GetOffset("SupplyDropInfoList");
-	auto& SupplyDropInfoList = MapInfo->Get<TArray<UFortSupplyDropInfo*>>(SupplyDropInfoListOffset);
+	static auto SupplyDropInfoListOffset = MapInfo->GetOffset("SupplyDropInfoList", false);
 
-	static auto SupplyDropClassOffset = SupplyDropInfoList.at(0)->GetOffset("SupplyDropClass");
-	SupplyDropInfoList.at(0)->Get<TSubclassOf<AFortAthenaSupplyDrop*>>(SupplyDropClassOffset) = OverrideSupplyDropBusClass;
+	if (SupplyDropInfoListOffset == -1)
+		return;
+
+	auto& SupplyDropInfoList = MapInfo->Get<TArray<UFortSupplyDropInfo*>>(SupplyDropInfoListOffset);
+	auto FirstSupplyDropInfo = SupplyDropInfoList.at(0);
+
+	if (!FirstSupplyDropInfo)
+	{
+		LOG_WARN(LogGame, "No FirstSupplyDropInfo!");
+		return;
+	}
+
+	static auto SupplyDropClassOffset = FirstSupplyDropInfo->GetOffset("SupplyDropClass");
+	FirstSupplyDropInfo->Get<TSubclassOf<AFortAthenaSupplyDrop*>>(SupplyDropClassOffset) = OverrideSupplyDropBusClass;
 
 	LOG_INFO(LogGame, "Overridden SupplyDropClass: {}", OverrideSupplyDropBusClass->GetFullName());
 }
@@ -281,6 +292,15 @@ void AFortGameModeAthena::OnAircraftEnteredDropZoneHook(AFortGameModeAthena* Gam
 		auto GameState = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
 		GameState->SkipAircraft();
 	}
+}
+
+void SetupEverythingAI() // find better name lol
+{
+	PlayerBot::InitializeBotClasses();
+	// SetupAIGoalManager();
+	// SetupAIDirector();
+	SetupServerBotManager();
+	// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"MANG"));
 }
 
 bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* GameMode)
@@ -348,14 +368,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "Presetup!");
 
-		if (false)
-		{
-			SetupAIGoalManager();
-			SetupAIDirector();
-			SetupServerBotManager();
-		}
-		// SetupNavConfig(UKismetStringLibrary::Conv_StringToName(L"MANG"));
-
 		/*
 
 		static auto WorldManagerOffset = GameState->GetOffset("WorldManager", false);
@@ -402,12 +414,14 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			}
 			else
 			{
-				if (Fortnite_Version >= 4.1) // ????
+				if (Fortnite_Version > 4.0) // bruh
 				{
 					SetPlaylist(PlaylistToUse, true);
 
 					auto CurrentPlaylist = GameState->GetCurrentPlaylist();
 					LOG_INFO(LogDev, "Set playlist to {}!", CurrentPlaylist->IsValidLowLevel() ? CurrentPlaylist->GetFullName() : "Invalid");
+
+					SetupEverythingAI();
 				}
 			}
 		}
@@ -674,7 +688,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	static int LastNum5 = 1;
 
-	if (AmountOfRestarts != LastNum5 && LastNum6 == AmountOfRestarts) // Make sure we loaded the event.
+	if (AmountOfRestarts != LastNum5 && LastNum6 == AmountOfRestarts) // Make sure we loaded the event successfully.
 	{
 		LastNum5 = AmountOfRestarts;
 
@@ -706,7 +720,9 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 	auto MapInfo = GameState->GetMapInfo();
 
-	if (Engine_Version >= 421 && !MapInfo)
+	if (Engine_Version >= 421 && // todo recheck this version 
+		!MapInfo
+		)
 		return false;
 
 	static int LastNum = 1;
@@ -717,8 +733,11 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 		LOG_INFO(LogDev, "Initializing!");
 
-		if (Fortnite_Version == 3)
+		if (Fortnite_Version >= 3.5 && Fortnite_Version <= 4) // todo check 3.4
+		{
 			SetPlaylist(GetPlaylistToUse(), true);
+			SetupEverythingAI();
+		}
 
 		LOG_INFO(LogDev, "GameMode 0x{:x}", __int64(GameMode));
 
@@ -1531,6 +1550,18 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	if (PlayerAbilitySet && Fortnite_Version != 12.00)
 	{
 		PlayerAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
+
+		if (Fortnite_Version >= 21)
+		{
+#if 0
+			static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
+			auto TacticalSprintClass = LoadObject<UClass>("/TacticalSprint/Gameplay/GA_Athena_GrantTacticalSprint.GA_Athena_GrantTacticalSprint_C", BGAClass);
+			AbilitySystemComponent->GiveAbilityEasy(TacticalSprintClass);
+#else
+			auto TacticalSprintAbilitySet = LoadObject<UFortAbilitySet>("/TacticalSprint/Gameplay/AS_TacticalSprint.AS_TacticalSprint");
+			// TacticalSprintAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
+#endif
+		}
 	}
 
 	static auto PlayerCameraManagerOffset = NewPlayer->GetOffset("PlayerCameraManager");

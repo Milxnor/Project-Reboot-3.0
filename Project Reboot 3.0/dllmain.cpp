@@ -1005,24 +1005,30 @@ DWORD WINAPI Main(LPVOID)
 
     if (std::floor(Fortnite_Version) == 4)
     {
-        auto RetrieveCharacterPartsAddr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B 01 0F B6 FA 48 8B D9 FF 90 ? ? ? ? 48 8B C8 E8 ? ? ? ? 84 C0 74 0D 33 C0 48 8B 5C 24 ? 48 83 C4 20 5F").Get();
+        auto RetrieveCharacterPartsAddr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B 01 0F B6 FA 48 8B D9 FF 90 ? ? ? ? 48 8B C8 E8 ? ? ? ? 84 C0 74 0D 33 C0 48 8B 5C 24 ? 48 83 C4 20 5F", false).Get();
         
+        if (!RetrieveCharacterPartsAddr)
+            RetrieveCharacterPartsAddr = Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 01 48 8B D9 FF 90 ? ? ? ? 48 8B C8 E8 ? ? ? ? 84 C0 74 08 33 C0 48 83 C4 20 5B C3 48 8B CB").Get(); // 4.0
+
         LOG_INFO(LogDev, "RetrieveCharacterPartsAddr: {}", RetrieveCharacterPartsAddr);
 
-        for (int i = 0; i < 400; i++)
+        if (RetrieveCharacterPartsAddr)
         {
-            if (*(uint8_t*)(RetrieveCharacterPartsAddr + i) == 0x74) // jz
+            for (int i = 0; i < 400; i++)
             {
-                DWORD dwProtection;
-                VirtualProtect((PVOID)(RetrieveCharacterPartsAddr + i), 1, PAGE_EXECUTE_READWRITE, &dwProtection);
+                if (*(uint8_t*)(RetrieveCharacterPartsAddr + i) == 0x74) // jz
+                {
+                    DWORD dwProtection;
+                    VirtualProtect((PVOID)(RetrieveCharacterPartsAddr + i), 1, PAGE_EXECUTE_READWRITE, &dwProtection);
 
-                *(uint8_t*)(RetrieveCharacterPartsAddr + i) = 0x75; // jnz
+                    *(uint8_t*)(RetrieveCharacterPartsAddr + i) = 0x75; // jnz
 
-                DWORD dwTemp;
-                VirtualProtect((PVOID)(RetrieveCharacterPartsAddr + i), 1, dwProtection, &dwTemp);
+                    DWORD dwTemp;
+                    VirtualProtect((PVOID)(RetrieveCharacterPartsAddr + i), 1, dwProtection, &dwTemp);
 
-                LOG_INFO(LogDev, "Applied RetrieveCharacterParts patch!");
-                break;
+                    LOG_INFO(LogDev, "Applied RetrieveCharacterParts patch!");
+                    break;
+                }
             }
         }
     }
