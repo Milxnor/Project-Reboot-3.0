@@ -815,7 +815,7 @@ static inline void MainUI()
 				{
 					if (Globals::bLateGame.load() 
 						|| (Fortnite_Version >= 11 // Its been a minute but iirc it just wouldnt start when countdown ended or crash? cant remember
-						&& false
+						// && false
 						))
 					{
 						if (ImGui::Button("Start Bus"))

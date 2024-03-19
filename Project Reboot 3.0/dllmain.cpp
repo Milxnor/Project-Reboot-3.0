@@ -967,13 +967,11 @@ DWORD WINAPI Main(LPVOID)
     }
     */
 
-    /*
     if (Fortnite_Version >= 16 && Fortnite_Version < 19)
     {
         // Bus crash (only needed if we are calling StartAircraftPhase on seperate thread I THINK) (sometimes)
         Hooking::MinHook::Hook(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 54 41 56 41 57 48 83 EC 40 48 8B 59 28 45 33 E4").GetAs<PVOID>(), (PVOID)EmptyHook); // also on 16.50
     }
-    */
 
     if (Fortnite_Version == 17.30) // Rift Tour stuff
     {
