@@ -16,6 +16,7 @@
 #include "FortAthenaMutator_GiveItemsAtGamePhaseStep.h"
 #include "FortGameStateAthena.h"
 #include "BuildingGameplayActorSpawnMachine.h"
+#include "BuildingWeapons.h"
 
 #include "BuildingFoundation.h"
 #include "Map.h"
@@ -1169,6 +1170,26 @@ DWORD WINAPI Main(LPVOID)
             nullptr, false);
     }
 
+    auto OnRep_EditActorFn = FindObject<UFunction>(L"/Script/FortniteGame.FortWeap_EditingTool.OnRep_EditActor");
+
+    if (OnRep_EditActorFn)
+    {
+        auto OnRep_EditActorExec = (uint64)OnRep_EditActorFn->GetFunc();
+        uint64 OnRep_EditActorOriginal = 0;
+
+        for (int i = 0; i < 400; i++)
+        {
+            if (*(uint8_t*)(OnRep_EditActorExec + i) == 0xE8 || *(uint8_t*)(OnRep_EditActorExec + i) == 0xE9)
+            {
+                OnRep_EditActorOriginal = Memcury::Scanner(OnRep_EditActorExec + i).RelativeOffset(1).Get();
+                break;
+            }
+        }
+
+        LOG_INFO(LogDev, "OnRep_EditActor Offset: {}", OnRep_EditActorOriginal - __int64(GetModuleHandleW(0)));
+        AFortWeap_EditingTool::originalOnRep_EditActor = decltype(AFortWeap_EditingTool::originalOnRep_EditActor)(OnRep_EditActorOriginal);
+    }
+
     static auto ServerReturnToMainMenuFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerReturnToMainMenu");
     static auto ServerReturnToMainMenuIdx = GetFunctionIdxOrPtr(ServerReturnToMainMenuFn) / 8;
     auto FortServerRestartPlayer = FortPlayerControllerDefault->VFTable[ServerReturnToMainMenuIdx];
@@ -1565,10 +1586,6 @@ DWORD WINAPI Main(LPVOID)
     // if (Fortnite_Version >= 13)
     Hooking::MinHook::Hook((PVOID)Addresses::SetZoneToIndex, (PVOID)SetZoneToIndexHook, (PVOID*)&SetZoneToIndexOriginal);
     Hooking::MinHook::Hook((PVOID)Addresses::EnterAircraft, (PVOID)AFortPlayerControllerAthena::EnterAircraftHook, (PVOID*)&AFortPlayerControllerAthena::EnterAircraftOriginal);
-
-#ifndef PROD
-    Hooking::MinHook::Hook((PVOID)Addresses::ProcessEvent, ProcessEventHook, (PVOID*)&UObject::ProcessEventOriginal);
-#endif
 
     AddVehicleHook();
 

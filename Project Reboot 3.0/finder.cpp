@@ -52,7 +52,7 @@ uint64 FindGIsClient()
 
 	std::vector<std::vector<uint8_t>> BytesArray = {
 		{0x88, 0x05}, // 20.40 21.00
-		{0xC6, 0x05}, // mov cs X // Checked on 1.11, 12.41
+		{0xC6, 0x05}, // mov cs X // Checked on 1.11, 12.41, 15.10
 		{0x88, 0x1D}, // mov cs bl // Checked on 17.50, 19.10
 		{0x44, 0x88} // 4.5
 	};
@@ -60,6 +60,7 @@ uint64 FindGIsClient()
 	int Skip = 2;
 
 	uint64 Addy = 0;
+	int PickedByte = 0;
 
 	for (int i = 0; i < 50; i++) // we should subtract from skip if go up
 	{
@@ -97,6 +98,13 @@ uint64 FindGIsClient()
 						if (Bytes[2] == 0x74) // DIE 4.5 (todo check length of entire instruction)
 							continue;
 					}
+
+					if (!PickedByte)
+					{
+						PickedByte = Bytes[0];
+					}
+					else if (PickedByte != Bytes[0])
+						continue; // Its one of the bytes, but not the first one we found.
 
 					if (Skip > 0)
 					{

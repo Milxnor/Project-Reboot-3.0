@@ -24,6 +24,7 @@ namespace Globals
 	extern inline bool bAutoRestart = false; // doesnt work fyi
 	extern inline bool bFillVendingMachines = true;
 	extern inline int AmountOfListens = 0; // TODO: Switch to this for LastNum
+	extern inline bool bDeveloperMode = false;
 }
 
 extern inline int NumToSubtractFromSquadId = 0; // I think 2?

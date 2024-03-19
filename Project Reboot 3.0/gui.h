@@ -35,6 +35,7 @@
 #include "GameplayStatics.h"
 #include "Text.h"
 #include <Images/reboot_icon.h>
+#include "hooking.h"
 #include "FortGadgetItemDefinition.h"
 #include "FortWeaponItemDefinition.h"
 #include "events.h"
@@ -325,10 +326,18 @@ static inline void StaticUI()
 
 	ImGui::InputInt("Shield/Health for siphon", &AmountOfHealthSiphon);
 
-#ifndef PROD
-	ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent);
+	ImGui::Checkbox("Enable Developer Mode", &Globals::bDeveloperMode);
+
+	if (Globals::bDeveloperMode)
+	{
+		if (ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent))
+		{
+			// todo toggle hook
+			Hooking::MinHook::Hook((PVOID)Addresses::ProcessEvent, ProcessEventHook, (PVOID*)&UObject::ProcessEventOriginal);
+		}
+	}
+
 	// ImGui::InputInt("Amount of bots to spawn", &AmountOfBotsToSpawn);
-#endif
 
 	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);
 	ImGui::Checkbox("Infinite Materials", &Globals::bInfiniteMaterials);
@@ -444,23 +453,24 @@ static inline void MainTabs()
 
 		// maybe a Replication Stats for >3.3?
 
-#ifndef PROD
-		if (ImGui::BeginTabItem("Developer"))
+		if (Globals::bDeveloperMode)
 		{
-			Tab = DEVELOPER_TAB;
-			PlayerTab = -1;
-			bInformationTab = false;
-			ImGui::EndTabItem();
-		}
+			if (ImGui::BeginTabItem("Developer"))
+			{
+				Tab = DEVELOPER_TAB;
+				PlayerTab = -1;
+				bInformationTab = false;
+				ImGui::EndTabItem();
+			}
 
-		if (ImGui::BeginTabItem("Debug Logs"))
-		{
-			Tab = DEBUGLOG_TAB;
-			PlayerTab = -1;
-			bInformationTab = false;
-			ImGui::EndTabItem();
+			if (ImGui::BeginTabItem("Debug Logs"))
+			{
+				Tab = DEBUGLOG_TAB;
+				PlayerTab = -1;
+				bInformationTab = false;
+				ImGui::EndTabItem();
+			}
 		}
-#endif
 
 		if (false && ImGui::BeginTabItem(("Credits")))
 		{

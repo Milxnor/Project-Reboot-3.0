@@ -188,6 +188,7 @@ public:
 	}
 
 	void ClientEquipItem(const FGuid& ItemGuid, bool bForceExecution);
+	void ClientForceCancelBuildingTool();
 
 	bool DoesBuildFree();
 	void DropAllItems(const std::vector<UFortItemDefinition*>& IgnoreItemDefs, bool bIgnoreSecondaryQuickbar = false, bool bRemoveIfNotDroppable = false, bool RemovePickaxe = false);

@@ -53,6 +53,13 @@ void AFortPlayerController::ClientEquipItem(const FGuid& ItemGuid, bool bForceEx
 	}
 }
 
+void AFortPlayerController::ClientForceCancelBuildingTool()
+{
+	static auto ClientForceCancelBuildingToolFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ClientForceCancelBuildingTool");
+
+	this->ProcessEvent(ClientForceCancelBuildingToolFn);
+}
+
 bool AFortPlayerController::DoesBuildFree()
 {
 	if (Globals::bInfiniteMaterials)
@@ -963,6 +970,7 @@ void AFortPlayerController::ServerCreateBuildingActorHook(UObject* Context, FFra
 
 	ExistingBuildings.Free();
 
+	// BuildingActor->SetCurrentBuildingLevel()
 	BuildingActor->SetPlayerPlaced(true);
 	BuildingActor->InitializeBuildingActor(PlayerController, BuildingActor, true);
 	BuildingActor->SetTeam(PlayerStateAthena->GetTeamIndex()); // required?
@@ -1676,6 +1684,23 @@ bool IsOkForEditing(ABuildingSMActor* BuildingActor, AFortPlayerController* Cont
 		Idk(BuildingActor);
 }
 
+/*
+
+The editing dilemma:
+
+15.10:
+Valid edit pattern:
+ServerBeginEditingActorblahblah
+ServerEdit
+ClientForceStop
+
+WHERE IS END EDITING?!?!??!
+Invalid EDitPattern:
+ServerBeginEditingActorblahblah
+ServerEnd
+
+*/
+
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)
 {
 	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced()) // We need more checks.
@@ -1738,7 +1763,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 
 	// LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
 
-	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
+	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->GetEditingPlayer() != PlayerState || BuildingActorToEdit->IsDestroyed())
 	{
 		// LOG_INFO(LogDev, "Cheater?");
 		// LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
@@ -1764,7 +1789,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 }
 
-void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToStopEditing)
+void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToStopEditing) 
 {
 	auto Pawn = PlayerController->GetMyFortPawn();
 
@@ -1782,15 +1807,17 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (!WorldInventory)
 		return;
 
-	AFortWeap_EditingTool* EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
 
-	if (EditTool)
+	if (!EditToolInstance)
+		return;
+
+	// Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid()); // why do they do this on older builds bru
+
+	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon()))
 	{
-		static auto bEditConfirmedOffset = EditTool->GetOffset("bEditConfirmed");
-
-		if (bEditConfirmedOffset != -1)
-			EditTool->Get<bool>(bEditConfirmedOffset) = true; // this probably does nothing on server	
-
 		EditTool->SetEditActor(nullptr);
 	}
+
+	PlayerController->ClientForceCancelBuildingTool();
 }

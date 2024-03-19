@@ -357,14 +357,22 @@ namespace Hooking
 
         static bool Unhook(void* Addr)
 		{
-			return MH_DisableHook((PVOID)Addr) == MH_OK;
-		}
+			bool bWasUnHookSuccessful = MH_DisableHook((PVOID)Addr) == MH_OK;
 
-        /* static bool Unhook(void** Addr, void* Original) // I got brain damaged
-        {
-            Unhook(Addr);
-            *Addr = Original;
-        } */
+            if (bWasUnHookSuccessful)
+            {
+                for (auto it = AllFunctionHooks.begin(); it != AllFunctionHooks.end(); it++) 
+                {
+                    if (it->Original == Addr)
+                    {
+                        AllFunctionHooks.erase(it);
+                        break;
+                    }
+                }
+            }
+
+            return bWasUnHookSuccessful;
+		}
 	}
 }
 
