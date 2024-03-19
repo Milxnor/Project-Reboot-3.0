@@ -1002,6 +1002,30 @@ DWORD WINAPI Main(LPVOID)
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x41624C8), (PVOID)ActivatePhaseAtIndexHook, (PVOID*)&ActivatePhaseAtIndexOriginal); // 7FF79E3E24C8  
     }
 
+    if (std::floor(Fortnite_Version) == 4)
+    {
+        auto RetrieveCharacterPartsAddr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B 01 0F B6 FA 48 8B D9 FF 90 ? ? ? ? 48 8B C8 E8 ? ? ? ? 84 C0 74 0D 33 C0 48 8B 5C 24 ? 48 83 C4 20 5F").Get();
+        
+        LOG_INFO(LogDev, "RetrieveCharacterPartsAddr: {}", RetrieveCharacterPartsAddr);
+
+        for (int i = 0; i < 400; i++)
+        {
+            if (*(uint8_t*)(RetrieveCharacterPartsAddr + i) == 0x74) // jz
+            {
+                DWORD dwProtection;
+                VirtualProtect((PVOID)(RetrieveCharacterPartsAddr + i), 1, PAGE_EXECUTE_READWRITE, &dwProtection);
+
+                *(uint8_t*)(RetrieveCharacterPartsAddr + i) = 0x75; // jnz
+
+                DWORD dwTemp;
+                VirtualProtect((PVOID)(RetrieveCharacterPartsAddr + i), 1, dwProtection, &dwTemp);
+
+                LOG_INFO(LogDev, "Applied RetrieveCharacterParts patch!");
+                break;
+            }
+        }
+    }
+
     if (Globals::bGoingToPlayEvent)
     {
         if (Fortnite_Version >= 17.30)

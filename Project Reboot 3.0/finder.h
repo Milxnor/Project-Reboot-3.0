@@ -515,9 +515,9 @@ static inline uint64 FindFree()
 {
 	uint64 addr = 0;
 
-	if (Fortnite_Version <= 3.3) // todo check 3.4
+	if (Engine_Version <= 420) // 3.3, 4.1, 4.5
 		addr = Memcury::Scanner::FindPattern("48 85 C9 74 1D 4C 8B 05 ? ? ? ? 4D 85 C0 0F 84").Get();
-	else if (Engine_Version >= 420 && Engine_Version <= 426)
+	else if (Engine_Version >= 421 && Engine_Version <= 426)
 		addr = Memcury::Scanner::FindPattern("48 85 C9 74 2E 53 48 83 EC 20 48 8B D9").Get();
 	else if (Engine_Version >= 427)
 		addr = Memcury::Scanner::FindPattern("48 85 C9 0F 84 ? ? ? ? 53 48 83 EC 20 48 89 7C 24 ? 48 8B D9 48 8B 3D").Get();
@@ -1529,8 +1529,8 @@ static inline uint64 FindGetNetMode()
 
 static inline uint64 FindApplyCharacterCustomization()
 {
-	if (std::floor(Fortnite_Version) == 4) // RetrieveCharacterParts return null if dedicated server?????
-		return 0;
+	// if (std::floor(Fortnite_Version) == 4) // RetrieveCharacterParts return null if dedicated server?????
+		// return 0;
 
 	auto Addrr = Memcury::Scanner::FindStringRef(L"AFortPlayerState::ApplyCharacterCustomization - Failed initialization, using default parts. Player Controller: %s PlayerState: %s, HeroId: %s", false, 0, Fortnite_Version >= 20, true).Get();
 
