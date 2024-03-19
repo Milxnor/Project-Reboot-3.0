@@ -1528,7 +1528,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 	auto PlayerAbilitySet = GetPlayerAbilitySet();
 	auto AbilitySystemComponent = PlayerStateAthena->GetAbilitySystemComponent();
 
-	if (PlayerAbilitySet)
+	if (PlayerAbilitySet && Fortnite_Version != 12.00)
 	{
 		PlayerAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
 	}

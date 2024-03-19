@@ -45,6 +45,7 @@
 #include "FortAthenaVehicleSpawner.h"
 #include "FortGameSessionDedicatedAthena.h"
 #include "FortAIEncounterInfo.h"
+#include "FortServerBotManagerAthena.h"
 
 enum class EMeshNetworkNodeType : uint8_t
 {
@@ -874,7 +875,7 @@ DWORD WINAPI Main(LPVOID)
     static auto FortOctopusVehicleDefault = FindObject<AFortOctopusVehicle>(L"/Script/FortniteGame.Default__FortOctopusVehicle");
     static auto FortPlayerControllerAthenaDefault = FindObject<AFortPlayerControllerAthena>(L"/Script/FortniteGame.Default__FortPlayerControllerAthena"); // FindObject<UClass>(L"/Game/Athena/Athena_PlayerController.Default__Athena_PlayerController_C");
 
-    if (Fortnite_Version >= 20)
+    if (Fortnite_Version >= 20 || Fortnite_Version == 12.00)
         ApplyNullAndRetTrues();
 
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetPackageMap VeryVerbose", nullptr);
@@ -964,10 +965,16 @@ DWORD WINAPI Main(LPVOID)
     }
     */
 
+    /*
+    if (Fortnite_Version >= 16 && Fortnite_Version < 19)
+    {
+        // Bus crash (only needed if we are calling StartAircraftPhase on seperate thread I THINK) (sometimes)
+        Hooking::MinHook::Hook(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 54 41 56 41 57 48 83 EC 40 48 8B 59 28 45 33 E4").GetAs<PVOID>(), (PVOID)EmptyHook); // also on 16.50
+    }
+    */
+
     if (Fortnite_Version == 17.30) // Rift Tour stuff
     {
-        auto busCrash = Hooking::MinHook::Hook(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 54 41 56 41 57 48 83 EC 40 48 8B 59 28 45 33 E4").GetAs<PVOID>(), (PVOID)EmptyHook);
-
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DED158), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556D158  
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3DECFC8), (PVOID)ReturnTrueHook, nullptr); // 7FF7E556CFC8
@@ -1025,7 +1032,7 @@ DWORD WINAPI Main(LPVOID)
 
     LOG_INFO(LogDev, "Switch levels.");
 
-    if (Fortnite_Version < 20)
+    if (Fortnite_Version < 20 && Fortnite_Version != 12)
         ApplyNullAndRetTrues();
 
     if (Fortnite_Version != 22.4)
@@ -1097,6 +1104,9 @@ DWORD WINAPI Main(LPVOID)
         Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortGameModeAthena.OnAircraftEnteredDropZone"), AFortGameModeAthena::OnAircraftEnteredDropZoneHook,
             (PVOID*)&AFortGameModeAthena::OnAircraftEnteredDropZoneOriginal, false, false, true, true);
     }
+
+    // Hooking::MinHook::Hook(FindObject<UFortServerBotManagerAthena>(L"/Script/FortniteGame.Default__FortServerBotManagerAthena"), FindObject<UFunction>(L"/Script/FortniteGame.FortServerBotManagerAthena.SpawnBot"),
+       // UFortServerBotManagerAthena::SpawnBotHook, (PVOID*)&UFortServerBotManagerAthena::SpawnBotOriginal, false);
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnFor"),
         AGameModeBase::SpawnDefaultPawnForHook, nullptr, false);

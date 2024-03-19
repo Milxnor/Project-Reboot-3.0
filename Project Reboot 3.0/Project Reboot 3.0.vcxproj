@@ -233,6 +233,7 @@
     <ClCompile Include="FortPlayerStateAthena.cpp" />
     <ClCompile Include="FortPlaysetItemDefinition.cpp" />
     <ClCompile Include="FortSafeZoneIndicator.cpp" />
+    <ClCompile Include="FortServerBotManagerAthena.cpp" />
     <ClCompile Include="FortWeapon.cpp" />
     <ClCompile Include="FortWeaponItemDefinition.cpp" />
     <ClCompile Include="FortWeaponRangedMountedCannon.cpp" />
@@ -386,6 +387,7 @@
     <ClInclude Include="FortQuickBars.h" />
     <ClInclude Include="FortResourceItemDefinition.h" />
     <ClInclude Include="FortSafeZoneIndicator.h" />
+    <ClInclude Include="FortServerBotManagerAthena.h" />
     <ClInclude Include="FortVehicleItemDefinition.h" />
     <ClInclude Include="FortVolume.h" />
     <ClInclude Include="FortWeapon.h" />
