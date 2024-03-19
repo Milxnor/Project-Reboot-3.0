@@ -4,6 +4,7 @@
 #include "OnlineReplStructs.h"
 #include "FortAthenaAIBotController.h"
 #include "BuildingContainer.h"
+#include "botnames.h"
 
 class BotPOI
 {
@@ -62,7 +63,6 @@ public:
 		else
 		{
 			PawnClass = LoadObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_PlayerPawn_Athena_Phoebe.BP_PlayerPawn_Athena_Phoebe_C", BlueprintGeneratedClassClass);
-
 			// ControllerClass = PawnClass->CreateDefaultObject()->GetAIControllerClass();
 		}
 
@@ -160,6 +160,98 @@ public:
 		}
 	}
 
+	void PickRandomLoadout()
+	{
+		auto AllHeroTypes = GetAllObjectsOfClass(FindObject<UClass>(L"/Script/FortniteGame.FortHeroType"));
+		std::vector<UFortItemDefinition*> AthenaHeroTypes;
+
+		UFortItemDefinition* HeroType = FindObject<UFortItemDefinition>(L"/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
+
+		for (int i = 0; i < AllHeroTypes.size(); ++i)
+		{
+			auto CurrentHeroType = (UFortItemDefinition*)AllHeroTypes.at(i);
+
+			if (CurrentHeroType->GetPathName().starts_with("/Game/Athena/Heroes/"))
+				AthenaHeroTypes.push_back(CurrentHeroType);
+		}
+
+		if (AthenaHeroTypes.size())
+		{
+			HeroType = AthenaHeroTypes.at(std::rand() % AthenaHeroTypes.size());
+		}
+
+		static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
+		PlayerState->Get(HeroTypeOffset) = HeroType;
+	}
+
+	void ApplyCosmeticLoadout()
+	{
+		static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
+		const auto CurrentHeroType = PlayerState->Get(HeroTypeOffset);
+
+		if (!CurrentHeroType)
+		{
+			LOG_WARN(LogBots, "CurrentHeroType called with an invalid HeroType!");
+			return;
+		}
+
+		ApplyHID(Pawn, CurrentHeroType, true);
+	}
+
+	void SetName(const FString& NewName)
+	{
+		if (// true ||
+			Fortnite_Version < 9
+			)
+		{
+			if (auto PlayerController = Cast<APlayerController>(Controller))
+			{
+				PlayerController->ServerChangeName(NewName);
+			}
+		}
+		else
+		{
+			auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+			GameMode->ChangeName(Controller, NewName, true);
+		}
+
+		PlayerState->OnRep_PlayerName(); // ?
+	}
+
+	FString GetRandomName() // Todo SetName(GetRandomName())
+	{
+		static int CurrentBotNum = 1;
+		std::wstring BotNumWStr;
+		FString NewName;
+
+		if (Fortnite_Version < 9)
+		{
+			BotNumWStr = std::to_wstring(CurrentBotNum++);
+			NewName = (L"RebootBot" + BotNumWStr).c_str();
+		}
+		else
+		{
+			if (Fortnite_Version < 11)
+			{
+				BotNumWStr = std::to_wstring(CurrentBotNum++ + 200);
+				NewName = (std::format(L"Anonymous[{}]", BotNumWStr)).c_str();
+			}
+			else
+			{
+				if (!PlayerBotNames.empty())
+				{
+					// std::shuffle(PlayerBotNames.begin(), PlayerBotNames.end(), std::default_random_engine((unsigned int)time(0)));
+
+					int RandomIndex = std::rand() % (PlayerBotNames.size() - 1);
+					NewName = PlayerBotNames[RandomIndex];
+					PlayerBotNames.erase(PlayerBotNames.begin() + RandomIndex);
+				}
+			}
+		}
+
+		return NewName;
+	}
+
 	void Initialize(const FTransform& SpawnTransform, AActor* InSpawnLocator)
 	{
 		auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
@@ -202,25 +294,9 @@ public:
 			Controller->Possess(Pawn);
 		}
 
-		static int CurrentBotNum = 1;
-		auto BotNumWStr = std::to_wstring(CurrentBotNum++);
-		FString NewName = (L"Jimmy" + BotNumWStr).c_str();
-
-		if (true || 
-			Fortnite_Version < 9
-			)
-		{
-			if (auto PlayerController = Cast<APlayerController>(Controller))
-			{
-				PlayerController->ServerChangeName(NewName);
-			}
-		}
-		else
-		{
-			GameMode->ChangeName(Controller, NewName, true);
-		}
-
-		PlayerState->OnRep_PlayerName();
+		auto BotNewName = GetRandomName();
+		LOG_INFO(LogBots, "BotNewName: {}", BotNewName.ToString());
+		SetName(BotNewName);
 
 		PlayerState->GetTeamIndex() = GameMode->Athena_PickTeamHook(GameMode, 0, Controller);
 
@@ -230,8 +306,6 @@ public:
 			PlayerState->GetSquadId() = PlayerState->GetTeamIndex() - NumToSubtractFromSquadId;
 
 		GameState->AddPlayerStateToGameMemberInfo(PlayerState);
-
-		Controller->Possess(Pawn);
 
 		Pawn->SetHealth(100);
 		Pawn->SetMaxHealth(100);
@@ -245,38 +319,8 @@ public:
 		}
 
 		SetupInventory();
-
-		// PlayerController->GetCosmeticLoadout()->GetCharacter() = FindObject("/Game/Athena/Items/Cosmetics/Characters/CID_263_Athena_Commando_F_MadCommander.CID_263_Athena_Commando_F_MadCommander");
-		// Pawn->GetCosmeticLoadout()->GetCharacter() = PlayerController->GetCosmeticLoadout()->GetCharacter();
-
-		// PlayerController->ApplyCosmeticLoadout();
-
-		auto AllHeroTypes = GetAllObjectsOfClass(FindObject<UClass>(L"/Script/FortniteGame.FortHeroType"));
-		std::vector<UFortItemDefinition*> AthenaHeroTypes;
-
-		UFortItemDefinition* HeroType = FindObject<UFortItemDefinition>(L"/Game/Athena/Heroes/HID_030_Athena_Commando_M_Halloween.HID_030_Athena_Commando_M_Halloween");
-
-		for (int i = 0; i < AllHeroTypes.size(); ++i)
-		{
-			auto CurrentHeroType = (UFortItemDefinition*)AllHeroTypes.at(i);
-
-			if (CurrentHeroType->GetPathName().starts_with("/Game/Athena/Heroes/"))
-				AthenaHeroTypes.push_back(CurrentHeroType);
-		}
-
-		if (AthenaHeroTypes.size())
-		{
-			HeroType = AthenaHeroTypes.at(std::rand() % AthenaHeroTypes.size());
-		}
-
-		static auto HeroTypeOffset = PlayerState->GetOffset("HeroType");
-
-		if (HeroTypeOffset != -1)
-		{
-			PlayerState->Get(HeroTypeOffset) = HeroType;
-		}
-
-		ApplyHID(Pawn, HeroType, true);
+		PickRandomLoadout();
+		ApplyCosmeticLoadout();
 
 		GameState->GetPlayersLeft()++;
 		GameState->OnRep_PlayersLeft();

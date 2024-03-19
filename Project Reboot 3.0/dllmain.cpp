@@ -47,6 +47,7 @@
 #include "FortGameSessionDedicatedAthena.h"
 #include "FortAIEncounterInfo.h"
 #include "FortServerBotManagerAthena.h"
+#include "botnames.h"
 
 enum class EMeshNetworkNodeType : uint8_t
 {
@@ -846,7 +847,7 @@ DWORD WINAPI Main(LPVOID)
 #else
     if (Fortnite_Version > 20)
     {
-        MessageBoxA(0, "Please define ABOVE_S20", "Project Reboot 3.0", MB_ICONERROR);
+        MessageBoxA(0, "Please define ABOVE_S20 (compile it yourself and change inc.h)", "Project Reboot 3.0", MB_ICONERROR);
         return 0;
     }
 #endif
@@ -1119,6 +1120,8 @@ DWORD WINAPI Main(LPVOID)
     // UNetDriver::ReplicationDriverOffset = FindOffsetStruct("/Script/Engine.NetDriver", "ReplicationDriver"); // NetDriver->GetOffset("ReplicationDriver");
 
     // Globals::bAbilitiesEnabled = Engine_Version < 500;
+
+    InitBotNames();
 
     if (Engine_Version < 420)
     {

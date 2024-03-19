@@ -3,10 +3,10 @@
 
 #include "reboot.h"
 
-void APlayerController::ServerChangeName(FString& S)
+void APlayerController::ServerChangeName(const FString& S)
 {
 	static auto ServerChangeNameFn = FindObject<UFunction>(L"/Script/Engine.PlayerController.ServerChangeName");
-	this->ProcessEvent(ServerChangeNameFn, &S);
+	this->ProcessEvent(ServerChangeNameFn, (FString*)&S);
 }
 
 void APlayerController::SetPlayerIsWaiting(bool NewValue)

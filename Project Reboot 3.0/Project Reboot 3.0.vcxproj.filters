@@ -984,6 +984,9 @@
     <ClInclude Include="AIController.h">
       <Filter>Engine\Source\Runtime\AIModule\Classes</Filter>
     </ClInclude>
+    <ClInclude Include="botnames.h">
+      <Filter>Reboot\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
