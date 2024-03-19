@@ -95,8 +95,11 @@ uint64 FindGIsClient()
 
 					if (bIsScuffedByte)
 					{
-						if (Bytes[2] == 0x74) // DIE 4.5 (todo check length of entire instruction)
+						if (*(Memcury::ASM::MNEMONIC*)(Addr.Get() - i + 2) == 0x74) // DIE 4.5 (todo check length of entire instruction)
+						{
+							LOG_INFO(LogDev, "Found broken byte, skipping!");
 							continue;
+						}
 					}
 
 					if (!PickedByte)

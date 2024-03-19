@@ -9,7 +9,7 @@ struct FGameplayEffectApplicationInfoHard
 public:
 	static UStruct* GetStruct()
 	{
-		static auto GameplayEffectApplicationInfoHardStruct = FindObject<UStruct>("/Script/FortniteGame.GameplayEffectApplicationInfoHard");
+		static auto GameplayEffectApplicationInfoHardStruct = FindObject<UStruct>(L"/Script/FortniteGame.GameplayEffectApplicationInfoHard");
 		return GameplayEffectApplicationInfoHardStruct;
 	}
 
@@ -55,7 +55,7 @@ public:
 
 		auto GrantedGameplayEffects = GetGrantedGameplayEffects();
 
-		for (int i = 0; i < GrantedGameplayEffects->Num(); i++)
+		for (int i = 0; i < GrantedGameplayEffects->Num(); ++i)
 		{
 			auto& EffectToGrant = GrantedGameplayEffects->at(i, FGameplayEffectApplicationInfoHard::GetStructSize());
 
@@ -76,7 +76,7 @@ public:
 	{
 		auto GameplayAbilities = GetGameplayAbilities();
 
-		for (int i = 0; i < GameplayAbilities->Num(); i++)
+		for (int i = 0; i < GameplayAbilities->Num(); ++i)
 		{
 			UClass* AbilityClass = GameplayAbilities->At(i);
 
@@ -93,7 +93,7 @@ public:
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortAbilitySet");
+		static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortAbilitySet");
 		return Class;
 	}
 };

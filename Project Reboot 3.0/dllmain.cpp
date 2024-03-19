@@ -1265,6 +1265,8 @@ DWORD WINAPI Main(LPVOID)
        AFortPlayerController::ServerExecuteInventoryItemHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerPlayEmoteItem"),
        AFortPlayerController::ServerPlayEmoteItemHook, nullptr, false);
+    Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerPlaySprayItem"),
+        AFortPlayerController::ServerPlaySprayItemHook, nullptr, false); // S4 explain yourself
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerRepairBuildingActor"),
         AFortPlayerController::ServerRepairBuildingActorHook, nullptr, false);
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerCreateBuildingActor"), 

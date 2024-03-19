@@ -89,6 +89,8 @@ enum class EInteractionBeingAttempted : uint8
 	EInteractionBeingAttempted_MAX = 3,
 };
 
+using UAthenaSprayItemDefinition = UObject;
+
 class AFortPlayerController : public APlayerController
 {
 public:
@@ -210,6 +212,7 @@ public:
 	static void ServerDropAllItemsHook(AFortPlayerController* PlayerController, UFortItemDefinition* IgnoreItemDef);
 
 	static void ServerAttemptInventoryDropHook(AFortPlayerController* PlayerController, FGuid ItemGuid, int Count);
+	static void ServerPlaySprayItemHook(AFortPlayerController* PlayerController, UAthenaSprayItemDefinition* SprayAsset);
 	static void ServerPlayEmoteItemHook(AFortPlayerController* PlayerController, UObject* EmoteAsset);
 	static void ClientOnPawnDiedHook(AFortPlayerController* PlayerController, void* DeathReport);
 

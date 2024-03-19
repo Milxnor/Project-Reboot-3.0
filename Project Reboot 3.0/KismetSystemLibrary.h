@@ -106,6 +106,24 @@ public:
 		KismetSystemLibrary->ProcessEvent(fn, &UKismetSystemLibrary_ExecuteConsoleCommand_Params);
 	}
 
+	static FTimerHandle K2_SetTimer(UObject* Object, FString FunctionName, float Time, bool bLooping)
+	{
+		struct {
+			UObject* Object;
+			FString FunctionName;
+			float Time;
+			bool bLooping;
+			FTimerHandle ret;
+		} K2_SetTimer_Params{Object, FunctionName, Time, bLooping};
+
+		static auto KismetSystemLibrary = FindObject("/Script/Engine.Default__KismetSystemLibrary");
+		static auto K2_SetTimerFn = FindObject<UFunction>("/Script/Engine.KismetSystemLibrary.K2_SetTimer");
+
+		KismetSystemLibrary->ProcessEvent(K2_SetTimerFn, &K2_SetTimer_Params);
+
+		return K2_SetTimer_Params.ret;
+	}
+
 	static bool LineTraceSingle(UObject* WorldContextObject, FVector Start, FVector End, ETraceTypeQuery TraceChannel, bool bTraceComplex, 
 		TArray<AActor*> ActorsToIgnore, EDrawDebugTrace DrawDebugType, bool bIgnoreSelf, FLinearColor TraceColor, FLinearColor TraceHitColor,
 		float DrawTime, FHitResult** OutHit)

@@ -79,8 +79,6 @@ void UWorld::Listen()
 
 	FString Error;
 	
-	LOG_INFO(LogNet, "Calling InitListen!");
-
 	AWorldSettings* WorldSettings = GetWorldSettings();
 	const bool bReuseAddressAndPort = false; // WorldSettings ? WorldSettings->bReuseAddressAndPort : false;
 
@@ -89,8 +87,6 @@ void UWorld::Listen()
 		LOG_ERROR(LogNet, "Failed to init listen!");
 		return;
 	}
-
-	LOG_INFO(LogNet, "Called InitListen!");
 
 	const bool bLanSpeed = false;
 

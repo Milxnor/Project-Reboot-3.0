@@ -1122,13 +1122,15 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 		return;
 
 	UObject* AbilityToUse = nullptr;
+	bool bShouldBeAbilityToUse = false;
 
 	static auto AthenaSprayItemDefinitionClass = FindObject<UClass>(L"/Script/FortniteGame.AthenaSprayItemDefinition");
 	static auto AthenaToyItemDefinitionClass = FindObject<UClass>(L"/Script/FortniteGame.AthenaToyItemDefinition");
+	static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
 
 	if (EmoteAsset->IsA(AthenaSprayItemDefinitionClass))
 	{
-		static auto SprayGameplayAbilityDefault = FindObject(L"/Game/Abilities/Sprays/GAB_Spray_Generic.Default__GAB_Spray_Generic_C");
+		auto SprayGameplayAbilityDefault = FindObject(L"/Game/Abilities/Sprays/GAB_Spray_Generic.Default__GAB_Spray_Generic_C");
 		AbilityToUse = SprayGameplayAbilityDefault;
 	}
 
@@ -1136,8 +1138,6 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 	{
 		static auto ToySpawnAbilityOffset = EmoteAsset->GetOffset("ToySpawnAbility");
 		auto& ToySpawnAbilitySoft = EmoteAsset->Get<TSoftObjectPtr<UClass>>(ToySpawnAbilityOffset);
-
-		static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
 
 		auto ToySpawnAbility = ToySpawnAbilitySoft.Get(BGAClass, true);
 
@@ -1204,6 +1204,11 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* Playe
 	}
 }
 
+void AFortPlayerController::ServerPlaySprayItemHook(AFortPlayerController* PlayerController, UAthenaSprayItemDefinition* SprayAsset)
+{
+	PlayerController->ServerPlayEmoteItemHook(PlayerController, SprayAsset);
+}
+
 uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = false, AFortPawn* Pawn = nullptr)
 {
 	static auto ToDeathCauseFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.ToDeathCause");
@@ -1257,27 +1262,6 @@ uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = fa
 
 	static uint8 (*sub_7FF7AB499410)(FGameplayTagContainer TagContainer, char bWasDBNOIg) = decltype(sub_7FF7AB499410)(Addr);
 	return sub_7FF7AB499410(TagContainer, bWasDBNO);
-}
-
-DWORD WINAPI SpectateThread(LPVOID PC)
-{
-	auto PlayerController = (UObject*)PC;
-
-	if (!PlayerController->IsValidLowLevel())
-		return 0;
-
-	auto SpectatingPC = Cast<AFortPlayerControllerAthena>(PlayerController);
-
-	if (!SpectatingPC)
-		return 0;
-
-	Sleep(3000);
-
-	LOG_INFO(LogDev, "Spectate!");
-
-	SpectatingPC->SpectateOnDeath();
-
-	return 0;
 }
 
 DWORD WINAPI RestartThread(LPVOID)
@@ -1602,26 +1586,25 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 				// LOG_INFO(LogDev, "KillerPlayerState->Place: {}", KillerPlayerState ? KillerPlayerState->GetPlace() : -1);
 			}
+		}
 
-			if (Fortnite_Version < 6) // Spectating (is this the actual build or is it like 6.10 when they added it auto).
+		if (Fortnite_Version < 6) // Spectating (is this the actual build or is it like 6.10 when they added it auto).
+		{
+			if (GameState->GetGamePhase() > EAthenaGamePhase::Warmup)
 			{
-				if (GameState->GetGamePhase() > EAthenaGamePhase::Warmup)
+				static auto bAllowSpectateAfterDeathOffset = GameMode->GetOffset("bAllowSpectateAfterDeath");
+				bool bAllowSpectate = GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
+
+				LOG_INFO(LogDev, "bAllowSpectate: {}", bAllowSpectate);
+
+				if (bAllowSpectate)
 				{
-					static auto bAllowSpectateAfterDeathOffset = GameMode->GetOffset("bAllowSpectateAfterDeath");
+					LOG_INFO(LogDev, "Starting Spectating!");
 
-					bool bAllowSpectate = GameMode->Get<bool>(bAllowSpectateAfterDeathOffset);
+					static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
+					PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
 
-					LOG_INFO(LogDev, "bAllowSpectate: {}", bAllowSpectate);
-
-					if (bAllowSpectate)
-					{
-						LOG_INFO(LogDev, "Starting Spectating!");
-
-						static auto PlayerToSpectateOnDeathOffset = PlayerController->GetOffset("PlayerToSpectateOnDeath");
-						PlayerController->Get<APawn*>(PlayerToSpectateOnDeathOffset) = KillerPawn;
-
-						CreateThread(0, 0, SpectateThread, (LPVOID)PlayerController, 0, 0);
-					}
+					UKismetSystemLibrary::K2_SetTimer(PlayerController, L"SpectateOnDeath", 5.f, false); // Soo proper its scary
 				}
 			}
 		}
