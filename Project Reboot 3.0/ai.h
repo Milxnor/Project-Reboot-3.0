@@ -107,23 +107,34 @@ static bool SetNavigationSystem(AAthenaNavSystemConfigOverride* NavSystemOverrid
 
 static inline AFortAthenaMutator_Bots* SpawnBotMutator() //sets up all the classes for phoebe
 {
-    auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
-    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+   auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+   auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
-    static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
-    static auto PhoebeMutatorClass = LoadObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_Phoebe_Mutator.BP_Phoebe_Mutator_C", BGAClass);
+   static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
+   static auto PhoebeMutatorClass = LoadObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_Phoebe_Mutator.BP_Phoebe_Mutator_C", BGAClass);
 
-    auto BotMutator = GetWorld()->SpawnActor<AFortAthenaMutator_Bots>(PhoebeMutatorClass);
+   if (!PhoebeMutatorClass)
+   {
+       return nullptr;
+   }
 
-    static auto CachedGameModeOffset = BotMutator->GetOffset("CachedGameMode");
-    BotMutator->Get(CachedGameModeOffset) = GameMode;
+   auto BotMutator = GetWorld()->SpawnActor<AFortAthenaMutator_Bots>(PhoebeMutatorClass);
 
-    static auto CachedGameStateOffset = BotMutator->GetOffset("CachedGameState", false);
+   if (!BotMutator)
+   {
+       LOG_WARN(LogAI, "Failed to spawn Bot Mutator!");
+       return nullptr;
+   }
 
-    if (CachedGameStateOffset != -1)
-        BotMutator->Get(CachedGameStateOffset) = GameState;
+   static auto CachedGameModeOffset = BotMutator->GetOffset("CachedGameMode");
+   BotMutator->Get(CachedGameModeOffset) = GameMode;
 
-    return BotMutator;
+   static auto CachedGameStateOffset = BotMutator->GetOffset("CachedGameState", false);
+
+   if (CachedGameStateOffset != -1)
+       BotMutator->Get(CachedGameStateOffset) = GameState;
+
+   return BotMutator;
 }
 
 static void SetupServerBotManager()
