@@ -6,12 +6,6 @@
 #include "discord.h"
 #include "log.h"
 
-static inline size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* buffer) {
-    size_t total_size = size * nmemb;
-    buffer->append((char*)contents, total_size);
-    return total_size;
-}
-
 inline std::vector<FString> PlayerBotNames;
 
 static inline void InitBotNames()
@@ -69,5 +63,6 @@ static inline void InitBotNames()
     PlayerBotNames.push_back(L"weyn");
     PlayerBotNames.push_back(L"ralz");
     PlayerBotNames.push_back(L"farex");
+    PlayerBotNames.push_back(L"Nam");
     PlayerBotNames.push_back(L"AllyJax");
 }

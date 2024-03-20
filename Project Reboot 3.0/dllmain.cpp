@@ -1193,7 +1193,7 @@ DWORD WINAPI Main(LPVOID)
             }
         }
 
-        LOG_INFO(LogDev, "OnRep_EditActor Offset: {}", OnRep_EditActorOriginal - __int64(GetModuleHandleW(0)));
+        LOG_INFO(LogDev, "OnRep_EditActor Offset: 0x{:x}", OnRep_EditActorOriginal - __int64(GetModuleHandleW(0)));
         AFortWeap_EditingTool::originalOnRep_EditActor = decltype(AFortWeap_EditingTool::originalOnRep_EditActor)(OnRep_EditActorOriginal);
     }
 
