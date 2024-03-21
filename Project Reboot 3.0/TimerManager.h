@@ -16,7 +16,7 @@ struct FTimerUnifiedDelegate
 	TFunction<void(void)> FuncCallback;
 
 	FTimerUnifiedDelegate() {};
-	FTimerUnifiedDelegate(FTimerDelegate const& D) : FuncDelegate(D) {};
+	// FTimerUnifiedDelegate(FTimerDelegate const& D) : FuncDelegate(D) {}; // T(R)
 };
 
 class FTimerManager // : public FNoncopyable
@@ -27,6 +27,6 @@ public:
 		static void (*InternalSetTimerOriginal)(__int64 TimerManager, FTimerHandle& InOutHandle, FTimerUnifiedDelegate&& InDelegate, float InRate, bool InbLoop, float InFirstDelay) = 
 			decltype(InternalSetTimerOriginal)(Addresses::SetTimer);
 
-		InternalSetTimerOriginal(__int64(this), InOutHandle, FTimerUnifiedDelegate(InDelegate), InRate, InbLoop, InFirstDelay);
+		// InternalSetTimerOriginal(__int64(this), InOutHandle, FTimerUnifiedDelegate(InDelegate), InRate, InbLoop, InFirstDelay); // T(R)
 	}
 };

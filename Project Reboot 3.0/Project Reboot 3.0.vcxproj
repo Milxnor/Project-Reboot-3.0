@@ -308,6 +308,8 @@
     <ClInclude Include="BuildingTrap.h" />
     <ClInclude Include="Channel.h" />
     <ClInclude Include="CheatManager.h" />
+    <ClInclude Include="ChildConnection.h" />
+    <ClInclude Include="ChooseClass.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="ContainerAllocationPolicies.h" />
@@ -446,6 +448,7 @@
     <ClInclude Include="NetDriver.h" />
     <ClInclude Include="NetSerialization.h" />
     <ClInclude Include="NetworkGuid.h" />
+    <ClInclude Include="NetworkingDistanceConstants.h" />
     <ClInclude Include="NumericLimits.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="ObjectMacros.h" />
@@ -499,6 +502,7 @@
     <ClInclude Include="WeakObjectPtr.h" />
     <ClInclude Include="WeakObjectPtrTemplates.h" />
     <ClInclude Include="World.h" />
+    <ClInclude Include="WorldSettings.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DelegateSignatureImpl.inl" />

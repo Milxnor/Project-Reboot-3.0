@@ -2,6 +2,7 @@
 
 #include "Object.h"
 #include "anticheat.h"
+#include "Vector.h"
 
 enum class ENetDormancy : uint8_t
 {
@@ -17,15 +18,19 @@ enum class ENetDormancy : uint8_t
 class AActor : public UObject
 {
 public:
+	static inline void (*originalCallPreReplication)(AActor*, class UNetDriver*);
 	struct FTransform GetTransform();
 
-	// class UWorld* GetWorld();
+	bool GetNetDormancy(const FVector& ViewPos, const FVector& ViewDir, AActor* Viewer, AActor* ViewTarget, class UActorChannel* InChannel, float Time, bool bLowBandwidth);
 	bool HasAuthority();
 	bool IsTearOff();
-	/* FORCEINLINE */ ENetDormancy& GetNetDormancy();
+	class ULevel* GetLevel() const;
+	/* FORCEINLINE */ ENetDormancy& NetDormancy();
 	int32& GetNetTag();
 	void SetNetDormancy(ENetDormancy Dormancy);
 	AActor* GetOwner();
+	FName& GetNetDriverName();
+	ENetRole& GetRemoteRole();
 	struct FVector GetActorScale3D();
 	struct FVector GetActorLocation();
 	struct FVector GetActorForwardVector();
@@ -52,12 +57,12 @@ public:
 	float& GetNetUpdateFrequency();
 	float& GetMinNetUpdateFrequency();
 	const AActor* GetNetOwner() const;
+	bool IsActorInitialized();
 	void GetActorEyesViewPoint(FVector* OutLocation, FRotator* OutRotation) const;
 	AActor* GetClosestActor(UClass* ActorClass, float DistMax, std::function<bool(AActor*)> AdditionalCheck = [&](AActor*) { return true; });
 
-	bool IsRelevancyOwnerFor(const AActor* ReplicatedActor, const AActor* ActorOwner, const AActor* ConnectionActor) const
+	bool IsRelevancyOwnerFor(const AActor* ReplicatedActor, const AActor* ActorOwner, const AActor* ConnectionActor) const // T(REP)
 	{
-		// we should call virtual function but eh
 		// return (ActorOwner == this);
 
 		static auto IsRelevancyOwnerForOffset = 0x428;

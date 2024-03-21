@@ -1,7 +1,8 @@
 #include "NetDriver.h"
 
-void FNetworkObjectList::Remove(AActor* const Actor)
+void FNetworkObjectList::Remove(AActor* const Actor) // T(REP)
 {
+#if 0
 	if (Actor == nullptr)
 	{
 		return;
@@ -102,6 +103,8 @@ void FNetworkObjectList::Remove(AActor* const Actor)
 			break;
 		}
 	}
+
+#endif
 
 	// check((ActiveNetworkObjects.Num() + ObjectsDormantOnAllConnections.Num()) == AllNetworkObjects.Num());
 }

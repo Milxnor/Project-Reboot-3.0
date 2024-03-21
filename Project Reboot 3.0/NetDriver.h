@@ -56,15 +56,6 @@ struct FNetworkObjectInfo
 	TSet<TWeakObjectPtr<UNetConnection>> RecentlyDormantConnections;
 };
 
-struct FNetViewer
-{
-	UNetConnection* Connection;                                               // 0x0000(0x0008) (ZeroConstructor, IsPlainOldData)
-	AActor* InViewer;                                                 // 0x0008(0x0008) (ZeroConstructor, IsPlainOldData)
-	AActor* ViewTarget;                                               // 0x0010(0x0008) (ZeroConstructor, IsPlainOldData)
-	FVector                                     ViewLocation;                                             // 0x0018(0x000C) (IsPlainOldData)
-	FVector                                     ViewDir;
-};
-
 class FNetworkObjectList
 {
 public:
@@ -77,6 +68,7 @@ public:
 	TMap<TWeakObjectPtr<UNetConnection>, int32> NumDormantObjectsPerConnection;
 
 	void Remove(AActor* const Actor);
+	const FNetworkObjectSet& GetActiveObjects() const { return ActiveNetworkObjects; }
 };
 
 struct FActorPriority
@@ -130,6 +122,13 @@ public:
 
 	static void TickFlushHook(UNetDriver* NetDriver);
 
+	TMap<FNetworkGUID, FActorDestructionInfo>& GetDestroyedStartupOrDormantActors() // T(REP)
+	{
+		static int off = Fortnite_Version == 1.11 ? 0x228 : 0; // 0x240
+
+		return *(TMap<FNetworkGUID, FActorDestructionInfo>*)(__int64(this) + off);
+	}
+
 	int& GetMaxInternetClientRate()
 	{
 		static auto MaxInternetClientRateOffset = GetOffset("MaxInternetClientRate");
@@ -142,13 +141,19 @@ public:
 		return Get<int>(MaxClientRateOffset);
 	}
 
+	FName& GetNetDriverName()
+	{
+		static auto NetDriverNameOffset = GetOffset("NetDriverName");
+		return Get<FName>(NetDriverNameOffset);
+	}
+
 	FNetGUIDCache* GetGuidCache()
 	{
 		static auto GuidCacheOffset = GetOffset("WorldPackage") + 8; // checked for 1.11
 		return GetPtr<FNetGUIDCache>(GuidCacheOffset);
 	}
 
-	UWorld*& GetNetDriverWorld() const
+	UWorld*& World() const
 	{
 		static auto WorldOffset = GetOffset("World");
 		return Get<UWorld*>(WorldOffset);
@@ -195,8 +200,9 @@ public:
 	bool InitListen(FNetworkNotify* InNotify, FURL& ListenURL, bool bReuseAddressAndPort, FString& Error) { return InitListenOriginal(this, InNotify, ListenURL, bReuseAddressAndPort, Error); }
 	void SetWorld(UWorld* World) { return SetWorldOriginal(this, World); }
 	int32 ServerReplicateActors();
-	int32 ServerReplicateActors_ProcessPrioritizedActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, FActorPriority** PriorityActors, const int32 FinalSortedCount, int32& OutUpdated);
+	int32 ServerReplicateActors_PrepConnections();
+	int32 ServerReplicateActors_ProcessPrioritizedActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, std::vector<FActorPriority*>& PriorityActors, const int32 FinalSortedCount, int32& OutUpdated);
 	void ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObjectInfo*>& OutConsiderList, const float ServerTickTime);
-	int32 ServerReplicateActors_PrioritizeActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, const std::vector<FNetworkObjectInfo*> ConsiderList, const bool bCPUSaturated, FActorPriority*& OutPriorityList, FActorPriority**& OutPriorityActors);
+	int32 ServerReplicateActors_PrioritizeActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, const std::vector<FNetworkObjectInfo*>& ConsiderList, const bool bCPUSaturated, std::vector<FActorPriority>& OutPriorityList, std::vector<FActorPriority*>& OutPriorityActors);
 	FNetworkObjectList& GetNetworkObjectList();
 };

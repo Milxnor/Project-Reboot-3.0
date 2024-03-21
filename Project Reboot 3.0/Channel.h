@@ -2,10 +2,26 @@
 
 #include "Object.h"
 
+enum EChannelType
+{
+	CHTYPE_None = 0,
+	CHTYPE_Control = 1,
+	CHTYPE_Actor = 2,
+	CHTYPE_File = 3,
+	CHTYPE_Voice = 4,
+	CHTYPE_MAX = 8,
+};
+
+enum EChannelCreateFlags
+{
+	None = (1 << 0),
+	OpenedLocally = (1 << 1),
+};
+
 class UChannel : public UObject
 {
 public:
-	void StartBecomingDormant()
+	void StartBecomingDormant() // T(REP)
 	{
 		void (*StartBecomingDormantOriginal)(UChannel* Channel) = decltype(StartBecomingDormantOriginal)(this->VFTable[0x298 / 8]);
 		StartBecomingDormantOriginal(this);

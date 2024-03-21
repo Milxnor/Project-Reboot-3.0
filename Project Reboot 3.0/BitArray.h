@@ -1,329 +1,225 @@
 #pragma once
 
 #include "ContainerAllocationPolicies.h"
-
-static FORCEINLINE uint32 CountLeadingZeros(uint32 Value)
-{
-    unsigned long Log2;
-    if (_BitScanReverse(&Log2, Value) != 0)
-    {
-        return 31 - Log2;
-    }
-
-    return 32;
-}
+#include "UnrealMathUtility.h"
 
 #define NumBitsPerDWORD ((int32)32)
 #define NumBitsPerDWORDLogTwo ((int32)5)
 
+template<typename Allocator = FDefaultBitArrayAllocator>
+class TBitArray;
+
+template<typename Allocator = FDefaultBitArrayAllocator>
+class TConstSetBitIterator;
+
+template<typename Allocator /*= FDefaultBitArrayAllocator*/>
 class TBitArray
 {
 public:
-    TInlineAllocator<4>::ForElementType<unsigned int> Data;
-    int NumBits;
-    int MaxBits;
+	/**
+ * Move constructor.
+ */
+	FORCEINLINE TBitArray(TBitArray&& Other)
+	{
+		MoveOrCopy(*this, Other);
+	}
 
-    struct FRelativeBitReference
-    {
-    public:
-        FORCEINLINE explicit FRelativeBitReference(int32 BitIndex)
-            : DWORDIndex(BitIndex >> NumBitsPerDWORDLogTwo)
-            , Mask(1 << (BitIndex & (NumBitsPerDWORD -1)))
-        {
-        }
+	FORCEINLINE int32 Num() const { return NumBits; }
 
-        int32 DWORDIndex;
-        uint32 Mask;
-    };
+	/**
+	 * Copy constructor.
+	 */
+	FORCEINLINE TBitArray(const TBitArray& Copy)
+		: NumBits(0)
+		, MaxBits(0)
+	{
+		*this = Copy;
+	}
 
+	FORCEINLINE const uint32* GetData() const
+	{
+		return (uint32*)AllocatorInstance.GetAllocation();
+	}
+
+	FORCEINLINE uint32* GetData()
+	{
+		return (uint32*)AllocatorInstance.GetAllocation();
+	}
+
+	/**
+	 * Move assignment.
+	 */
+	FORCEINLINE TBitArray& operator=(TBitArray&& Other)
+	{
+		if (this != &Other)
+		{
+			MoveOrCopy(*this, Other);
+		}
+
+		return *this;
+	}
+
+private:
+	typedef typename Allocator::template ForElementType<uint32> AllocatorType;
+
+	AllocatorType AllocatorInstance;
+	int32         NumBits;
+	int32         MaxBits;
+
+	template <typename BitArrayType>
+	static FORCEINLINE typename TEnableIf<TContainerTraits<BitArrayType>::MoveWillEmptyContainer>::Type MoveOrCopy(BitArrayType& ToArray, BitArrayType& FromArray)
+	{
+		ToArray.AllocatorInstance.MoveToEmpty(FromArray.AllocatorInstance);
+
+		ToArray.NumBits = FromArray.NumBits;
+		ToArray.MaxBits = FromArray.MaxBits;
+		FromArray.NumBits = 0;
+		FromArray.MaxBits = 0;
+	}
+
+	template <typename BitArrayType>
+	static FORCEINLINE typename TEnableIf<!TContainerTraits<BitArrayType>::MoveWillEmptyContainer>::Type MoveOrCopy(BitArrayType& ToArray, BitArrayType& FromArray)
+	{
+		ToArray = FromArray;
+	}
+
+	FORCENOINLINE void Realloc(int32 PreviousNumBits)
+	{
+		const int32 PreviousNumDWORDs = FMath::DivideAndRoundUp(PreviousNumBits, NumBitsPerDWORD);
+		const int32 MaxDWORDs = FMath::DivideAndRoundUp(MaxBits, NumBitsPerDWORD);
+
+		AllocatorInstance.ResizeAllocation(PreviousNumDWORDs, MaxDWORDs, sizeof(uint32));
+
+		if (MaxDWORDs)
+		{
+			// Reset the newly allocated slack DWORDs.
+			FMemory::Memzero((uint32*)AllocatorInstance.GetAllocation() + PreviousNumDWORDs, (MaxDWORDs - PreviousNumDWORDs) * sizeof(uint32));
+		}
+	}
 public:
-    struct FBitReference
-    {
-        FORCEINLINE FBitReference(uint32& InData, uint32 InMask)
-            : Data(InData)
-            , Mask(InMask)
-        {
-        }
-        FORCEINLINE const FBitReference(const uint32& InData, const uint32 InMask)
-            : Data(const_cast<uint32&>(InData))
-            , Mask(InMask)
-        {
-        }
+};
 
-        FORCEINLINE void SetBit(const bool Value)
-        {
-            Value ? Data |= Mask : Data &= ~Mask;
-
-            // 10011101 - Data			 // 10011101 - Data
-            // 00000010 - Mask - true |	 // 00000010 - Mask - false
-            // 10011111	-  |=			 // 11111101 -  ~
-            //							 // 10011111 -  &=
-        }
-
-        FORCEINLINE operator bool() const
-        {
-            return (Data & Mask) != 0;
-        }
-        FORCEINLINE void operator=(const bool Value)
-        {
-            this->SetBit(Value);
-        }
-
-    private:
-        uint32& Data;
-        uint32 Mask;
-    };
-
+class FRelativeBitReference
+{
 public:
-    class FBitIterator : public FRelativeBitReference
-    {
-    private:
-        int32 Index;
-        const TBitArray& IteratedArray;
+	FORCEINLINE explicit FRelativeBitReference(int32 BitIndex)
+		: DWORDIndex(BitIndex >> NumBitsPerDWORDLogTwo)
+		, Mask(1 << (BitIndex & (NumBitsPerDWORD - 1)))
+	{
+	}
 
-    public:
-        FORCEINLINE const FBitIterator(const TBitArray& ToIterate, const int32 StartIndex) // Begin
-            : IteratedArray(ToIterate)
-            , Index(StartIndex)
-            , FRelativeBitReference(StartIndex)
-        {
-        }
-        FORCEINLINE const FBitIterator(const TBitArray& ToIterate) // End
-            : IteratedArray(ToIterate)
-            , Index(ToIterate.NumBits)
-            , FRelativeBitReference(ToIterate.NumBits)
-        {
-        }
+	int32  DWORDIndex;
+	uint32 Mask;
+};
 
-        FORCEINLINE explicit operator bool() const
-        {
-            return Index < IteratedArray.Num();
-        }
-        FORCEINLINE FBitIterator& operator++()
-        {
-            ++Index;
-            this->Mask <<= 1;
-            if (!this->Mask)
-            {
-                this->Mask = 1;
-                ++this->DWORDIndex;
-            }
-            return *this;
-        }
-        FORCEINLINE bool operator*() const
-        {
-            // Thesis: Once there are more elements in the BitArray than InlineData can hold it'll just allocate all of 
-            // them through SecondaryElements, leaving InlineData all true
-
-            if (IteratedArray.NumBits < IteratedArray.Data.NumInlineBits())
-            {
-                return (bool)FBitReference(IteratedArray.Data.GetInlineElement(this->DWORDIndex), this->Mask);
-            }
-            else
-            {
-                return (bool)FBitReference(IteratedArray.Data.GetSecondaryElement(this->DWORDIndex), this->Mask);
-            }
-        }
-        FORCEINLINE bool operator==(const FBitIterator& OtherIt) const
-        {
-            return Index == OtherIt.Index;
-        }
-        FORCEINLINE bool operator!=(const FBitIterator& OtherIt) const
-        {
-            return Index </*=*/ OtherIt.Index;
-        }
-        FORCEINLINE bool operator < (const int32 Other) const
-        {
-            return Index < Other;
-        }
-        FORCEINLINE bool operator > (const int32 Other) const
-        {
-            return Index < Other;
-        }
-
-        FORCEINLINE int32 GetIndex() const
-        {
-            return Index;
-        }
-    };
-
-    class FSetBitIterator : public FRelativeBitReference
-    {
-    private:
-        const TBitArray& IteratedArray;
-
-        uint32 UnvisitedBitMask;
-        int32  CurrentBitIndex;
-        int32  BaseBitIndex;
-
-    public:
-        FORCEINLINE FSetBitIterator(const TBitArray& ToIterate, int32 StartIndex)
-            : FRelativeBitReference(StartIndex)
-            , IteratedArray(const_cast<TBitArray&>(ToIterate))
-            , UnvisitedBitMask((~0U) << (StartIndex & (NumBitsPerDWORD - 1)))
-            , CurrentBitIndex(StartIndex)
-            , BaseBitIndex(StartIndex & ~(NumBitsPerDWORD - 1))
-        {
-            if (StartIndex != IteratedArray.NumBits)
-            {
-                FindNextSetBit();
-            }
-        }
-        FORCEINLINE FSetBitIterator(const TBitArray& ToIterate)
-            : FRelativeBitReference(ToIterate.NumBits)
-            , IteratedArray(const_cast<TBitArray&>(ToIterate))
-            , UnvisitedBitMask(0)
-            , CurrentBitIndex(ToIterate.NumBits)
-            , BaseBitIndex(ToIterate.NumBits)
-        {
-        }
-
-        FORCEINLINE FSetBitIterator& operator++()
-        {
-            UnvisitedBitMask &= ~this->Mask;
-
-            FindNextSetBit();
-
-            return *this;
-        }
-        FORCEINLINE bool operator*() const
-        {
-            return true;
-        }
-
-        FORCEINLINE bool operator==(const FSetBitIterator& Other) const
-        {
-            return CurrentBitIndex == Other.CurrentBitIndex;
-        }
-        FORCEINLINE bool operator!=(const FSetBitIterator& Other) const
-        {
-            return CurrentBitIndex </*=*/ Other.CurrentBitIndex;
-        }
-
-        FORCEINLINE explicit operator bool() const
-        {
-            return CurrentBitIndex < IteratedArray.NumBits;
-        }
-
-        FORCEINLINE int32 GetIndex() const
-        {
-            return CurrentBitIndex;
-        }
-
-    private:
-
-        void FindNextSetBit()
-        {
-            //InlineData is the first 16-bytes of TBitArray
-            const uint32* ArrayData = (IteratedArray.Data.SecondaryData ? IteratedArray.Data.SecondaryData : (uint32*)&IteratedArray.Data.InlineData);
-
-            if (!ArrayData)
-                return;
-
-            const int32 ArrayNum = IteratedArray.NumBits;
-            const int32 LastDWORDIndex = (ArrayNum - 1) / NumBitsPerDWORD;
-
-            uint32 RemainingBitMask = ArrayData[this->DWORDIndex] & UnvisitedBitMask;
-
-            while (!RemainingBitMask)
-            {
-                ++this->DWORDIndex;
-                BaseBitIndex += NumBitsPerDWORD;
-
-                if (this->DWORDIndex > LastDWORDIndex)
-                {
-                    CurrentBitIndex = ArrayNum;
-                    return;
-                }
-
-                RemainingBitMask = ArrayData[this->DWORDIndex];
-                UnvisitedBitMask = ~0;
-            }
-
-            const uint32 NewRemainingBitMask = RemainingBitMask & (RemainingBitMask - 1);
-
-            this->Mask = NewRemainingBitMask ^ RemainingBitMask;
-
-            CurrentBitIndex = BaseBitIndex + NumBitsPerDWORD - 1 - CountLeadingZeros(this->Mask);
-
-            if (CurrentBitIndex > ArrayNum)
-            {
-                CurrentBitIndex = ArrayNum;
-            }
-        }
-    };
-
+template<typename Allocator>
+class TConstSetBitIterator : public FRelativeBitReference
+{
 public:
-    FORCEINLINE FBitIterator Iterator(int32 StartIndex)
-    {
-        return FBitIterator(*this, StartIndex);
-    }
-    FORCEINLINE FSetBitIterator SetBitIterator(int32 StartIndex)
-    {
-        return FSetBitIterator(*this, StartIndex);
-    }
 
-    FORCEINLINE FBitIterator begin()
-    {
-        return FBitIterator(*this, 0);
-    }
-    FORCEINLINE const FBitIterator begin() const
-    {
-        return FBitIterator(*this, 0);
-    }
-    FORCEINLINE FBitIterator end()
-    {
-        return FBitIterator(*this);
-    }
-    FORCEINLINE const FBitIterator end() const
-    {
-        return  FBitIterator(*this);
-    }
+	/** Constructor. */
+	TConstSetBitIterator(const TBitArray<Allocator>& InArray, int32 StartIndex = 0)
+		: FRelativeBitReference(StartIndex)
+		, Array(InArray)
+		, UnvisitedBitMask((~0U) << (StartIndex & (NumBitsPerDWORD - 1)))
+		, CurrentBitIndex(StartIndex)
+		, BaseBitIndex(StartIndex & ~(NumBitsPerDWORD - 1))
+	{
+		// check(StartIndex >= 0 && StartIndex <= Array.Num());
+		if (StartIndex != Array.Num())
+		{
+			FindFirstSetBit();
+		}
+	}
 
-    FORCEINLINE FSetBitIterator SetBitsItBegin()
-    {
-        return FSetBitIterator(*this, 0);
-    }
-    FORCEINLINE const FSetBitIterator SetBitsItBegin() const
-    {
-        return FSetBitIterator(*this, 0);
-    }
-    FORCEINLINE const FSetBitIterator SetBitsItEnd()
-    {
-        return FSetBitIterator(*this);
-    }
-    FORCEINLINE const FSetBitIterator SetBitsItEnd() const
-    {
-        return FSetBitIterator(*this);
-    }
+	/** Forwards iteration operator. */
+	FORCEINLINE TConstSetBitIterator& operator++()
+	{
+		// Mark the current bit as visited.
+		UnvisitedBitMask &= ~this->Mask;
 
-    FORCEINLINE int32 Num() const
-    {
-        return NumBits;
-    }
-    FORCEINLINE int32 Max() const
-    {
-        return MaxBits;
-    }
-    FORCEINLINE bool IsSet(int32 Index) const
-    {
-        return *FBitIterator(*this, Index);
-    }
-    FORCEINLINE void Set(const int32 Index, const bool Value, bool bIsSettingAllZero = false)
-    {
-        const int32 DWORDIndex = (Index >> ((int32)5));
-        const int32 Mask = (1 << (Index & (((int32)32) - 1)));
+		// Find the first set bit that hasn't been visited yet.
+		FindFirstSetBit();
 
-        if (!bIsSettingAllZero)
-            NumBits = Index >= NumBits ? Index < MaxBits ? Index + 1 : NumBits : NumBits;
+		return *this;
+	}
 
-        FBitReference(Data[DWORDIndex], Mask).SetBit(Value);
-    }
-    FORCEINLINE void ZeroAll()
-    {
-        for (int i = 0; i < MaxBits; ++i)
-        {
-            Set(i, false, true);
-        }
-    }
+	FORCEINLINE friend bool operator==(const TConstSetBitIterator& Lhs, const TConstSetBitIterator& Rhs)
+	{
+		// We only need to compare the bit index and the array... all the rest of the state is unobservable.
+		return Lhs.CurrentBitIndex == Rhs.CurrentBitIndex && &Lhs.Array == &Rhs.Array;
+	}
+
+	FORCEINLINE friend bool operator!=(const TConstSetBitIterator& Lhs, const TConstSetBitIterator& Rhs)
+	{
+		return !(Lhs == Rhs);
+	}
+
+	/** conversion to "bool" returning true if the iterator is valid. */
+	FORCEINLINE explicit operator bool() const
+	{
+		return CurrentBitIndex < Array.Num();
+	}
+	/** inverse of the "bool" operator */
+	FORCEINLINE bool operator !() const
+	{
+		return !(bool)*this;
+	}
+
+	/** Index accessor. */
+	FORCEINLINE int32 GetIndex() const
+	{
+		return CurrentBitIndex;
+	}
+
+private:
+
+	const TBitArray<Allocator>& Array;
+
+	uint32 UnvisitedBitMask;
+	int32 CurrentBitIndex;
+	int32 BaseBitIndex;
+
+
+	/** Find the first set bit starting with the current bit, inclusive. */
+	void FindFirstSetBit()
+	{
+		const uint32* ArrayData = Array.GetData();
+		const int32   ArrayNum = Array.Num();
+		const int32   LastDWORDIndex = (ArrayNum - 1) / NumBitsPerDWORD;
+
+		// Advance to the next non-zero uint32.
+		uint32 RemainingBitMask = ArrayData[this->DWORDIndex] & UnvisitedBitMask;
+		while (!RemainingBitMask)
+		{
+			++this->DWORDIndex;
+			BaseBitIndex += NumBitsPerDWORD;
+			if (this->DWORDIndex > LastDWORDIndex)
+			{
+				// We've advanced past the end of the array.
+				CurrentBitIndex = ArrayNum;
+				return;
+			}
+
+			RemainingBitMask = ArrayData[this->DWORDIndex];
+			UnvisitedBitMask = ~0;
+		}
+
+		// This operation has the effect of unsetting the lowest set bit of BitMask
+		const uint32 NewRemainingBitMask = RemainingBitMask & (RemainingBitMask - 1);
+
+		// This operation XORs the above mask with the original mask, which has the effect
+		// of returning only the bits which differ; specifically, the lowest bit
+		this->Mask = NewRemainingBitMask ^ RemainingBitMask;
+
+		// If the Nth bit was the lowest set bit of BitMask, then this gives us N
+		CurrentBitIndex = BaseBitIndex + NumBitsPerDWORD - 1 - FMath::CountLeadingZeros(this->Mask);
+
+		// If we've accidentally iterated off the end of an array but still within the same DWORD
+		// then set the index to the last index of the array
+		if (CurrentBitIndex > ArrayNum)
+		{
+			CurrentBitIndex = ArrayNum;
+		}
+	}
 };

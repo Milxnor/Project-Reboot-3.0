@@ -4,11 +4,17 @@
 
 #include "reboot.h"
 #include "GameplayStatics.h"
+#include "Level.h"
 
 bool AActor::HasAuthority()
 {
 	static auto RoleOffset = GetOffset("Role");
 	return Get<uint8_t>(RoleOffset) == 3;
+}
+
+bool AActor::GetNetDormancy(const FVector& ViewPos, const FVector& ViewDir, AActor* Viewer, AActor* ViewTarget, class UActorChannel* InChannel, float Time, bool bLowBandwidth) // T(REP)
+{
+	return false;
 }
 
 bool AActor::IsTearOff()
@@ -18,7 +24,12 @@ bool AActor::IsTearOff()
 	return ReadBitfieldValue(bTearOffOffset, bTearOffFieldMask);
 }
 
-/* FORCEINLINE */ ENetDormancy& AActor::GetNetDormancy()
+ULevel* AActor::GetLevel() const
+{
+	return GetTypedOuter<ULevel>();
+}
+
+/* FORCEINLINE */ ENetDormancy& AActor::NetDormancy()
 {
 	static auto NetDormancyOffset = GetOffset("NetDormancy");
 	return Get<ENetDormancy>(NetDormancyOffset);
@@ -38,15 +49,6 @@ FTransform AActor::GetTransform()
 	return Ret;
 }
 
-/*
-
-UWorld* AActor::GetWorld()
-{
-	return GetWorld(); // for real
-}
-
-*/
-
 void AActor::SetNetDormancy(ENetDormancy Dormancy)
 {
 	static auto SetNetDormancyFn = FindObject<UFunction>(L"/Script/Engine.Actor.SetNetDormancy");
@@ -61,6 +63,18 @@ AActor* AActor::GetOwner()
 	this->ProcessEvent(GetOwnerFunction, &Owner);
 
 	return Owner;
+}
+
+FName& AActor::GetNetDriverName()
+{
+	static auto NetDriverNameOffset = GetOffset("NetDriverName");
+	return Get<FName>(NetDriverNameOffset);
+}
+
+ENetRole& AActor::GetRemoteRole()
+{
+	static auto RemoteRoleOffset = GetOffset("RemoteRole");
+	return Get<ENetRole>(RemoteRoleOffset);
 }
 
 void AActor::K2_DestroyActor()
@@ -195,12 +209,12 @@ void AActor::ForceNetUpdate()
 	this->ProcessEvent(ForceNetUpdateFn);
 }
 
-bool AActor::IsNetStartupActor()
+bool AActor::IsNetStartupActor() // T(REP)
 {
 	return IsNetStartup(); // The implementation on this function depends on the version.
 }
 
-bool AActor::IsPendingKillPending()
+bool AActor::IsPendingKillPending() // T(REP)
 {
 	return IsActorBeingDestroyed() || !IsValidChecked(this);
 }
@@ -244,6 +258,11 @@ const AActor* AActor::GetNetOwner() const
 	static int GetNetOwnerOffset = 0x448; // 1.11
 	const AActor* (*GetNetOwnerOriginal)(const AActor*) = decltype(GetNetOwnerOriginal)(this->VFTable[GetNetOwnerOffset / 8]);
 	return GetNetOwnerOriginal(this);
+}
+
+bool AActor::IsActorInitialized() // T(REP)
+{
+	return true;
 }
 
 void AActor::GetActorEyesViewPoint(FVector* OutLocation, FRotator* OutRotation) const

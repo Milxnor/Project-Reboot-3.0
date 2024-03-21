@@ -10,6 +10,8 @@
 class APlayerController : public AController
 {
 public:
+	static inline void (*originalSendClientAdjustment)(APlayerController*);
+
 	UCheatManager*& GetCheatManager()
 	{
 		static auto CheatManagerOffset = this->GetOffset("CheatManager");

@@ -78,6 +78,14 @@ public:
 	void SetBitfieldValue(int Offset, uint8_t FieldMask, bool NewValue);
 	void SetBitfieldValue(const std::string& ChildName, uint8_t FieldMask, bool NewValue) { return SetBitfieldValue(GetOffset(ChildName), FieldMask, NewValue); }
 
+	UObject* GetTypedOuter(UClass* Target) const;
+
+	template<typename T>
+	T* GetTypedOuter() const
+	{
+		return (T*)GetTypedOuter(T::StaticClass());
+	}
+
 	/* template <typename T = UObject*>
 	T& GetCached(const std::string& ChildName)
 	{

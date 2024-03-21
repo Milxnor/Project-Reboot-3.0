@@ -1,4 +1,5 @@
 #include "Level.h"
+#include "reboot.h"
 
 UWorld*& ULevel::GetOwningWorld()
 {
@@ -6,7 +7,7 @@ UWorld*& ULevel::GetOwningWorld()
 	return Get<UWorld*>(OwningWorldOffset);
 }
 
-bool ULevel::HasVisibilityChangeRequestPending()
+bool ULevel::HasVisibilityChangeRequestPending() // T(REP)
 {
 	// I believe implementation on this changes depending on the version
 
@@ -24,6 +25,11 @@ bool ULevel::HasVisibilityChangeRequestPending()
 	return this == CurrentLevelPendingVisibility || this == CurrentLevelPendingInvisibility;
 }
 
+bool ULevel::IsAssociatingLevel() // T(REP)
+{
+	return false;
+}
+
 AWorldSettings* ULevel::GetWorldSettings(bool bChecked) const
 {
 	if (bChecked)
@@ -33,4 +39,10 @@ AWorldSettings* ULevel::GetWorldSettings(bool bChecked) const
 
 	static auto WorldSettingsOffset = GetOffset("WorldSettings");
 	return Get<AWorldSettings*>(WorldSettingsOffset);
+}
+
+UClass* ULevel::StaticClass()
+{
+	static auto Class = FindObject<UClass>(L"/Script/Engine.Level");
+	return Class;
 }

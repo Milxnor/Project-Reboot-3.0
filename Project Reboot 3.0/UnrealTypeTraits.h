@@ -26,6 +26,14 @@ struct TCallTraitsParamTypeHelper<T*, true>
 	typedef const T* ConstParamType;
 };
 
+template<typename T> struct TContainerTraitsBase
+{
+	// This should be overridden by every container that supports emptying its contents via a move operation.
+	enum { MoveWillEmptyContainer = false };
+};
+
+template<typename T> struct TContainerTraits : public TContainerTraitsBase<T> {};
+
 template <typename T>
 struct TCallTraitsBase
 {

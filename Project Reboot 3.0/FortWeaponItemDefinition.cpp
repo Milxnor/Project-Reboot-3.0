@@ -17,6 +17,10 @@ int UFortWeaponItemDefinition::GetClipSize()
 
 	void* Row = nullptr;
 
+	/*
+
+	T(1)
+
 	for (int i = 0; i < RowMap.Pairs.Elements.Data.Num(); ++i)
 	{
 		auto& Pair = RowMap.Pairs.Elements.Data.at(i).ElementData.Value;
@@ -27,6 +31,8 @@ int UFortWeaponItemDefinition::GetClipSize()
 			break;
 		}
 	}
+
+	*/
 
 	if (!Row)
 		return 0;

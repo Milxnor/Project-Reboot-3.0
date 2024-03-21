@@ -68,8 +68,8 @@ public:
 		for (int i = 0; i < Names->Num(); ++i)
 		{
 			auto& Pair = Names->At(i);
-			auto& Name = Pair.Key();
-			auto Value = Pair.Value();
+			auto& Name = Pair.Key;
+			auto Value = Pair.Value;
 
 			if (Name.ComparisonIndex.Value)
 			{

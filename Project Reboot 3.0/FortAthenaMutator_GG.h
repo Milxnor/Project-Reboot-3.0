@@ -78,9 +78,9 @@ public:
 
 		for (auto& AwardEntry : AwardEntriesAtElimMap)
 		{
-			if (AwardEntry.First == Value)
+			if (AwardEntry.Key == Value)
 			{
-				return AwardEntry.Second;
+				return AwardEntry.Value;
 			}
 		}
 	}

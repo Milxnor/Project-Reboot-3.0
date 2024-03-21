@@ -567,6 +567,10 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 	
 			FWeaponUpgradeItemRow* FoundRow = nullptr;
 	
+			/*
+			
+			T(3)
+
 			for (int i = 0; i < LootPackagesRowMap.Pairs.Elements.Data.Num(); i++)
 			{
 				auto& Pair = LootPackagesRowMap.Pairs.Elements.Data.at(i).ElementData.Value;
@@ -579,6 +583,8 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 					break;
 				}
 			}
+
+			*/
 	
 			if (!FoundRow)
 			{

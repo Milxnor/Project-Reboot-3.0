@@ -109,8 +109,8 @@ FName AFortGameModeAthena::RedirectLootTier(const FName& LootTier)
 
 	for (auto& Pair : RedirectAthenaLootTierGroups)
 	{
-		auto& Key = Pair.Key();
-		auto& Value = Pair.Value();
+		auto& Key = Pair.Key;
+		auto& Value = Pair.Value;
 
 		// LOG_INFO(LogDev, "[{}] {} {}", i, Key.ComparisonIndex.Value ? Key.ToString() : "NULL", Key.ComparisonIndex.Value ? Value.ToString() : "NULL");
 
@@ -428,6 +428,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		else
 		{
 			auto OldPlaylist = GetPlaylistForOldVersion();
+			SetupEverythingAI();
 		}
 
 		auto Fortnite_Season = std::floor(Fortnite_Version);

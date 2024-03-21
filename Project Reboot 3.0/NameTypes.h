@@ -77,3 +77,10 @@ struct FName
 		return GetComparisonIndexFast() < Rhs.GetComparisonIndexFast();
 	}
 };
+
+inline uint32 GetTypeHash(const FName N)
+{
+	return N.ComparisonIndex.Value + N.GetNumber();
+}
+
+#define NAME_None FName(0);

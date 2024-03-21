@@ -6,15 +6,12 @@
 #include "Rotator.h"
 #include "Actor.h"
 #include "GameInstance.h"
+#include "WorldSettings.h"
+#include "GameplayStatics.h"
 
 struct FNetworkNotify
 {
 
-};
-
-class AWorldSettings : public AActor
-{
-public:
 };
 
 struct FActorSpawnParameters
@@ -226,6 +223,11 @@ public:
 	{
 		static auto NetDriverOffset = GetOffset("NetDriver");
 		return this->Get<class UNetDriver*>(NetDriverOffset);
+	}
+
+	float GetTimeSeconds() // T(REP)
+	{
+		return UGameplayStatics::GetTimeSeconds(this);
 	}
 
 	UGameInstance* GetOwningGameInstance()

@@ -5,6 +5,16 @@
 #include <format>
 #include <string>
 
+/*
+
+T(REP): Todo replication
+T(R): Todo random (every commented check, checkslow is automatically this)
+T(1-5): 1, being most important, 5 being least important to fix.
+
+*/
+
+decltype(nullptr) typedef TYPE_OF_NULLPTR;
+
 typedef unsigned short uint16;
 typedef unsigned char uint8;
 typedef char int8;
@@ -24,6 +34,8 @@ extern inline int Fortnite_CL = 0;
 // DEPRACTERD ^^^ (see Globals::bDeveloperMode)
 
 // #define ABOVE_S20
+
+#define INDEX_NONE -1
 
 struct PlaceholderBitfield
 {
@@ -61,6 +73,15 @@ inline bool IsRestartingSupported()
 {
 	return Engine_Version >= 419 && Engine_Version < 424;
 }
+
+enum ENetRole
+{
+	ROLE_None,
+	ROLE_SimulatedProxy,
+	ROLE_AutonomousProxy,
+	ROLE_Authority,
+	ROLE_MAX,
+};
 
 /*
 

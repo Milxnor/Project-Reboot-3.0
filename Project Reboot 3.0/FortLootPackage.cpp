@@ -47,14 +47,16 @@ void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, LOOTING_M
         DataTablesToIterate.push_back(DataTable);
     }
 
+    return; // T(1)
+
     for (auto CurrentDataTable : DataTablesToIterate)
     {
-        for (TPair<FName, uint8_t*>& CurrentPair : CurrentDataTable->GetRowMap())
+        for (auto& CurrentPair : CurrentDataTable->GetRowMap())
         {
-            if (Check(CurrentPair.Key(), (RowStructType*)CurrentPair.Value()))
+            if (Check(CurrentPair.Key, (RowStructType*)CurrentPair.Value))
             {
                 // LOG_INFO(LogDev, "Setting key with {} comp {} num: {} then iterating through map!", CurrentPair.Key().ToString(), CurrentPair.Key().ComparisonIndex.Value, CurrentPair.Key().Number);
-                (*OutMap)[CurrentPair.Key()] = (RowStructType*)CurrentPair.Value();
+                (*OutMap)[CurrentPair.Key] = (RowStructType*)CurrentPair.Value;
 
                 /* for (auto PairInOutMap : *OutMap)
                 {
@@ -503,14 +505,14 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 
                                 for (auto& Value : PlaylistOverrideLootTableData)
                                 {
-                                    auto CurrentOverrideTag = Value.First;
+                                    auto CurrentOverrideTag = Value.Key;
 
                                     if (Tag.TagName == CurrentOverrideTag.TagName)
                                     {
-                                        auto OverrideLootPackageTableStr = Value.Second.LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                                        auto OverrideLootPackageTableStr = Value.Value.LootPackageData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
                                         auto bOverrideIsComposite = OverrideLootPackageTableStr.contains("Composite");
 
-                                        auto ptr = Value.Second.LootPackageData.Get(bOverrideIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
+                                        auto ptr = Value.Value.LootPackageData.Get(bOverrideIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
 
                                         if (ptr)
                                         {
@@ -557,14 +559,14 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 
                                 for (auto& Value : PlaylistOverrideLootTableData)
                                 {
-                                    auto CurrentOverrideTag = Value.First;
+                                    auto CurrentOverrideTag = Value.Key;
 
                                     if (Tag.TagName == CurrentOverrideTag.TagName)
                                     {
-                                        auto OverrideLootTierDataStr = Value.Second.LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
+                                        auto OverrideLootTierDataStr = Value.Value.LootTierData.SoftObjectPtr.ObjectID.AssetPathName.ToString();
                                         auto bOverrideIsComposite = OverrideLootTierDataStr.contains("Composite");
 
-                                        auto ptr = Value.Second.LootTierData.Get(bOverrideIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
+                                        auto ptr = Value.Value.LootTierData.Get(bOverrideIsComposite ? CompositeDataTableClass : UDataTable::StaticClass(), true);
 
                                         if (ptr)
                                         {

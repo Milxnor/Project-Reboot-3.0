@@ -2,6 +2,12 @@
 
 #include "inc.h"
 
+enum EForceInit
+{
+	ForceInit,
+	ForceInitToZero
+};
+
 struct FVector
 {
 public:
@@ -61,5 +67,11 @@ public:
 	void operator-=(const FVector& A)
 	{
 		*this = *this - A;
+	}
+
+	explicit FORCEINLINE FVector(EForceInit)
+		: X(0.0f), Y(0.0f), Z(0.0f)
+	{
+		// DiagnosticCheckNaN();
 	}
 };

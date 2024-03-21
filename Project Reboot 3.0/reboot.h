@@ -80,15 +80,17 @@ static inline UEngine* GetEngine()
 	return Engine;
 }
 
-static inline class UWorld* GetWorld()
-{
-	static UObject* Engine = GetEngine();
-	static auto GameViewportOffset = Engine->GetOffset("GameViewport");
-	auto GameViewport = Engine->Get<UObject*>(GameViewportOffset);
+namespace {
+	static inline class UWorld* GetWorld()
+	{
+		static UObject* Engine = GetEngine();
+		static auto GameViewportOffset = Engine->GetOffset("GameViewport");
+		auto GameViewport = Engine->Get<UObject*>(GameViewportOffset);
 
-	static auto WorldOffset = GameViewport->GetOffset("World");
+		static auto WorldOffset = GameViewport->GetOffset("World");
 
-	return GameViewport->Get<class UWorld*>(WorldOffset);
+		return GameViewport->Get<class UWorld*>(WorldOffset);
+	}
 }
 
 static TArray<UObject*>& GetLocalPlayers()
@@ -406,7 +408,8 @@ namespace MemberOffsets
 	}
 }
 
-static inline float GetMaxTickRateHook() { return 30.f; }
+inline float ServerTickRate = 30.f;
+static inline float GetMaxTickRateHook() { return ServerTickRate; }
 
 #define VALIDATEOFFSET(offset) if (!offset) LOG_WARN(LogDev, "[{}] Invalid offset", __FUNCTIONNAME__);
 

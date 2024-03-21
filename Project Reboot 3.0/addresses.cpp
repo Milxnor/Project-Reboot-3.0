@@ -553,6 +553,12 @@ void Addresses::Init()
 	NavSystemCleanUpOriginal = decltype(NavSystemCleanUpOriginal)(Addresses::NavSystemCleanUp);
 	LoadPlaysetOriginal = decltype(LoadPlaysetOriginal)(Addresses::LoadPlayset);
 	AFortGameModeAthena::SetZoneToIndexOriginal = decltype(AFortGameModeAthena::SetZoneToIndexOriginal)(Addresses::SetZoneToIndex);
+	AActor::originalCallPreReplication = decltype(AActor::originalCallPreReplication)(Addresses::CallPreReplication);
+	APlayerController::originalSendClientAdjustment = decltype(APlayerController::originalSendClientAdjustment)(Addresses::SendClientAdjustment);
+	UActorChannel::originalReplicateActor = decltype(UActorChannel::originalReplicateActor)(Addresses::ReplicateActor);
+	UActorChannel::originalSetChannelActor = decltype(UActorChannel::originalSetChannelActor)(Addresses::SetChannelActor);
+	UNetConnection::originalCreateChannel = decltype(UNetConnection::originalCreateChannel)(Addresses::CreateChannel);
+	UNetConnection::originalCreateChannelByName = decltype(UNetConnection::originalCreateChannelByName)(Addresses::CreateChannel);
 
 	if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
 	else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);

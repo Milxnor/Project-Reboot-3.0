@@ -5,17 +5,7 @@
 
 #include "MemoryOps.h"
 #include "ContainerAllocationPolicies.h"
-
-struct FMemory
-{
-	static inline void* (*Realloc)(void* Original, SIZE_T Count, uint32_t Alignment /* = DEFAULT_ALIGNMENT */);
-};
-
-template <typename T = __int64>
-static T* AllocUnreal(size_t Size)
-{
-	return (T*)FMemory::Realloc(0, Size, 0);
-}
+#include "IsPointer.h"
 
 template<typename InElementType> //, typename InAllocatorType>
 class TArray
@@ -26,6 +16,7 @@ public:
 
 	using ElementAllocatorType = InElementType*;
 	using SizeType = int32;
+	typedef InElementType ElementType;
 
 	ElementAllocatorType Data = nullptr; // AllocatorInstance;
 	SizeType             ArrayNum;
@@ -33,14 +24,46 @@ public:
 
 public:
 
+#if TARRAY_RANGED_FOR_CHECKS
+	typedef TCheckedPointerIterator<      ElementType, SizeType> RangedForIteratorType;
+	typedef TCheckedPointerIterator<const ElementType, SizeType> RangedForConstIteratorType;
+#else
+	typedef       ElementType* RangedForIteratorType;
+	typedef const ElementType* RangedForConstIteratorType;
+#endif
+
+#if TARRAY_RANGED_FOR_CHECKS
+	FORCEINLINE friend RangedForIteratorType      begin(TArray& Array) { return RangedForIteratorType(Array.ArrayNum, Array.GetData()); }
+	FORCEINLINE friend RangedForConstIteratorType begin(const TArray& Array) { return RangedForConstIteratorType(Array.ArrayNum, Array.GetData()); }
+	FORCEINLINE friend RangedForIteratorType      end(TArray& Array) { return RangedForIteratorType(Array.ArrayNum, Array.GetData() + Array.Num()); }
+	FORCEINLINE friend RangedForConstIteratorType end(const TArray& Array) { return RangedForConstIteratorType(Array.ArrayNum, Array.GetData() + Array.Num()); }
+#else
+	FORCEINLINE friend RangedForIteratorType      begin(TArray& Array) { return Array.GetData(); }
+	FORCEINLINE friend RangedForConstIteratorType begin(const TArray& Array) { return Array.GetData(); }
+	FORCEINLINE friend RangedForIteratorType      end(TArray& Array) { return Array.GetData() + Array.Num(); }
+	FORCEINLINE friend RangedForConstIteratorType end(const TArray& Array) { return Array.GetData() + Array.Num(); }
+#endif
+
 	inline InElementType& At(int i, size_t Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 	inline InElementType& at(int i, size_t Size = sizeof(InElementType)) const { return *(InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 	inline InElementType* AtPtr(int i, size_t Size = sizeof(InElementType)) const { return (InElementType*)(__int64(Data) + (static_cast<long long>(Size) * i)); }
 
 	bool IsValidIndex(int i) { return i > 0 && i < ArrayNum; }
 
-	ElementAllocatorType& GetData() const { return Data; }
-	ElementAllocatorType& GetData() { return Data; }
+	InElementType* GetData()
+	{
+		return (InElementType*)Data;
+	}
+
+	/**
+	 * Helper function for returning a typed pointer to the first array entry.
+	 *
+	 * @returns Pointer to first array entry or nullptr if ArrayMax == 0.
+	 */
+	const InElementType* GetData() const
+	{
+		return (const InElementType*)Data;
+	}
 
 	void Reserve(int Number, size_t Size = sizeof(InElementType))
 	{

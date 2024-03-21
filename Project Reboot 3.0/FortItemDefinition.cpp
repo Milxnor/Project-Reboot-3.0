@@ -41,9 +41,9 @@ float UFortItemDefinition::GetMaxStackSize()
 
 	for (auto& Pair : RowMap)
 	{
-		if (Pair.Key() == ScalableFloat.Curve.RowName)
+		if (Pair.Key == ScalableFloat.Curve.RowName)
 		{
-			Curve = (FSimpleCurve*)Pair.Value();
+			Curve = (FSimpleCurve*)Pair.Value;
 			break;
 		}
 	}

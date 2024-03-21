@@ -6,10 +6,37 @@
 #include "WeakObjectPtrTemplates.h"
 #include "ActorChannel.h"
 #include <memcury.h>
+#include "KismetStringLibrary.h"
 
 class UNetConnection : public UPlayer
 {
 public:
+	static inline UChannel* (*originalCreateChannel)(UNetConnection*, int, bool, int32_t);
+	static inline UChannel* (*originalCreateChannelByName)(UNetConnection* Connection, FName* ChName, EChannelCreateFlags CreateFlags, int32_t ChannelIndex);
+
+	TSet<FNetworkGUID>& GetDestroyedStartupOrDormantActors() // T(REP)
+	{
+		static int off = Fortnite_Version == 1.11 ? 0x33678 : 0;
+
+		return *(TSet<FNetworkGUID>*)(__int64(this) + off);
+	}
+
+	UChannel* CreateChannel(EChannelType ChannelType, bool bOpenedLocally, EChannelCreateFlags CreateFlags, int32 ChannelIndex = INDEX_NONE)
+	{
+		if (Engine_Version >= 422)
+		{
+			FString ActorStr = L"Actor";
+			FName ActorName = UKismetStringLibrary::Conv_StringToName(ActorStr);
+
+			int ChannelIndex = -1; // 4294967295
+			return (UActorChannel*)originalCreateChannelByName(this, &ActorName, CreateFlags, ChannelIndex);
+		}
+		else
+		{
+			return (UActorChannel*)originalCreateChannel(this, ChannelType, bOpenedLocally, ChannelIndex);
+		}
+	}
+
 	AActor*& GetOwningActor()
 	{
 		static auto OwningActorOffset = GetOffset("OwningActor");
@@ -22,13 +49,24 @@ public:
 		return *(FName*)(__int64(this) + ClientWorldPackageNameOffset);
 	}
 
-	AActor*& GetViewTarget()
+	inline AActor*& GetViewTarget()
 	{
 		static auto ViewTargetOffset = GetOffset("ViewTarget");
 		return Get<AActor*>(ViewTargetOffset);
 	}
 
-	int32 IsNetReady(bool Saturate)
+	bool& GetTimeSensitive() // T(REP)
+	{
+		return *(bool*)(0);
+	}
+
+	TArray<class UChildConnection*>& GetChildren()
+	{
+		static auto ChildrenOffset = GetOffset("Children");
+		return Get<TArray<class UChildConnection*>>(ChildrenOffset);
+	}
+
+	int32 IsNetReady(bool Saturate) // T(REP)
 	{
 		static auto IsNetReadyOffset = 0x298; // 1.11
 		int32 (*IsNetReadyOriginal)(UNetConnection* Connection, bool Saturate) = decltype(IsNetReadyOriginal)(this->VFTable[IsNetReadyOffset / 8]);

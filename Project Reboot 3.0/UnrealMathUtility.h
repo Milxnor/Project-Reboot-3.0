@@ -16,6 +16,93 @@ struct FMath : public FGenericPlatformMath
 		return A * A;
 	}
 
+	static float SRand() // T(REP)
+	{
+		return rand();
+	}
+
+	static FORCEINLINE uint32 FloorLog2(uint32 Value)
+	{
+		/*		// reference implementation
+				// 1500ms on test data
+				uint32 Bit = 32;
+				for (; Bit > 0;)
+				{
+					Bit--;
+					if (Value & (1<<Bit))
+					{
+						break;
+					}
+				}
+				return Bit;
+		*/
+		// same output as reference
+
+		// see http://codinggorilla.domemtech.com/?p=81 or http://en.wikipedia.org/wiki/Binary_logarithm but modified to return 0 for a input value of 0
+		// 686ms on test data
+		uint32 pos = 0;
+		if (Value >= 1 << 16) { Value >>= 16; pos += 16; }
+		if (Value >= 1 << 8) { Value >>= 8; pos += 8; }
+		if (Value >= 1 << 4) { Value >>= 4; pos += 4; }
+		if (Value >= 1 << 2) { Value >>= 2; pos += 2; }
+		if (Value >= 1 << 1) { pos += 1; }
+		return (Value == 0) ? 0 : pos;
+
+		// even faster would be method3 but it can introduce more cache misses and it would need to store the table somewhere
+		// 304ms in test data
+		/*int LogTable256[256];
+
+		void prep()
+		{
+			LogTable256[0] = LogTable256[1] = 0;
+			for (int i = 2; i < 256; i++)
+			{
+				LogTable256[i] = 1 + LogTable256[i / 2];
+			}
+			LogTable256[0] = -1; // if you want log(0) to return -1
+		}
+
+		int _forceinline method3(uint32 v)
+		{
+			int r;     // r will be lg(v)
+			uint32 tt; // temporaries
+
+			if ((tt = v >> 24) != 0)
+			{
+				r = (24 + LogTable256[tt]);
+			}
+			else if ((tt = v >> 16) != 0)
+			{
+				r = (16 + LogTable256[tt]);
+			}
+			else if ((tt = v >> 8 ) != 0)
+			{
+				r = (8 + LogTable256[tt]);
+			}
+			else
+			{
+				r = LogTable256[v];
+			}
+			return r;
+		}*/
+	}
+
+	static FORCEINLINE uint32 CountLeadingZeros(uint32 Value)
+	{
+		if (Value == 0) return 32;
+		return 31 - FloorLog2(Value);
+	}
+
+	template <class T>
+	static constexpr FORCEINLINE T DivideAndRoundUp(T Dividend, T Divisor)
+	{
+		return (Dividend + Divisor - 1) / Divisor;
+	}
+
+	static FORCEINLINE int32 Rand() { return rand(); }
+
+	static FORCEINLINE float FRand() { return Rand() / (float)RAND_MAX; }
+
 #define FASTASIN_HALF_PI (1.5707963050f)
 	/**
 	* Computes the ASin of a scalar value.
