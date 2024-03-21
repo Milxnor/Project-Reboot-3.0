@@ -22,10 +22,10 @@ int UFortLootLevel::GetItemLevel(const FDataTableCategoryHandle& LootLevelData, 
 
 	for (auto& LootLevelDataPair : LootLevelData.DataTable->GetRowMap<FFortLootLevelData>())
 	{
-		if (LootLevelDataPair.Value.Category != LootLevelData.RowContents)
+		if (LootLevelDataPair.Value->Category != LootLevelData.RowContents)
 			continue;
 
-		OurLootLevelDatas.push_back(&LootLevelDataPair.Value);
+		OurLootLevelDatas.push_back(LootLevelDataPair.Value);
 	}
 
 	if (OurLootLevelDatas.size() > 0)

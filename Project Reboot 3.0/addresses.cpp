@@ -322,6 +322,9 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding GIsClient");
 	Addresses::GIsClient = FindGIsClient();
 
+	LOG_INFO(LogDev, "Finding ObjectListRemove");
+	Addresses::ObjectListRemove = FindObjectListRemove();
+
 	// LOG_INFO(LogDev, "Finding GetSessionInterface");
 	// Addresses::GetSessionInterface = FindGetSessionInterface();
 
@@ -406,6 +409,7 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "AddToAlivePlayers: 0x{:x}", AddToAlivePlayers - Base);
 	LOG_INFO(LogDev, "GetSessionInterface: 0x{:x}", GetSessionInterface - Base);
 	LOG_INFO(LogDev, "StartAircraftPhase: 0x{:x}", StartAircraftPhase - Base);
+	LOG_INFO(LogDev, "ObjectListRemove: 0x{:x}", ObjectListRemove - Base);
 }
 
 void Offsets::FindAll()
@@ -559,6 +563,7 @@ void Addresses::Init()
 	UActorChannel::originalSetChannelActor = decltype(UActorChannel::originalSetChannelActor)(Addresses::SetChannelActor);
 	UNetConnection::originalCreateChannel = decltype(UNetConnection::originalCreateChannel)(Addresses::CreateChannel);
 	UNetConnection::originalCreateChannelByName = decltype(UNetConnection::originalCreateChannelByName)(Addresses::CreateChannel);
+	FNetworkObjectList::originalRemove = decltype(FNetworkObjectList::originalRemove)(ObjectListRemove);
 
 	if (Engine_Version >= 421) ChunkedObjects = decltype(ChunkedObjects)(ObjectArray);
 	else UnchunkedObjects = decltype(UnchunkedObjects)(ObjectArray);

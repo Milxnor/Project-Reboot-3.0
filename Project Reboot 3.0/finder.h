@@ -619,6 +619,11 @@ static inline uint64 FindOnDamageServer()
 	return Addr;
 }
 
+static inline uint64 FindObjectListRemove()
+{
+	return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 55 56 41 56 48 8D 6C 24 ? 48 81 EC ? ? ? ? 4C 8B F2 4C 8B C2 48 8D 55").Get(); // 1.11
+}
+
 static inline uint64 FindStaticLoadObject()
 {
 	auto Addrr = Memcury::Scanner::FindStringRef(L"STAT_LoadObject", false).Get();

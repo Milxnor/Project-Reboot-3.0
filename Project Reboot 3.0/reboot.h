@@ -144,7 +144,6 @@ static __forceinline T* Cast(UObject* Object)
 
 extern inline int AmountOfRestarts = 0; // DO NOT CHANGE
 extern inline FRandomStream ReplicationRandStream = (0);
-extern inline int32 GSRandSeed = 0;
 extern inline std::set<std::string> ReplicatedActors = {};
 
 inline uint8_t GetFieldMask(void* Property, int additional = 0)

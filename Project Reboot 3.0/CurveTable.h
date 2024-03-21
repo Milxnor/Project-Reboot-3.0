@@ -61,7 +61,15 @@ public:
 		if (CurveTableMode == ECurveTableMode::SimpleCurves)
 		{
 			auto& RowMap = ((UDataTable*)this)->GetRowMap<FSimpleCurve>(); // its the same offset so
-			auto Curve = RowMap.Find(RowName);
+			auto CurvePtr = RowMap.Find(RowName);
+
+			if (!CurvePtr)
+			{
+				LOG_WARN(LogDev, "Failed to get curve!");
+				return nullptr;
+			}
+
+			auto Curve = *CurvePtr;
 			auto& Keys = Curve->GetKeys();
 			return Keys.Num() > Index ? &Curve->GetKeys().at(Index) : nullptr;
 		}

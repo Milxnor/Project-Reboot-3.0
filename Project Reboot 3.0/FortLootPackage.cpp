@@ -47,8 +47,6 @@ void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, LOOTING_M
         DataTablesToIterate.push_back(DataTable);
     }
 
-    return; // T(1)
-
     for (auto CurrentDataTable : DataTablesToIterate)
     {
         for (auto& CurrentPair : CurrentDataTable->GetRowMap())

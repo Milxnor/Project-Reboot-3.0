@@ -13,32 +13,15 @@ int UFortWeaponItemDefinition::GetClipSize()
 	if (!Table)
 		return 0;
 
-	auto& RowMap = Table->GetRowMap();
+	auto& RowMap = Table->GetRowMap<void>();
 
-	void* Row = nullptr;
+	void** RowPtr = RowMap.Find(WeaponStatHandle.RowName);
 
-	/*
-
-	T(1)
-
-	for (int i = 0; i < RowMap.Pairs.Elements.Data.Num(); ++i)
-	{
-		auto& Pair = RowMap.Pairs.Elements.Data.at(i).ElementData.Value;
-
-		if (Pair.Key() == WeaponStatHandle.RowName)
-		{
-			Row = Pair.Value();
-			break;
-		}
-	}
-
-	*/
-
-	if (!Row)
+	if (!RowPtr)
 		return 0;
 
 	static auto ClipSizeOffset = FindOffsetStruct("/Script/FortniteGame.FortBaseWeaponStats", "ClipSize");
-	return *(int*)(__int64(Row) + ClipSizeOffset);
+	return *(int*)(__int64(*RowPtr) + ClipSizeOffset);
 }
 
 UFortWorldItemDefinition* UFortWeaponItemDefinition::GetAmmoData()

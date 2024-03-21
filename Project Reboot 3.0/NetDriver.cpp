@@ -154,24 +154,23 @@ FNetViewer::FNetViewer(UNetConnection* InConnection, float DeltaSeconds) :
 	ViewLocation(ForceInit),
 	ViewDir(ForceInit)
 {
-	// check(InConnection->OwningActor);
-	// check(!InConnection->PlayerController || (InConnection->PlayerController == InConnection->OwningActor));
+	if (!InConnection->GetOwningActor()) return;
+	if (InConnection->GetPlayerController() || (InConnection->GetPlayerController() != InConnection->GetOwningActor())) return;
 
 	APlayerController* ViewingController = InConnection->GetPlayerController();
 
-	// Get viewer coordinates.
 	ViewLocation = ViewTarget->GetActorLocation();
 	if (ViewingController)
 	{
 		FRotator ViewRotation = ViewingController->GetControlRotation();
-		// ViewingController->GetPlayerViewPoint(ViewLocation, ViewRotation);
+		ViewingController->GetActorEyesViewPoint(&ViewLocation, &ViewRotation); // T(REP)
 		ViewDir = ViewRotation.Vector();
 	}
 }
 
 static FORCEINLINE bool IsActorRelevantToConnection(const AActor* Actor, const std::vector<FNetViewer>& ConnectionViewers)
 {
-	for (int32 viewerIdx = 0; viewerIdx < ConnectionViewers.size(); viewerIdx++)
+	for (int32 viewerIdx = 0; viewerIdx < ConnectionViewers.size(); ++viewerIdx)
 	{
 		if (reinterpret_cast<bool(*)(const AActor*, AActor*, AActor*, const FVector&)>(Actor->VFTable[Offsets::IsNetRelevantFor])(
 			Actor, ConnectionViewers[viewerIdx].InViewer, ConnectionViewers[viewerIdx].ViewTarget, ConnectionViewers[viewerIdx].ViewLocation))
@@ -271,14 +270,16 @@ int32 UNetDriver::ServerReplicateActors_PrepConnections()
 	for (int32 ConnIdx = 0; ConnIdx < GetClientConnections().Num(); ConnIdx++)
 	{
 		UNetConnection* Connection = GetClientConnections().at(ConnIdx);
-		// check(Connection);
+
+		if (!Connection) continue;
+
 		// check(Connection->State == USOCK_Pending || Connection->State == USOCK_Open || Connection->State == USOCK_Closed);
 		// checkSlow(Connection->GetUChildConnection() == NULL);
 
 		AActor* OwningActor = Connection->GetOwningActor();
 		if (OwningActor != NULL 
 			// && Connection->State == USOCK_Open 
-			// && (Connection->GetDriver()->Time - Connection->LastReceiveTime < 1.5f)
+			&& (Connection->GetDriver()->GetTime() - Connection->GetLastReceiveTime() < 1.5f)
 			)
 		{
 			// check(World == OwningActor->GetWorld());
@@ -294,18 +295,13 @@ int32 UNetDriver::ServerReplicateActors_PrepConnections()
 						// ViewTarget->GetWorld() // T(REP)
 						)
 					{
-						// It is safe to use the player controller's view target.
 						DesiredViewTarget = ViewTarget;
-					}
-					else
-					{
-
 					}
 				}
 			}
 			Connection->GetViewTarget() = DesiredViewTarget;
 
-			for (int32 ChildIdx = 0; ChildIdx < Connection->GetChildren().Num(); ChildIdx++)
+			for (int32 ChildIdx = 0; ChildIdx < Connection->GetChildren().Num(); ++ChildIdx)
 			{
 				UNetConnection* Child = Connection->GetChildren().at(ChildIdx);
 				APlayerController* ChildPlayerController = Child->GetPlayerController();
@@ -322,7 +318,7 @@ int32 UNetDriver::ServerReplicateActors_PrepConnections()
 		else
 		{
 			Connection->GetViewTarget() = NULL;
-			for (int32 ChildIdx = 0; ChildIdx < Connection->GetChildren().Num(); ChildIdx++)
+			for (int32 ChildIdx = 0; ChildIdx < Connection->GetChildren().Num(); ++ChildIdx)
 			{
 				Connection->GetChildren().at(ChildIdx)->GetViewTarget() = NULL;
 			}
@@ -441,19 +437,16 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 	GetNetTag()++;
 	Connection->GetTickCount()++;
 
-	// Set up to skip all sent temporary actors
-	for (int32 j = 0; j < Connection->GetSentTemporaries().Num(); j++)
+	for (int32 j = 0; j < Connection->GetSentTemporaries().Num(); ++j)
 	{
 		Connection->GetSentTemporaries().at(j)->GetNetTag() = GetNetTag();
 	}
 
-	// Make list of all actors to consider.
 	// check(World() == Connection->GetOwningActor()->GetWorld());
 
 	int32 FinalSortedCount = 0;
 	int32 DeletedCount = 0;
 
-	// Make weak ptr once for IsActorDormant call
 	TWeakObjectPtr<UNetConnection> WeakConnection; // T(REP)
 	WeakConnection.ObjectIndex = Connection->InternalIndex;
 	WeakConnection.ObjectSerialNumber = GetItemByIndex(Connection->InternalIndex)->SerialNumber;
@@ -527,7 +520,7 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 				Actor->GetNetTag() = GetNetTag();
 
 				OutPriorityList[FinalSortedCount] = FActorPriority(PriorityConnection, Channel, ActorInfo, ConnectionViewers, bLowNetBandwidth);
-				// OutPriorityActors[FinalSortedCount] = OutPriorityList + FinalSortedCount;
+				OutPriorityActors[FinalSortedCount] = OutPriorityList.data() + FinalSortedCount;
 
 				FinalSortedCount++;
 			}
@@ -771,7 +764,7 @@ int32 UNetDriver::ServerReplicateActors()
 				}
 			}
 
-			// Connection->GetTimeSensitive() = false;
+			// Connection->GetTimeSensitive() = false; // T(REP)
 		}
 		else if (Connection->GetViewTarget())
 		{
@@ -808,8 +801,6 @@ int32 UNetDriver::ServerReplicateActors()
 			std::vector<FActorPriority*> PriorityActors;
 
 			const int32 FinalSortedCount = ServerReplicateActors_PrioritizeActors(Connection, ConnectionViewers, ConsiderList, bCPUSaturated, PriorityList, PriorityActors);
-
-			// Process the sorted list of actors for this connection
 			const int32 LastProcessedActor = ServerReplicateActors_ProcessPrioritizedActors(Connection, ConnectionViewers, PriorityActors, FinalSortedCount, Updated);
 
 			for (int32 k = LastProcessedActor; k < FinalSortedCount; ++k)

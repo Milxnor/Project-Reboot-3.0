@@ -15,7 +15,10 @@ bool UNetConnection::ClientHasInitializedLevelFor(const AActor* TestActor) const
 	}
 	
 	if (!ClientHasInitializedLevelForAddr)
+	{
+		LOG_WARN(LogDev, "Forcing ret true on ClientHasInitializedLevelFor!");
 		return true;
+	}
 
 	static bool (*ClientHasInitializedLevelForOriginal)(const UNetConnection * Connection, const AActor * TestActor)
 		= decltype(ClientHasInitializedLevelForOriginal)(ClientHasInitializedLevelForAddr);

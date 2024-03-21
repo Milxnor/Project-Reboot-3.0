@@ -59,6 +59,8 @@ struct FNetworkObjectInfo
 class FNetworkObjectList
 {
 public:
+	static inline void (*originalRemove)(FNetworkObjectList*, AActor* const);
+
 	typedef TSet<TSharedPtr<FNetworkObjectInfo>> FNetworkObjectSet;
 
 	FNetworkObjectSet AllNetworkObjects;
@@ -67,7 +69,11 @@ public:
 
 	TMap<TWeakObjectPtr<UNetConnection>, int32> NumDormantObjectsPerConnection;
 
-	void Remove(AActor* const Actor);
+	void Remove(AActor* const Actor)
+	{
+		originalRemove(this, Actor);
+	}
+
 	const FNetworkObjectSet& GetActiveObjects() const { return ActiveNetworkObjects; }
 };
 
@@ -191,7 +197,7 @@ public:
 
 	int32& GetNetTag()
 	{
-		static auto NetTagOffset = 0x1DC + 4;
+		static auto NetTagOffset = 0x1DC + 4; // idk if this is right 1.11
 		return Get<int32>(NetTagOffset);
 	}
 

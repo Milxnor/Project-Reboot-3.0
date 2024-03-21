@@ -14,7 +14,10 @@ bool AActor::HasAuthority()
 
 bool AActor::GetNetDormancy(const FVector& ViewPos, const FVector& ViewDir, AActor* Viewer, AActor* ViewTarget, class UActorChannel* InChannel, float Time, bool bLowBandwidth) // T(REP)
 {
-	return false;
+	static int GetNetDormancyOffset = 0x390; // 1.11
+	bool (*originalGetNetDormancy)(AActor*, const FVector&, const FVector&, AActor* Viewer, AActor* ViewTarget, UActorChannel * InChannel, float Time, bool bLowBandwidth) =
+		decltype(originalGetNetDormancy)(this->VFTable[GetNetDormancyOffset / 8]);
+	return originalGetNetDormancy(this, ViewPos, ViewDir, Viewer, ViewTarget, InChannel, Time, bLowBandwidth);
 }
 
 bool AActor::IsTearOff()
@@ -211,7 +214,7 @@ void AActor::ForceNetUpdate()
 
 bool AActor::IsNetStartupActor() // T(REP)
 {
-	return IsNetStartup(); // The implementation on this function depends on the version.
+	return IsNetStartup(); // The implementation on this function depends on the version, this is for 4.19.
 }
 
 bool AActor::IsPendingKillPending() // T(REP)

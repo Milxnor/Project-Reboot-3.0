@@ -7,9 +7,7 @@ int32 UChannel::IsNetReady(bool Saturate)
 
 	if (*(int*)(__int64(this) + NumOutRecOffset) < 255)
 	{
-		static auto ConnectionOffset = GetOffset("Connection");
-		auto Connection = Get<UNetConnection*>(ConnectionOffset);
-		return Connection->IsNetReady(Saturate);
+		return GetConnection()->IsNetReady(Saturate);
 	}
 
 	return 0;
