@@ -6,59 +6,6 @@
 #include "discord.h"
 #include "log.h"
 
-static inline size_t WriteFunctionString(void* ptr, size_t size, size_t nmemb, std::string* data) {
-    data->append(static_cast<char*>(ptr), size * nmemb);
-    return size * nmemb;
-}
-
-inline FString GetRandomBotNameGeneric() {
-    std::string animal;
-    std::string adjective;
-
-    CURL* curl = curl_easy_init();
-    if (curl) {
-        // Get adjective
-        std::string adjective_url = "http://random-word-form.herokuapp.com/random/adjective";
-        curl_easy_setopt(curl, CURLOPT_URL, adjective_url.c_str());
-        std::string adjective_response;
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteFunctionString);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &adjective_response);
-        CURLcode res = curl_easy_perform(curl);
-        if (res == CURLE_OK) {
-            adjective = adjective_response.substr(2, adjective_response.length() - 4);
-        }
-
-        // Get animal
-        std::string animal_url = "http://random-word-form.herokuapp.com/random/animal";
-        curl_easy_setopt(curl, CURLOPT_URL, animal_url.c_str());
-        std::string animal_response;
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteFunctionString);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &animal_response);
-        res = curl_easy_perform(curl);
-        if (res == CURLE_OK) {
-            animal = animal_response.substr(2, animal_response.length() - 4);
-        }
-
-        curl_easy_cleanup(curl);
-    }
-
-    srand(std::time(0) / rand());
-    animal[0] = std::toupper(animal[0]);
-    size_t spaceindex = animal.find(" ");
-    if (spaceindex != std::string::npos) {
-        animal.erase(spaceindex);
-    }
-
-
-    adjective[0] = std::toupper(adjective[0]);
-    size_t dashindex = adjective.find("-");
-    if (dashindex != std::string::npos) {
-        adjective.erase(dashindex);
-    }
-    std::string ret = adjective + animal + std::to_string(rand() % 20000);
-    return std::wstring(ret.begin(), ret.end()).c_str();
-}
-
 
 inline std::vector<FString> PlayerBotNames;
 

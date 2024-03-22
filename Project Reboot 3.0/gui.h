@@ -344,8 +344,6 @@ static inline void StaticUI()
 
 	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);
 	ImGui::Checkbox("Infinite Materials", &Globals::bInfiniteMaterials);
-
-	ImGui::Checkbox("Use generic random bot names", &Globals::bUseGenericRandomBotNames);
 	
 	ImGui::Checkbox("Private IP's are operator", &Globals::bPrivateIPsAreOperator);
 

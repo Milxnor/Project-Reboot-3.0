@@ -294,13 +294,7 @@ public:
 			Controller->Possess(Pawn);
 		}
 
-		FString BotNewName = L"";
-		if (Globals::bUseGenericRandomBotNames) {
-			BotNewName = GetRandomBotNameGeneric();
-		}
-		else {
-			BotNewName = GetRandomName();
-		}
+		FString BotNewName = GetRandomName();
 		
 		LOG_INFO(LogBots, "BotNewName: {}", BotNewName.ToString());
 		SetName(BotNewName);
