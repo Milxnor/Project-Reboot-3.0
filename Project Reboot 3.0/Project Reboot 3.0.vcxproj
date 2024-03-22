@@ -315,6 +315,7 @@
     <ClInclude Include="ContainerAllocationPolicies.h" />
     <ClInclude Include="Controller.h" />
     <ClInclude Include="builder.h" />
+    <ClInclude Include="CoreNet.h" />
     <ClInclude Include="CurveTable.h" />
     <ClInclude Include="DataTable.h" />
     <ClInclude Include="DataTableFunctionLibrary.h" />
@@ -431,6 +432,7 @@
     <ClInclude Include="IsPODType.h" />
     <ClInclude Include="IsPointer.h" />
     <ClInclude Include="IsTriviallyCopyConstructible.h" />
+    <ClInclude Include="IsTriviallyDestructible.h" />
     <ClInclude Include="KismetMathLibrary.h" />
     <ClInclude Include="KismetStringLibrary.h" />
     <ClInclude Include="KismetSystemLibrary.h" />

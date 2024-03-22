@@ -79,11 +79,11 @@ public:
 		return Get<double>(LastReceiveTimeOffset);
 	}
 
-	/* TSet<FName>& GetClientVisibleLevelNames()
+	TSet<FName>& GetClientVisibleLevelNames()
 	{
 		static auto ClientVisibleLevelNamesOffset = 0x336C8;
 		return *(TSet<FName>*)(__int64(this) + ClientVisibleLevelNamesOffset);
-	} */
+	}
 
 	class UNetDriver*& GetDriver()
 	{

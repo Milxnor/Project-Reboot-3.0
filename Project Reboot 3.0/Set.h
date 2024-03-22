@@ -5,38 +5,9 @@
 #include "SparseArray.h"
 #include "ChooseClass.h"
 #include "UnrealTypeTraits.h"
+#include "UnrealTemplate.h"
 
-template <typename ElementType>
-class TSetElement
-{
-public:
-    ElementType Value;
-    mutable int32 HashNextId;
-    mutable int32 HashIndex;
 
-    TSetElement(ElementType InValue, int32 InHashNextId, int32 InHashIndex)
-        : Value(InValue)
-        , HashNextId(InHashNextId)
-        , HashIndex(InHashIndex)
-    {
-    }
-
-    FORCEINLINE TSetElement<ElementType>& operator=(const TSetElement<ElementType>& Other)
-    {
-        Value = Other.Value;
-    }
-
-    FORCEINLINE bool operator==(const TSetElement& Other) const
-    {
-        return Value == Other.Value;
-    }
-    FORCEINLINE bool operator!=(const TSetElement& Other) const
-    {
-        return Value != Other.Value;
-    }
-};
-
-/** Either NULL or an identifier for an element of a set. */
 class FSetElementId
 {
 public:
@@ -87,6 +58,45 @@ private:
     FORCEINLINE operator int32() const
     {
         return Index;
+    }
+};
+
+template <typename InElementType>
+class TSetElement
+{
+public:
+    typedef InElementType ElementType;
+   
+    ElementType Value;
+    mutable FSetElementId HashNextId;
+    mutable int32 HashIndex;
+
+    FORCEINLINE TSetElement()
+    {}
+
+    /** Initialization constructor. */
+    // template <typename InitType, typename = typename TEnableIf<!TAreTypesEqual<TSetElement, typename TDecay<InitType>::Type>::Value>::Type> explicit FORCEINLINE TSetElement(InitType&& InValue) : Value/////(Forward<InitType>(InValue)) {} // T(R)
+
+    FORCEINLINE TSetElement(const TSetElement& Rhs) : Value(Rhs.Value), HashNextId(Rhs.HashNextId), HashIndex(Rhs.HashIndex) {}
+    FORCEINLINE TSetElement(TSetElement&& Rhs) : Value(MoveTempIfPossible(Rhs.Value)), HashNextId(MoveTemp(Rhs.HashNextId)), HashIndex(Rhs.HashIndex) {}
+
+    FORCEINLINE TSetElement& operator=(const TSetElement& Rhs) { Value = Rhs.Value; HashNextId = Rhs.HashNextId; HashIndex = Rhs.HashIndex; return *this; }
+    FORCEINLINE TSetElement& operator=(TSetElement&& Rhs) { Value = MoveTempIfPossible(Rhs.Value); HashNextId = MoveTemp(Rhs.HashNextId); HashIndex = Rhs.HashIndex; return *this; }
+
+    /*
+    FORCEINLINE friend FArchive & operator<<(FArchive & Ar, TSetElement & Element)
+    {
+        return Ar << Element.Value;
+    }
+    */
+
+    FORCEINLINE bool operator==(const TSetElement& Other) const
+    {
+        return Value == Other.Value;
+    }
+    FORCEINLINE bool operator!=(const TSetElement& Other) const
+    {
+        return Value != Other.Value;
     }
 };
 
@@ -152,6 +162,9 @@ private:
 public:
     typedef typename KeyFuncs::KeyInitType     KeyInitType;
     typedef typename KeyFuncs::ElementInitType ElementInitType;
+    // using SizeType = typename Allocator::SparseArrayAllocator::ElementAllocator::SizeType; // Milxnor: Bruh idk 
+    using SizeType = int32;
+    static_assert(std::is_same_v<SizeType, int32>, "TSet currently only supports 32-bit allocators");
 
     typedef TSetElement<InElementType> SetElementType;
 
@@ -170,7 +183,82 @@ public:
         return ((FSetElementId*)Hash.GetAllocation())[HashIndex & (HashSize - 1)];
     }
 
+private:
+    template<typename ComparableKey>
+    FORCEINLINE int32 RemoveImpl(uint32 KeyHash, const ComparableKey& Key)
+    {
+        int32 NumRemovedElements = 0;
+
+        FSetElementId* NextElementId = &GetTypedHash(KeyHash);
+        while (NextElementId->IsValidId())
+        {
+            SetElementType& Element = Elements[NextElementId->Index];
+
+            if (KeyFuncs::Matches(KeyFuncs::GetSetKey(Element.Value), Key))
+            {
+                // This element matches the key, remove it from the set.  Note that Remove sets *NextElementId to point to the next
+                // element after the removed element in the hash bucket.
+                RemoveByIndex(NextElementId->Index);
+                NumRemovedElements++;
+
+                if (!KeyFuncs::bAllowDuplicateKeys)
+                {
+                    // If the hash disallows duplicate keys, we're done removing after the first matched key.
+                    break;
+                }
+            }
+            else
+            {
+                NextElementId = &Element.HashNextId;
+            }
+        }
+
+        return NumRemovedElements;
+    }
+
 public:
+    void RemoveByIndex(SizeType ElementIndex)
+    {
+        // checkf(Elements.IsValidIndex(ElementIndex), TEXT("Invalid ElementIndex passed to TSet::RemoveByIndex"));
+
+        const SetElementType& ElementBeingRemoved = Elements[ElementIndex];
+
+        // Remove the element from the hash.
+        FSetElementId* HashPtr = Hash.GetAllocation();
+        SizeType* NextElementIndexIter = &HashPtr[ElementBeingRemoved.HashIndex].Index;
+        for (;;)
+        {
+            SizeType NextElementIndex = *NextElementIndexIter;
+            // checkf(NextElementIndex != INDEX_NONE, TEXT("Corrupt hash"));
+
+            if (NextElementIndex == ElementIndex)
+            {
+                *NextElementIndexIter = ElementBeingRemoved.HashNextId.Index;
+                break;
+            }
+
+            NextElementIndexIter = &Elements[NextElementIndex].HashNextId.Index;
+        }
+
+        // Remove the element from the elements array.
+        Elements.RemoveAt(ElementIndex);
+    }
+
+    void Remove(FSetElementId ElementId)
+    {
+        RemoveByIndex(ElementId.Index);
+    }
+
+    int32 Remove(KeyInitType Key)
+    {
+        if (Elements.Num())
+        {
+            return RemoveImpl(KeyFuncs::GetKeyHash(Key), Key);
+        }
+
+        return 0;
+    }
+
     FORCEINLINE ElementType* Find(KeyInitType Key)
     {
         FSetElementId ElementId = FindId(Key);

@@ -9,6 +9,7 @@
 #include <random>
 #include "Package.h"
 #include "AssertionMacros.h"
+#include "CoreNet.h"
 #include "ChildConnection.h"
 #include "bots.h"
 #include "NetworkingDistanceConstants.h"
@@ -131,13 +132,6 @@ bool UNetDriver::IsLevelInitializedForActor(const AActor* InActor, const UNetCon
 		return true;
 	}
 
-	/* #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST) // (Milxnor) This is on some ue versions and others not.
-		if (!InActor || !InConnection)
-			return false;
-
-		// check(World == InActor->GetWorld());
-	#endif */
-
 	bool bFirstWorldCheck = Engine_Version == 416
 		? (InConnection->GetClientWorldPackageName() == GetWorld()->GetOutermost()->GetFName())
 		: (InConnection->GetClientWorldPackageName() == GetWorldPackage()->NamePrivate);
@@ -155,7 +149,7 @@ FNetViewer::FNetViewer(UNetConnection* InConnection, float DeltaSeconds) :
 	ViewDir(ForceInit)
 {
 	if (!InConnection->GetOwningActor()) return;
-	if (InConnection->GetPlayerController() || (InConnection->GetPlayerController() != InConnection->GetOwningActor())) return;
+	if (InConnection->GetPlayerController() && (InConnection->GetPlayerController() != InConnection->GetOwningActor())) return;
 
 	APlayerController* ViewingController = InConnection->GetPlayerController();
 
@@ -163,7 +157,7 @@ FNetViewer::FNetViewer(UNetConnection* InConnection, float DeltaSeconds) :
 	if (ViewingController)
 	{
 		FRotator ViewRotation = ViewingController->GetControlRotation();
-		ViewingController->GetActorEyesViewPoint(&ViewLocation, &ViewRotation); // T(REP)
+		ViewingController->GetActorEyesViewPoint(&ViewLocation, &ViewRotation);
 		ViewDir = ViewRotation.Vector();
 	}
 }
@@ -542,6 +536,58 @@ int32 UNetDriver::ServerReplicateActors_PrioritizeActors(UNetConnection* Connect
 	return FinalSortedCount;
 }
 
+using FArchive = void;
+
+__declspec(noinline) void SetChannelActorForDestroy(UActorChannel* Channel, FActorDestructionInfo* DestructInfo)
+{
+	auto Connection = Channel->GetConnection();
+
+	// 	check(Connection->Channels[ChIndex]==Channel);
+
+	if (
+		true
+		// T(REP)
+		)
+	{
+
+		// You can get size by searching "Making partial bunch from content bunch. bitsThisBunch: %d bitsLeft: %d", there is a new call.
+		struct FOutBunch
+		{
+			char pad[0x110];
+		};
+
+		LOG_INFO(LogDev, "SetChannelActorForDestroy PathName: {}", DestructInfo->PathName.ToString());
+
+		FOutBunch(*ConstructorFOutBunch)(FOutBunch*, UChannel*, bool) = decltype(ConstructorFOutBunch)(__int64(GetModuleHandleW(0)) + 0x194E800);
+		FOutBunch CloseBunch{};
+		auto Helloooo = ConstructorFOutBunch(&CloseBunch, Channel, 1);
+		// check(!CloseBunch.IsError());
+		// check(CloseBunch.bClose);
+
+		LOG_INFO(LogDev, "Called Constructor!");
+
+		// https://imgur.com/a/EtKFkrD
+
+		*(bool*)(__int64(&CloseBunch) + 0xE8) = 1; // bReliable
+		*(bool*)(__int64(&CloseBunch) + 0xE6) = 0; // bDormant
+
+		// NET_CHECKSUM(CloseBunch); // This is to mirror the Checksum in UPackageMapClient::SerializeNewActor
+
+		using UPackageMap = UObject;
+
+		reinterpret_cast<bool(*)(UPackageMap*, 
+			// FArchive& Ar, 
+			FOutBunch& Ar,
+			UObject* InOuter, FNetworkGUID NetGUID, FString ObjName)>(Connection->GetPackageMap()->VFTable[0x238 / 8])
+			(Connection->GetPackageMap(), CloseBunch, DestructInfo->ObjOuter.Get(), DestructInfo->NetGUID, DestructInfo->PathName); // WriteObject
+
+		// 0x196E9C0
+		reinterpret_cast<FPacketIdRange(*)(UActorChannel*, FOutBunch*, bool)>(Channel->VFTable[0x288 / 8])(Channel, &CloseBunch, false); // SendBunch
+		
+		// TODO FARCHIVE::~FARHCIVE
+	}
+}
+
 int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection* Connection, const std::vector<FNetViewer>& ConnectionViewers, std::vector<FActorPriority*>& PriorityActors, const int32 FinalSortedCount, int32& OutUpdated)
 {
 	int32 ActorUpdatesThisConnection = 0;
@@ -557,12 +603,11 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 	{
 		FNetworkObjectInfo* ActorInfo = PriorityActors[j]->ActorInfo;
 
-		// Deletion entry
 		if (ActorInfo == NULL && PriorityActors[j]->DestructionInfo)
 		{
 			/*
-			if (PriorityActors[j]->DestructionInfo->StreamingLevelName != NAME_None && 
-				!Connection->GetClientVisibleLevelNames().Contains(PriorityActors[j]->DestructionInfo->StreamingLevelName)
+			if (PriorityActors[j]->DestructionInfo->StreamingLevelName != NAME_None
+				&& !Connection->GetClientVisibleLevelNames().Contains(PriorityActors[j]->DestructionInfo->StreamingLevelName)
 				)
 			{
 				continue;
@@ -573,7 +618,7 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 			{
 				FinalRelevantCount++;
 
-				Channel->SetChannelActorForDestroy(PriorityActors[j]->DestructionInfo);
+				SetChannelActorForDestroy(Channel, PriorityActors[j]->DestructionInfo);
 				Connection->GetDestroyedStartupOrDormantActors().Remove(PriorityActors[j]->DestructionInfo->NetGUID);
 			}
 
@@ -621,6 +666,7 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 						Channel = (UActorChannel*)Connection->CreateChannel(CHTYPE_Actor, 1, EChannelCreateFlags::OpenedLocally);
 						if (Channel)
 						{
+							LOG_INFO(LogDev, "Replicating: {}", Actor->GetFullName());
 							Channel->SetChannelActor(Actor, ESetChannelActorFlags::None1);
 						}
 					}

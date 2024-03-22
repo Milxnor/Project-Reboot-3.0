@@ -12,6 +12,97 @@ class TBitArray;
 template<typename Allocator = FDefaultBitArrayAllocator>
 class TConstSetBitIterator;
 
+class FBitReference
+{
+public:
+
+	FORCEINLINE FBitReference(uint32& InData, uint32 InMask)
+		: Data(InData)
+		, Mask(InMask)
+	{}
+
+	FORCEINLINE operator bool() const
+	{
+		return (Data & Mask) != 0;
+	}
+	FORCEINLINE void operator=(const bool NewValue)
+	{
+		if (NewValue)
+		{
+			Data |= Mask;
+		}
+		else
+		{
+			Data &= ~Mask;
+		}
+	}
+	/*
+	FORCEINLINE void AtomicSet(const bool NewValue)
+	{
+		if (NewValue)
+		{
+			if (!(Data & Mask))
+			{
+				while (1)
+				{
+					uint32 Current = Data;
+					uint32 Desired = Current | Mask;
+					if (Current == Desired || FPlatformAtomics::InterlockedCompareExchange((volatile int32*)&Data, (int32)Desired, (int32)Current) == (int32)Current)
+					{
+						return;
+					}
+				}
+			}
+		}
+		else
+		{
+			if (Data & Mask)
+			{
+				while (1)
+				{
+					uint32 Current = Data;
+					uint32 Desired = Current & ~Mask;
+					if (Current == Desired || FPlatformAtomics::InterlockedCompareExchange((volatile int32*)&Data, (int32)Desired, (int32)Current) == (int32)Current)
+					{
+						return;
+					}
+				}
+			}
+		}
+	}
+	*/
+	FORCEINLINE FBitReference& operator=(const FBitReference& Copy)
+	{
+		// As this is emulating a reference, assignment should not rebind,
+		// it should write to the referenced bit.
+		*this = (bool)Copy;
+		return *this;
+	}
+
+private:
+	uint32& Data;
+	uint32 Mask;
+};
+
+class FConstBitReference
+{
+public:
+
+	FORCEINLINE FConstBitReference(const uint32& InData, uint32 InMask)
+		: Data(InData)
+		, Mask(InMask)
+	{}
+
+	FORCEINLINE operator bool() const
+	{
+		return (Data & Mask) != 0;
+	}
+
+private:
+	const uint32& Data;
+	uint32 Mask;
+};
+
 template<typename Allocator /*= FDefaultBitArrayAllocator*/>
 class TBitArray
 {
@@ -34,6 +125,23 @@ public:
 		, MaxBits(0)
 	{
 		*this = Copy;
+	}
+
+	FORCEINLINE FBitReference operator[](int32 Index)
+	{
+		// check(Index >= 0 && Index < NumBits);
+		return FBitReference(
+			GetData()[Index / NumBitsPerDWORD],
+			1 << (Index & (NumBitsPerDWORD - 1))
+		);
+	}
+	FORCEINLINE const FConstBitReference operator[](int32 Index) const
+	{
+		// check(Index >= 0 && Index < NumBits);
+		return FConstBitReference(
+			GetData()[Index / NumBitsPerDWORD],
+			1 << (Index & (NumBitsPerDWORD - 1))
+		);
 	}
 
 	FORCEINLINE const uint32* GetData() const

@@ -83,4 +83,4 @@ inline uint32 GetTypeHash(const FName N)
 	return N.ComparisonIndex.Value + N.GetNumber();
 }
 
-#define NAME_None FName(0);
+#define NAME_None FName(0)

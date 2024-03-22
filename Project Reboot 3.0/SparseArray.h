@@ -5,6 +5,7 @@
 #include "ChooseClass.h"
 #include "log.h"
 #include "TypeCompatibleBytes.h"
+#include "IsTriviallyDestructible.h"
 
 #define INDEX_NONE -1
 
@@ -53,6 +54,42 @@ public:
     {
         return Data.Num() - NumFreeIndices;
     }
+    void RemoveAt(int32 Index, int32 Count = 1)
+    {
+        if (!TIsTriviallyDestructible<ElementType>::Value)
+        {
+            for (int32 It = Index, ItCount = Count; ItCount; ++It, --ItCount)
+            {
+                ((ElementType&)GetData(It).ElementData).~ElementType();
+            }
+        }
+
+        RemoveAtUninitialized(Index, Count);
+    }
+
+    /** Removes Count elements from the array, starting from Index, without destructing them. */
+    void RemoveAtUninitialized(int32 Index, int32 Count = 1)
+    {
+        for (; Count; --Count)
+        {
+            // check(AllocationFlags[Index]);
+
+            // Mark the element as free and add it to the free element list.
+            if (NumFreeIndices)
+            {
+                GetData(FirstFreeIndex).PrevFreeIndex = Index;
+            }
+            auto& IndexData = GetData(Index);
+            IndexData.PrevFreeIndex = -1;
+            IndexData.NextFreeIndex = NumFreeIndices > 0 ? FirstFreeIndex : INDEX_NONE;
+            FirstFreeIndex = Index;
+            ++NumFreeIndices;
+            AllocationFlags[Index] = false;
+
+            ++Index;
+        }
+    }
+
     template<bool bConst>
     class TBaseIterator
     {

@@ -999,6 +999,12 @@
     <ClInclude Include="NetworkingDistanceConstants.h">
       <Filter>Engine\Source\Runtime\Engine\Public</Filter>
     </ClInclude>
+    <ClInclude Include="CoreNet.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="IsTriviallyDestructible.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Templates</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
