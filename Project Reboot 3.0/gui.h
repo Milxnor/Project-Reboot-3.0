@@ -345,6 +345,10 @@ static inline void StaticUI()
 	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);
 	ImGui::Checkbox("Infinite Materials", &Globals::bInfiniteMaterials);
 
+	ImGui::Checkbox("Use generic random bot names", &Globals::bUseGenericRandomBotNames);
+	
+	ImGui::Checkbox("Private IP's are operator", &Globals::bPrivateIPsAreOperator);
+
 	ImGui::Checkbox("No MCP (Don't change unless you know what this is)", &Globals::bNoMCP);
 
 	if (Addresses::ApplyGadgetData && Addresses::RemoveGadgetData && Engine_Version < 424)
