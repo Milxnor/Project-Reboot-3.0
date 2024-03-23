@@ -558,9 +558,12 @@ __declspec(noinline) void SetChannelActorForDestroy(UActorChannel* Channel, FAct
 
 		LOG_INFO(LogDev, "SetChannelActorForDestroy PathName: {}", DestructInfo->PathName.ToString());
 
-		FOutBunch(*ConstructorFOutBunch)(FOutBunch*, UChannel*, bool) = decltype(ConstructorFOutBunch)(__int64(GetModuleHandleW(0)) + 0x194E800);
-		FOutBunch CloseBunch{};
-		auto Helloooo = ConstructorFOutBunch(&CloseBunch, Channel, 1);
+		static FOutBunch* (*ConstructorFOutBunch)(__int64, UChannel*, bool) = decltype(ConstructorFOutBunch)(__int64(GetModuleHandleW(0)) + 0x194E800);
+		FOutBunch* CloseBunch = (FOutBunch*)// FMemory::Realloc(0, sizeof(FOutBunch), 0);
+			VirtualAlloc(0, sizeof(FOutBunch), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+		ConstructorFOutBunch(__int64(CloseBunch), Channel, 1);
+
 		// check(!CloseBunch.IsError());
 		// check(CloseBunch.bClose);
 
@@ -577,12 +580,12 @@ __declspec(noinline) void SetChannelActorForDestroy(UActorChannel* Channel, FAct
 
 		reinterpret_cast<bool(*)(UPackageMap*, 
 			// FArchive& Ar, 
-			FOutBunch& Ar,
+			FOutBunch* Ar,
 			UObject* InOuter, FNetworkGUID NetGUID, FString ObjName)>(Connection->GetPackageMap()->VFTable[0x238 / 8])
 			(Connection->GetPackageMap(), CloseBunch, DestructInfo->ObjOuter.Get(), DestructInfo->NetGUID, DestructInfo->PathName); // WriteObject
 
 		// 0x196E9C0
-		reinterpret_cast<FPacketIdRange(*)(UActorChannel*, FOutBunch*, bool)>(Channel->VFTable[0x288 / 8])(Channel, &CloseBunch, false); // SendBunch
+		reinterpret_cast<FPacketIdRange(*)(UActorChannel*, FOutBunch*, bool)>(Channel->VFTable[0x288 / 8])(Channel, CloseBunch, false); // SendBunch
 		
 		// TODO FARCHIVE::~FARHCIVE
 	}
@@ -605,7 +608,6 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 
 		if (ActorInfo == NULL && PriorityActors[j]->DestructionInfo)
 		{
-			/*
 			if (PriorityActors[j]->DestructionInfo->StreamingLevelName != NAME_None
 				&& !Connection->GetClientVisibleLevelNames().Contains(PriorityActors[j]->DestructionInfo->StreamingLevelName)
 				)
@@ -621,8 +623,6 @@ int32 UNetDriver::ServerReplicateActors_ProcessPrioritizedActors(UNetConnection*
 				SetChannelActorForDestroy(Channel, PriorityActors[j]->DestructionInfo);
 				Connection->GetDestroyedStartupOrDormantActors().Remove(PriorityActors[j]->DestructionInfo->NetGUID);
 			}
-
-			*/
 
 			continue;
 		}
