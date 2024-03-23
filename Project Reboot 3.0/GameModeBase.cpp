@@ -9,6 +9,7 @@
 #include "FortAthenaMutator_GG.h"
 #include "FortAthenaMutator_InventoryOverride.h"
 #include "calendar.h"
+#include "hooking.h"
 
 void AGameModeBase::RestartPlayerAtTransform(AController* NewPlayer, FTransform SpawnTransform)
 {
@@ -120,33 +121,29 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	static auto DefaultPawnClassOffset = GameMode->GetOffset("DefaultPawnClass");
 	GameMode->Get<UClass*>(DefaultPawnClassOffset) = PawnClass;
 
-	bool bUseSpawnActor = false;
-
+#if 1
 	static auto SpawnDefaultPawnAtTransformFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
 
 	FTransform SpawnTransform = StartSpot->GetTransform();
-	APawn* NewPawn = nullptr;
 
-	if (bUseSpawnActor)
-	{
-		NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn));
-	}
-	else
-	{
-		struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
-		AGameModeBase_SpawnDefaultPawnAtTransform_Params{ NewPlayer, SpawnTransform };
+	struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
+	AGameModeBase_SpawnDefaultPawnAtTransform_Params{ NewPlayer, SpawnTransform };
 
-		LOG_INFO(LogDev, "Calling SpawnDefaultPawnAtTransformFn!");
+	LOG_INFO(LogDev, "Calling SpawnDefaultPawnAtTransformFn!");
 
-		GameMode->ProcessEvent(SpawnDefaultPawnAtTransformFn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+	GameMode->ProcessEvent(SpawnDefaultPawnAtTransformFn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
 
-		LOG_INFO(LogDev, "Finished SpawnDefaultPawnAtTransformFn!");
+	LOG_INFO(LogDev, "Finished SpawnDefaultPawnAtTransformFn!");
 
-		NewPawn = AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
-	}
+	auto NewPawn = AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue;
+#else
+#endif
 
 	if (!NewPawn)
+	{
+		LOG_WARN(LogPlayer, "Failed to spawn pawn!");
 		return nullptr;
+	}
 
 	bool bIsRespawning = false; // reel
 

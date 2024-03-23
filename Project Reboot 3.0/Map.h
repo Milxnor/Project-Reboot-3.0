@@ -137,7 +137,7 @@ public:
             }
         }
 
-        // LOG_INFO(LogDev, "Failed to find Key!!!");
+        LOG_INFO(LogDev, "Failed to find Key!!!");
 
         if (wasSuccessful)
             *wasSuccessful = false;

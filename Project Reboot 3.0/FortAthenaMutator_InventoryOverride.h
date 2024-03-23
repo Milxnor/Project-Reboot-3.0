@@ -125,7 +125,7 @@ public:
 
 	static UClass* StaticClass()
 	{
-		static auto Class = FindObject<UClass>("/Script/FortniteGame.FortAthenaMutator_InventoryOverride");
+		static auto Class = FindObject<UClass>(L"/Script/FortniteGame.FortAthenaMutator_InventoryOverride");
 		return Class;
 	}
 };

@@ -111,7 +111,7 @@ static inline AFortAthenaMutator_Bots* SpawnBotMutator() //sets up all the class
    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
    static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
-   static auto PhoebeMutatorClass = LoadObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_Phoebe_Mutator.BP_Phoebe_Mutator_C", BGAClass);
+   auto PhoebeMutatorClass = LoadObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_Phoebe_Mutator.BP_Phoebe_Mutator_C", BGAClass);
 
    if (!PhoebeMutatorClass)
    {

@@ -819,6 +819,7 @@ DWORD WINAPI Main(LPVOID)
     }
 
     LOG_INFO(LogInit, "Initializing Project Reboot!");
+    LOG_INFO(LogDev, "Built on {} {}", __DATE__, __TIME__);
 
     Addresses::SetupVersion();
 
@@ -915,7 +916,6 @@ DWORD WINAPI Main(LPVOID)
 
     Hooking::MinHook::Hook((PVOID)Addresses::KickPlayer, (PVOID)AGameSession::KickPlayerHook, (PVOID*)&AGameSession::KickPlayerOriginal);
 
-    LOG_INFO(LogDev, "Built on {} {}", __DATE__, __TIME__);
     LOG_INFO(LogDev, "Size: 0x{:x}", sizeof(TMap<FName, void*>));
 
     Hooking::MinHook::Hook((PVOID)Addresses::ActorGetNetMode, (PVOID)GetNetModeHook2, nullptr);

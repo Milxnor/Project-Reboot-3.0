@@ -1439,78 +1439,80 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 	bool bIsRespawningAllowed = GameState->IsRespawningAllowed(DeadPlayerState);
 
-	if (!bIsRespawningAllowed)
-	{
-		bool bDropInventory = true;
+	bool bDropInventory = true;
 
-		LoopMutators([&](AFortAthenaMutator* Mutator)
-			{
-				if (auto FortAthenaMutator_InventoryOverride = Cast<AFortAthenaMutator_InventoryOverride>(Mutator))
-				{
-					if (FortAthenaMutator_InventoryOverride->GetDropAllItemsOverride(DeadPlayerState->GetTeamIndex()) == EAthenaLootDropOverride::ForceKeep)
-					{
-						bDropInventory = false;
-					}
-				}
-			}
-		);
-
-		if (bDropInventory)
+	LoopMutators([&](AFortAthenaMutator* Mutator)
 		{
-			auto WorldInventory = PlayerController->GetWorldInventory();
-
-			if (WorldInventory)
+			if (auto FortAthenaMutator_InventoryOverride = Cast<AFortAthenaMutator_InventoryOverride>(Mutator))
 			{
-				auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
-
-				std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
-
-				for (int i = 0; i < ItemInstances.Num(); ++i)
+				if (FortAthenaMutator_InventoryOverride->GetDropAllItemsOverride(DeadPlayerState->GetTeamIndex()) == EAthenaLootDropOverride::ForceKeep)
 				{
-					auto ItemInstance = ItemInstances.at(i);
-
-					// LOG_INFO(LogDev, "[{}/{}] CurrentItemInstance {}", i, ItemInstances.Num(), __int64(ItemInstance));
-
-					if (!ItemInstance)
-						continue;
-
-					auto ItemEntry = ItemInstance->GetItemEntry();
-					auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
-
-					// LOG_INFO(LogDev, "[{}/{}] WorldItemDefinition {}", i, ItemInstances.Num(), WorldItemDefinition ? WorldItemDefinition->GetFullName() : "InvalidObject");
-
-					if (!WorldItemDefinition)
-						continue;
-
-					auto ShouldBeDropped = WorldItemDefinition->CanBeDropped(); // WorldItemDefinition->ShouldDropOnDeath();
-
-					// LOG_INFO(LogDev, "[{}/{}] ShouldBeDropped {}", i, ItemInstances.Num(), ShouldBeDropped);
-
-					if (!ShouldBeDropped)
-						continue;
-
-					PickupCreateData CreateData;
-					CreateData.bToss = true;
-					CreateData.ItemEntry = ItemEntry;
-					CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
-					CreateData.Source = EFortPickupSpawnSource::GetPlayerEliminationValue();
-					CreateData.SpawnLocation = DeathLocation;
-
-					AFortPickup::SpawnPickup(CreateData);
-
-					GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
-					// WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
+					bDropInventory = false;
 				}
-
-				for (auto& Pair : GuidAndCountsToRemove)
-				{
-					WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
-				}
-
-				WorldInventory->Update();
 			}
 		}
+	);
 
+	if (bDropInventory
+		&& !bIsRespawningAllowed
+		)
+	{
+		auto WorldInventory = PlayerController->GetWorldInventory();
+
+		if (WorldInventory)
+		{
+			auto& ItemInstances = WorldInventory->GetItemList().GetItemInstances();
+
+			std::vector<std::pair<FGuid, int>> GuidAndCountsToRemove;
+
+			for (int i = 0; i < ItemInstances.Num(); ++i)
+			{
+				auto ItemInstance = ItemInstances.at(i);
+
+				// LOG_INFO(LogDev, "[{}/{}] CurrentItemInstance {}", i, ItemInstances.Num(), __int64(ItemInstance));
+
+				if (!ItemInstance)
+					continue;
+
+				auto ItemEntry = ItemInstance->GetItemEntry();
+				auto WorldItemDefinition = Cast<UFortWorldItemDefinition>(ItemEntry->GetItemDefinition());
+
+				// LOG_INFO(LogDev, "[{}/{}] WorldItemDefinition {}", i, ItemInstances.Num(), WorldItemDefinition ? WorldItemDefinition->GetFullName() : "InvalidObject");
+
+				if (!WorldItemDefinition)
+					continue;
+
+				auto ShouldBeDropped = WorldItemDefinition->CanBeDropped(); // WorldItemDefinition->ShouldDropOnDeath();
+
+				// LOG_INFO(LogDev, "[{}/{}] ShouldBeDropped {}", i, ItemInstances.Num(), ShouldBeDropped);
+
+				if (!ShouldBeDropped)
+					continue;
+
+				PickupCreateData CreateData;
+				CreateData.bToss = true;
+				CreateData.ItemEntry = ItemEntry;
+				CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();
+				CreateData.Source = EFortPickupSpawnSource::GetPlayerEliminationValue();
+				CreateData.SpawnLocation = DeathLocation;
+
+				AFortPickup::SpawnPickup(CreateData);
+
+				GuidAndCountsToRemove.push_back({ ItemEntry->GetItemGuid(), ItemEntry->GetCount() });
+				// WorldInventory->RemoveItem(ItemEntry->GetItemGuid(), nullptr, ItemEntry->GetCount());
+			}
+
+			for (auto& Pair : GuidAndCountsToRemove)
+			{
+				WorldInventory->RemoveItem(Pair.first, nullptr, Pair.second, true);
+			}
+
+			WorldInventory->Update();
+		}
+	}
+
+	if (!bIsRespawningAllowed)
+	{
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
 		LOG_INFO(LogDev, "PlayersLeft: {} IsDBNO: {}", GameState->GetPlayersLeft(), DeadPawn->IsDBNO());
