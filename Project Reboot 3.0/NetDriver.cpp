@@ -456,6 +456,7 @@ bool UNetDriver::IsLevelInitializedForActor(const AActor* InActor, const UNetCon
 
 	const bool bCorrectWorld = (bFirstWorldCheck && InConnection->ClientHasInitializedLevelFor(InActor));
 	const bool bIsConnectionPC = (InActor == InConnection->GetPlayerController());
+	// LOG_INFO(LogDev, "Finished call {}", bCorrectWorld || bIsConnectionPC);
 	return bCorrectWorld || bIsConnectionPC;
 }
 
@@ -759,10 +760,8 @@ int32 UNetDriver::ServerReplicateActors()
 
 			if (!Channel)
 			{
-				// if (!IsLevelInitializedForActor(Actor, Connection))
 				if (!bLevelInitializedForActor)
 				{
-					// If the level this actor belongs to isn't loaded on client, don't bother sending
 					continue;
 				}
 

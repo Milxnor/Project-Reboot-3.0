@@ -119,12 +119,12 @@ void UObject::SetBitfieldValue(int Offset, uint8_t FieldMask, bool NewValue)
 	SetBitfield(this->GetPtr<PlaceholderBitfield>(Offset), FieldMask, NewValue);
 }
 
-std::string UObject::GetPathName()
+std::string UObject::GetPathName() const
 {
 	return UKismetSystemLibrary::GetPathName(this).ToString();
 }
 
-std::string UObject::GetFullName()
+std::string UObject::GetFullName() const
 {
 	return ClassPrivate ? ClassPrivate->GetName() + " " + UKismetSystemLibrary::GetPathName(this).ToString() : "NoClassPrivate";
 }
@@ -143,7 +143,7 @@ UPackage* UObject::GetOutermost() const
 	}
 }
 
-bool UObject::IsA(UStruct* otherClass)
+bool UObject::IsA(UStruct* otherClass) const
 {
 	UStruct* super = ClassPrivate;
 

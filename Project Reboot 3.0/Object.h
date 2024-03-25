@@ -52,14 +52,14 @@ public:
 		ProcessEventOriginal(this, Function, Parms);
 	}
 
-	std::string GetName() { return NamePrivate.ToString(); }
-	std::string GetPathName();
-	std::string GetFullName();
+	std::string GetName() const { return NamePrivate.ToString(); }
+	std::string GetPathName() const;
+	std::string GetFullName() const;
 	UObject* GetOuter() const { return OuterPrivate; }
 	FName GetFName() const { return NamePrivate; }
 
 	class UPackage* GetOutermost() const;
-	bool IsA(class UStruct* Other);
+	bool IsA(class UStruct* Other) const;
 	class UFunction* FindFunction(const std::string& ShortFunctionName);
 
 	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true);

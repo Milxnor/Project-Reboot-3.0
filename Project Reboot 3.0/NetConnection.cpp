@@ -2,7 +2,7 @@
 
 bool UNetConnection::ClientHasInitializedLevelFor(const AActor* TestActor) const
 {
-	static auto ClientHasInitializedLevelForAddr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B 5A 20 48 8B F1 4C 8B C3", false).Get();
+	static auto ClientHasInitializedLevelForAddr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B 5A 20 48 8B F1 4C 8B C3", false).Get(); // 2.4.2
 
 	if (!ClientHasInitializedLevelForAddr)
 	{

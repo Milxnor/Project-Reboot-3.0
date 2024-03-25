@@ -6,6 +6,6 @@ void AFortAthenaVehicleSpawner::SpawnVehicleHook(AFortAthenaVehicleSpawner* Vehi
 {
 	// literally doesnt get called!!!!
 
-	// LOG_INFO(LogDev, "omgonmg call!!!!\n\n");
+	LOG_INFO(LogDev, "omgonmg call!!!!\n\n");
 	// SpawnVehicleFromSpawner(VehicleSpawner);
 }

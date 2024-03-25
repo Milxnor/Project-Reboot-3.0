@@ -1490,6 +1490,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 					continue;
 
 				PickupCreateData CreateData;
+				CreateData.PawnOwner = DeadPawn;
 				CreateData.bToss = true;
 				CreateData.ItemEntry = ItemEntry;
 				CreateData.SourceType = EFortPickupSourceTypeFlag::GetPlayerValue();

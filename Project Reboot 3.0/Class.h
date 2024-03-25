@@ -41,7 +41,7 @@ class UStruct : public UField
 public:
 	int GetPropertiesSize();
 
-	UStruct* GetSuperStruct() { return *(UStruct**)(__int64(this) + Offsets::SuperStruct); } // idk if this is in UStruct
+	UStruct* GetSuperStruct() const { return *(UStruct**)(__int64(this) + Offsets::SuperStruct); } // idk if this is in UStruct
 
 	TArray<uint8_t> GetScript() { return *(TArray<uint8_t>*)(__int64(this) + Offsets::Script); }
 };

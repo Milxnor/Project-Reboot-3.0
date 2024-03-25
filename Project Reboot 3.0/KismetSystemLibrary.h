@@ -78,12 +78,12 @@ class UKismetSystemLibrary : public UObject
 public:
 	static inline void (*PrintStringOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 
-	static FString GetPathName(UObject* Object)
+	static FString GetPathName(const UObject* Object)
 	{
-		static auto GetPathNameFunction = FindObject<UFunction>("/Script/Engine.KismetSystemLibrary.GetPathName");
-		static auto KismetSystemLibrary = FindObject("/Script/Engine.Default__KismetSystemLibrary");
+		static auto GetPathNameFunction = FindObject<UFunction>(L"/Script/Engine.KismetSystemLibrary.GetPathName");
+		static auto KismetSystemLibrary = FindObject(L"/Script/Engine.Default__KismetSystemLibrary");
 
-		struct { UObject* Object; FString ReturnValue; } GetPathName_Params{ Object };
+		struct { const UObject* Object; FString ReturnValue; } GetPathName_Params{ Object };
 
 		KismetSystemLibrary->ProcessEvent(GetPathNameFunction, &GetPathName_Params);
 

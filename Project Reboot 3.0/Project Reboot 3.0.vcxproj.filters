@@ -987,6 +987,9 @@
     <ClInclude Include="botnames.h">
       <Filter>Reboot\Public</Filter>
     </ClInclude>
+    <ClInclude Include="FortAthenaMutator_CobaltHighTower.h">
+      <Filter>FortniteGame\Plugins\GameFeatures\LTM\HighTower_Cobalt\Source\HighTowerCobaltRuntime\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -1258,6 +1261,30 @@
     </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Private\AI">
       <UniqueIdentifier>{4aadfbef-7320-4457-9f5c-e5fd53b97367}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins">
+      <UniqueIdentifier>{2294e6a0-1351-45bb-aeac-f5af8f1b8924}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures">
+      <UniqueIdentifier>{62d5f8f1-92be-415d-91e1-8006c6d65603}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\LTM">
+      <UniqueIdentifier>{2252ad6f-262b-4b66-af0d-6bbb9fd0dc27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\LTM\HighTower_Cobalt">
+      <UniqueIdentifier>{da63f9f5-40a5-4699-8260-a9f7d3dbc5c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\LTM\HighTower_Cobalt\Source">
+      <UniqueIdentifier>{dc531123-dd74-4244-b84b-9360639fcbe8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\LTM\HighTower_Cobalt\Source\HighTowerCobaltRuntime">
+      <UniqueIdentifier>{becae49a-a48d-4154-bb87-35600e904307}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\LTM\HighTower_Cobalt\Source\HighTowerCobaltRuntime\Private">
+      <UniqueIdentifier>{63f563fa-0091-423c-b75b-cbbcad274193}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\LTM\HighTower_Cobalt\Source\HighTowerCobaltRuntime\Public">
+      <UniqueIdentifier>{e071f31a-5c29-4631-a5fc-1bee4ceed4ae}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
