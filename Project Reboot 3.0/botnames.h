@@ -67,4 +67,5 @@ static inline void InitBotNames()
     PlayerBotNames.push_back(L"Nam");
     PlayerBotNames.push_back(L"AllyJax");
     PlayerBotNames.push_back(L"secret_pommes");
+    PlayerBotNames.push_back(L"Twin1");
 }
