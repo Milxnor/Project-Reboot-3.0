@@ -13,6 +13,7 @@ static inline void InitBotNames()
 {
     PlayerBotNames.clear();
 
+    PlayerBotNames.push_back(L"apfelteesaft");
     PlayerBotNames.push_back(L"qwertyouriop");
     PlayerBotNames.push_back(L"willdey");
     PlayerBotNames.push_back(L"Soggs");
