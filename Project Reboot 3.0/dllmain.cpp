@@ -1290,7 +1290,7 @@ DWORD WINAPI Main(LPVOID)
             AFortPlayerControllerAthena::ServerRequestSeatChangeHook, (PVOID*)&AFortPlayerControllerAthena::ServerRequestSeatChangeOriginal, false);
 
     // if (false)
-    if (Fortnite_Version > 6.10) // so on 6.10 there isa param and our little finder dont work for that so
+    if (Fortnite_Version > 6.20) // so on 6.20 & below there is a param and our little finder dont work for that so
     {
         Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerGameplay.StartGhostMode"), // (Milxnor) TODO: This changes to a component in later seasons.
             AFortPlayerControllerAthena::StartGhostModeHook, (PVOID*)&AFortPlayerControllerAthena::StartGhostModeOriginal, false, true); // We can exec hook since it only gets called via blueprint.
