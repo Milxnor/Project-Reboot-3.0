@@ -1071,8 +1071,8 @@ DWORD WINAPI Main(LPVOID)
 
         if (!matchmaking)
             matchmaking = Memcury::Scanner::FindPattern("83 7D 88 01 7F 0D 48 8B CE E8", false).Get();
-        // if (!matchmaking)
-            // matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? ? 7F 18 49 8D 4D D8 48 8B D7 E8").Get(); // 4.20
+        if (!matchmaking)
+            matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? ? 7F 18 49 8D 4D D8 48 8B D7 E8").Get(); // 4.20
 
         bool bMatchmakingSupported = matchmaking && Engine_Version >= 420;
         int idx = 0;
