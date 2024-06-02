@@ -38,15 +38,16 @@ inline void MakeLogger(const std::string& LoggerName)
 inline void InitLogger()
 {
     // FreeConsole();
-    AllocConsole();
     // AttachConsole(ATTACH_PARENT_PROCESS);
 
     FILE* stream = nullptr;
 
-    bool bStopFortniteOutput = true;
+    bool bStopFortniteOutput = false;
 
     if (bStopFortniteOutput)
     {
+        AllocConsole();
+
         freopen_s(&stream, "in.txt", "r", stdin);
         freopen_s(&stream, "out.txt", "w+", stdout);
         freopen_s(&stream, "err.txt", "w", stderr);
