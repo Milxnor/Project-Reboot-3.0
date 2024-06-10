@@ -1771,9 +1771,10 @@ static inline uint64 FindReplaceBuildingActor()
 		return Memcury::Scanner::FindPattern("4C 89 44 24 ? 55 56 57 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 45").Get(); // 1.7.2 & 2.4.2
 	}
 
-	return FindBytes(StringRef, 
-		(Engine_Version == 420 || Engine_Version == 421 || Engine_Version >= 427 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 } : std::vector<uint8_t>{ 0x4C, 0x8B }),
-		1000, 0, true);
+	auto BytesToFind = Engine_Version == 420 || (Engine_Version == 421 && Fortnite_Version < 6.30) || Engine_Version >= 427 ? std::vector<uint8_t>{ 0x48, 0x8B, 0xC4 }
+		: std::vector<uint8_t>{ 0x4C, 0x8B };
+
+	return FindBytes(StringRef, BytesToFind, 1000, 0, true);
 }
 
 static inline uint64 FindSendClientAdjustment()

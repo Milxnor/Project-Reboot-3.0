@@ -818,6 +818,8 @@ DWORD WINAPI Main(LPVOID)
         return 1;
     }
 
+    std::cout << std::format("Base Address: 0x{:x}\n", __int64(GetModuleHandleW(0)));
+
     LOG_INFO(LogInit, "Initializing Project Reboot!");
     LOG_INFO(LogDev, "Built on {} {}", __DATE__, __TIME__);
 

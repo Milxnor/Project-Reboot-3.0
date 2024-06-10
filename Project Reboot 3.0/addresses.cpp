@@ -331,8 +331,8 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finished finding!");
 }
 
-#define PRINT_CRITICAL_OFFSET(offset) if (!offset) LOG_ERROR(LogDev, "Failed to find {}", #offset) \
-	else LOG_INFO(LogDev, "{}: 0x{:x}", #offset, offset - __int64(GetModuleHandleW(0)));
+#define PRINT_CRITICAL_OFFSET(offset) if (!offset) { LOG_ERROR(LogDev, "Failed to find {}", #offset) } \
+	else { LOG_INFO(LogDev, "{}: 0x{:x}", #offset, offset - __int64(GetModuleHandleW(0))) };
 
 void Addresses::Print()
 {
@@ -608,7 +608,10 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Engine_Version == 421)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 57 48 81 EC ? ? ? ? 48 8B BA ? ? ? ? 48 8B DA 0F 29").Get()); // Pawn Overlap
-		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor({ 0x40, 0x55 }, false).Get()); // Widget class
+
+		std::vector<uint8_t> BytesToFind = Fortnite_Version < 6.3 ? std::vector<uint8_t>{ 0x40, 0x55 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C };
+
+		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor(BytesToFind, false).Get()); // Widget class
 	}
 
 	if (Engine_Version >= 422 
