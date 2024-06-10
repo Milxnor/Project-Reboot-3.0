@@ -526,6 +526,7 @@ void AFortPlayerController::ServerAttemptInteractHook(UObject* Context, FFrame* 
 				WorldInventory->HandleInventoryLocalUpdate();
 
 				PlayerController->ServerExecuteInventoryItemHook(PlayerController, NewVehicleInstance->GetItemEntry()->GetItemGuid());
+				Pawn->EquipWeaponDefinition(VehicleWeaponDefinition, ReplicatedEntry->GetItemGuid());
 			}
 		}
 
