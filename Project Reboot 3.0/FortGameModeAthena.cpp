@@ -247,6 +247,13 @@ void AFortGameModeAthena::OverrideSupplyDrop(AFortGameStateAthena* GameState, UC
 		return;
 
 	auto& SupplyDropInfoList = MapInfo->Get<TArray<UFortSupplyDropInfo*>>(SupplyDropInfoListOffset);
+
+	if (SupplyDropInfoList.Num() == 0)
+	{
+		LOG_WARN(LogGame, "No SupplyDropInfoList!");
+		return;
+	}
+
 	auto FirstSupplyDropInfo = SupplyDropInfoList.at(0);
 
 	if (!FirstSupplyDropInfo)
