@@ -971,10 +971,6 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			WorldNamesToStreamAllFoundationsIn.push_back("/Temp/Game/Athena/Maps/POI/Athena_POI_CommunityPark_003_M_5c711338");
 		}
 
-		static auto PawnClass = FindObject<UClass>(L"/Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
-		static auto DefaultPawnClassOffset = GameMode->GetOffset("DefaultPawnClass");
-		GameMode->Get<UClass*>(DefaultPawnClassOffset) = PawnClass; // I think it would be better if we didn't talk about this.
-
 		if (WorldNamesToStreamAllFoundationsIn.size() > 0)
 		{
 			auto ObjectNum = ChunkedObjects ? ChunkedObjects->Num() : UnchunkedObjects ? UnchunkedObjects->Num() : 0;

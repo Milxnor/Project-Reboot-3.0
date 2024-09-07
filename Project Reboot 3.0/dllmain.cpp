@@ -82,7 +82,6 @@ static ENetMode GetNetModeHook2() { return NetMode; }
 static bool ReturnTrueHook() { return true; }
 static bool ReturnFalseHook() { return false; }
 static int Return2Hook() { return 2; }
-static void EmptyHook() { return; }
 
 static bool NoMCPHook() { return Globals::bNoMCP; }
 static void CollectGarbageHook() { return; }
@@ -969,12 +968,6 @@ DWORD WINAPI Main(LPVOID)
     }
     */
 
-    if (Fortnite_Version >= 16 && Fortnite_Version < 19)
-    {
-        // Bus crash (only needed if we are calling StartAircraftPhase on seperate thread I THINK) (sometimes)
-        Hooking::MinHook::Hook(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 54 41 56 41 57 48 83 EC 40 48 8B 59 28 45 33 E4").GetAs<PVOID>(), (PVOID)EmptyHook); // also on 16.50
-    }
-
     if (Fortnite_Version == 17.30) // Rift Tour stuff
     {
         Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x3E07910), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
@@ -1604,11 +1597,9 @@ DWORD WINAPI Main(LPVOID)
     LOG_INFO(LogDev, "ClientOnPawnDiedCallAddr: 0x{:x}", ClientOnPawnDiedCallAddr - __int64(GetModuleHandleW(0)));
     Hooking::MinHook::Hook((PVOID)ClientOnPawnDiedCallAddr, AFortPlayerController::ClientOnPawnDiedHook, (PVOID*)&AFortPlayerController::ClientOnPawnDiedOriginal);
 
-#if 0
     auto OnSafeZoneStateChangeAddr = FindFunctionCall(L"OnSafeZoneStateChange", Engine_Version == 416 ? std::vector<uint8_t>{ 0x48, 0x89, 0x54 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C });
     LOG_INFO(LogDev, "OnSafeZoneStateChangeAddr: 0x{:x}", OnSafeZoneStateChangeAddr - __int64(GetModuleHandleW(0)));
     Hooking::MinHook::Hook((PVOID)OnSafeZoneStateChangeAddr, AFortSafeZoneIndicator::OnSafeZoneStateChangeHook, (PVOID*)&AFortSafeZoneIndicator::OnSafeZoneStateChangeOriginal);
-#endif
 
     LOG_INFO(LogDev, "PredictionKeySize: 0x{:x} {}", PredictionKeySize, PredictionKeySize);
 

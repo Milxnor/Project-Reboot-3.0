@@ -1,0 +1,29 @@
+[
+  {
+    "Type": "DataTable",
+    "Name": "PhoebeNames_NA",
+    "Class": "UScriptClass'DataTable'",
+    "Properties": {
+      "RowStruct": {
+        "ObjectName": "ScriptStruct'FortAthenaAIBotNameDataTableRow'",
+        "ObjectPath": "/Script/FortniteGame"
+      },
+      "bStripFromClientBuilds": true,
+      "bIgnoreMissingFields": true
+    },
+    "Rows": {
+      "1": {
+        "Name": "ralz"
+      },
+      "2": {
+        "Name": "Milxnor"
+      },
+      "3": {
+        "Name": "Fortnite"
+      },
+      "4": {
+        "Name": "sigma"
+      }
+    }
+  }
+]

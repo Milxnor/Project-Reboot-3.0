@@ -1472,7 +1472,7 @@ static inline DWORD WINAPI GuiThread(LPVOID)
 {
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"RebootClass", NULL };
 	::RegisterClassEx(&wc);
-	HWND hwnd = ::CreateWindowExW(0L, wc.lpszClassName, (L"Project Reboot " + std::to_wstring(Fortnite_Version)).c_str(), (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX), 100, 100, Width, Height, NULL, NULL, wc.hInstance, NULL);
+	HWND hwnd = ::CreateWindowExW(0L, wc.lpszClassName, L"Project Reboot", (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX), 100, 100, Width, Height, NULL, NULL, wc.hInstance, NULL);
 
 	if (false) // idk why this dont work
 	{
