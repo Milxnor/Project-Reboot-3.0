@@ -10,6 +10,39 @@
 #include "FortResourceItemDefinition.h"
 #include "FortKismetLibrary.h"
 #include "DataTableFunctionLibrary.h"
+#include "FortGameStateAthena.h"
+#include "GameplayStatics.h"
+#include "BuildingContainer.h"
+#include "FortPlayerController.h"
+
+#include "Rotator.h"
+#include "BuildingSMActor.h"
+#include "FortGameModeAthena.h"
+
+#include "FortPlayerState.h"
+#include "BuildingWeapons.h"
+
+#include "ActorComponent.h"
+#include "FortPlayerStateAthena.h"
+#include "globals.h"
+#include "FortPlayerControllerAthena.h"
+#include "FortLootPackage.h"
+#include "FortPickup.h"
+#include "FortPlayerPawn.h"
+#include <memcury.h>
+#include "KismetStringLibrary.h"
+#include "FortGadgetItemDefinition.h"
+#include "FortAbilitySet.h"
+#include "vendingmachine.h"
+#include "KismetSystemLibrary.h"
+#include "gui.h"
+#include "FortAthenaMutator_InventoryOverride.h"
+#include "FortAthenaMutator_TDM.h"
+#include <unordered_set>
+#include "FortAthenaAIBotController.h"
+#include "FortAthenaMutator_ItemDropOnDeath.h"
+#include "FortAthenaMutator_GG.h"
+
 
 void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Damage, FGameplayTagContainer DamageTags,
 	FVector Momentum, /* FHitResult */ __int64 HitInfo, APlayerController* InstigatedBy, AActor* DamageCauser,
@@ -18,6 +51,30 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 	// LOG_INFO(LogDev, "Befor3e");
 
 	auto BuildingSMActor = Cast<ABuildingSMActor>(BuildingActor);
+	if (auto Container = Cast<ABuildingContainer>(BuildingActor))
+	{
+		if ((BuildingSMActor->GetHealth() <= 0 || BuildingActor->GetHealth() <= 0) && !Container->IsAlreadySearched())
+		{
+			Container->SpawnLoot();
+		}
+	}
+	auto AttachedBuildingActors = BuildingSMActor->GetAttachedBuildingActors();
+	for (int i = 0; i < AttachedBuildingActors.Num(); ++i)
+	{
+
+		auto CurrentBuildingActor = AttachedBuildingActors.at(i);
+		auto CurrentActor = Cast<ABuildingActor>(CurrentBuildingActor);
+		if (BuildingSMActor->GetHealth() <= 0 || BuildingActor->GetHealth() <= 0)
+		{
+			if (auto Container = Cast<ABuildingContainer>(CurrentActor))
+			{
+				if (!Container->IsAlreadySearched()) 
+				{
+					Container->SpawnLoot();
+				}
+			}
+		}
+	}
 	auto PlayerController = Cast<AFortPlayerControllerAthena>(InstigatedBy);
 	// auto Pawn = PlayerController ? PlayerController->GetMyFortPawn() : nullptr;
 	auto Weapon = Cast<AFortWeapon>(DamageCauser);
@@ -68,11 +125,12 @@ void ABuildingActor::OnDamageServerHook(ABuildingActor* BuildingActor, float Dam
 
 	int ResourceCount = 0;
 
+
 	if (BuildingResourceAmountOverride.RowName.IsValid())
 	{
 		// auto AssetManager = Cast<UFortAssetManager>(GEngine->AssetManager);
-		// auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameStateAthena);
-		UCurveTable* CurveTable = nullptr; // GameState->CurrentPlaylistInfo.BasePlaylist ? GameState->CurrentPlaylistInfo.BasePlaylist->ResourceRates.Get() : nullptr;
+		//auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+		UCurveTable* CurveTable = nullptr; //GameState->GetCurrentPlaylist().BasePlaylist ? GameState->GetCurrentPlaylist().BasePlaylist->ResourceRates.Get() : nullptr;
 
 		// LOG_INFO(LogDev, "Before1");
 

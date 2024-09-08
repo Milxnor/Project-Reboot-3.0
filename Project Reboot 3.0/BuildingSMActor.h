@@ -16,6 +16,13 @@ enum class EFortResourceType : uint8_t
 class ABuildingSMActor : public ABuildingActor
 {
 public:
+	TArray<ABuildingSMActor*> GetAttachedBuildingActors()
+	{
+		TArray<ABuildingSMActor*> Builds;
+		static auto fn = FindObject<UFunction>("/Script/FortniteGame.BuildingSMActor.GetAttachedBuildingActors");
+		this->ProcessEvent(fn, &Builds);
+		return Builds;
+	}
 	bool IsPlayerPlaced()
 	{
 		static auto bPlayerPlacedOffset = GetOffset("bPlayerPlaced");

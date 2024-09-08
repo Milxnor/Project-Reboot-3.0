@@ -18,6 +18,6 @@ public:
 	TArray<FItemsToDropOnDeath>& GetItemsToDrop()
 	{
 		static auto ItemsToDropOffset = GetOffset("ItemsToDrop");
-		return Get<TArray<FItemsToDropOnDeath>>(ItemsToDropoOffset);
+		return Get<TArray<FItemsToDropOnDeath>>(ItemsToDropOffset);
 	}
 };
