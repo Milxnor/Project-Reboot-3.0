@@ -64,8 +64,10 @@ public:
 
 	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true);
 	void* GetProperty(const std::string& ChildName, bool bWarnIfNotFound = true) const;
+	void* GetPropertyFunc(const std::string& ChildName, bool bWarnIfNotFound = true);
 	int GetOffset(const std::string& ChildName, bool bWarnIfNotFound = true);
 	int GetOffset(const std::string& ChildName, bool bWarnIfNotFound = true) const;
+	int GetOffsetFunc(const std::string& ChildName, bool bWarnIfNotFound = true);
 
 	template <typename T = UObject*>
 	inline T& Get(int Offset) const { return *(T*)(__int64(this) + Offset); }
