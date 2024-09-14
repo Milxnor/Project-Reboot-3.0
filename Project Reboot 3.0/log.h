@@ -113,6 +113,7 @@ inline void InitLogger()
     if (spdlog::get(#loggerName))             \
         spdlog::get(#loggerName)->critical(std::format(__VA_ARGS__));
 #else
+#pragma warning( disable : 4390 ) // cuz then it will produce if (blahblah) ;
 #define LOG_DEBUG(loggerName, ...)
 #define LOG_INFO(loggerName, ...)
 #define LOG_WARN(loggerName, ...)

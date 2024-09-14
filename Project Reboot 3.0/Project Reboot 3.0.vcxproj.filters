@@ -305,6 +305,12 @@
     <ClCompile Include="FortServerBotManagerAthena.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\AI</Filter>
     </ClCompile>
+    <ClCompile Include="KismetRenderingLibrary.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture2D.cpp">
+      <Filter>Engine\Source\Runtime\Engine\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="log.h" />
@@ -989,6 +995,12 @@
     </ClInclude>
     <ClInclude Include="FortAthenaMutator_CobaltHighTower.h">
       <Filter>FortniteGame\Plugins\GameFeatures\LTM\HighTower_Cobalt\Source\HighTowerCobaltRuntime\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture2D.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="KismetRenderingLibrary.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\Kismet</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

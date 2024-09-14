@@ -248,6 +248,7 @@
     <ClCompile Include="inc.cpp" />
     <ClCompile Include="InventoryManagementLibrary.cpp" />
     <ClCompile Include="KismetMathLibrary.cpp" />
+    <ClCompile Include="KismetRenderingLibrary.cpp" />
     <ClCompile Include="KismetStringLibrary.cpp" />
     <ClCompile Include="KismetSystemLibrary.cpp" />
     <ClCompile Include="KismetTextLibrary.cpp" />
@@ -265,6 +266,7 @@
     <ClCompile Include="reboot.cpp" />
     <ClCompile Include="SavePackage.cpp" />
     <ClCompile Include="ScriptDisassembler.cpp" />
+    <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="UnrealMath.cpp" />
     <ClCompile Include="UnrealNames.cpp" />
     <ClCompile Include="UObjectGlobals.cpp" />
@@ -431,6 +433,7 @@
     <ClInclude Include="IsPointer.h" />
     <ClInclude Include="IsTriviallyCopyConstructible.h" />
     <ClInclude Include="KismetMathLibrary.h" />
+    <ClInclude Include="KismetRenderingLibrary.h" />
     <ClInclude Include="KismetStringLibrary.h" />
     <ClInclude Include="KismetSystemLibrary.h" />
     <ClInclude Include="KismetTextLibrary.h" />
@@ -481,6 +484,7 @@
     <ClInclude Include="Stack.h" />
     <ClInclude Include="StringAssetReference.h" />
     <ClInclude Include="Text.h" />
+    <ClInclude Include="Texture2D.h" />
     <ClInclude Include="TimerManager.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="TSubclassOf.h" />

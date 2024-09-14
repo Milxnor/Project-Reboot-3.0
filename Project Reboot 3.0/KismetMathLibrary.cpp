@@ -4,7 +4,7 @@
 
 float UKismetMathLibrary::RandomFloatInRange(float min, float max)
 {
-	static auto fn = FindObject<UFunction>("/Script/Engine.KismetMathLibrary.RandomFloatInRange");
+	static auto fn = FindObject<UFunction>(L"/Script/Engine.KismetMathLibrary.RandomFloatInRange");
 
 	struct { float min; float max; float ret; } params{min, max};
 
@@ -16,6 +16,6 @@ float UKismetMathLibrary::RandomFloatInRange(float min, float max)
 
 UClass* UKismetMathLibrary::StaticClass()
 {
-	static auto Class = FindObject<UClass>("/Script/Engine.KismetMathLibrary");
+	static auto Class = FindObject<UClass>(L"/Script/Engine.KismetMathLibrary");
 	return Class;
 }
