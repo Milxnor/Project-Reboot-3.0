@@ -36,10 +36,12 @@ jobs:
 
   build-master:
     uses: ./.github/workflows/msbuild.yml
+    needs: update-branches
     with:
       branch: master
 
   build-aboveS20:
     uses: ./.github/workflows/msbuild.yml
+    needs: update-branches
     with:
       branch: aboveS20
