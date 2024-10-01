@@ -34,15 +34,12 @@ jobs:
           git commit -m "Add #define ABOVE_S20 to inc.h in aboveS20 branch"
           git push origin aboveS20
 
-  build-master:
-    uses: .github/workflows/msbuild.yml
-    with:
-      branch: "master"
+      - name: Builds the master branch
+        uses: ./.github/workflows/msbuild.yml
+        with:
+          branch: "master"
 
-  build-aboveS20:
-    uses: .github/workflows/msbuild.yml
-    with:
-      branch: "aboveS20"
-
-
-          
+      - name: Builds the aboveS20 branch
+        uses: ./.github/workflows/msbuild.yml
+        with:
+          branch: "aboveS20"
