@@ -1,4 +1,4 @@
-name: Update belowS20 and aboveS20 Branches
+name: Update aboveS20 Branches
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 permissions:
   contents: write
 
-jobs:
+jobs:    
   update-branches:
     runs-on: ubuntu-latest
     steps:
@@ -22,15 +22,8 @@ jobs:
 
       - name: Delete branches locally and on remote
         run: |
-          git push origin --delete belowS20 || true
           git push origin --delete aboveS20 || true
-          git branch -D belowS20 || true
           git branch -D aboveS20 || true
-
-      - name: Create belowS20 branch from master
-        run: |
-          git checkout -b belowS20
-          git push origin belowS20
 
       - name: Create aboveS20 branch from master and modify inc.h
         run: |
@@ -40,3 +33,16 @@ jobs:
           git add "./Project Reboot 3.0/inc.h"
           git commit -m "Add #define ABOVE_S20 to inc.h in aboveS20 branch"
           git push origin aboveS20
+
+  build-master:
+    uses: ./.github/workflows/msbuild.yml
+    with:
+      branch: "master"
+
+  build-aboveS20:
+    uses: ./.github/workflows/msbuild.yml
+    with:
+      branch: "aboveS20"
+
+
+          
