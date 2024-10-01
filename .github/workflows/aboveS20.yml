@@ -35,12 +35,12 @@ jobs:
           git push origin aboveS20
 
   build-master:
-    uses: ./.github/workflows/msbuild.yml
+    uses: .github/workflows/msbuild.yml
     with:
       branch: "master"
 
   build-aboveS20:
-    uses: ./.github/workflows/msbuild.yml
+    uses: .github/workflows/msbuild.yml
     with:
       branch: "aboveS20"
 
