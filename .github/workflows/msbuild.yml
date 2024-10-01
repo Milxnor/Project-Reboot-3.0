@@ -1,10 +1,11 @@
 name: MSBuild
 
 on:
-  push:
-    branches: [ "aboveS20", "belowS20" ]
-  pull_request:
-    branches: [ "aboveS20", "belowS20" ]
+  workflow_call:
+    inputs:
+      branch:
+        required: true
+        type: string
 
 env:
   # Path to the solution file relative to the root of the project.
