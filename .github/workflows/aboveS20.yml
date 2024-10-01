@@ -40,7 +40,7 @@ jobs:
           ref: master
         
       - name: Build the master branch
-        uses: ./.github/workflows/msbuild.yml
+        uses: ./../.github/workflows/msbuild.yml
         with:
           branch: master
 
@@ -50,6 +50,6 @@ jobs:
           ref: aboveS20
 
       - name: Build the aboveS20 branch
-        uses: ./.github/workflows/msbuild.yml
+        uses: ./../.github/workflows/msbuild.yml
         with:
           branch: aboveS20
