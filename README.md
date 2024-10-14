@@ -1,4 +1,4 @@
-![Notification](https://imgur.com/a/GUbz4Gb)
+![Notification](https://i.imgur.com/a/GUbz4Gb)
 # The reboot discord and my discord account has been terminated
 # What does this mean for the future of reboot? This means V4 is definitely not coming.
 # Thanks for all the support over the past years.
