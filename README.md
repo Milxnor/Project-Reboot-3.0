@@ -1,7 +1,11 @@
+![Notification](https://imgur.com/a/GUbz4Gb)
+# The reboot discord and my discord account has been terminated
+# What does this mean for the future of reboot? This means V4 is definitely not coming.
+# Thanks for all the support over the past years.
+
 ![Banner](https://i.imgur.com/p0P4tcI.png)
 
 Project Reboot is a tough battled and widely used game server for Fortnite.
-Join our discord at https://discord.gg/reboot
 
 Below are the key points about this project:
 
