@@ -1632,9 +1632,18 @@ static inline bool CreateDeviceD3D(HWND hWnd)
 
 	auto CreateDeviceResult = g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice);
 
-	if (CreateDeviceResult < D3D_OK)
+	if (CreateDeviceResult == -2005530520)
+	{
+		UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"r.setres 1280x720w", nullptr);
+
+		Sleep(50); // for good measure
+
+		return CreateDeviceD3D(hWnd);
+	}
+	else if (CreateDeviceResult < D3D_OK)
 	{
 		MessageBoxA(0, ("Failed call to CreateDevice " + std::to_string(CreateDeviceResult) + "!").c_str(), "Reboot 3.0", MB_ICONERROR);
+
 		return false;
 	}
 
