@@ -1,3 +1,4 @@
+## IMPORTANT: discord.gg/reboot is NOT us anymore!
 ![image](https://github.com/user-attachments/assets/5704e635-31d9-417a-856f-91728f2be7f2)
 
 # The reboot discord and my discord account has been terminated
