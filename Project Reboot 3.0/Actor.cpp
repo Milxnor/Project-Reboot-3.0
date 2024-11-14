@@ -65,7 +65,7 @@ AActor* AActor::GetOwner()
 
 void AActor::K2_DestroyActor()
 {
-	static auto DestroyActorFn = FindObject<UFunction>("/Script/Engine.Actor.K2_DestroyActor");
+	static auto DestroyActorFn = FindObject<UFunction>(L"/Script/Engine.Actor.K2_DestroyActor");
 
 	this->ProcessEvent(DestroyActorFn);
 }
