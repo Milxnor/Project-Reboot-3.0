@@ -30,6 +30,7 @@ static inline void InitBotNames()
     PlayerBotNames.push_back(L"Zulu");
     PlayerBotNames.push_back(L"kemo");
     PlayerBotNames.push_back(L"Ender");
+    PlayerBotNames.push_back(L"karma");
     PlayerBotNames.push_back(L"Samuel");
     PlayerBotNames.push_back(L"Kyiro");
     PlayerBotNames.push_back(L"Ahava");
