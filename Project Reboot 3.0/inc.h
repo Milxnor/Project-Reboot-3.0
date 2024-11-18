@@ -1,3 +1,4 @@
+#define ABOVE_S20
 #pragma once
 
 #include <Windows.h>
