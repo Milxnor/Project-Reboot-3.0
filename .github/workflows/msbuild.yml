@@ -29,7 +29,7 @@ jobs:
 
     - name: Build Reboot
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:DefineConstants="" ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild ${{env.SOLUTION_FILE_PATH}} /t:Clean,Build /p:Configuration=Release
       
     - name: Upload Artifact without ABOVE_S20
       uses: actions/upload-artifact@v3
@@ -41,7 +41,7 @@ jobs:
 
     - name: Build RebootS20
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:DefineConstants="ABOVE_S20" ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild /p:DefineConstants=ABOVE_S20 ${{env.SOLUTION_FILE_PATH}} /t:Clean,Build /p:Configuration=Release
 
     - name: Upload Artifact with ABOVE_S20
       uses: actions/upload-artifact@v3
