@@ -1672,39 +1672,6 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 	return ClientOnPawnDiedOriginal(PlayerController, DeathReport);
 }
 
-bool Idk(ABuildingSMActor* BuildingActor)
-{
-	return true; // bIsPlayerBuildable && EditModeSupport && EditModePatternData && GameState->StructuralSupportSystem && ?? && ??
-}
-
-bool IsOkForEditing(ABuildingSMActor* BuildingActor, AFortPlayerController* Controller)
-{
-	if (BuildingActor->GetEditingPlayer() && 
-		BuildingActor->GetEditingPlayer() != Controller->GetPlayerState())
-		return false;
-
-	return !BuildingActor->IsDestroyed() &&
-		// BuildingActor->GetWorld() &&
-		Idk(BuildingActor);
-}
-
-/*
-
-The editing dilemma:
-
-15.10:
-Valid edit pattern:
-ServerBeginEditingActorblahblah
-ServerEdit
-ClientForceStop
-
-WHERE IS END EDITING?!?!??!
-Invalid EDitPattern:
-ServerBeginEditingActorblahblah
-ServerEnd
-
-*/
-
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)
 {
 	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced()) // We need more checks.
@@ -1713,9 +1680,6 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	auto Pawn = PlayerController->GetMyFortPawn();
 
 	if (!Pawn)
-		return;
-
-	if (!IsOkForEditing(BuildingActorToEdit, PlayerController))
 		return;
 
 	auto PlayerState = PlayerController->GetPlayerState();
@@ -1737,14 +1701,15 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (!EditToolInstance)
 		return;
 
-	AFortWeap_EditingTool* EditTool = nullptr;
+	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
 
-	EditTool = Cast<AFortWeap_EditingTool>(Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid()));
+	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
 
 	if (!EditTool)
 		return;
 
-	EditTool->SetEditActor(BuildingActorToEdit);
+	EditTool->GetEditActor() = BuildingActorToEdit;
+	EditTool->OnRep_EditActor();
 }
 
 void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret)
@@ -1767,7 +1732,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 
 	// LOG_INFO(LogDev, "RotationIterations: {}", RotationIterations);
 
-	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->GetEditingPlayer() != PlayerState || BuildingActorToEdit->IsDestroyed())
+	if (!BuildingActorToEdit || !NewBuildingClass || BuildingActorToEdit->IsDestroyed() || BuildingActorToEdit->GetEditingPlayer() != PlayerState)
 	{
 		// LOG_INFO(LogDev, "Cheater?");
 		// LOG_INFO(LogDev, "BuildingActorToEdit->GetEditingPlayer(): {} PlayerState: {} NewBuildingClass: {} BuildingActorToEdit: {}", BuildingActorToEdit ? __int64(BuildingActorToEdit->GetEditingPlayer()) : -1, __int64(PlayerState), __int64(NewBuildingClass), __int64(BuildingActorToEdit));
@@ -1777,7 +1742,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
 		//return ServerEditBuildingActorOriginal(Context, Frame, Ret);
 
-	// BuildingActorToEdit->SetEditingPlayer(nullptr); // uh?
+	BuildingActorToEdit->SetEditingPlayer(nullptr);
 
 	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
 		decltype(BuildingSMActorReplaceBuildingActor)(Addresses::ReplaceBuildingActor);
@@ -1793,7 +1758,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	return ServerEditBuildingActorOriginal(Context, Stack, Ret);
 }
 
-void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToStopEditing) 
+void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToStopEditing)
 {
 	auto Pawn = PlayerController->GetMyFortPawn();
 
@@ -1816,13 +1781,16 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (!EditToolInstance)
 		return;
 
-	// Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid()); // why do they do this on older builds bru
+	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
 
-	if (auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon()))
+	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+
+	BuildingActorToStopEditing->GetEditingPlayer() = nullptr;
+	// BuildingActorToStopEditing->OnRep_EditingPlayer();
+
+	if (EditTool)
 	{
-		EditTool->SetEditActor(nullptr);
-		// PlayerController->ClientForceCancelBuildingTool();
+		EditTool->GetEditActor() = nullptr;
+		EditTool->OnRep_EditActor();
 	}
-
-	// PlayerController->ClientForceCancelBuildingTool();
 }

@@ -24,14 +24,5 @@ public:
 
 	void OnRep_EditActor();
 
-	void SetEditActor(ABuildingSMActor* EditActor)
-	{
-		// if (HasAuthority())
-		{
-			GetEditActor() = EditActor;
-			originalOnRep_EditActor(this);
-		}
-	}
-
 	static UClass* StaticClass();
 };
