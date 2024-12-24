@@ -55,7 +55,7 @@ public:
 			)
 		{
 			SetNetDormancy((ENetDormancy)(2 - (NewEditingPlayer != 0)));
-			this->ForceNetUpdate();
+			// they do something here
 			GetEditingPlayer() = NewEditingPlayer;
 		}
 	}
