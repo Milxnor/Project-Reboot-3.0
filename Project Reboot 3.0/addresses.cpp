@@ -678,6 +678,25 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		}
 	}
 
+#if 0 // untested
+	auto BeginPlayPedestalStrRef = Memcury::Scanner::FindStringRef("AFortTeamMemberPedestal::BeginPlay - Begun play on pedestal %s");
+
+	if (BeginPlayPedestalStrRef.Get())
+	{
+		auto Start = BeginPlayPedestalStrRef.ScanFor({ 0x40, 0x53, 0x41, 0x56 }, false);
+		LOG_INFO(LogDev, "BeginPlayPedestal Start: 0x{:x}", Start);
+		toNull.push_back(Start.Get());
+	}
+#else
+	auto BeginPlayPedestalScanner = Memcury::Scanner::FindPattern("40 53 41 56 48 83 EC 48 48 89 6C 24 ? 48 8B D9 48 89 74 24 ? 48 89 7C 24");
+
+	if (auto BeginPlayPedestal = BeginPlayPedestalScanner.Get())
+	{
+		LOG_INFO(LogDev, "BeginPlayPedestal Start: 0x{:x}", BeginPlayPedestal - __int64(GetModuleHandleW(0)));
+		toNull.push_back(BeginPlayPedestal);
+	}
+#endif
+
 	toNull.push_back(Addresses::ChangeGameSessionId);
 
 	return toNull;
