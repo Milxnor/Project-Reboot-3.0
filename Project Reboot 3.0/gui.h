@@ -317,6 +317,7 @@ static int playerTabTab = MAIN_PLAYERTAB;
 
 static inline void StaticUI()
 {
+	ImGui::Text("WELCOME PROJECT REBOOT GAMESBERE MADE NADE MILXNOR AND OTHER PEOPLE NADE NADE");
 	if (IsRestartingSupported())
 	{
 		// ImGui::Checkbox("Auto Restart", &Globals::bAutoRestart);
