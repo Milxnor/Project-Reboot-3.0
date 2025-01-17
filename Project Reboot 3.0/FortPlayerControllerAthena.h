@@ -141,6 +141,35 @@ public:
 	static inline void (*StartGhostModeOriginal)(UObject* Context, FFrame* Stack, void* Ret);
 	static inline void (*EndGhostModeOriginal)(AFortPlayerControllerAthena* PlayerController);
 
+	void PlayWinEffects(APawn* FinisherPawn, UFortWeaponItemDefinition* FinishingWeapon, uint8 DeathCause, bool bAudioOnly)
+	{
+		static auto PlayWinEffectsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.PlayWinEffects");
+
+		struct
+		{
+			APawn* FinisherPawn;
+			UFortWeaponItemDefinition* FinishingWeapon;
+			uint8 DeathCause;
+			bool bAudioOnly;
+		}AFortPlayerControllerAthena_PlayWinEffects_Params{ FinisherPawn , FinishingWeapon , DeathCause , bAudioOnly };
+
+		this->ProcessEvent(PlayWinEffectsFn, &AFortPlayerControllerAthena_PlayWinEffects_Params);
+	}
+
+	void ClientNotifyWon(APawn* FinisherPawn, UFortWeaponItemDefinition* FinishingWeapon, uint8 DeathCause)
+	{
+		static auto ClientNotifyWonFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerControllerAthena.ClientNotifyWon");
+
+		struct
+		{
+			APawn* FinisherPawn;
+			UFortWeaponItemDefinition* FinishingWeapon;
+			uint8 DeathCause;
+		}AFortPlayerControllerAthena_ClientNotifyWon_Params{ FinisherPawn , FinishingWeapon , DeathCause };
+
+		this->ProcessEvent(ClientNotifyWonFn, &AFortPlayerControllerAthena_ClientNotifyWon_Params);
+	}
+
 	void SpectateOnDeath() // actually in zone
 	{
 		static auto SpectateOnDeathFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.SpectateOnDeath") ?

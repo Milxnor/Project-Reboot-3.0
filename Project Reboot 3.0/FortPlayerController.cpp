@@ -1576,6 +1576,40 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 						}
 					}
 
+					auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
+
+					bool bDidSomeoneWin = AllPlayerStates.Num() == 0;
+
+					for (int i = 0; i < AllPlayerStates.Num(); ++i)
+					{
+						auto CurrentPlayerState = (AFortPlayerStateAthena*)AllPlayerStates.at(i);
+
+						if (CurrentPlayerState->GetPlace() <= 1)
+						{
+							bDidSomeoneWin = true;
+							break;
+						}
+					}
+
+					if (Globals::bAwesomeSwaglines) // I dont have a good way to check if the person killed is the last player and Im too lazy to figure it out someone else can
+					{
+						if (Fortnite_Version >= 16)
+						{
+							auto KillerPlayerController = Cast<AFortPlayerControllerAthena>(KillerPlayerState->GetOwner());
+
+							KillerPlayerController->PlayWinEffects(KillerPawn, KillerWeaponDef, DeathCause, false);
+							KillerPlayerController->ClientNotifyWon(KillerPawn, KillerWeaponDef, DeathCause);
+
+							if (Fortnite_Version >= 19)
+							{
+								auto WorldInventory = KillerPlayerController->GetWorldInventory();
+								static auto VictoryCrown = FindObject<UFortItemDefinition>(L"/VictoryCrownsGameplay/Items/AGID_VictoryCrown.AGID_VictoryCrown");
+								WorldInventory->AddItem(VictoryCrown, nullptr, 1);
+								WorldInventory->Update();
+							}
+						}
+					}
+
 					RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
 
 					/*
