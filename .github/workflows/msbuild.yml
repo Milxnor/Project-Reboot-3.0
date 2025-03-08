@@ -37,7 +37,7 @@ jobs:
         name: Reboot
         path: ${{env.SOLUTION_FILE_PATH}}/x64/Release
         if-no-files-found: warn
-        retention-days: 60
+        retention-days: 90
 
     - name: Build RebootS20
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -49,4 +49,4 @@ jobs:
         name: RebootS20
         path: ${{env.SOLUTION_FILE_PATH}}/x64/Release
         if-no-files-found: warn
-        retention-days: 60
+        retention-days: 90
