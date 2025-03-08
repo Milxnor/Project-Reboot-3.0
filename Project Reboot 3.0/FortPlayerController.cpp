@@ -1578,6 +1578,25 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 					RemoveFromAlivePlayers(GameMode, PlayerController, KillerPlayerState == DeadPlayerState ? nullptr : KillerPlayerState, KillerPawn, KillerWeaponDef, DeathCause, 0);
 
+					if (GameState->GetTeamsLeft() <= 1)
+					{
+						if (Fortnite_Version >= 16)
+						{
+							auto KillerPlayerController = Cast<AFortPlayerControllerAthena>(KillerPlayerState->GetOwner());
+
+							KillerPlayerController->PlayWinEffects(KillerPawn, KillerWeaponDef, DeathCause, false);
+							KillerPlayerController->ClientNotifyWon(KillerPawn, KillerWeaponDef, DeathCause);
+
+							if (Fortnite_Version >= 19)
+							{
+								auto WorldInventory = KillerPlayerController->GetWorldInventory();
+								static auto VictoryCrown = FindObject<UFortItemDefinition>(L"/VictoryCrownsGameplay/Items/AGID_VictoryCrown.AGID_VictoryCrown");
+								WorldInventory->AddItem(VictoryCrown, nullptr, 1);
+								WorldInventory->Update();
+							}
+						}
+					}
+
 					/*
 
 					// We need to check if their entire team is dead then I think we send it????
