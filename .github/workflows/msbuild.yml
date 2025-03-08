@@ -32,7 +32,7 @@ jobs:
       run: msbuild ${{env.SOLUTION_FILE_PATH}} /t:Clean,Build /p:Configuration=Release
       
     - name: Upload Artifact without ABOVE_S20
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Reboot
         path: ${{env.SOLUTION_FILE_PATH}}/x64/Release
@@ -44,7 +44,7 @@ jobs:
       run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:AboveS20=TRUE /t:Clean,Build /p:Configuration=Release
 
     - name: Upload Artifact with ABOVE_S20
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: RebootS20
         path: ${{env.SOLUTION_FILE_PATH}}/x64/Release
