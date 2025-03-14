@@ -1314,6 +1314,18 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			{
 				OverrideBattleBusSkin = FindObject(L"/Game/Athena/Items/Cosmetics/BattleBuses/BBID_WorldCupBus.BBID_WorldCupBus"); // World Cup
 			}
+			else if (Fortnite_Version == 14.30) 
+			{
+				OverrideBattleBusSkin = FindObject(L"/Game/Athena/Items/Cosmetics/BattleBuses/BBID_BusUpgrade1.BBID_BusUpgrade1");
+			}
+			else if (Fortnite_Version == 14.50) 
+			{
+				OverrideBattleBusSkin = FindObject(L"/Game/Athena/Items/Cosmetics/BattleBuses/BBID_BusUpgrade2.BBID_BusUpgrade2");
+			}
+			else if (Fortnite_Version == 14.60) 
+			{
+				OverrideBattleBusSkin = FindObject(L"/Game/Athena/Items/Cosmetics/BattleBuses/BBID_BusUpgrade3.BBID_BusUpgrade3");
+			}			
 
 			if (OverrideBattleBusSkin)
 				OverrideBattleBus(GameState, OverrideBattleBusSkin);
