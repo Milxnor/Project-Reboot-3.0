@@ -349,6 +349,33 @@ static inline void StaticUI()
 	ImGui::Checkbox("Private IP's are operator", &Globals::bPrivateIPsAreOperator);
 
 	ImGui::Checkbox("No MCP (Don't change unless you know what this is)", &Globals::bNoMCP);
+	
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	ImGui::Checkbox("NotTacos Owns You", &Globals::bNoMCP);
+	
 
 	if (Addresses::ApplyGadgetData && Addresses::RemoveGadgetData && Engine_Version < 424)
 	{
