@@ -1285,6 +1285,13 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ServerReadyToStartMatch"),
         AFortPlayerControllerAthena::ServerReadyToStartMatchHook, (PVOID*)&AFortPlayerControllerAthena::ServerReadyToStartMatchOriginal, false);
 
+    if (Fortnite_Version >= 14)
+    {
+        Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerClientIsReadyToRespawn"),
+            AFortPlayerControllerAthena::ServerClientIsReadyToRespawnHook, nullptr, false);
+    }
+    
+
     auto ServerRequestSeatChangeFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerZone.ServerRequestSeatChange");
 
     if (ServerRequestSeatChangeFn)
