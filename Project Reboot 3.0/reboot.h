@@ -86,6 +86,8 @@ static inline class UWorld* GetWorld()
 	static auto GameViewportOffset = Engine->GetOffset("GameViewport");
 	auto GameViewport = Engine->Get<UObject*>(GameViewportOffset);
 
+	if (!GameViewport) return nullptr;
+
 	static auto WorldOffset = GameViewport->GetOffset("World");
 
 	return GameViewport->Get<class UWorld*>(WorldOffset);
