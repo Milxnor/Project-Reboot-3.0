@@ -323,8 +323,11 @@ public:
 		PickRandomLoadout();
 		ApplyCosmeticLoadout();
 
-		GameState->GetPlayersLeft()++;
-		GameState->OnRep_PlayersLeft();
+		if (Fortnite_Version <= 10)
+		{
+			GameState->GetPlayersLeft()++;
+			GameState->OnRep_PlayersLeft();
+		}
 
 		if (auto FortPlayerControllerAthena = Cast<AFortPlayerControllerAthena>(Controller))
 			GameMode->GetAlivePlayers().Add(FortPlayerControllerAthena);

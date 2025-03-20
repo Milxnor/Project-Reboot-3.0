@@ -382,6 +382,32 @@ bool AFortInventory::RemoveItem(const FGuid& ItemGuid, bool* bShouldUpdate, int 
 		}
 	}
 
+	/*
+	if (FortPlayerController)
+	{
+		if (auto Pawn = FortPlayerController->GetMyFortPawn())
+		{
+			static auto CurrentWeaponListOffset = Pawn->GetOffset("CurrentWeaponList");
+			
+			if (CurrentWeaponListOffset != -1) // shouldnt be possible but better safe than sorry!
+			{
+				auto& CurrentWeaponList = Pawn->Get<TArray<AFortWeapon*>>(CurrentWeaponListOffset);
+
+				for (int i = 0; i < CurrentWeaponList.Num(); ++i)
+				{
+					auto Weapon = CurrentWeaponList.At(i);
+
+					if (Weapon->GetItemEntryGuid() == ItemGuid)
+					{
+						Weapon->K2_DestroyActor();
+						break;
+					}
+				}
+			}
+		}
+	}
+	*/
+
 	// todo remove from weaponlist
 
 	if (bShouldUpdate)

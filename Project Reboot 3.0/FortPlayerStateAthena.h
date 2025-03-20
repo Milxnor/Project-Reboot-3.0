@@ -30,6 +30,18 @@ struct FFortRespawnData
 		static auto bServerIsReadyOffset = FindOffsetStruct("/Script/FortniteGame.FortRespawnData", "bServerIsReady");
 		return *(bool*)(__int64(this) + bServerIsReadyOffset);
 	}
+
+	FVector& GetRespawnLocation()
+	{
+		static auto RespawnLocationOffset = FindOffsetStruct("/Script/FortniteGame.FortRespawnData", "RespawnLocation");
+		return *(FVector*)(__int64(this) + RespawnLocationOffset);
+	}
+
+	FRotator& GetRespawnRotation()
+	{
+		static auto RespawnRotationOffset = FindOffsetStruct("/Script/FortniteGame.FortRespawnData", "RespawnRotation");
+		return *(FRotator*)(__int64(this) + RespawnRotationOffset);
+	}
 };
 
 struct FDeathInfo

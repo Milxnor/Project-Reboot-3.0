@@ -8,7 +8,7 @@ on:
 permissions:
   contents: write
 
-jobs:          
+jobs:
   update-branches:
     runs-on: ubuntu-latest
     steps:

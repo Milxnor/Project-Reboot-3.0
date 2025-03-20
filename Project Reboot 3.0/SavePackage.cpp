@@ -4,6 +4,6 @@
 
 UClass* UPackage::StaticClass()
 {
-	static auto Class = FindObject<UClass>("/Script/CoreUObject.Package");
+	static auto Class = FindObject<UClass>(L"/Script/CoreUObject.Package");
 	return Class;
 }

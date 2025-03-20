@@ -647,3 +647,59 @@ void AFortPlayerControllerAthena::UpdateTrackedAttributesHook(AFortPlayerControl
 	if (ItemInstancesToRemove.size() > 0)
 		WorldInventory->Update();
 }
+
+void AFortPlayerControllerAthena::ServerClientIsReadyToRespawnHook(AFortPlayerControllerAthena* PlayerControllerAthena)
+{
+	AFortPlayerStateAthena* PlayerStateAthena = Cast<AFortPlayerStateAthena>(PlayerControllerAthena->GetPlayerState());
+	AFortGameModeAthena* GameModeAthena = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
+
+	if (!PlayerStateAthena || !GameModeAthena)
+		return;
+
+	AFortGameStateAthena* GameStateAthena = Cast<AFortGameStateAthena>(GameModeAthena->GetGameState());
+	if (!GameStateAthena) return;
+
+	if (GameStateAthena->IsRespawningAllowed(PlayerStateAthena))
+	{
+		FFortRespawnData* RespawnData = PlayerStateAthena->GetRespawnData();
+
+		if (RespawnData->IsServerReady() && RespawnData->IsRespawnDataAvailable())
+		{
+			const FVector& RespawnLocation = RespawnData->GetRespawnLocation();
+			const FRotator& RespawnRotation = RespawnData->GetRespawnRotation();
+
+			// RestartPlayer doesn't work, idk why
+			static auto SpawnDefaultPawnAtTransformFn = FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnAtTransform");
+
+			FTransform SpawnTransform{};
+			SpawnTransform.Translation = RespawnLocation;
+			SpawnTransform.Rotation = RespawnRotation.Quaternion();
+			SpawnTransform.Scale3D = FVector(1, 1, 1);
+
+			struct { AController* NewPlayer; FTransform SpawnTransform; APawn* ReturnValue; }
+			AGameModeBase_SpawnDefaultPawnAtTransform_Params{ PlayerControllerAthena, SpawnTransform };
+
+			GameModeAthena->ProcessEvent(SpawnDefaultPawnAtTransformFn, &AGameModeBase_SpawnDefaultPawnAtTransform_Params);
+
+			AFortPlayerPawn* PlayerPawn = Cast<AFortPlayerPawn>(AGameModeBase_SpawnDefaultPawnAtTransform_Params.ReturnValue);
+
+			if (!PlayerPawn)
+				return;
+
+			PlayerPawn->SetOwner(PlayerControllerAthena);
+
+			PlayerControllerAthena->Possess(PlayerPawn);
+
+			PlayerPawn->SetMaxHealth(100);
+			PlayerPawn->SetHealth(100);
+			PlayerPawn->SetMaxShield(100);
+			PlayerPawn->SetShield(100);
+
+			PlayerControllerAthena->RespawnPlayerAfterDeath(true);
+
+			RespawnData->IsClientReady() = true;
+		}
+	}
+
+	printf_s(__FUNCTION__"\n");
+}

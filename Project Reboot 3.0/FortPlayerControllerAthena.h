@@ -264,6 +264,7 @@ public:
 	static void GetPlayerViewPointHook(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
 	static void ServerReadyToStartMatchHook(AFortPlayerControllerAthena* PlayerController);
 	static void UpdateTrackedAttributesHook(AFortPlayerControllerAthena* PlayerController);
+	static void ServerClientIsReadyToRespawnHook(AFortPlayerControllerAthena* PlayerControllerAthena); // 1:1
 
 	static UClass* StaticClass()
 	{
