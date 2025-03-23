@@ -99,6 +99,12 @@ public:
 		return Get<int>(PlayersLeftOffset);
 	}
 
+	int& GetTeamsLeft()
+	{
+		static auto TeamsLeftOffset = GetOffset("TeamsLeft");
+		return Get<int>(TeamsLeftOffset);
+	}
+
 	bool& IsSafeZonePaused()
 	{
 		static auto bSafeZonePausedOffset = this->GetOffset("bSafeZonePaused");

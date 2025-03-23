@@ -12,7 +12,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <filesystem>
 
-// #define ENABLE_SPD_LOG
+#define ENABLE_SPD_LOG
 
 static inline std::vector<spdlog::sink_ptr> sinks;
 

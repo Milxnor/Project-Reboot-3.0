@@ -1606,6 +1606,8 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 				}
 
 				// LOG_INFO(LogDev, "KillerPlayerState->Place: {}", KillerPlayerState ? KillerPlayerState->GetPlace() : -1);
+
+				LOG_INFO(LogDev, "TeamsLeft: {}", GameState->GetTeamsLeft()); // Important for launcher don't remove!
 			}
 		}
 
