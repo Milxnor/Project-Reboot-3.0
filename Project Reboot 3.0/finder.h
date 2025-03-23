@@ -868,7 +868,7 @@ static inline uint64 FindNoMCP()
 
 	if (noMcpIthink.Get())
 	{
-		if (*noMcpIthink.GetAs<uint8_t*>() == 0xE8 || *noMcpIthink.GetAs<uint8_t*>() == 0xE9) // ex 7.20
+		if (*noMcpIthink.GetAs<uint8_t*>() == 0xE8 || *noMcpIthink.GetAs<uint8_t*>() == 0xE9) // ex 7.20 (14.60 maybe too?)
 		{
 			LOG_INFO(LogDev, "Weird MCP thing!");
 			noMcpIthink.RelativeOffset(1); // we are in the weird thing that compiler does when the func is just in a jmp

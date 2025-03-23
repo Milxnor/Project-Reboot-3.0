@@ -669,6 +669,8 @@ void ChangeLevels()
     // auto bruh = std::wstring(CustomMapName.begin(), CustomMapName.end());
     // auto bruhh = (L"open " + bruh);
 
+    bool bShouldUseMoleMap = PlaylistName == "/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame";
+
     FString LevelB = /* bUseCustomMap ? bruhh.c_str() : */ (Engine_Version < 424
         ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
         ? L"open Asteria_Terrain"
@@ -685,7 +687,16 @@ void ChangeLevels()
         : Globals::bCreative ? L"Creative_NoApollo_Terrain"
         : L"Apollo_Terrain");
 
-    LOG_INFO(LogDev, "Using {}.", bUseSwitchLevel ? Level.ToString() : LevelB.ToString());
+    /* i think im dumb
+    if (bShouldUseMoleMap)
+    {
+        // FString MoleMap = L"/MoleGame/Maps/MoleGame_Layout.MoleGame_Layout";
+        LevelB = L"open MoleGame_Layout";
+        Level = L"MoleGame_Layout";
+    }
+    */
+
+    LOG_INFO(LogDev, "Using \"{}\" as our map.", bUseSwitchLevel ? Level.ToString() : LevelB.ToString());
 
     auto LocalPC = GetLocalPlayerController();
 
@@ -1062,7 +1073,7 @@ DWORD WINAPI Main(LPVOID)
 
     ChangeLevels();
 
-    LOG_INFO(LogDev, "Switch levels.");
+    LOG_INFO(LogDev, "Switched levels.");
 
     if (Fortnite_Version < 20 && Fortnite_Version != 12)
         ApplyNullAndRetTrues();

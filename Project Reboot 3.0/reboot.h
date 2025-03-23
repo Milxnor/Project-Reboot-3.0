@@ -24,6 +24,13 @@ template <typename T = UObject>
 static inline T* FindObject(const TCHAR* Name, UClass* Class = nullptr, UObject* Outer = nullptr)
 {
 	auto res = (T*)StaticFindObject/*<T>*/(Class, Outer, Name);
+	/*
+	if (!res)
+	{
+		std::wstring NameWStr = std::wstring(Name);
+		LOG_WARN(LogDev, "Failed to find object: {}", std::string(NameWStr.begin(), NameWStr.end()));
+	}
+	*/
 	return res;
 }
 

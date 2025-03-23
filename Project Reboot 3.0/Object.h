@@ -28,6 +28,8 @@ struct FGuid
 	}
 };
 
+// #define PE_SAFETY
+
 class UObject
 {
 public:
@@ -42,12 +44,28 @@ public:
 
 	/* virtual */ void ProcessEvent(UFunction* Function, void* Parms = nullptr)
 	{
+#ifdef PE_SAFETY
+		if (!Function)
+		{
+			LOG_INFO(LogDev, "TRIED CALLING INVALID PE FUNC! Ignoring.");
+			return;
+		}
+#endif
+
 		// LOG_INFO(LogDev, "PE: 0x{:x}", __int64(ProcessEventOriginal) - __int64(GetModuleHandleW(0)));
 		ProcessEventOriginal(this, Function, Parms);
 	}
 
 	/* virtual */ void ProcessEvent(UFunction* Function, void* Parms = nullptr) const
 	{
+#ifdef PE_SAFETY
+		if (!Function)
+		{
+			LOG_INFO(LogDev, "TRIED CALLING INVALID PE FUNC! Ignoring.");
+			return;
+		}
+#endif
+
 		// LOG_INFO(LogDev, "PE: 0x{:x}", __int64(ProcessEventOriginal) - __int64(GetModuleHandleW(0)));
 		ProcessEventOriginal(this, Function, Parms);
 	}

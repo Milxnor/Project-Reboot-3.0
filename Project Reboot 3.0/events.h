@@ -796,6 +796,8 @@ static inline void StartEvent()
 
 	CallOnReadys();
 
+	LOG_INFO(LogDev, "Called the on readys!");
+
 	if (Fortnite_Version >= 17.30)
 	{
 		static auto OnRep_RootStartTimeFn = FindObject<UFunction>(L"/Script/SpecialEventGameplayRuntime.SpecialEventScriptMeshActor.OnRep_RootStartTime");
@@ -805,7 +807,8 @@ static inline void StartEvent()
 
 		if (Fortnite_Version == 17.50)
 		{
-			auto Scripting = FindObject<UObject>(L"/Kiwi/Levels/Kiwi_P.Kiwi_P:PersistentLevel.BP_Kiwi_Master_Scripting_2");
+			auto KiwiMasterScripting = FindObject<UObject>(L"/Kiwi/Levels/Kiwi_P.Kiwi_P.PersistentLevel.BP_Kiwi_Master_Scripting_2");
+			LOG_INFO(LogDev, "KiwiMasterScripting: {}", __int64(KiwiMasterScripting));
 
 			float SecondsSinceEventBegan = 0;
 
@@ -821,22 +824,33 @@ static inline void StartEvent()
 			{
 				OnReadyParams.PlaylistContextTags = FGameplayTagContainer();
 			}
-			auto BB = FindObject<UFunction>(L"/Kiwi/Gameplay/BP_Kiwi_Master_Scripting.BP_Kiwi_Master_Scripting_C.OnReady_F1A32853487CB7603278E6847A5F2625");
-			Scripting->ProcessEvent(BB, &OnReadyParams);
 
-			auto eventscript = FindObject("/Kiwi/Levels/Kiwi_P.Kiwi_P:PersistentLevel.Kiwi_EventScript_2");
-			auto CC = FindObject<UFunction>("/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C.OnReady_F51BF8E143832CE6C552938B26BEFA93");
-			auto DD = FindObject<UFunction>("/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C.LoadKiwiAssets");
+			auto KiwiMasterScriptingOnReady = FindObject<UFunction>(L"/Kiwi/Gameplay/BP_Kiwi_Master_Scripting.BP_Kiwi_Master_Scripting_C.OnReady_F1A32853487CB7603278E6847A5F2625");
+			LOG_INFO(LogDev, "KiwiMasterScriptingOnReady: {}", __int64(KiwiMasterScriptingOnReady));
+			KiwiMasterScripting->ProcessEvent(KiwiMasterScriptingOnReady, &OnReadyParams);
+
+			// auto eventscript = FindObject("/Kiwi/Levels/Kiwi_P.Kiwi_P:PersistentLevel.Kiwi_EventScript_2");
+			auto KiwiOnReadyIdk = FindObject<UFunction>("/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C.OnReady_F51BF8E143832CE6C552938B26BEFA93");
+			auto KiwiLoadAssets = FindObject<UFunction>("/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C.LoadKiwiAssets");
 			auto StartEventAtIndex = FindObject<UFunction>("/Script/SpecialEventGameplayRuntime.SpecialEventScript.StartEventAtIndex");
 			auto BP_OnScriptReady = FindObject<UFunction>("/Kiwi/Gameplay/Kiwi_EventScript.Kiwi_EventScript_C.BP_OnScriptReady");
 
-			// eventscript->ProcessEvent(CC, &bbparms);
-			eventscript->ProcessEvent(DD, &OnReadyParams);
-			eventscript->ProcessEvent(BP_OnScriptReady, &OnReadyParams);
-			eventscript->ProcessEvent(StartEventAtIndex, &SecondsSinceEventBegan);
+			LOG_INFO(LogDev, "KiwiLoadAssets: {}", __int64(KiwiLoadAssets));
+			LOG_INFO(LogDev, "BP_OnScriptReady: {}", __int64(BP_OnScriptReady));
+			LOG_INFO(LogDev, "StartEventAtIndex: {}", __int64(StartEventAtIndex));
 
-			static auto StartEvent = FindObject<UFunction>("/Kiwi/Gameplay/BP_Kiwi_Master_Scripting.BP_Kiwi_Master_Scripting_C.startevent");
-			Scripting->ProcessEvent(StartEvent, &SecondsSinceEventBegan);
+			// EventScripting->ProcessEvent(KiwiOnReadyIdk, &bbparms);
+			EventScripting->ProcessEvent(KiwiLoadAssets, &OnReadyParams);
+			LOG_INFO(LogDev, "CAlled KiwiLoadAssets!");
+			EventScripting->ProcessEvent(BP_OnScriptReady, &OnReadyParams);
+			LOG_INFO(LogDev, "CAlled BP_OnScriptReady!");
+			int InStartingIndex = 0;
+			// EventScripting->ProcessEvent(StartEventAtIndex, &InStartingIndex);
+			LOG_INFO(LogDev, "CAlled StartEventAtIndex!");
+
+			auto KiwiStartEvent = FindObject<UFunction>("/Kiwi/Gameplay/BP_Kiwi_Master_Scripting.BP_Kiwi_Master_Scripting_C.startevent");
+			LOG_INFO(LogDev, "KiwiStartEvent: {}", __int64(KiwiStartEvent));
+			KiwiMasterScripting->ProcessEvent(KiwiStartEvent, &SecondsSinceEventBegan);
 		}
 
 		if (AllSpecialEventScriptMeshActors.Num() > 0)
