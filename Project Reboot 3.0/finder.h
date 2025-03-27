@@ -1376,7 +1376,7 @@ static inline uint64 FindGIsServer()
 	if (Fortnite_Version == 12.41)
 		return __int64(GetModuleHandleW(0)) + 0x804B65A;
 	if (Fortnite_Version == 14.60)
-		return __int64(GetModuleHandleW(0)) + 0x939930E;
+		return __int64(GetModuleHandleW(0)) + 0x939A30E;
 	if (Fortnite_Version == 17.30)
 		return __int64(GetModuleHandleW(0)) + 0x973E499;
 
