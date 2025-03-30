@@ -1396,13 +1396,13 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			}
 
 #if 1
-			LOG_INFO(LogDev, "Spawning loot!");
-
 			auto SpawnIsland_FloorLoot = FindObject<UClass>(L"/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_Warmup.Tiered_Athena_FloorLoot_Warmup_C");
 			auto BRIsland_FloorLoot = FindObject<UClass>(L"/Game/Athena/Environments/Blueprints/Tiered_Athena_FloorLoot_01.Tiered_Athena_FloorLoot_01_C");
 
 			TArray<AActor*> SpawnIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnIsland_FloorLoot);
 			TArray<AActor*> BRIsland_FloorLoot_Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BRIsland_FloorLoot);
+
+			LOG_INFO(LogDev, "Spawning floor loot ({} warmup, {} island)!", SpawnIsland_FloorLoot_Actors.Num(), BRIsland_FloorLoot_Actors.Num());
 
 			auto SpawnIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot_Warmup");
 			auto BRIslandTierGroup = UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaFloorLoot");
@@ -1412,7 +1412,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 			bool bDestroyFloorLootActor = false;
 			bool bPrintWarmup = bDebugPrintFloorLoot;
 
-			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); i++)
+			for (int i = 0; i < SpawnIsland_FloorLoot_Actors.Num(); ++i)
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)SpawnIsland_FloorLoot_Actors.at(i);
 				auto Location = CurrentActor->GetActorLocation() + CurrentActor->GetActorForwardVector() * CurrentActor->GetLootSpawnLocation_Athena().X + CurrentActor->GetActorRightVector() * CurrentActor->GetLootSpawnLocation_Athena().Y + CurrentActor->GetActorUpVector() * CurrentActor->GetLootSpawnLocation_Athena().Z;
@@ -1440,7 +1440,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			int spawned = 0;
 
-			for (int i = 0; i < BRIsland_FloorLoot_Actors.Num(); i++)
+			for (int i = 0; i < BRIsland_FloorLoot_Actors.Num(); ++i)
 			{
 				ABuildingContainer* CurrentActor = (ABuildingContainer*)BRIsland_FloorLoot_Actors.at(i);
 				spawned++;

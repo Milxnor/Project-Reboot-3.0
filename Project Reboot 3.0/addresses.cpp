@@ -73,6 +73,8 @@ void Addresses::SetupVersion()
 
 		if (Fortnite_Version >= 16.00 && Fortnite_Version <= 18.40)
 			Engine_Version = 427; // 4.26.1;
+
+		// TODO: Fortnite_CL = X
 	}
 
 	else
