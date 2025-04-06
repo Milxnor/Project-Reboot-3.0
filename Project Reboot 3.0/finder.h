@@ -1534,6 +1534,8 @@ static inline uint64 FindGetNetMode()
 
 static inline uint64 FindApplyCharacterCustomization()
 {
+	// RETURNS 0 ON 10.00!
+
 	// if (std::floor(Fortnite_Version) == 4) // RetrieveCharacterParts return null if dedicated server?????
 		// return 0;
 
