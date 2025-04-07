@@ -751,6 +751,12 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		}
 		else if (Command == "spawnbot")
 		{
+			if (GameState->GetGamePhase() < EAthenaGamePhase::Aircraft)
+			{
+				SendMessageToConsole(PlayerController, L"Bot spawning before aircraft is not allowed!");
+				return;
+			}
+
 			auto Pawn = ReceivingController->GetPawn();
 
 			if (!Pawn)

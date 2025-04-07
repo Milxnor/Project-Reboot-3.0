@@ -48,7 +48,8 @@ static inline T* LoadObject(const TCHAR* Name, UClass* Class = T::StaticClass(),
 
 	if (!Object)
 	{
-		LOG_WARN(LogDev, "Failed to load object!");
+		std::wstring NameWStr = std::wstring(Name);
+		LOG_WARN(LogDev, "Failed to load object: {}!", std::string(NameWStr.begin(), NameWStr.end()));
 	}
 
 	return Object;

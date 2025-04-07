@@ -346,7 +346,7 @@ static inline void StaticUI()
 	ImGui::Checkbox("Infinite Ammo", &Globals::bInfiniteAmmo);
 	ImGui::Checkbox("Infinite Materials", &Globals::bInfiniteMaterials);
 	
-	ImGui::Checkbox("Private IP's are operator", &Globals::bPrivateIPsAreOperator);
+	ImGui::Checkbox("Private IPs are operator", &Globals::bPrivateIPsAreOperator);
 
 	ImGui::Checkbox("No MCP (Don't change unless you know what this is)", &Globals::bNoMCP);
 
@@ -1011,11 +1011,11 @@ static inline void MainUI()
 
 		else if (Tab == DUMP_TAB)
 		{
-			ImGui::Text("These will all be in your Win64 folder!");
+			ImGui::Text("These will all be in your Win64 folder!"); // TODO: Make a button to open this directory
 
 			static std::string FortniteVersionStr = std::format("Fortnite Version {}\n\n", std::to_string(Fortnite_Version));
 
-			if (ImGui::Button("Dump Objects"))
+			if (ImGui::Button("Dump Objects (ObjectsDump.txt)"))
 			{
 				auto ObjectNum = ChunkedObjects ? ChunkedObjects->Num() : UnchunkedObjects ? UnchunkedObjects->Num() : 0;
 
@@ -1023,7 +1023,7 @@ static inline void MainUI()
 
 				obj << FortniteVersionStr;
 
-				for (int i = 0; i < ObjectNum; i++)
+				for (int i = 0; i < ObjectNum; ++i)
 				{
 					auto CurrentObject = GetObjectByIndex(i);
 
@@ -1042,11 +1042,11 @@ static inline void MainUI()
 				{
 					SkinsFile << FortniteVersionStr;
 
-					static auto CIDClass = FindObject<UClass>("/Script/FortniteGame.AthenaCharacterItemDefinition");
+					static auto CIDClass = FindObject<UClass>(L"/Script/FortniteGame.AthenaCharacterItemDefinition");
 
 					auto AllObjects = GetAllObjectsOfClass(CIDClass);
 
-					for (int i = 0; i < AllObjects.size(); i++)
+					for (int i = 0; i < AllObjects.size(); ++i)
 					{
 						auto CurrentCID = AllObjects.at(i);
 
@@ -1069,12 +1069,12 @@ static inline void MainUI()
 				if (PlaylistsFile.is_open())
 				{
 					PlaylistsFile << FortniteVersionStr;
-					static auto FortPlaylistClass = FindObject<UClass>("/Script/FortniteGame.FortPlaylist");
-					// static auto FortPlaylistClass = FindObject("Class /Script/FortniteGame.FortPlaylistAthena");
+					static auto FortPlaylistClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlaylist");
+					// static auto FortPlaylistClass = FindObject(L"Class /Script/FortniteGame.FortPlaylistAthena");
 
 					auto AllObjects = GetAllObjectsOfClass(FortPlaylistClass);
 
-					for (int i = 0; i < AllObjects.size(); i++)
+					for (int i = 0; i < AllObjects.size(); ++i)
 					{
 						auto Object = AllObjects.at(i);
 

@@ -48,6 +48,7 @@ public:
 
 	static bool ShouldUseAIBotController()
 	{
+		return false;
 		return Fortnite_Version >= 11 && Engine_Version < 500;
 	}
 
@@ -218,7 +219,7 @@ public:
 		PlayerState->OnRep_PlayerName(); // ?
 	}
 
-	FString GetRandomName() // Todo SetName(GetRandomName())
+	FString GetRandomName()
 	{
 		static int CurrentBotNum = 1;
 		std::wstring BotNumWStr;
@@ -314,7 +315,7 @@ public:
 		auto PlayerAbilitySet = GetPlayerAbilitySet();
 		auto AbilitySystemComponent = PlayerState->GetAbilitySystemComponent();
 
-		if (PlayerAbilitySet)
+		if (PlayerAbilitySet && AbilitySystemComponent)
 		{
 			PlayerAbilitySet->GiveToAbilitySystem(AbilitySystemComponent);
 		}
@@ -323,14 +324,16 @@ public:
 		PickRandomLoadout();
 		ApplyCosmeticLoadout();
 
-		if (Fortnite_Version <= 10)
+		if (!ShouldUseAIBotController())
 		{
-			GameState->GetPlayersLeft()++;
+			++GameState->GetPlayersLeft();
 			GameState->OnRep_PlayersLeft();
 		}
 
 		if (auto FortPlayerControllerAthena = Cast<AFortPlayerControllerAthena>(Controller))
+		{
 			GameMode->GetAlivePlayers().Add(FortPlayerControllerAthena);
+		}
 
 		LOG_INFO(LogDev, "Finished spawning bot!")
 	}
