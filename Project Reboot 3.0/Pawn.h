@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Actor.h"
-#include "TSubClassOf.h"
+#include "TSubclassOf.h"
 
 class APawn : public AActor
 {

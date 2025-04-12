@@ -1,0 +1,29 @@
+# NOTE: replace /home/yes with your home folder, it won't recognize ~ as the home folder
+# I also have no idea what most flags after Wno-prgma-pack does. i kinda just built it in visual studio then copied flags
+
+CompileFlags:
+  Compiler: clang-cl
+  Add:
+    - "-I/home/yes/msvc/Windows Kits/10/Include/10.0.22621.0/um"
+    - "-I/home/yes/msvc/Windows Kits/10/Include/10.0.22621.0/shared"
+    - "-I/home/yes/msvc/Windows Kits/10/Include/10.0.22621.0/ucrt"
+    - "-I/home/yes/msvc/Windows Kits/10/Include/10.0.22621.0/winrt"
+    - "-I/home/yes/msvc/Windows Kits/10/Include/10.0.22621.0/km"
+    - "-I/home/yes/msvc/VC/Tools/MSVC/14.43.34808/atlmfc/include/"
+    - "-I/home/yes/msvc/VC/Tools/MSVC/14.43.34808/include/"
+    - "-I../vendor"
+    - "/std:c++latest"
+    - "-ferror-limit=0"
+    - "-Wno-pragma-pack"
+    - "/permissive-"
+    - "/EHsc"
+    - "/MT"
+    - "/GS"
+    - "/Gy"
+    - "Gm-"
+    - "/D _UNICODE"
+    - "/D UNICODE"
+    - "/fp:precise"
+    - "/Zc:wchar_t"
+    - "/Zc:forScope"
+    - "/Zc:inline"
