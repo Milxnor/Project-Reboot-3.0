@@ -58,7 +58,7 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 		UAbilitySystemComponent* AbilitySystemComponent = ((AFortPlayerStateAthena*)Pawn->GetPlayerState())->GetAbilitySystemComponent();
 		if (!AbilitySystemComponent) return;
 
-		static UClass* RiftAbility = FindObject<UClass>(L"/Game/Athena/Items/ForagedItems/Rift/GA_Rift_Athena_Skydive.GA_Rift_Athena_Skydive_C");
+		UClass* RiftAbility = FindObject<UClass>(L"/Game/Athena/Items/ForagedItems/Rift/GA_Rift_Athena_Skydive.GA_Rift_Athena_Skydive_C");
 		if (!RiftAbility) return;
 
 		FGameplayAbilitySpec* Spec = MakeNewSpec(RiftAbility);
