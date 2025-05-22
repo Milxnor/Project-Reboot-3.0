@@ -51,5 +51,27 @@ void AFortPlayerPawnAthena::OnCapsuleBeginOverlapHook(UObject* Context, FFrame* 
 		}
 	}
 
+	if (OtherActor && OtherActor->GetName().contains("Rift") && Fortnite_Version >= 17)
+	{
+		Pawn->TeleportTo(Pawn->GetActorLocation() + FVector(0, 0, 20000), Pawn->GetActorRotation());
+
+		UAbilitySystemComponent* AbilitySystemComponent = ((AFortPlayerStateAthena*)Pawn->GetPlayerState())->GetAbilitySystemComponent();
+		if (!AbilitySystemComponent) return;
+
+		UClass* RiftAbility = FindObject<UClass>(L"/Game/Athena/Items/ForagedItems/Rift/GA_Rift_Athena_Skydive.GA_Rift_Athena_Skydive_C");
+		if (!RiftAbility) return;
+
+		FGameplayAbilitySpec* Spec = MakeNewSpec(RiftAbility);
+		if (!Spec) return;
+
+		static unsigned int* (*GiveAbilityAndActivateOnce)(UAbilitySystemComponent * ASC, int* outHandle, __int64 Spec, FGameplayEventData * TriggerEventData) = decltype(GiveAbilityAndActivateOnce)(Addresses::GiveAbilityAndActivateOnce); 
+
+		if (GiveAbilityAndActivateOnce)
+		{
+			int outHandle = 0;
+			GiveAbilityAndActivateOnce(AbilitySystemComponent, &outHandle, __int64(Spec), nullptr);
+		}
+	}
+
 	// return OnCapsuleBeginOverlapOriginal(Context, Stack, Ret); // we love explicit
 }
