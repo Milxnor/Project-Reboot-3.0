@@ -1632,6 +1632,11 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			}
 		}
 
+		if (Fortnite_Version >= 15) // dk if this is correct
+		{
+			PlayerController->GetStateName() = UKismetStringLibrary::Conv_StringToName(L"Spectating");
+		}
+
 		if (IsRestartingSupported() && Globals::bAutoRestart && !bIsInAutoRestart)
 		{
 			// wht
