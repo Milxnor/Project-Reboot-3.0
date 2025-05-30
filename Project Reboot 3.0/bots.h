@@ -232,21 +232,15 @@ public:
 		}
 		else
 		{
-			if (Fortnite_Version < 11)
+			if (Fortnite_Version < 11 || PlayerBotNames.empty())
 			{
 				BotNumWStr = std::to_wstring(CurrentBotNum++ + 200);
 				NewName = (std::format(L"Anonymous[{}]", BotNumWStr)).c_str();
 			}
 			else
 			{
-				if (!PlayerBotNames.empty())
-				{
-					// std::shuffle(PlayerBotNames.begin(), PlayerBotNames.end(), std::default_random_engine((unsigned int)time(0)));
-
-					int RandomIndex = std::rand() % (PlayerBotNames.size() - 1);
-					NewName = PlayerBotNames[RandomIndex];
-					PlayerBotNames.erase(PlayerBotNames.begin() + RandomIndex);
-				}
+				NewName = PlayerBotNames.back();
+				PlayerBotNames.pop_back();
 			}
 		}
 
