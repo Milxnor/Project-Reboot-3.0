@@ -69,4 +69,6 @@ static inline void InitBotNames()
     PlayerBotNames.push_back(L"AllyJax");
     PlayerBotNames.push_back(L"secret_pommes");
     PlayerBotNames.push_back(L"Twin1");
+
+    std::shuffle(PlayerBotNames.begin(), PlayerBotNames.end(), std::default_random_engine((unsigned int)time(0)));
 }
