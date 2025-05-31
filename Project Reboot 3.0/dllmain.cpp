@@ -1045,14 +1045,16 @@ DWORD WINAPI Main(LPVOID)
         }
     }
 
+    if (Fortnite_Version >= 17.30)
+    {
+        Hooking::MinHook::Hook(FindObject<UObject>("/Script/FortniteGame.Default__FortMissionLibrary"), FindObject<UFunction>(L"/Script/FortniteGame.FortMissionLibrary:TeleportPlayerPawn"), TeleportPlayerPawnHook,
+            (PVOID*)&TeleportPlayerPawnOriginal, false, true);
+    }
+
     if (Globals::bGoingToPlayEvent)
     {
-        if (Fortnite_Version >= 17.30)
-        {
-            Hooking::MinHook::Hook(FindObject<UObject>("/Script/FortniteGame.Default__FortMissionLibrary"), FindObject<UFunction>(L"/Script/FortniteGame.FortMissionLibrary:TeleportPlayerPawn"), TeleportPlayerPawnHook,
-                (PVOID*)&TeleportPlayerPawnOriginal, false, true);
-            // Todo hook UBuffetRacePlayerMovementComponent::ServerTeleportPlayer?
-        }
+        // Todo hook UBuffetRacePlayerMovementComponent::ServerTeleportPlayer?
+
         if (Fortnite_Version == 17.50)
         {
             Hooking::MinHook::Hook(FindObject<UObject>("/Script/SpecialEventGameplayRuntime.Default__SpecialEventScript"), FindObject<UFunction>(L"/Script/SpecialEventGameplayRuntime.SpecialEventScript:StartEventAtIndex"), StartEventAtIndexHook,
