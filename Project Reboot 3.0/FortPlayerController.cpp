@@ -1694,8 +1694,6 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	if (!PlayerState)
 		return;
 
-	BuildingActorToEdit->SetEditingPlayer(PlayerState);
-
 	auto WorldInventory = PlayerController->GetWorldInventory();
 
 	if (!WorldInventory)
@@ -1716,7 +1714,9 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 		return;
 
 	EditTool->GetEditActor() = BuildingActorToEdit;
-	EditTool->OnRep_EditActor();
+	// EditTool->OnRep_EditActor();
+
+	BuildingActorToEdit->SetEditingPlayer(PlayerState);
 }
 
 void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret)
@@ -1749,7 +1749,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
 		//return ServerEditBuildingActorOriginal(Context, Frame, Ret);
 
-	BuildingActorToEdit->SetEditingPlayer(nullptr);
+	// BuildingActorToEdit->SetEditingPlayer(nullptr);
 
 	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
 		decltype(BuildingSMActorReplaceBuildingActor)(Addresses::ReplaceBuildingActor);
@@ -1788,16 +1788,12 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (!EditToolInstance)
 		return;
 
-	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
+	// Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
 
 	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
-
-	BuildingActorToStopEditing->GetEditingPlayer() = nullptr;
-	// BuildingActorToStopEditing->OnRep_EditingPlayer();
 
 	if (EditTool)
 	{
 		EditTool->GetEditActor() = nullptr;
-		EditTool->OnRep_EditActor();
 	}
 }

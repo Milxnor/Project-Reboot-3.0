@@ -155,3 +155,33 @@ FORCEINLINE bool IsValidChecked(const UObject* Test)
 
 	return true; // FInternalUObjectBaseUtilityIsValidFlagsChecker::CheckObjectValidBasedOnItsFlags(Test);
 }
+
+class Test
+{
+	// IMPLICITLY: Test() { VFT = TestVFT }
+	// IMPLICITLY: void** VFT // 0x0
+	virtual void func() {}
+	virtual void people() {}
+};
+
+/*
+
+TestVFT:
+
+Test::func
+Test::people
+
+HelloVFT:
+
+Hello::func
+Test::people
+Hello::func2
+
+*/
+
+class Hello : Test
+{
+	// IMPLICITLY: Hello() { VFT = HelloVFT }
+	void func() override { /**/ }
+	virtual void func2() {}
+};
