@@ -4,8 +4,9 @@
 
 void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 {
-	if (!Msg.Data.Data || Msg.Data.Num() <= 0)
-		return;
+	bool isMsgEmpty = !Msg.Data.Data || Msg.Data.Num() <= 0;
+	// if (isMsgEmpty)
+		// return;
 
 	auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
 
@@ -15,7 +16,9 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		return;
 
 	std::vector<std::string> Arguments;
-	auto OldMsg = Msg.ToString();
+	std::string OldMsg = "";
+	if (!isMsgEmpty)
+		OldMsg = Msg.ToString();
 
 	auto ReceivingController = PlayerController; // for now
 	auto ReceivingPlayerState = PlayerState; // for now
@@ -73,6 +76,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 		return;
 	}
 
+	if (!isMsgEmpty)
 	{
 		auto Message = Msg.ToString();
 
@@ -118,7 +122,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 
 	// return;
 
-	bool bSendHelpMessage = false;
+	bool bSendHelpMessage = isMsgEmpty;
 
 	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 	auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());

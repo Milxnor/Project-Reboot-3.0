@@ -337,6 +337,8 @@ static inline void StaticUI()
 		if (ImGui::Checkbox("Log ProcessEvent", &Globals::bLogProcessEvent))
 		{
 			// todo toggle hook
+			// this is lowkey highkey a race.. so i hope this below will fix ? idk im confused
+			UObject::ProcessEventOriginal = decltype(UObject::ProcessEventOriginal)(Addresses::ProcessEvent);
 			Hooking::MinHook::Hook((PVOID)Addresses::ProcessEvent, ProcessEventHook, (PVOID*)&UObject::ProcessEventOriginal);
 		}
 	}
