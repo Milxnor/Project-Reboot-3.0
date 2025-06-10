@@ -120,3 +120,11 @@ inline void InitLogger()
 #define LOG_ERROR(loggerName, ...)
 #define LOG_FATAL(loggerName, ...)
 #endif
+
+#if 0
+#define DEBUG_LOG_INFO(loggerName, ...)                                            \
+    if (spdlog::get(#loggerName))         \
+        spdlog::get(#loggerName)->info(std::format(__VA_ARGS__));
+#else
+#define DEBUG_LOG_INFO(loggerName, ...)           
+#endif

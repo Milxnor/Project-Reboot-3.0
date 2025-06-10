@@ -1681,7 +1681,7 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToEdit)
 {
-	// LOG_INFO(LogDev, "ServerBeginEditingBuildingActorHook!");
+	DEBUG_LOG_INFO(LogDev, "\n[Begin START]!");
 
 	if (!BuildingActorToEdit || !BuildingActorToEdit->IsPlayerPlaced()) // We need more checks.
 		return;
@@ -1711,7 +1711,7 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
 
 	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
-	// LOG_INFO(LogDev, "[Begin {}] EditTool: {}!", BuildingActorToEdit->GetFullName(), __int64(EditTool));
+	DEBUG_LOG_INFO(LogDev, "[Begin {}] EditTool: {}!", BuildingActorToEdit->GetFullName(), __int64(EditTool));
 
 	if (!EditTool)
 		return;
@@ -1721,12 +1721,12 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 
 	BuildingActorToEdit->SetEditingPlayer(PlayerState);
 
-	// LOG_INFO(LogDev, "[Begin] Updating Editing player to: {}!", __int64(PlayerState));
+	DEBUG_LOG_INFO(LogDev, "[Begin] Updating Editing player to: {}!", __int64(PlayerState));
 }
 
 void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame& Stack, void* Ret)
 {
-	// LOG_INFO(LogDev, "ServerEditBuildingActorHook!");
+	DEBUG_LOG_INFO(LogDev, "\n[Edit START]!");
 
 	auto PlayerController = (AFortPlayerController*)Context;
 
@@ -1756,6 +1756,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
 		//return ServerEditBuildingActorOriginal(Context, Frame, Ret);
 
+	// 	if (Fortnite_Version < 16)
 	// BuildingActorToEdit->SetEditingPlayer(nullptr);
 
 	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
@@ -1767,35 +1768,35 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 		BuildingActor->SetPlayerPlaced(true);
 	}
 
-	// we should do more things here
-
-	// we need to set editactor and stuff  because on newer builds ServerEndEditingBuildingActor doesnt get callered
-	BuildingActorToEdit->SetEditingPlayer(nullptr);
-	auto Pawn = PlayerController->GetMyFortPawn();
-
-	if (!Pawn)
-		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
-
-	static auto EditToolDef = FindObject<UFortWeaponItemDefinition>(L"/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
-
-	auto WorldInventory = PlayerController->GetWorldInventory();
-
-	if (!WorldInventory)
-		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
-
-	auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
-
-	if (!EditToolInstance)
-		return ServerEditBuildingActorOriginal(Context, Stack, Ret);
-
-	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
-
-	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
-	// LOG_INFO(LogDev, "EditTool: {}", __int64(EditTool));
-
-	if (EditTool)
+	if (Fortnite_Version >= 12)
 	{
-		EditTool->GetEditActor() = nullptr;
+		BuildingActorToEdit->SetEditingPlayer(nullptr);
+		auto Pawn = PlayerController->GetMyFortPawn();
+
+		if (!Pawn)
+			return ServerEditBuildingActorOriginal(Context, Stack, Ret);
+
+		static auto EditToolDef = FindObject<UFortWeaponItemDefinition>(L"/Game/Items/Weapons/BuildingTools/EditTool.EditTool");
+
+		auto WorldInventory = PlayerController->GetWorldInventory();
+
+		if (!WorldInventory)
+			return ServerEditBuildingActorOriginal(Context, Stack, Ret);
+
+		auto EditToolInstance = WorldInventory->FindItemInstance(EditToolDef);
+
+		if (!EditToolInstance)
+			return ServerEditBuildingActorOriginal(Context, Stack, Ret);
+
+		Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
+
+		auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+		DEBUG_LOG_INFO(LogDev, "[Edit] New Equipped EditTool: {}", __int64(EditTool));
+
+		if (EditTool)
+		{
+			EditTool->GetEditActor() = nullptr;
+		}
 	}
 
 	return ServerEditBuildingActorOriginal(Context, Stack, Ret);
@@ -1803,7 +1804,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 
 void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerController* PlayerController, ABuildingSMActor* BuildingActorToStopEditing)
 {
-	// LOG_INFO(LogDev, "[{}] ServerEndEditingBuildingActorHook EditiNgplAyer: {}!", BuildingActorToStopEditing ? BuildingActorToStopEditing->GetFullName() : "NULL", BuildingActorToStopEditing ? __int64(BuildingActorToStopEditing->GetEditingPlayer()) : -1);
+	DEBUG_LOG_INFO(LogDev, "\n[End START] [{}] ServerEndEditingBuildingActorHook EditiNgplAyer: {}!", BuildingActorToStopEditing ? BuildingActorToStopEditing->GetName() : "NULL", BuildingActorToStopEditing ? __int64(BuildingActorToStopEditing->GetEditingPlayer()) : -1);
 	auto Pawn = PlayerController->GetMyFortPawn();
 
 	if (!BuildingActorToStopEditing || !Pawn
@@ -1825,10 +1826,16 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (!EditToolInstance)
 		return;
 
-	// LOG_INFO(LogDev, "EditTool BEFORE: {}", __int64(Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon())));
-	Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
+	auto OldWep = Pawn->GetCurrentWeapon();
+	DEBUG_LOG_INFO(LogDev, "[End] EditTool Equipped BEFORE: {} (name: {})", __int64(Cast<AFortWeap_EditingTool>(OldWep)), OldWep ? OldWep->GetFullName() : "NULL");
+
+	if (Fortnite_Version >= 12)
+	{
+		Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
+	}
 
 	auto EditTool = Cast<AFortWeap_EditingTool>(Pawn->GetCurrentWeapon());
+	DEBUG_LOG_INFO(LogDev, "[End] EditTool Equipped AFTER: {}", __int64(EditTool));
 
 	if (EditTool)
 	{
