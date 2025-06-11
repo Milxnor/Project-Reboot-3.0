@@ -1768,7 +1768,7 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 		BuildingActor->SetPlayerPlaced(true);
 	}
 
-	if (Fortnite_Version >= 12)
+	if (Fortnite_Version >= 11)
 	{
 		BuildingActorToEdit->SetEditingPlayer(nullptr);
 		auto Pawn = PlayerController->GetMyFortPawn();
@@ -1829,7 +1829,7 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	auto OldWep = Pawn->GetCurrentWeapon();
 	DEBUG_LOG_INFO(LogDev, "[End] EditTool Equipped BEFORE: {} (name: {})", __int64(Cast<AFortWeap_EditingTool>(OldWep)), OldWep ? OldWep->GetFullName() : "NULL");
 
-	if (Fortnite_Version >= 12)
+	if (Fortnite_Version >= 11)
 	{
 		Pawn->EquipWeaponDefinition(EditToolDef, EditToolInstance->GetItemEntry()->GetItemGuid());
 	}
