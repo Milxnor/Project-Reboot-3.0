@@ -1060,6 +1060,8 @@ cheat setshield <Shield=0.f> - Sets executing player's shield.
 cheat applycid <CIDShortName> - Sets a player's character.
 cheat spawnpickup <ShortWID> <ItemCount=1> <PickupCount=1> - Spawns a pickup at specified player.
 cheat teleport/tp - Teleports to what the player is looking at.
+cheat savewaypoint (phrase/number) - Gets the location of where you are standing and saves it as a waypoint.
+cheat waypoint (saved phrase/number) - Teleports the player to the selected existing waypoint.
 cheat spawnbot <Amount=1> - Spawns a bot at the player (experimental).
 cheat setpickaxe <PickaxeID> - Set player's pickaxe. Can be either the PID or WID
 cheat destroytarget - Destroys the actor that the player is looking at.
