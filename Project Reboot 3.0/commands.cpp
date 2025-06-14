@@ -2,6 +2,11 @@
 
 #include "FortAthenaAIBotSpawnerData.h"
 
+#include <map>
+#include <string>
+
+std::map<std::string, FVector> Waypoints;
+
 void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 {
 	bool isMsgEmpty = !Msg.Data.Data || Msg.Data.Num() <= 0;
@@ -850,6 +855,57 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CheatManager->Teleport();
 			CheatManager = nullptr;
 			SendMessageToConsole(PlayerController, L"Teleported!");
+		}
+		else if (Command == "savewaypoint")
+		{
+			if (NumArgs < 1) 
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a phrase to save the waypoint.");
+				return;
+			}
+
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (!Pawn) 
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to get location from!");
+				return;
+			}
+
+			auto PawnLocation = Pawn->GetActorLocation();
+			Waypoints[Arguments[1]] = PawnLocation;
+
+			SendMessageToConsole(PlayerController, L"Waypoint saved! Use « cheat waypoint (phrase) » to teleport to that location!");
+		}
+		else if (Command == "waypoint")
+		{
+			if (NumArgs < 1) 
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a waypoint phrase to teleport to.");
+				return;
+			}
+
+			std::string Phrase = Arguments[1];
+
+			if (Waypoints.find(Phrase) == Waypoints.end()) 
+			{
+				SendMessageToConsole(PlayerController, L"A saved waypoint with this phrase was not found!");
+				return;
+			}
+
+			FVector Destination = Waypoints[Phrase];
+
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (Pawn) 
+			{
+				Pawn->TeleportTo(Destination, Pawn->GetActorRotation());
+				SendMessageToConsole(PlayerController, L"Teleported to waypoint!");
+			}
+			else 
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to teleport!");
+			}
 		}
 		else if (Command == "startaircraft")
 		{
