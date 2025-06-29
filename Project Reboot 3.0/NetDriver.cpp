@@ -7,7 +7,7 @@
 #include "GameplayStatics.h"
 #include "KismetMathLibrary.h"
 #include <random>
-#include "Package.h"S
+#include "Package.h"
 #include "AssertionMacros.h"
 #include "bots.h"
 #include "gui.h"
