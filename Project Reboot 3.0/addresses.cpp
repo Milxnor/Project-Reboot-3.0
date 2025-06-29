@@ -445,6 +445,8 @@ void Offsets::FindAll()
 		Offsets::ServerReplicateActors = 0x5E;
 	else if (Fortnite_Version >= 15.3 && Engine_Version < 500) // 15.3-18 = 0x5F
 		Offsets::ServerReplicateActors = 0x5F;
+	else if (Fortnite_Version == 19.40)
+		Offsets::ServerReplicateActors = 0x65;
 	else if (std::floor(Fortnite_Version) >= 19 && std::floor(Fortnite_Version) <= 20)
 		Offsets::ServerReplicateActors = 0x66;
 	else if (std::floor(Fortnite_Version) >= 21)
