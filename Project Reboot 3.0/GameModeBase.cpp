@@ -193,8 +193,8 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 
 				for (int i = 0; i < StartingItems.Num(); ++i)
 				{
-					auto& StartingItem = StartingItems.at(i);
-
+					auto& StartingItem = StartingItems.at(i, FItemAndCount::GetStructSize());
+					LOG_INFO(LogDev, "Adding starting item {} x{}!", StartingItem.GetItem() ? StartingItem.GetItem()->GetFullName() : "BadRead", StartingItem.GetCount());
 					WorldInventory->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
 				}
 

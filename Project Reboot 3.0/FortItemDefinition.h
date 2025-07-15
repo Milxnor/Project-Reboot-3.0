@@ -58,4 +58,13 @@ public:
 	{
 		return Item;
 	}
+
+
+	static UStruct* GetStruct()
+	{
+		static auto Struct = FindObject<UStruct>(L"/Script/FortniteGame.ItemAndCount");
+		return Struct;
+	}
+
+	static int GetStructSize() { return GetStruct()->GetPropertiesSize(); }
 };

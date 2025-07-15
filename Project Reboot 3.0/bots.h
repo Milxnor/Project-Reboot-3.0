@@ -140,7 +140,7 @@ public:
 
 					for (int i = 0; i < StartingItems.Num(); ++i)
 					{
-						auto& StartingItem = StartingItems.at(i);
+						auto& StartingItem = StartingItems.at(i, FItemAndCount::GetStructSize());
 
 						(*Inventory)->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
 					}
