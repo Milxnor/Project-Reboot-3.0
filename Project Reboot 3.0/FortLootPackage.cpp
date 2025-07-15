@@ -394,7 +394,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
         LTDTables.clear();
         LPTables.clear();
 
-        if (Fortnite_Version == 12.00)
+        if (Fortnite_Version == 12.00) // TODO
             return LootDrops;
 
         bool bFoundPlaylistTable = false;

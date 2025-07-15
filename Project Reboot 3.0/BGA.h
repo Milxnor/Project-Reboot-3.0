@@ -15,6 +15,7 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 		return;
 
 	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+	auto MapInfo = GameState->GetMapInfo();
 
 	auto AllBGAConsumableSpawners = UGameplayStatics::GetAllActorsOfClass(GetWorld(), BGAConsumableSpawnerClass);
 
@@ -36,16 +37,38 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 		if (FBuildingGameplayActorSpawnDetails::GetStruct())
 		{
 			// todo handle?
-
-			auto MapInfo = GameState->GetMapInfo();
 		}
+
+		bool bDeferConstruction = true; // hm?
 
 		static auto SpawnLootTierGroupOffset = BGAConsumableSpawner->GetOffset("SpawnLootTierGroup");
 		auto& SpawnLootTierGroup = BGAConsumableSpawner->Get<FName>(SpawnLootTierGroupOffset);
 
-		auto LootDrops = PickLootDrops(SpawnLootTierGroup, GameState->GetWorldLevel());
+		std::vector<LootDrop> LootDrops;
 
-		for (int z = 0; z < LootDrops.size(); z++)
+		if (SpawnLootTierGroup.ToString() == "Loot_ForagedItem_GravityRocks") // on 4.0 atleast, LootPackageCategoryMinArray contains all 0s
+		{
+			LootDrop GravityRockDrop{};
+			auto Class = FindObject<UClass>("/Script/FortniteGame.BGAConsumableWrapperItemDefinition");
+			auto LowGravItemDef = LoadObject<UFortItemDefinition>(L"/Game/Athena/Items/ForagedItems/LowGravity/Athena_Foraged_LowGravity.Athena_Foraged_LowGravity", Class);
+			if (!LowGravItemDef)
+			{
+				LOG_ERROR(LogDev, "Failed to load LowGravity ItemDefinition!");
+				continue;
+			}
+			GravityRockDrop.ItemEntry = FFortItemEntry::MakeItemEntry(LowGravItemDef);
+			LootDrops.push_back(GravityRockDrop);
+
+			bDeferConstruction = false;
+		}
+		else
+		{
+			LootDrops = PickLootDrops(SpawnLootTierGroup, GameState->GetWorldLevel());
+		}
+
+		LOG_INFO(LogDev, "LootDrops: {} SpawnLootTierGroup: {}", LootDrops.size(), SpawnLootTierGroup.ToString());
+
+		for (int z = 0; z < LootDrops.size(); ++z)
 		{
 			auto& LootDrop = LootDrops.at(z);
 
@@ -57,11 +80,9 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 
 			if (!StrongConsumableClass)
 			{
-				LOG_INFO(LogDev, "Invalid consumable class!");
+				LOG_INFO(LogDev, "Unable to get consumable class!");
 				continue;
 			}
-
-			bool bDeferConstruction = true; // hm?
 
 			auto ConsumableActor = GetWorld()->SpawnActor<ABuildingGameplayActor>(StrongConsumableClass, SpawnTransform, CreateSpawnParameters(ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn, bDeferConstruction));
 
@@ -111,9 +132,12 @@ static inline void SpawnBGAs() // hahah not "proper", there's a function that we
 				if (bDeferConstruction)
 					UGameplayStatics::FinishSpawningActor(ConsumableActor, FinalSpawnTransform);
 
+				ConsumableActor->ForceNetUpdate();
+				ConsumableActor->SetNetDormancy(ENetDormancy::DORM_Awake);
+
 				// ConsumableActor->InitializeBuildingActor(nullptr, nullptr, true); // idk UFortKismetLibrary::SpawnBuildingGameplayActor does this
 
-				LOG_INFO(LogDev, "[{}/{}] Spawned BGA {} at {} {} {}", z, LootDrops.size(), ConsumableActor->GetName(), FinalSpawnTransform.Translation.X, FinalSpawnTransform.Translation.Y, FinalSpawnTransform.Translation.Z);
+				LOG_INFO(LogDev, "[{}/{}] Spawned BGA {} at {} {} {}", z + 1, LootDrops.size(), ConsumableActor->GetName(), FinalSpawnTransform.Translation.X, FinalSpawnTransform.Translation.Y, FinalSpawnTransform.Translation.Z);
 				break; // ?
 			}
 		}
