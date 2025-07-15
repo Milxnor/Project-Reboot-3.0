@@ -2,6 +2,11 @@
 
 #include "FortAthenaAIBotSpawnerData.h"
 
+#include <map>
+#include <string>
+
+std::map<std::string, FVector> Waypoints;
+
 void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 {
 	bool isMsgEmpty = !Msg.Data.Data || Msg.Data.Num() <= 0;
@@ -851,6 +856,57 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CheatManager = nullptr;
 			SendMessageToConsole(PlayerController, L"Teleported!");
 		}
+		else if (Command == "savewaypoint")
+		{
+			if (NumArgs < 1) 
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a phrase to save the waypoint.");
+				return;
+			}
+
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (!Pawn) 
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to get location from!");
+				return;
+			}
+
+			auto PawnLocation = Pawn->GetActorLocation();
+			Waypoints[Arguments[1]] = PawnLocation;
+
+			SendMessageToConsole(PlayerController, L"Waypoint saved! Use « cheat waypoint (phrase) » to teleport to that location!");
+		}
+		else if (Command == "waypoint")
+		{
+			if (NumArgs < 1) 
+			{
+				SendMessageToConsole(PlayerController, L"Please provide a waypoint phrase to teleport to.");
+				return;
+			}
+
+			std::string Phrase = Arguments[1];
+
+			if (Waypoints.find(Phrase) == Waypoints.end()) 
+			{
+				SendMessageToConsole(PlayerController, L"A saved waypoint with this phrase was not found!");
+				return;
+			}
+
+			FVector Destination = Waypoints[Phrase];
+
+			auto Pawn = ReceivingController->GetMyFortPawn();
+
+			if (Pawn) 
+			{
+				Pawn->TeleportTo(Destination, Pawn->GetActorRotation());
+				SendMessageToConsole(PlayerController, L"Teleported to waypoint!");
+			}
+			else 
+			{
+				SendMessageToConsole(PlayerController, L"No pawn to teleport!");
+			}
+		}
 		else if (Command == "startaircraft")
 		{
 			GameMode->StartAircraftPhase();
@@ -1004,6 +1060,8 @@ cheat setshield <Shield=0.f> - Sets executing player's shield.
 cheat applycid <CIDShortName> - Sets a player's character.
 cheat spawnpickup <ShortWID> <ItemCount=1> <PickupCount=1> - Spawns a pickup at specified player.
 cheat teleport/tp - Teleports to what the player is looking at.
+cheat savewaypoint (phrase/number) - Gets the location of where you are standing and saves it as a waypoint.
+cheat waypoint (saved phrase/number) - Teleports the player to the selected existing waypoint.
 cheat spawnbot <Amount=1> - Spawns a bot at the player (experimental).
 cheat setpickaxe <PickaxeID> - Set player's pickaxe. Can be either the PID or WID
 cheat destroytarget - Destroys the actor that the player is looking at.
