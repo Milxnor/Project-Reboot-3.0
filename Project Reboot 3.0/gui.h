@@ -116,7 +116,7 @@ static inline void SetIsLategame(bool Value)
 
 static inline bool HasAnyCalendarModification()
 {
-	return Calendar::HasSnowModification() || Calendar::HasNYE() || std::floor(Fortnite_Version) == 13;
+	return Calendar::HasSnowModification() || Calendar::HasNYE() || (Fortnite_Version >= 8.40 && Fortnite_Version < 9.0) || std::floor(Fortnite_Version) == 13;
 }
 
 static inline void Restart() // todo move?
@@ -953,6 +953,51 @@ static inline void MainUI()
 				if (ImGui::Button("Start New Years Eve Event"))
 				{
 					Calendar::StartNYE();
+				}
+			}
+
+			/*
+			 * Notes:
+			 * 
+			 * Dopey (8.?? to 8.??) mining stones
+			 * 
+			 * Rune events:
+			 * Sleepy (8.40) hit the rune and it moves
+			 * Leaky  (8.40) rotate 3 beams onto the rune
+			 * Sneezy (8.50) dance for progress
+			*/
+			if (Fortnite_Version == 8.40)
+			{
+				static UObject* SAR = FindObject("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations:PersistentLevel.BP_SnowAlwaysRelevant_2");
+				if (SAR)
+				{
+					static bool LoadedSleepy = false;
+					static bool InitSleepy = false;
+					if (!LoadedSleepy)
+					{
+						if (ImGui::Button("Load Sleepy"))
+						{
+							SAR->ProcessEvent(SAR->FindFunction("LoadSleepy"));
+							//SAR->ProcessEvent(SAR->FindFunction("LoadLeaky"));
+							LoadedSleepy = true;
+						}
+					}
+					if (LoadedSleepy && !InitSleepy)
+					{
+						UObject* SleepyProp = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap:PersistentLevel.BP_Sleepy_Prop_0");
+						UObject* SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap:PersistentLevel.BP_Sleepy_M_2");
+
+						if (SleepyProp && SleepyM)
+						{
+							InitSleepy = true;
+
+							Hooking::MinHook::Hook(SleepyProp, SleepyProp->FindFunction("OnDamageServer"), Calendar::OnDamageServerSleepyHook, (void**)&Calendar::OnDamageServerSleepyOriginal, false, true);
+						}
+					}
+				}
+				else
+				{
+					ImGui::Text("Failed to find BP_SnowAlwaysRelevant_C");
 				}
 			}
 

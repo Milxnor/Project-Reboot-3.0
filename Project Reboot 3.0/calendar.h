@@ -156,4 +156,18 @@ namespace Calendar
 			NewYearTimer->ProcessEvent(StartNYE, nullptr);
 		}
 	}
+
+	static void (*OnDamageServerSleepyOriginal)(UObject* SleepyProp, FFrame& Stack, void* Ret);
+	static void OnDamageServerSleepyHook(UObject* SleepyProp, FFrame& Stack, void* Ret)
+	{
+		// TODO: Fix damage im too tired and stupid to fix it rn
+		float Damage = 50.0f;
+		Stack.StepCompiledIn(&Damage);
+
+		static UObject* SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap:PersistentLevel.BP_Sleepy_M_2");
+		static UFunction* RootUpdateDamage = SleepyM->FindFunction("RootUpdateDamage");
+		SleepyM->ProcessEvent(RootUpdateDamage, &Damage);
+		OnDamageServerSleepyOriginal(SleepyProp, Stack, Ret);
+
+	}
 }

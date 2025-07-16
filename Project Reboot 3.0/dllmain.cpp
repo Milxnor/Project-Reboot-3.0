@@ -987,6 +987,12 @@ DWORD WINAPI Main(LPVOID)
     }
     */
 
+    //if (Fortnite_Version == 8.40)
+    //{
+    //    Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC410), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+    //    Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC450), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+    //}
+
     if (Fortnite_Version >= 16 && Fortnite_Version < 19)
     {
         // Bus crash (only needed if we are calling StartAircraftPhase on seperate thread I THINK) (sometimes)
@@ -1230,7 +1236,6 @@ DWORD WINAPI Main(LPVOID)
     // HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)AFortPlayerControllerAthena::UpdateTrackedAttributesHook, "/Script/Engine.PlayerController.EnableCheats", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
     // HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
    
-
     if (Fortnite_Version == 13.40)
     {
         // HookInstruction(__int64(GetModuleHandleW(0)) + 0x1FC835D, (PVOID)UFortAthenaAIBotCustomizationData::ApplyOverrideCharacterCustomizationHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::CALL, nullptr);
