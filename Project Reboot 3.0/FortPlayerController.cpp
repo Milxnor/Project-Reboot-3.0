@@ -1756,8 +1756,8 @@ void AFortPlayerController::ServerEditBuildingActorHook(UObject* Context, FFrame
 	// if (!PlayerState || PlayerState->GetTeamIndex() != BuildingActorToEdit->GetTeamIndex()) 
 		//return ServerEditBuildingActorOriginal(Context, Frame, Ret);
 
-	// 	if (Fortnite_Version < 16)
-	// BuildingActorToEdit->SetEditingPlayer(nullptr);
+	if (Fortnite_Version >= 8 && Fortnite_Version < 11) // uhhmmm
+	  BuildingActorToEdit->SetEditingPlayer(nullptr);
 
 	static ABuildingSMActor* (*BuildingSMActorReplaceBuildingActor)(ABuildingSMActor*, __int64, UClass*, int, int, uint8_t, AFortPlayerController*) =
 		decltype(BuildingSMActorReplaceBuildingActor)(Addresses::ReplaceBuildingActor);
@@ -1840,5 +1840,6 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	if (EditTool)
 	{
 		EditTool->GetEditActor() = nullptr;
+		EditTool->OnRep_EditActor();
 	}
 }

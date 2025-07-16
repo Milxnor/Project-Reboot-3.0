@@ -83,7 +83,7 @@ static inline UFortAbilitySet* GetPlayerAbilitySet()
 {
 	// There are some variables that contain this but it changes through versions soo..
 
-	static auto GameplayAbilitySet = (Fortnite_Version >= 8.30 ? LoadObject<UFortAbilitySet>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer")
+	static auto GameplayAbilitySet = (Fortnite_Version > 8.30 ? LoadObject<UFortAbilitySet>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_AthenaPlayer.GAS_AthenaPlayer")
 		: LoadObject<UFortAbilitySet>(L"/Game/Abilities/Player/Generic/Traits/DefaultPlayer/GAS_DefaultPlayer.GAS_DefaultPlayer"));
 
 	return GameplayAbilitySet;

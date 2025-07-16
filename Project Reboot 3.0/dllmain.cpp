@@ -49,6 +49,13 @@
 #include "FortServerBotManagerAthena.h"
 #include "botnames.h"
 
+/*
+
+KNOWN VERSIONS BROKEN:
+v8.30
+
+*/
+
 enum class EMeshNetworkNodeType : uint8_t
 {
     Root = 0,
@@ -822,7 +829,7 @@ DWORD WINAPI Main(LPVOID)
     std::ios_base::sync_with_stdio(false);
 
     auto MH_InitCode = MH_Initialize();
-
+    
     if (MH_InitCode != MH_OK)
     {
         LOG_ERROR(LogInit, "Failed to initialize MinHook {}!", MH_StatusToString(MH_InitCode));
