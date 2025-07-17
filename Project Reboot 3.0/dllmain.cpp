@@ -987,10 +987,18 @@ DWORD WINAPI Main(LPVOID)
     }
     */
 
-    if (Fortnite_Version == 8.40)
+    if (Fortnite_Version == 8.40)/*Fortnite_Version >= 8.40 && Fortnite_Version <= 8.51*/
     {
-        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC410), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
-        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC450), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+        auto TheFunc = (uint8*)FindObject<UFunction>("/Script/MeshNetwork.MeshNetworkSubsystem:GetMeshNetworkNodeType")->GetFunc();
+        for (int i = 0; i < 75; i++)
+        {
+            if (TheFunc[i] == 0xE8)
+            {
+                Hooking::MinHook::Hook((PVOID)(Memcury::Scanner(__int64(TheFunc) + i).RelativeOffset(1).Get()), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+            }
+        }
+
+        //Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC450), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
     }
 
     if (Fortnite_Version >= 16 && Fortnite_Version < 19)
