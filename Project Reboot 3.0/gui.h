@@ -971,31 +971,68 @@ static inline void MainUI()
 				static UObject* SAR = FindObject("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations:PersistentLevel.BP_SnowAlwaysRelevant_2");
 				if (SAR)
 				{
-					static bool LoadedSleepy = false;
-					static bool InitSleepy = false;
-					if (!LoadedSleepy)
 					{
-						if (ImGui::Button("Load Sleepy"))
+						static bool LoadedSleepy = false;
+						if (!LoadedSleepy && ImGui::Button("Load Sleepy"))
 						{
 							SAR->ProcessEvent(SAR->FindFunction("LoadSleepy"));
 							//SAR->ProcessEvent(SAR->FindFunction("LoadLeaky"));
 							LoadedSleepy = true;
-						}
-					}
-					if (LoadedSleepy && !InitSleepy)
-					{
-						UObject* SleepyProp = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap:PersistentLevel.BP_Sleepy_Prop_0");
-						UObject* SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap:PersistentLevel.BP_Sleepy_M_2");
 
-						if (SleepyProp && SleepyM)
-						{
-							InitSleepy = true;
+							UObject* SleepyProp = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_Prop_0");
+							UObject* SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_M_2");
+
+							while (!SleepyProp && !SleepyM)
+							{
+								SleepyProp = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_Prop_0");
+								SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_M_2");
+							}
 
 							Hooking::MinHook::Hook(SleepyProp, SleepyProp->FindFunction("OnDamageServer"), Calendar::OnDamageServerSleepyHook, (void**)&Calendar::OnDamageServerSleepyOriginal, false, true);
 							int FiveHundred = 500;
 							*SleepyM->GetPtr<int>("MaxHealth") = 500;
 							SleepyM->ProcessEvent(SleepyM->FindFunction("RootSetProgress"), &FiveHundred);
-							
+
+							LOG_INFO(LogDev, "Sleepy loaded!");
+						}
+
+						if (LoadedSleepy)
+						{
+							static int SleepyProgress = 0;
+							ImGui::SliderInt("Sleepy Progress", &SleepyProgress, 0, 1000);
+							if (ImGui::Button("Move Sleepy"))
+							{
+								static UObject* SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_M_2");
+								static auto ProgressOffset = SleepyM->GetOffset("Progress");
+								*SleepyM->GetPtr<float>(ProgressOffset) = (float)SleepyProgress * (1.0f / 1000.0f);
+								static int EntryPoint = 929;
+								static auto ExecUbergraph = SleepyM->FindFunction("ExecuteUbergraph_BP_Sleepy_M");
+								SleepyM->ProcessEvent(ExecUbergraph, &EntryPoint);
+							}
+						}
+					}
+
+					ImGui::Separator();
+
+					{
+						static bool LoadedLeaky = false;
+						if (!LoadedLeaky && ImGui::Button("Load Leaky"))
+						{
+							SAR->ProcessEvent(SAR->FindFunction("LoadLeaky"));
+							LoadedLeaky = true;
+
+							UObject* LeakyHandler = FindObject("/Game/Athena/Maps/Test/S8/LeakyMap.LeakyMap.PersistentLevel.BP_LeakyHandler_2");
+
+							while (!LeakyHandler)
+							{
+								LeakyHandler = FindObject("/Game/Athena/Maps/Test/S8/LeakyMap.LeakyMap.PersistentLevel.BP_LeakyHandler_2");
+							}
+
+							UObject* LeakyProp = FindObject("/Game/Athena/Maps/Test/S8/LeakyMap.LeakyMap:PersistentLevel.BP_LeakyProp2");
+							Hooking::MinHook::Hook(LeakyProp, LeakyProp->FindFunction("OnDamageServer"), Calendar::OnDamageServerLeakyHook, (void**)&Calendar::OnDamageServerLeakyOriginal, false, true);
+							//LeakyHandler->ProcessEvent(LeakyHandler->FindFunction("TestDirt"));
+
+							LOG_INFO(LogDev, "Leaky loaded!");
 						}
 					}
 				}
