@@ -987,11 +987,11 @@ DWORD WINAPI Main(LPVOID)
     }
     */
 
-    //if (Fortnite_Version == 8.40)
-    //{
-    //    Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC410), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
-    //    Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC450), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
-    //}
+    if (Fortnite_Version == 8.40)
+    {
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC410), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+        Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC450), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+    }
 
     if (Fortnite_Version >= 16 && Fortnite_Version < 19)
     {

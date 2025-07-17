@@ -160,14 +160,12 @@ namespace Calendar
 	static void (*OnDamageServerSleepyOriginal)(UObject* SleepyProp, FFrame& Stack, void* Ret);
 	static void OnDamageServerSleepyHook(UObject* SleepyProp, FFrame& Stack, void* Ret)
 	{
-		// TODO: Fix damage im too tired and stupid to fix it rn
-		float Damage = 50.0f;
-		Stack.StepCompiledIn(&Damage);
-
+		static auto DamageOffset = FindOffsetStruct("/Game/Athena/Prototype/Blueprints/Sleepy/BP_Sleepy_M.BP_Sleepy_M_C.RootUpdateDamage", "Damage");
+		int Damage = (int)(*(float*)(__int64(Stack.Locals) + DamageOffset));
+		
 		static UObject* SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap:PersistentLevel.BP_Sleepy_M_2");
 		static UFunction* RootUpdateDamage = SleepyM->FindFunction("RootUpdateDamage");
 		SleepyM->ProcessEvent(RootUpdateDamage, &Damage);
 		OnDamageServerSleepyOriginal(SleepyProp, Stack, Ret);
-
 	}
 }

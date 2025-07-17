@@ -992,6 +992,10 @@ static inline void MainUI()
 							InitSleepy = true;
 
 							Hooking::MinHook::Hook(SleepyProp, SleepyProp->FindFunction("OnDamageServer"), Calendar::OnDamageServerSleepyHook, (void**)&Calendar::OnDamageServerSleepyOriginal, false, true);
+							int FiveHundred = 500;
+							*SleepyM->GetPtr<int>("MaxHealth") = 500;
+							SleepyM->ProcessEvent(SleepyM->FindFunction("RootSetProgress"), &FiveHundred);
+							
 						}
 					}
 				}
