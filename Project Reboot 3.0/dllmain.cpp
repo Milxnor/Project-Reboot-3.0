@@ -674,12 +674,12 @@ void ChangeLevels()
     LOG_INFO(LogDev, "FindGIsClient(): 0x{:x}", FindGIsClient() - __int64(GetModuleHandleW(0)));
 
     // auto bruh = std::wstring(CustomMapName.begin(), CustomMapName.end());
-    // auto bruhh = (L"open " + bruh);
+    // auto CustomMapOpenWStr = (L"open " + bruh);
 
     bool bShouldUseMoleMap = PlaylistName == "/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame";
 
-    FString LevelB = /* bUseCustomMap ? bruhh.c_str() : */ (Engine_Version < 424
-        ? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+    FString LevelB = /* bUseCustomMap ? CustomMapOpenWStr.c_str() : */ (Engine_Version < 424
+        ? L"open Athena_Terrain" : Engine_Version >= 500 ? Fortnite_Version >= 23
         ? L"open Asteria_Terrain"
         : Globals::bCreative ? L"open Creative_NoApollo_Terrain"
         : L"open Artemis_Terrain"
@@ -687,7 +687,7 @@ void ChangeLevels()
         : L"open Apollo_Terrain");
 
     FString Level = /* bUseCustomMap ? bruh.c_str() : */ (Engine_Version < 424
-        ? L"Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+        ? L"Athena_Terrain" : Engine_Version >= 500 ? Fortnite_Version >= 23
         ? L"Asteria_Terrain"
         : Globals::bCreative ? L"Creative_NoApollo_Terrain"
         : L"Artemis_Terrain"
@@ -780,8 +780,35 @@ void ChangeLevels()
     }
 }
 
+static inline char (*oFunc)(__int64) = nullptr;
+static inline __int64 (*func2)(__int64) = nullptr;
+char Func(__int64 a1)
+{
+    if (auto r = func2(a1))
+    {
+        if (auto v5 = *(__int64*)(__int64(r) + 0x38))
+        {
+            auto persisntelevle = *(__int64*)(__int64(v5) + 0x98);
+            if (!persisntelevle)
+            {
+                LOG_INFO(LogDev, "tralaleo trallala");
+                return 0;
+            }
+        }
+    }
+
+    return oFunc(a1);
+}
+
 void ApplyNullAndRetTrues()
 {
+    if (Fortnite_Version >= 23)
+    {
+        auto sig = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B F8 48 8B 83 ? ? ? ? 48 85 C0").Get(); // 23.40
+        func2 = decltype(func2)(Memcury::Scanner::FindPattern("48 83 EC 28 BA ? ? ? ? 4C 8B C1 E8 ? ? ? ? 84 C0 74 04 33 C0 EB 04 49 8B 40 20").Get());
+        Hooking::MinHook::Hook((PVOID)sig, Func, (void**)&oFunc);
+    }
+
     static auto FortPlayerControllerAthenaDefault = FindObject<AFortPlayerControllerAthena>(L"/Script/FortniteGame.Default__FortPlayerControllerAthena"); // FindObject<UClass>(L"/Game/Athena/Athena_PlayerController.Default__Athena_PlayerController_C");
 
     auto AddressesToNull = Addresses::GetFunctionsToNull();
@@ -859,6 +886,23 @@ DWORD WINAPI Main(LPVOID)
     LOG_INFO(LogDev, "Fortnite_Version: {}", Fortnite_Version);
     LOG_INFO(LogDev, "Engine_Version: {}", Engine_Version);
 
+#if 0 // CONSOLE ONLY (FOR CLIENT)
+    SetConsoleTitleA("Console");
+
+    // Spawn Console unreal engine Gameviewport
+    static UObject* Engine = GetEngine();
+    auto GameViewport = Engine->Get("GameViewport");
+
+    if (!GameViewport) return 0;
+
+    auto ViewportConsolePtr = GameViewport->GetPtr("ViewportConsole");
+	*ViewportConsolePtr = UGameplayStatics::SpawnObject(FindObject<UClass>(L"/Script/Engine.Console"), GameViewport);
+
+    LOG_INFO(LogDev, "Spawned Console! Exiting");
+
+    return 0;
+#endif
+
 #ifdef ABOVE_S20
     if (Fortnite_Version < 20)
     {
@@ -886,7 +930,9 @@ DWORD WINAPI Main(LPVOID)
 
     // Globals::bAutoRestart = IsRestartingSupported();
 
-    static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
+    static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeBR")
+        ? FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeBR") // 22.30 atleast
+        : FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
     static auto FortPlayerControllerZoneDefault = FindObject<AFortPlayerController>(L"/Script/FortniteGame.Default__FortPlayerControllerZone");
     static auto FortPlayerControllerDefault = FindObject<AFortPlayerController>(L"/Script/FortniteGame.Default__FortPlayerController");
     static auto FortPlayerPawnAthenaDefault = FindObject<AFortPlayerPawn>(L"/Script/FortniteGame.Default__FortPlayerPawnAthena"); // FindObject<AFortPlayerPawn>(L"/Game/Athena/PlayerPawn_Athena.Default__PlayerPawn_Athena_C");
@@ -913,8 +959,8 @@ DWORD WINAPI Main(LPVOID)
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortTeams VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortAI VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortAIDirector VeryVerbose", nullptr);
+	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortUIDirector Fatal", nullptr); // Temporary
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortQuest VeryVerbose", nullptr);
-    // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogFortUIDirector NoLogging", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogAbilitySystem VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogDataTable VeryVerbose", nullptr);
     UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogMeshNetwork VeryVerbose", nullptr);
@@ -1357,12 +1403,15 @@ DWORD WINAPI Main(LPVOID)
             AFortPlayerControllerAthena::ServerPlaySquadQuickChatMessageHook, nullptr, false);
     }
 
-    auto ServerTeleportToPlaygroundIslandFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerTeleportToPlaygroundLobbyIsland");
-
-    if (ServerTeleportToPlaygroundIslandFn)
+    if (Fortnite_Version < 19) // jmp qword ptr idk why our dtc dont wrok
     {
-        Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, ServerTeleportToPlaygroundIslandFn,
-            AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook, nullptr, false);
+        auto ServerTeleportToPlaygroundIslandFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerAthena.ServerTeleportToPlaygroundLobbyIsland");
+
+        if (ServerTeleportToPlaygroundIslandFn)
+        {
+            Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, ServerTeleportToPlaygroundIslandFn,
+                AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook, nullptr, false);
+        }
     }
 
     // Hooking::MinHook::Hook(FortPlayerStateAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.ServerSetInAircraft"),

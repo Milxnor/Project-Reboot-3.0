@@ -50,6 +50,17 @@ uint64 FindGIsClient()
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
 
+	if (!Addr.Get()) // pretty sure only 22+ since the string is split (we could maybe try just searching without the A?)
+	{
+		if (Fortnite_Version == 22.3)
+		{
+			// return __int64(GetModuleHandleW(0)) + 0xDCE9DFA;
+		}
+
+		LOG_ERROR(LogDev, "[FindGIsClient] Failed to find AllowCommandletRendering! Returning 0");
+		return 0;
+	}
+
 	std::vector<std::vector<uint8_t>> BytesArray = {
 		{0x88, 0x05}, // 20.40 21.00
 		{0xC6, 0x05}, // mov cs X // Checked on 1.11, 12.41, 15.10
@@ -180,6 +191,12 @@ uint64 FindGetPlayerViewpoint()
 	uint64 FailedToSpawnPawnAddr = 0;
 
 	auto FailedToSpawnPawnStrRefAddr = Memcury::Scanner::FindStringRef(L"%s failed to spawn a pawn", true, 0, Fortnite_Version >= 19).Get();
+
+	if (!FailedToSpawnPawnStrRefAddr)
+	{
+		LOG_ERROR(LogFinder, "Failed to find FailedToSpawnPawnStrRefAddr! Report to Milxnor immediately.");
+		return 0;
+	}
 
 	for (int i = 0; i < 1000; i++)
 	{

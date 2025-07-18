@@ -124,7 +124,7 @@ static inline void Restart() // todo move?
 	InitBotNames();
 
 	FString LevelA = Engine_Version < 424
-		? L"open Athena_Terrain" : Engine_Version >= 500 ? Engine_Version >= 501
+		? L"open Athena_Terrain" : Engine_Version >= 500 ? Fortnite_Version >= 23
 		? L"open Asteria_Terrain"
 		: Globals::bCreative ? L"open Creative_NoApollo_Terrain"
 		: L"open Artemis_Terrain"

@@ -514,6 +514,14 @@ void Offsets::FindAll()
 	{
 		Offsets::ReplicationFrame = 0x3D8;
 	}
+	if (std::floor(Fortnite_Version) == 22)
+	{
+		Offsets::ReplicationFrame = 0x428; // checked only on 22.30
+	}
+	if (Fortnite_Version >= 23)
+	{
+		Offsets::ReplicationFrame = 0x440; // checked only on 23.40
+	}
 
 	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();
 	Offsets::Script = Offsets::Children + 8 + 4 + 4;

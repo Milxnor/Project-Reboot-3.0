@@ -142,6 +142,8 @@ public:
 					{
 						auto& StartingItem = StartingItems.at(i, FItemAndCount::GetStructSize());
 
+						// TODO: Check if it is FortSmartBuildingItemDefinition
+
 						(*Inventory)->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
 					}
 

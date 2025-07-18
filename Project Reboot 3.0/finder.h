@@ -69,6 +69,19 @@ static inline uint64 FindStaticFindObject(int StringSkip = 1)
 
 	if (Engine_Version == 500)
 	{
+		if (Fortnite_Version >= 22) // string ref is functionized + real func is chunked gg
+		{
+			auto addr = Memcury::Scanner::FindPattern("40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 33 F6 4C 8B E1 48 83 CB", false).Get(); // 22.30
+			
+			if (!addr) // super functionized
+				addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 8B EC 48 83 EC 60 33 DB 4C 8B F1 48 8D 4D E8 41 8A F1", false).Get(); // 23.40
+			
+			if (!addr)
+				addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 56 41 57 48 8B EC 48 83 EC 60 33 DB 4C 8B F9 48 8D 4D E8 45").Get(); // 24.40
+
+			return addr;
+		}
+
 		auto addr = Memcury::Scanner::FindPattern("40 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 45 33 F6 4C 8B E1 45 0F B6 E9 49 8B F8 41 8B C6", false).Get();
 
 		if (!addr)
@@ -106,8 +119,9 @@ static inline uint64 FindStaticFindObject(int StringSkip = 1)
 		return iasdfk;
 	}
 
+	// this never gets ran fyi
 	auto Addr = Memcury::Scanner::FindStringRef(L"Illegal call to StaticFindObject() while serializing object data!", true, StringSkip, Engine_Version >= 427);
-	auto Final = FindBytes(Addr, { 0x48, 0x89, 0x5C }, 255, 0, true, 0, false); // Addr.ScanFor(bytes, false).Get();
+	auto Final = FindBytes(Addr, { 0x48, 0x89, 0x5C }, 255, 0, true, 0, false);
 
 	return Final;
 }
@@ -535,17 +549,35 @@ static inline uint64 FindStepExplicitProperty()
 
 static inline uint64 FindIsNetRelevantForOffset()
 {
-	if (Engine_Version == 416 || Fortnite_Version == 3.3) // checked on 1.7.2, 1.8, 3.3
+	if (Engine_Version == 416 || Fortnite_Version == 3.3) // checked 1.7.2, 1.8, 3.3
 		return 0x420 / 8;
 	if (Fortnite_Version == 1.10 || Fortnite_Version == 1.11 || (Fortnite_Version >= 2.42 && Fortnite_Version <= 3.2)) // checked 1.10, 1.11, 2.4.2, 2.5, 3.0, 3.1, 3.2
 		return 0x418 / 8;
+	if (std::floor(Fortnite_Version) == 20)
+		return 0x4C8 / 8; // checked 20.40
+	if (std::floor(Fortnite_Version) == 21)
+		return 0x4D0 / 8; // checked 21.00
+	if (std::floor(Fortnite_Version) == 22)
+		return 0x4D8 / 8; // checked 22.30
+	if (Fortnite_Version >= 23)
+		return 0x4E0 / 8; // checked 23.40
 
 	return 0;
 }
 
 static inline uint64 FindActorChannelClose()
 {
-	auto StringRef = Memcury::Scanner::FindStringRef(L"UActorChannel::Close: ChIndex: %d, Actor: %s");
+	auto StringRef = Memcury::Scanner::FindStringRef(L"UActorChannel::Close: ChIndex: %d, Actor: %s", false);
+
+	if (!StringRef.Get()) // 22.30 atleast (it just changed but also functionized im too lazy rn)
+	{
+		auto addr = Memcury::Scanner::FindPattern("40 55 53 56 57 41 56 48 8B EC 48 83 EC 40 4C 8B 41 68 40 8A F2 48 8B 51 28 48 8B D9 48 8D 4D 48 E8 ? ? ? ? 80").Get(); // 20.40
+
+		if (!addr) // TODO: Check 48 89 5C 24 ? 55 56 57 48 83 EC ? 4C 8B 41 ? 40 8A F2 48 8B 51 ? 48 8B
+			addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 48 83 EC ? 4C 8B 41 ? 40 8A F2 48 8B 51 ? 48 8B ? 48 8D 4C 24 ? E8").Get(); // 22.30 + 23.40
+
+		return addr;
+	}	
 
 	return FindBytes(StringRef, { 0x48, 0x89, 0x5C }, 1000, 0, true);
 }
@@ -592,6 +624,13 @@ static inline uint64 FindSetWorld()
 		SetWorldIndex = 0x7B;
 	if (Fortnite_Season == 21)
 		SetWorldIndex = 0x7C; // 21.00
+	if (Fortnite_Season == 22 || Fortnite_Season == 23)
+		SetWorldIndex = 0x7B; // 22.30 & 23.50
+
+	if (!SetWorldIndex)
+	{
+		MessageBoxA(0, "SetWorldIndex 0", "Error", MB_ICONERROR);
+	}
 
 	// static auto DefaultNetDriver = FindObject("/Script/Engine.Default__NetDriver");
 	return SetWorldIndex;
@@ -612,7 +651,14 @@ static inline uint64 FindInitListen()
 static inline uint64 FindOnDamageServer()
 {
 	if (Fortnite_Version >= 20) // 8B 15 on name ref???
-		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 41 39 B4 24").RelativeOffset(1).Get(); // 20.40 (not 21.00)
+	{
+		auto addr = Memcury::Scanner::FindPattern("E8 ? ? ? ? 41 39 B4 24").RelativeOffset(1).Get(); // 20.40 (not 21.00)
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("E8 ? ? ? ? 4C 8D 96 ? ? ? ? 49 8B CA E8 ? ? ? ? 45 33 E4").RelativeOffset(1).Get(); // 22.3
+
+		return addr;
+	}
 
 	auto Addr = FindFunctionCall(L"OnDamageServer", 
 		Engine_Version == 416 ? std::vector<uint8_t>{ 0x4C, 0x89, 0x4C } : 
@@ -862,9 +908,9 @@ static inline uint64 FindNoMCP()
 	if (std::floor(Fortnite_Version) == 5)
 		return Memcury::Scanner::FindPattern("E8 ? ? ? ? 84 C0 75 CE").RelativeOffset(1).Get();
 
-	LOG_INFO(LogDev, "finding it");
+	LOG_INFO(LogDev, "Finding Func IsRunningNoMCP");
 	auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.IsRunningNoMCP");
-	LOG_INFO(LogDev, "fn: {}", __int64(fn));
+	LOG_INFO(LogDev, "IsRunningNoMCP: {}", __int64(fn));
 
 	if (!fn)
 		return 0;
@@ -1474,7 +1520,10 @@ static inline uint64 FindDispatchRequest()
 
 	if (!Addrr)
 	{
-		return 0;
+		Addrr = Memcury::Scanner::FindStringRef(L"MCP-Profile: Dispatching request to %s - ContextCredentials: %s", false, 0, Fortnite_Version >= 19).Get();
+
+		if (!Addrr)
+			return 0;
 	}
 
 	for (int i = 0; i < 1000; i++)
@@ -1733,7 +1782,14 @@ static inline uint64 FindGiveAbility()
 	if (Engine_Version == 421)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 83 B9 ? ? ? ? ? 49 8B E8 4C 8B F2").Get();
 	if (Engine_Version == 500)
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 83 EC 20 8B 81 ? ? ? ? 49 8B E8 4C").Get(); // idk why finder doesnt work
+	{
+		auto addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 83 EC 20 8B 81 ? ? ? ? 49 8B E8 4C", false).Get(); // idk why finder doesnt work
+		
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 41 56 41 57 48 8B EC 48 83 EC ? 49 8B 40").Get(); // 22.3
+
+		return addr;
+	}
 
 	// auto Addr = Memcury::Scanner::FindStringRef(L"GiveAbilityAndActivateOnce called on ability %s on the client, not allowed!"); // has 2 refs for some reason on some versions
 	// auto realGiveAbility = Memcury::Scanner(FindBytes(Addr, { 0xE8 }, 500, 0, false, 0, true)).RelativeOffset(1).Get();
@@ -1787,7 +1843,15 @@ static inline uint64 FindReplaceBuildingActor()
 
 static inline uint64 FindSendClientAdjustment()
 {
-	return Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 99 ? ? ? ? 48 39 99 ? ? ? ? 74 0A 48 83 B9", false).Get();
+	auto addr = Memcury::Scanner::FindPattern("40 53 48 83 EC 20 48 8B 99 ? ? ? ? 48 39 99 ? ? ? ? 74 0A 48 83 B9", false).Get();
+
+	if (!addr)
+		addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC ? 8B 91 ? ? ? ? 48 8B D9 83 FA", false).Get(); // 22.3 (this was painful to find)
+
+	if (!addr)
+		addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 83 3D ? ? ? ? ? 48 8B D9 75 57 8B 91").Get();
+
+	return addr;
 }
 
 static inline uint64 FindReplicateActor()
@@ -1806,10 +1870,21 @@ static inline uint64 FindReplicateActor()
 		return addr;
 	}
 
+	/// STAT_NetReplicateActorTime
 	if (std::floor(Fortnite_Version) == 20)
 		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 54 41 55 41 56 41 57 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 4C 8D 69 68").Get();
-	if (Fortnite_Version >= 21) // 21.00
-		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 54 41 55 41 56 41 57 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 45 33 FF 4C 8D 69 68 44 38 3D").Get();
+	if (Fortnite_Version >= 21)
+	{
+		auto addr = Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 54 41 55 41 56 41 57 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 45 33 FF 4C 8D 69 68 44 38 3D", false).Get();
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("48 8B C4 48 89 58 ? 48 89 70 ? 48 89 78 ? 55 41 54 41 55 41 56 41 57 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 45 33 FF 4C 8D 61 ? 44 38 3D ? ? ? ? 48 8D 05 ? ? ? ? 48 8B", false).Get(); // 22.30
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("40 55 41 54 41 55 41 56 41 57 48 81 EC ? ? ? ? 48 8D 6C 24 ? 48 89 9D ? ? ? ? 48 89 B5 ? ? ? ? 48 89 BD ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C5 48 89 85 ? ? ? ? 45 33 E4 4C 8D 69 68 44 38 25 ? ? ? ? 48 8D 05 ? ? ? ? 48 8B F9 49 8B 4D").Get(); // 23.40
+
+		return addr;
+	}
 
 	return 0;
 }
@@ -1845,7 +1920,14 @@ static inline uint64 FindSetChannelActor()
 	if (std::floor(Fortnite_Version) == 20)
 		return Memcury::Scanner::FindPattern("40 55 53 56 57 41 54 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 45 33 E4 48 8D 3D ? ? ? ? 44 89 A5").Get();
 	if (Fortnite_Version >= 21)
-		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 33 FF 4C 8D 35 ? ? ? ? 89 BD").Get();
+	{
+		auto addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 33 FF 4C 8D 35 ? ? ? ? 89 BD", false).Get();
+
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ? 45 33 F6 48 8D").Get(); // 22.30 & 23.40
+
+		return addr;
+	}
 
 	return 0;
 }
@@ -1861,7 +1943,17 @@ static inline uint64 FindCallPreReplication()
 	if (std::floor(Fortnite_Version) == 20)
 		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 56 41 57 48 83 EC 40 F6 41 58 30 48 8B EA 48 8B D9 40 B6 01").Get();
 	if (Fortnite_Version >= 21)
-		return Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 56 41 57 48 83 EC 40 F6 41 58 30 4C 8B F2").Get();
+	{
+		auto addr = Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 56 41 57 48 83 EC 40 F6 41 58 30 4C 8B F2", false).Get();
+	
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 8B C4 48 89 58 ? 48 89 70 ? 48 89 78 ? 4C 89 60 ? 55 41 56 41 57 48 8B EC 48 83 EC ? F6 41 ? ? 4C 8B FA 48 8B", false).Get(); // 22.30
+	
+		if (!addr)
+			addr = Memcury::Scanner::FindPattern("48 85 D2 0F 84 ? ? ? ? 48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 55 41 56 41 57 48 8B EC 48 83 EC 40 F6 41 58 30").Get(); // 23.40
+
+		return addr;
+	}
 
 	return 0;
 }

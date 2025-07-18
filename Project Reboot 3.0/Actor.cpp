@@ -178,8 +178,12 @@ bool AActor::IsActorBeingDestroyed()
 
 bool AActor::IsNetStartup()
 {
-	static auto bNetStartupOffset = GetOffset("bNetStartup");
-	static auto bNetStartupFieldMask = GetFieldMask(GetProperty("bNetStartup"));
+	static auto bNetStartupOffset = GetOffset("bNetStartup", false) == -1
+		? GetOffset("bNetTemporary") // same bitfield, needed because bNetStartup is unreflected later on
+		: GetOffset("bNetStartup"); 
+	static auto bNetStartupFieldMask = GetProperty("bNetStartup", false) 
+		? GetFieldMask(GetProperty("bNetStartup"))
+		: GetFieldMask(GetProperty("bNetTemporary")) * 2; // get the next one
 	return ReadBitfieldValue(bNetStartupOffset, bNetStartupFieldMask);
 }
 
