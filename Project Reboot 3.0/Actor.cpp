@@ -187,6 +187,15 @@ bool AActor::IsNetStartup()
 	return ReadBitfieldValue(bNetStartupOffset, bNetStartupFieldMask);
 }
 
+
+bool AActor::DoesReplicate()
+{
+	static auto bReplicatesOffset = GetOffset("bReplicates");
+	static auto bReplicatesFieldMask = GetFieldMask(GetProperty("bReplicates"));
+	return ReadBitfieldValue(bReplicatesOffset, bReplicatesFieldMask);
+}
+
+
 void AActor::SetOwner(AActor* Owner)
 {
 	static auto SetOwnerFn = FindObject<UFunction>(L"/Script/Engine.Actor.SetOwner");
@@ -201,7 +210,8 @@ void AActor::ForceNetUpdate()
 
 bool AActor::IsNetStartupActor()
 {
-	return IsNetStartup(); // The implementation on this function depends on the version.
+	// bNetStartup || (!bActorInitialized && !bActorSeamlessTraveled && bNetLoadOnClient && GetLevel() && !GetLevel()->bAlreadyInitializedNetworkActors);
+	return IsNetStartup(); // ^^ The implementation on this function depends on the version.
 }
 
 bool AActor::IsPendingKillPending()

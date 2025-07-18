@@ -152,7 +152,7 @@ inline __int64 GetFunctionIdxOrPtr(UFunction* Function, bool bBreakWhenHitRet = 
 
     auto NativeAddr = __int64(Function->GetFunc());
 
-    LOG_INFO(LogDev, "Getting name!")
+    LOG_INFO(LogDev, "[GetFunctionIdxOrPtr] Getting name!")
 
     auto FuncName = Function->GetName();
 

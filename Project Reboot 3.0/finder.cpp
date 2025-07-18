@@ -48,13 +48,20 @@ uint64 FindGIsClient()
 {
 	// if (Fortnite_Version >= 19) return 0;
 
-	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering");
+	auto Addr = Memcury::Scanner::FindStringRef(L"AllowCommandletRendering", false);
 
 	if (!Addr.Get()) // pretty sure only 22+ since the string is split (we could maybe try just searching without the A?)
 	{
+		// Looking for commandlet class
+
 		if (Fortnite_Version == 22.3)
 		{
 			// return __int64(GetModuleHandleW(0)) + 0xDCE9DFA;
+		}
+
+		if (Fortnite_Version == 23.5)
+		{
+			// return __int64(GetModuleHandleW(0)) + 0xEBD8A4C;
 		}
 
 		LOG_ERROR(LogDev, "[FindGIsClient] Failed to find AllowCommandletRendering! Returning 0");
@@ -190,7 +197,7 @@ uint64 FindGetPlayerViewpoint()
 
 	uint64 FailedToSpawnPawnAddr = 0;
 
-	auto FailedToSpawnPawnStrRefAddr = Memcury::Scanner::FindStringRef(L"%s failed to spawn a pawn", true, 0, Fortnite_Version >= 19).Get();
+	auto FailedToSpawnPawnStrRefAddr = Memcury::Scanner::FindStringRef(L"%s failed to spawn a pawn", true, 0, Fortnite_Version >= 19 && Fortnite_Version < 24).Get();
 
 	if (!FailedToSpawnPawnStrRefAddr)
 	{

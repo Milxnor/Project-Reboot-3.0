@@ -6,6 +6,7 @@
 #include "Rotator.h"
 #include "Actor.h"
 #include "GameInstance.h"
+#include "Array.h"
 
 struct FNetworkNotify
 {
@@ -220,6 +221,12 @@ public:
 	{
 		static auto GameStateOffset = GetOffset("GameState");
 		return this->Get<class AGameState*>(GameStateOffset);
+	}
+
+	TArray<class ULevelStreaming*>& GetStreamingLevels()
+	{
+		static auto StreamingLevelsOffset = GetOffset("StreamingLevels");
+		return this->Get<TArray<class ULevelStreaming*>>(StreamingLevelsOffset);
 	}
 
 	class UNetDriver*& GetNetDriver()

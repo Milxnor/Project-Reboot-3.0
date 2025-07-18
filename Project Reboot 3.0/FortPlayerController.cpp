@@ -1332,7 +1332,17 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		*(bool*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::bDBNO) = DeadPawn->IsDBNO();
 		*(uint8*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathCause) = DeathCause;
-		*(AActor**)(__int64(DeathInfo) + MemberOffsets::DeathInfo::FinisherOrDowner) = KillerPlayerState ? KillerPlayerState : DeadPlayerState;
+
+		auto FinisherOrDowner = KillerPlayerState ? KillerPlayerState : DeadPlayerState;;
+
+		if (MemberOffsets::DeathInfo::bIsWeakFinisherOrDowner)
+		{
+			TWeakObjectPtr<AActor> WeakFinisherOrDowner{};
+			WeakFinisherOrDowner.ObjectIndex = FinisherOrDowner->InternalIndex;
+			WeakFinisherOrDowner.ObjectSerialNumber = GetItemByIndex(FinisherOrDowner->InternalIndex)->SerialNumber;
+		}
+		else
+			*(AActor**)(__int64(DeathInfo) + MemberOffsets::DeathInfo::FinisherOrDowner) = FinisherOrDowner;
 
 		if (MemberOffsets::DeathInfo::DeathLocation != -1)
 			*(FVector*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathLocation) = DeathLocation;

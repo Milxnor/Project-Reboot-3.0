@@ -89,6 +89,8 @@ namespace Addresses
 
 namespace Offsets
 {
+	extern inline uint64 PropName = 0;
+	extern inline uint64 Next = 0;
 	extern inline uint64 Func = 0;
 	extern inline uint64 PropertiesSize = 0;
 	extern inline uint64 Children = 0;

@@ -12,6 +12,17 @@
 #include "bots.h"
 #include "gui.h"
 
+enum class EChannelCloseReason : uint8
+{
+	Destroyed,
+	Dormancy,
+	LevelUnloaded,
+	Relevancy,
+	TearOff,
+	/* reserved */
+	MAX = 15		// this value is used for serialization, modifying it may require a network version change
+};
+
 FNetworkObjectList& UNetDriver::GetNetworkObjectList()
 {
 	return *(*(TSharedPtr<FNetworkObjectList>*)(__int64(this) + Offsets::NetworkObjectList));
@@ -225,7 +236,7 @@ void UNetDriver::ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObj
 
 			static auto NetDormancyOffset = Actor->GetOffset("NetDormancy");
 
-			if (Actor->Get<ENetDormancy>(NetDormancyOffset) == ENetDormancy::DORM_Initial && Actor->IsNetStartupActor()) // IsDormInitialStartupActor
+			if (Actor->Get<ENetDormancy>(NetDormancyOffset) == ENetDormancy::DORM_Initial && Actor->IsNetStartupActor()) // IsDormInitialStartupActor 
 			{
 				continue;
 			}
@@ -287,6 +298,9 @@ void UNetDriver::ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObj
 		for (int i = 0; i < Actors.Num(); ++i)
 		{
 			auto Actor = Actors.at(i);
+
+			if (!Actor->DoesReplicate())
+				continue;
 
 			if (Actor->IsPendingKillPending())
 				// if (Actor->IsPendingKill())
@@ -581,7 +595,7 @@ int32 UNetDriver::ServerReplicateActors()
 	++(*(int*)(__int64(this) + Offsets::ReplicationFrame));
 
 	const int32 NumClientsToTick = ServerReplicateActors_PrepConnections(this);
-
+	// LOG_INFO(LogDev, "NumClientsToTick: {}", NumClientsToTick);
 	if (NumClientsToTick == 0)
 	{
 		// No connections are ready this frame
@@ -613,7 +627,7 @@ int32 UNetDriver::ServerReplicateActors()
 
 	ServerReplicateActors_BuildConsiderList(ConsiderList, ServerTickTime);
 
-	// LOG_INFO(LogReplication, "Considering {} actors.", ConsiderList.size());
+	LOG_INFO(LogReplication, "Considering {} actors.", ConsiderList.size());
 
 	static UChannel* (*CreateChannel)(UNetConnection*, int, bool, int32_t) = decltype(CreateChannel)(Addresses::CreateChannel);
 	static __int64 (*ReplicateActor)(UActorChannel*) = decltype(ReplicateActor)(Addresses::ReplicateActor);
@@ -782,30 +796,44 @@ int32 UNetDriver::ServerReplicateActors()
 			if (Addresses::ActorChannelClose && Offsets::IsNetRelevantFor)
 			{
 				static void (*ActorChannelClose)(UActorChannel*) = decltype(ActorChannelClose)(Addresses::ActorChannelClose);
+				static void (*ActorChannelCloseParams)(UActorChannel*, EChannelCloseReason) = decltype(ActorChannelCloseParams)(Addresses::ActorChannelClose);
 
-				if (!Actor->IsAlwaysRelevant() && !Actor->UsesOwnerRelevancy() && !Actor->IsOnlyRelevantToOwner())
+				if (!Actor->IsAlwaysRelevant())
 				{
-					if (Connection && Connection->GetViewTarget())
+					if (!Actor->UsesOwnerRelevancy() && !Actor->IsOnlyRelevantToOwner())
 					{
-						auto Viewer = Connection->GetViewTarget();
-						auto Loc = Viewer->GetActorLocation();
-
-						if (!IsActorRelevantToConnection(Actor, ConnectionViewers))
+						if (auto Viewer = Connection->GetViewTarget())
 						{
-							// LOG_INFO(LogReplication, "Actor is not relevant!");
+							auto Loc = Viewer->GetActorLocation();
 
-							if (Channel)
-								ActorChannelClose(Channel);
+							if (!IsActorRelevantToConnection(Actor, ConnectionViewers))
+							{
+								// LOG_INFO(LogReplication, "Actor is not relevant!");
 
-							continue;
+								if (Channel)
+								{
+									// can we just call yes
+									if (Fortnite_Version > 20)
+										ActorChannelCloseParams(Channel, EChannelCloseReason::Relevancy);
+									else
+										ActorChannelClose(Channel);
+								}
+
+								continue;
+							}
 						}
+					}
+					else
+					{
+						// TODO ?
 					}
 				}
 			}
 
 			if (!Channel)
 			{
-				if (Actor->IsA(APlayerController::StaticClass()) && Actor != Connection->GetPlayerController()) // isnetrelevantfor should handle this iirc
+				if (!Offsets::IsNetRelevantFor 
+					&& Actor->IsA(APlayerController::StaticClass()) && Actor != Connection->GetPlayerController()) // isnetrelevantfor should handle this iirc
 					continue;
 
 				if (bLevelInitializedForActor)

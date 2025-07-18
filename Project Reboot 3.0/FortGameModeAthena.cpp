@@ -184,7 +184,7 @@ void AFortGameModeAthena::StartAircraftPhase()
 	if (Addresses::StartAircraftPhase)
 	{
 		static void (*StartAircraftPhaseOriginal)(AFortGameModeAthena*, bool bDoNotSpawnAircraft) = decltype(StartAircraftPhaseOriginal)(Addresses::StartAircraftPhase);
-		StartAircraftPhaseOriginal(this, false); // love the double negative fortnite
+		StartAircraftPhaseOriginal(this, false); // love the double negative Fortnite
 	}
 	else
 	{
@@ -1470,6 +1470,29 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 			SpawnIsland_FloorLoot_Actors.Free();
 			BRIsland_FloorLoot_Actors.Free();
+
+#if 0
+			if (Fortnite_Version >= 23) // Partitioning real
+			{
+				auto& StreamingLevels = GetWorld()->GetStreamingLevels();
+
+				for (int i = 0; i < StreamingLevels.Num(); ++i)
+				{
+					auto StreamingLevel = StreamingLevels.At(i);
+
+					static auto SetIsRequestingUnloadAndRemovalFn = FindObject<UFunction>(L"/Script/Engine.LevelStreaming.SetIsRequestingUnloadAndRemoval");
+					static auto SetShouldBeLoadedFn = FindObject<UFunction>(L"/Script/Engine.LevelStreaming.SetShouldBeLoaded");
+					static auto SetShouldBeVisibleFn = FindObject<UFunction>(L"/Script/Engine.LevelStreaming.SetShouldBeVisible");
+
+					bool bTrue = true;
+					bool bFalse = false;
+
+					StreamingLevel->ProcessEvent(SetShouldBeLoadedFn, &bTrue);
+					StreamingLevel->ProcessEvent(SetShouldBeVisibleFn, &bTrue);
+					StreamingLevel->ProcessEvent(SetIsRequestingUnloadAndRemovalFn, &bFalse);
+				}
+			}
+#endif
 
 			LOG_INFO(LogDev, "Spawned loot!");
 #endif

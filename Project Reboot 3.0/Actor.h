@@ -36,6 +36,7 @@ public:
 	float GetDistanceTo(AActor* OtherActor);
 	struct FRotator GetActorRotation();
 	void FlushNetDormancy();
+	bool DoesReplicate();
 	bool TeleportTo(const FVector& DestLocation, const FRotator& DestRotation);
 	bool IsActorBeingDestroyed();
 	bool IsNetStartup();

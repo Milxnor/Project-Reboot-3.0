@@ -665,6 +665,15 @@ UObject* GetAIDirectorHook()
     return GameMode->Get(AIDirectorOffset);
 }
 
+DWORD WINAPI ClientThread(LPVOID)
+{
+    while (true)
+    {
+
+        return 0;
+    }
+}
+
 void ChangeLevels()
 {
     constexpr bool bUseRemovePlayer = false;
@@ -782,13 +791,40 @@ void ChangeLevels()
 
 static inline char (*oFunc)(__int64) = nullptr;
 static inline __int64 (*func2)(__int64) = nullptr;
+static inline int persi = 0x0;
 char Func(__int64 a1)
 {
-    if (auto r = func2(a1))
+    __int64 r = 0;
+    if (Fortnite_Version >= 24)
+    {
+        if (a1)
+        {
+            auto v1 = a1;
+
+            while ((*(uint8_t*)(__int64(v1) + 8) & 0x30) == 0)
+            {
+                v1 = *(__int64*)(v1 + 32);
+                if (!v1)
+                    goto LABEL_4;
+            }
+            r = 0LL;
+        }
+        else
+        {
+        LABEL_4:
+            r = *(__int64*)(a1 + 32);
+        }
+    }
+    else
+    {
+        r = func2(a1);
+    }
+
+    if (r)
     {
         if (auto v5 = *(__int64*)(__int64(r) + 0x38))
         {
-            auto persisntelevle = *(__int64*)(__int64(v5) + 0x98);
+            auto persisntelevle = *(__int64*)(__int64(v5) + persi);
             if (!persisntelevle)
             {
                 LOG_INFO(LogDev, "tralaleo trallala");
@@ -804,8 +840,21 @@ void ApplyNullAndRetTrues()
 {
     if (Fortnite_Version >= 23)
     {
-        auto sig = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B F8 48 8B 83 ? ? ? ? 48 85 C0").Get(); // 23.40
-        func2 = decltype(func2)(Memcury::Scanner::FindPattern("48 83 EC 28 BA ? ? ? ? 4C 8B C1 E8 ? ? ? ? 84 C0 74 04 33 C0 EB 04 49 8B 40 20").Get());
+        persi = 0x98;
+
+        __int64 sig = 0;
+
+        if (Fortnite_Version >= 24)
+        {
+            persi = 0xA0;
+            sig = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B C1 48 85 C9 74 0F F6 40 08 30 75 61 48 8B 40 20 48 85 C0 75 F1 48 8B 59 20 48 8B 81").Get(); // 24.40
+        }
+        else
+        {
+            func2 = decltype(func2)(Memcury::Scanner::FindPattern("48 83 EC 28 BA ? ? ? ? 4C 8B C1 E8 ? ? ? ? 84 C0 74 04 33 C0 EB 04 49 8B 40 20").Get());
+            sig = Memcury::Scanner::FindPattern("48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B F8 48 8B 83 ? ? ? ? 48 85 C0").Get(); // 23.40
+        }
+
         Hooking::MinHook::Hook((PVOID)sig, Func, (void**)&oFunc);
     }
 
@@ -845,6 +894,13 @@ void ApplyNullAndRetTrues()
         MH_CreateHook((PVOID)func, ReturnTrueHook, nullptr);
         MH_EnableHook((PVOID)func);
     }
+}
+
+bool (*ReplicateActorOriginal)(UActorChannel* Channel) = nullptr;
+bool ReplicateActorHook(UActorChannel* Channel)
+{
+    LOG_INFO(LogDev, "[ReplicateActorHook] Replicating: {}", Channel->GetActor()->GetFullName());
+    return ReplicateActorOriginal(Channel);
 }
 
 DWORD WINAPI Main(LPVOID)
@@ -947,6 +1003,20 @@ DWORD WINAPI Main(LPVOID)
     if (Fortnite_Version >= 20 || Fortnite_Version == 12.00)
         ApplyNullAndRetTrues();
 
+    auto ObjectNum = ChunkedObjects ? ChunkedObjects->Num() : UnchunkedObjects ? UnchunkedObjects->Num() : 0;
+
+    std::ofstream obj("ObjectsDump.txt");
+
+    for (int i = 0; i < ObjectNum; ++i)
+    {
+        auto CurrentObject = GetObjectByIndex(i);
+
+        if (!CurrentObject)
+            continue;
+
+        obj << CurrentObject->GetFullName() << '\n';
+    }
+
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetPackageMap VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNetTraffic VeryVerbose", nullptr);
     // UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), L"log LogNet VeryVerbose", nullptr);
@@ -976,6 +1046,8 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::NoMCP, (PVOID)NoMCPHook, nullptr);
     Hooking::MinHook::Hook((PVOID)Addresses::GetNetMode, (PVOID)GetNetModeHook, nullptr);
     Hooking::MinHook::Hook((PVOID)Addresses::DispatchRequest, (PVOID)DispatchRequestHook, (PVOID*)&DispatchRequestOriginal);
+
+    Hooking::MinHook::Hook((PVOID)Addresses::ReplicateActor, (PVOID)ReplicateActorHook, (PVOID*)&ReplicateActorOriginal);
 
     GSRandSeed = FGenericPlatformTime::Cycles();
     ReplicationRandStream = FRandomStream(FGenericPlatformTime::Cycles());
@@ -1195,6 +1267,9 @@ DWORD WINAPI Main(LPVOID)
 
         Hooking::MinHook::Hook((PVOID)ApplyHomebaseEffectsOnPlayerSetupAddr, ApplyHomebaseEffectsOnPlayerSetupHook, (PVOID*)&ApplyHomebaseEffectsOnPlayerSetupOriginal);
     }
+
+    Hooking::MinHook::Hook(FindObject(L"/Script/FortniteGame.Default__FortAthenaVehicleSpawner"), FindObject<UFunction>(L"/Script/FortniteGame.FortAthenaVehicleSpawner.SpawnVehicle"),
+        AFortAthenaVehicleSpawner::SpawnVehicleHook, nullptr, false);
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameMode.ReadyToStartMatch"), AFortGameModeAthena::Athena_ReadyToStartMatchHook,
        (PVOID*)&AFortGameModeAthena::Athena_ReadyToStartMatchOriginal, false, false, true);
@@ -1554,9 +1629,6 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(InventoryManagementLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.InventoryManagementLibrary.SwapItems"),
         UInventoryManagementLibrary::SwapItemsHook, (PVOID*)&UInventoryManagementLibrary::SwapItemsOriginal, false, true);
 
-    Hooking::MinHook::Hook(FindObject(L"/Script/FortniteGame.Default__FortAthenaVehicleSpawner"), FindObject<UFunction>(L"/Script/FortniteGame.FortAthenaVehicleSpawner.SpawnVehicle"),
-        AFortAthenaVehicleSpawner::SpawnVehicleHook, nullptr, false);
-
     static auto ServerHandlePickupInfoFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerPawn.ServerHandlePickupInfo");
 
     if (ServerHandlePickupInfoFn)
@@ -1574,6 +1646,7 @@ DWORD WINAPI Main(LPVOID)
     static auto PredictionKeyStruct = FindObject<UStruct>(L"/Script/GameplayAbilities.PredictionKey");
     static auto PredictionKeySize = PredictionKeyStruct->GetPropertiesSize();
 
+    if (Addresses::InternalTryActivateAbility)
     {
         int InternalServerTryActivateAbilityIndex = 0;
 
@@ -1714,6 +1787,7 @@ DWORD WINAPI Main(LPVOID)
         MemberOffsets::DeathInfo::Distance = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "Distance", false);
         MemberOffsets::DeathInfo::DeathTags = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "DeathTags", false);
         MemberOffsets::DeathInfo::DeathLocation = FindOffsetStruct("/Script/FortniteGame.DeathInfo", "DeathLocation", false);
+        MemberOffsets::DeathInfo::bIsWeakFinisherOrDowner = false;
 
         MemberOffsets::DeathReport::Tags = FindOffsetStruct("/Script/FortniteGame.FortPlayerDeathReport", "Tags");
         MemberOffsets::DeathReport::KillerPawn = FindOffsetStruct("/Script/FortniteGame.FortPlayerDeathReport", "KillerPawn");

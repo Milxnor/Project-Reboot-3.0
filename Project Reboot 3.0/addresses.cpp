@@ -258,9 +258,6 @@ void Addresses::FindAll()
 	LOG_INFO(LogDev, "Finding StepExplicitProperty");
 	Addresses::FrameStepExplicitProperty = FindStepExplicitProperty();
 
-	LOG_INFO(LogDev, "Finding Free");
-	Addresses::Free = FindFree();
-
 	LOG_INFO(LogDev, "Finding ClearAbility");
 	Addresses::ClearAbility = FindClearAbility();
 
@@ -386,7 +383,6 @@ void Addresses::Print()
 	LOG_INFO(LogDev, "RemoveFromAlivePlayers: 0x{:x}", RemoveFromAlivePlayers - Base);
 	LOG_INFO(LogDev, "ActorChannelClose: 0x{:x}", ActorChannelClose - Base);
 	LOG_INFO(LogDev, "FrameStepExplicitProperty: 0x{:x}", FrameStepExplicitProperty - Base);
-	LOG_INFO(LogDev, "Free: 0x{:x}", Free - Base);
 	LOG_INFO(LogDev, "ClearAbility: 0x{:x}", ClearAbility - Base);
 	LOG_INFO(LogDev, "ApplyGadgetData: 0x{:x}", ApplyGadgetData - Base);
 	LOG_INFO(LogDev, "RemoveGadgetData: 0x{:x}", RemoveGadgetData - Base);
@@ -412,7 +408,8 @@ void Addresses::Print()
 
 void Offsets::FindAll()
 {
-	Offsets::Offset_Internal = Fortnite_Version >= 12.10 && std::floor(Fortnite_Version) < 20 ? 0x4C : 0x44;
+	Offsets::Offset_Internal = Fortnite_Version >= 24 ? 0x3C 
+		: Fortnite_Version >= 12.10 && std::floor(Fortnite_Version) < 20 ? 0x4C : 0x44;
 	Offsets::SuperStruct = Engine_Version >= 422 ? 0x40 : 0x30;
 	Offsets::Children = Fortnite_Version >= 12.10 ? 0x50 : Offsets::SuperStruct + 8;
 	Offsets::PropertiesSize = Offsets::Children + 8;
@@ -520,11 +517,18 @@ void Offsets::FindAll()
 	}
 	if (Fortnite_Version >= 23)
 	{
-		Offsets::ReplicationFrame = 0x440; // checked only on 23.40
+		Offsets::ReplicationFrame = 0x440; // checked on 23.40 & 23.50
 	}
 
 	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();
 	Offsets::Script = Offsets::Children + 8 + 4 + 4;
+
+	Offsets::PropName = Fortnite_Version >= 12.10 
+		? Fortnite_Version >= 24 ? 0x20 
+		: 0x28 : 0x18;
+	Offsets::Next = Fortnite_Version >= 12.10 
+		? Fortnite_Version >= 24 ? 0x18 
+		: 0x20 : 0x28;
 }
 
 void Offsets::Print()

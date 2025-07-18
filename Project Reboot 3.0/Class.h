@@ -21,18 +21,12 @@ struct UFieldPadding : UObject
 template <typename PropertyType = void>
 static inline PropertyType* GetNext(void* Field)
 {
-	return Fortnite_Version >= 12.10 ? *(PropertyType**)(__int64(Field) + 0x20) : ((UField*)Field)->Next;
+	return *(PropertyType**)(__int64(Field) + Offsets::Next);
 }
 
 static inline FName* GetFNameOfProp(void* Property)
 {
-	FName* NamePrivate = nullptr;
-
-	if (Fortnite_Version >= 12.10)
-		NamePrivate = (FName*)(__int64(Property) + 0x28);
-	else
-		NamePrivate = &((UField*)Property)->NamePrivate;
-
+	FName* NamePrivate = (FName*)(__int64(Property) + Offsets::PropName);
 	return NamePrivate;
 }
 
