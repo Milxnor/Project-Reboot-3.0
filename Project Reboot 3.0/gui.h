@@ -116,7 +116,7 @@ static inline void SetIsLategame(bool Value)
 
 static inline bool HasAnyCalendarModification()
 {
-	return Calendar::HasSnowModification() || Calendar::HasNYE() || std::floor(Fortnite_Version) == 13;
+	return Calendar::HasSnowModification() || Calendar::HasNYE() || Fortnite_Version == 8.40 || std::floor(Fortnite_Version) == 13;
 }
 
 static inline void Restart() // todo move?
@@ -953,6 +953,66 @@ static inline void MainUI()
 				if (ImGui::Button("Start New Years Eve Event"))
 				{
 					Calendar::StartNYE();
+				}
+			}
+
+			/*
+			 * Notes:
+			 * 
+			 * Dopey (8.?? to 8.??) mining stones
+			 * 
+			 * Rune events:
+			 * Sleepy (8.40) hit the rune and it moves
+			 * Leaky  (8.40) rotate 3 beams onto the rune
+			 * Sneezy (8.50) dance for progress
+			*/
+			if (Fortnite_Version == 8.40)
+			{
+				static UObject* SAR = FindObject("/Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations:PersistentLevel.BP_SnowAlwaysRelevant_2");
+				if (SAR)
+				{
+					static bool LoadedSleepy = false;
+					if (!LoadedSleepy && ImGui::Button("Load Sleepy"))
+					{
+						SAR->ProcessEvent(SAR->FindFunction("LoadSleepy"));
+
+						LoadedSleepy = true;
+
+						UObject* SleepyProp = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_Prop_0");
+						UObject* SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_M_2");
+
+						while (!SleepyProp && !SleepyM)
+						{
+							SleepyProp = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_Prop_0");
+							SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_M_2");
+						}
+
+						Hooking::MinHook::Hook(SleepyProp, SleepyProp->FindFunction("OnDamageServer"), Calendar::OnDamageServerSleepyHook, nullptr, false, true);
+						int FiveHundred = 500;
+						*SleepyM->GetPtr<int>("MaxHealth") = 500;
+						SleepyM->ProcessEvent(SleepyM->FindFunction("RootSetProgress"), &FiveHundred);
+
+						LOG_INFO(LogDev, "Sleepy loaded!");
+					}
+
+					if (LoadedSleepy)
+					{
+						static int SleepyProgress = 0;
+						ImGui::SliderInt("Sleepy Progress", &SleepyProgress, 0, 1000);
+						if (ImGui::Button("Move Sleepy"))
+						{
+							static UObject* SleepyM = FindObject("/Game/Athena/Maps/Test/S8/SleepyMap.SleepyMap.PersistentLevel.BP_Sleepy_M_2");
+							static auto ProgressOffset = SleepyM->GetOffset("Progress");
+							*SleepyM->GetPtr<float>(ProgressOffset) = (float)SleepyProgress * (1.0f / 1000.0f);
+							static int EntryPoint = 929;
+							static auto ExecUbergraph = SleepyM->FindFunction("ExecuteUbergraph_BP_Sleepy_M");
+							SleepyM->ProcessEvent(ExecUbergraph, &EntryPoint);
+						}
+					}
+				}
+				else
+				{
+					ImGui::Text("Failed to find BP_SnowAlwaysRelevant_C");
 				}
 			}
 
