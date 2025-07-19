@@ -346,15 +346,20 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 
 	if (auto DecoItemDefinition = Cast<UFortDecoItemDefinition>(ItemDefinition))
 	{
-		Pawn->PickUpActor(nullptr, DecoItemDefinition); // todo check ret value? // I checked on 1.7.2 and it only returns true if the new weapon is a FortDecoTool
-		Pawn->GetCurrentWeapon()->GetItemEntryGuid() = ItemGuid;
-
-		static auto FortDecoTool_ContextTrapStaticClass = FindObject<UClass>(L"/Script/FortniteGame.FortDecoTool_ContextTrap");
-
-		if (Pawn->GetCurrentWeapon()->IsA(FortDecoTool_ContextTrapStaticClass))
+		if (Fortnite_Version < 18) // gg
 		{
-			static auto ContextTrapItemDefinitionOffset = Pawn->GetCurrentWeapon()->GetOffset("ContextTrapItemDefinition");
-			Pawn->GetCurrentWeapon()->Get<UObject*>(ContextTrapItemDefinitionOffset) = DecoItemDefinition;
+			if (Pawn->PickUpActor(nullptr, DecoItemDefinition))
+			{
+				Pawn->GetCurrentWeapon()->GetItemEntryGuid() = ItemGuid;
+
+				static auto FortDecoTool_ContextTrapStaticClass = FindObject<UClass>(L"/Script/FortniteGame.FortDecoTool_ContextTrap");
+
+				if (Pawn->GetCurrentWeapon()->IsA(FortDecoTool_ContextTrapStaticClass))
+				{
+					static auto ContextTrapItemDefinitionOffset = Pawn->GetCurrentWeapon()->GetOffset("ContextTrapItemDefinition");
+					Pawn->GetCurrentWeapon()->Get<UObject*>(ContextTrapItemDefinitionOffset) = DecoItemDefinition;
+				}
+			}
 		}
 
 		return;
