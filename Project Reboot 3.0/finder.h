@@ -314,6 +314,8 @@ static inline uint64 FindKickPlayer()
 {
 	if (Engine_Version == 416) // <1.8
 		return Memcury::Scanner::FindPattern("40 53 56 48 81 EC ? ? ? ? 48 8B DA 48 8B F1 E8 ? ? ? ? 48 8B 06 48 8B CE").Get(); // postlogin
+	if (Engine_Version == 419) // 1.11 & 2.4.2
+		return Memcury::Scanner::FindPattern("40 53 56 41 56 48 81 EC ? ? ? ? 45 33 F6 48 8B DA 44 89 B4 24 ? ? ? ? 48 8B F1 E8 ? ? ? ? 48 8B 06 48 8B CE FF 90 ? ? ? ? 48 8B 8B ? ? ? ? 48 85 C9 74").Get();
 	if (std::floor(Fortnite_Version) == 18)
 		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 48 89 70 10 48 89 78 18 4C 89 60 20 55 41 56 41 57 48 8B EC 48 83 EC 60 48 83 65 ? ? 4C 8B F2 83 65 E8 00 4C 8B E1 83 65 EC").Get();
 	if (std::floor(Fortnite_Version) == 19)
@@ -328,8 +330,10 @@ static inline uint64 FindKickPlayer()
 
 		return addr;
 	}
-	if (Engine_Version >= 422 && Fortnite_Version < 16)
-		return Memcury::Scanner::FindPattern("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC ? 49 8B F0 48 8B DA 48 85 D2").Get(); // checked 7.00, 8.00, 14.40, 15.50
+	if (std::floor(Fortnite_Version) == 21)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 45 33 ED 48 8B FA 41 8B DD 4C 8B").Get(); // checked 21.00
+	if (Fortnite_Version >= 6 && Fortnite_Version < 16)
+		return Memcury::Scanner::FindPattern("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC ? 49 8B F0 48 8B DA 48 85 D2").Get(); // checked 6.00, 6.21, 7.00, 8.00, 14.40, 15.50
 
 	uint64 Ret = 0;
 
