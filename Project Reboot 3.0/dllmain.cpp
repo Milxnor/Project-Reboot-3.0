@@ -903,7 +903,7 @@ bool ReplicateActorHook(UActorChannel* Channel)
     return ReplicateActorOriginal(Channel);
 }
 
-#define CLIENT_ONLY // only console reboot
+// #define CLIENT_ONLY // only console reboot
 
 DWORD WINAPI Main(LPVOID)
 {
@@ -943,7 +943,7 @@ DWORD WINAPI Main(LPVOID)
 
     bEnableRebooting = Addresses::RebootingDelegate && Addresses::FinishResurrection && Addresses::GetSquadIdForCurrentPlayer && false;
 
-#if 0 // CONSOLE ONLY (FOR CLIENT)
+#if CLIENT_ONLY // CONSOLE ONLY (FOR CLIENT)
     SetConsoleTitleA("Console");
 
     // Spawn Console unreal engine Gameviewport
@@ -1210,14 +1210,14 @@ nPnn
 
     if (Fortnite_Version != 22.4)
     {
-        auto matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? 01 7F 18 49 8D 4D D8 48 8B D6 E8 ? ? ? ? 48", false).Get();
+        auto matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? 01 7F 18 49 8D 4D D8 48 8B D6 E8 ? ? ? ? 48", false).Get(); // 1.11
 
         if (!matchmaking)
             matchmaking = Memcury::Scanner::FindPattern("83 7D 88 01 7F 0D 48 8B CE E8", false).Get();
         if (!matchmaking)
             matchmaking = Memcury::Scanner::FindPattern("83 BD ? ? ? ? ? 7F 18 49 8D 4D D8 48 8B D7 E8").Get(); // 4.20
 
-        bool bMatchmakingSupported = matchmaking && Engine_Version >= 420;
+        bool bMatchmakingSupported = matchmaking;
         int idx = 0;
 
         if (bMatchmakingSupported) // now check if it leads to the right place and where the jg is at
@@ -1242,7 +1242,8 @@ nPnn
             }
         }
 
-        LOG_INFO(LogMatchmaker, "Matchmaking will {}", (bMatchmakingSupported ? "be supported" : "not be supported"));
+        LOG_INFO(LogMatchmaker, "Matchmaking will {}", (Engine_Version >= 420 && bMatchmakingSupported // since tcp for most isnt supported we wont say
+            ? "be supported" : "not be supported"));
 
         if (bMatchmakingSupported)
         {

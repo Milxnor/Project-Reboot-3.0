@@ -328,7 +328,7 @@ static inline uint64 FindKickPlayer()
 
 		return addr;
 	}
-	if (Engine_Version >= 423 || Engine_Version <= 425) // && instead of || ??
+	if (Engine_Version >= 423 && Engine_Version <= 425)
 		return Memcury::Scanner::FindPattern("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC ? 49 8B F0 48 8B DA 48 85 D2").Get();
 
 	uint64 Ret = 0;
