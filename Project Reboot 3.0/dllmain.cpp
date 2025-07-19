@@ -1108,6 +1108,20 @@ nPnn
     }
     */
 
+    if (Fortnite_Version == 8.40)/*Fortnite_Version >= 8.40 && Fortnite_Version <= 8.51*/
+    {
+        auto TheFunc = (uint8*)FindObject<UFunction>("/Script/MeshNetwork.MeshNetworkSubsystem:GetMeshNetworkNodeType")->GetFunc();
+        for (int i = 0; i < 75; i++)
+        {
+            if (TheFunc[i] == 0xE8)
+            {
+                Hooking::MinHook::Hook((PVOID)(Memcury::Scanner(__int64(TheFunc) + i).RelativeOffset(1).Get()), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+            }
+        }
+
+        //Hooking::MinHook::Hook((PVOID)(__int64(GetModuleHandleW(0)) + 0x8BC450), (PVOID)GetMeshNetworkNodeTypeHook, nullptr);
+    }
+
     if (Fortnite_Version >= 16 && Fortnite_Version < 19)
     {
         // Bus crash (only needed if we are calling StartAircraftPhase on seperate thread I THINK) (sometimes)
@@ -1355,7 +1369,6 @@ nPnn
     // HookInstruction(Addresses::UpdateTrackedAttributesLea, (PVOID)AFortPlayerControllerAthena::UpdateTrackedAttributesHook, "/Script/Engine.PlayerController.EnableCheats", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
     // HookInstruction(Addresses::CombinePickupLea, (PVOID)AFortPickup::CombinePickupHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::LEA, FortPlayerControllerAthenaDefault);
    
-
     if (Fortnite_Version == 13.40)
     {
         // HookInstruction(__int64(GetModuleHandleW(0)) + 0x1FC835D, (PVOID)UFortAthenaAIBotCustomizationData::ApplyOverrideCharacterCustomizationHook, "/Script/Engine.PlayerController.SetVirtualJoystickVisibility", ERelativeOffsets::CALL, nullptr);
