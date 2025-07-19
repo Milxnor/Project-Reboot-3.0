@@ -837,8 +837,8 @@ int32 UNetDriver::ServerReplicateActors()
 
 			if (!Channel)
 			{
-				if (!Offsets::IsNetRelevantFor 
-					&& Actor->IsA(APlayerController::StaticClass()) && Actor != Connection->GetPlayerController()) // isnetrelevantfor should handle this iirc
+				if (// !Offsets::IsNetRelevantFor && 
+					Actor->IsA(APlayerController::StaticClass()) && Actor != Connection->GetPlayerController()) // isnetrelevantfor should handle this iirc
 					continue;
 
 				if (bLevelInitializedForActor)

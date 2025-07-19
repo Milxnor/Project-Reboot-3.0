@@ -88,10 +88,7 @@ struct PickupCreateData
 
 			if (bUseFMemoryRealloc)
 			{
-				static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(Addresses::Free);
-
-				if (FreeOriginal)
-					FreeOriginal(ItemEntry);
+				FMemory::Free(ItemEntry);
 			}
 			else
 			{

@@ -1203,6 +1203,8 @@ static inline uint64 FindGetInterfaceAddress()
 
 static inline uint64 FindCollectGarbage()
 {
+	if (Engine_Version == 416)
+		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 08 88 50 10 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A1").Get(); // 1.9
 	// return 0;
 
 	auto Addr = Memcury::Scanner::FindStringRef(L"STAT_CollectGarbageInternal");

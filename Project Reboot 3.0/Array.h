@@ -9,6 +9,11 @@
 struct FMemory
 {
 	static inline void* (*Realloc)(void* Original, SIZE_T Count, uint32_t Alignment /* = DEFAULT_ALIGNMENT */);
+
+	static void Free(void* Address)
+	{
+		Realloc(Address, 0, 0);
+	}
 };
 
 template <typename T = __int64>
@@ -330,7 +335,7 @@ public:
 		{
 			if (true)
 			{
-				static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(Addresses::Free);
+				static void (*FreeOriginal)(void* Original) = decltype(FreeOriginal)(0);
 
 				if (FreeOriginal)
 					FreeOriginal(Data);

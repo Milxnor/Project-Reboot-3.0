@@ -54,7 +54,6 @@ namespace Addresses
 	extern inline uint64 RemoveFromAlivePlayers = 0;
 	extern inline uint64 ActorChannelClose = 0;
 	extern inline uint64 FrameStepExplicitProperty = 0;
-	extern inline uint64 Free = 0;
 	extern inline uint64 ClearAbility = 0;
 	extern inline uint64 ApplyGadgetData = 0;
 	extern inline uint64 RemoveGadgetData = 0;
