@@ -628,6 +628,7 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 		std::vector<uint8_t> BytesToFind = Fortnite_Version < 6.3 ? std::vector<uint8_t>{ 0x40, 0x55 } : std::vector<uint8_t>{ 0x48, 0x89, 0x5C };
 
 		toNull.push_back(Memcury::Scanner::FindStringRef(L"Widget Class %s - Running Initialize On Archetype, %s.").ScanFor(BytesToFind, false).Get()); // Widget class
+		toNull.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 30 41 0F B6 F0 48 8D 15 ? ? ? ? 48 8B F9 41 B8").Get()); // Update Rich Presence
 	}
 
 	if (Engine_Version >= 422 

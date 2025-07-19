@@ -903,8 +903,11 @@ bool ReplicateActorHook(UActorChannel* Channel)
     return ReplicateActorOriginal(Channel);
 }
 
+#define CLIENT_ONLY // only console reboot
+
 DWORD WINAPI Main(LPVOID)
 {
+#ifndef CLIENT_ONLY
     InitLogger();
 
     std::cin.tie(0);
@@ -924,6 +927,8 @@ DWORD WINAPI Main(LPVOID)
     LOG_INFO(LogInit, "Initializing Project Reboot!");
     LOG_INFO(LogDev, "Built on {} {}", __DATE__, __TIME__);
 
+#endif 
+
     Addresses::SetupVersion();
 
     NumToSubtractFromSquadId = Engine_Version >= 424 ? 2 : Engine_Version >= 423 ? 3 : 0; // TODO: check this
@@ -938,10 +943,6 @@ DWORD WINAPI Main(LPVOID)
 
     bEnableRebooting = Addresses::RebootingDelegate && Addresses::FinishResurrection && Addresses::GetSquadIdForCurrentPlayer && false;
 
-    LOG_INFO(LogDev, "Fortnite_CL: {}", Fortnite_CL);
-    LOG_INFO(LogDev, "Fortnite_Version: {}", Fortnite_Version);
-    LOG_INFO(LogDev, "Engine_Version: {}", Engine_Version);
-
 #if 0 // CONSOLE ONLY (FOR CLIENT)
     SetConsoleTitleA("Console");
 
@@ -953,11 +954,13 @@ DWORD WINAPI Main(LPVOID)
 
     auto ViewportConsolePtr = GameViewport->GetPtr("ViewportConsole");
 	*ViewportConsolePtr = UGameplayStatics::SpawnObject(FindObject<UClass>(L"/Script/Engine.Console"), GameViewport);
-
-    LOG_INFO(LogDev, "Spawned Console! Exiting");
-
+nPnn
     return 0;
 #endif
+
+    LOG_INFO(LogDev, "Fortnite_CL: {}", Fortnite_CL);
+    LOG_INFO(LogDev, "Fortnite_Version: {}", Fortnite_Version);
+    LOG_INFO(LogDev, "Engine_Version: {}", Engine_Version);
 
 #ifdef ABOVE_S20
     if (Fortnite_Version < 20)
