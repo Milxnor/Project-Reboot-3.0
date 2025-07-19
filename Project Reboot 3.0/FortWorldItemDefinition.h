@@ -31,9 +31,11 @@ public:
 		return ReadBitfieldValue(bCanBeDroppedOffset, bCanBeDroppedFieldMask);
 	}
 
-	int& GetDropCount()
+	int/*&*/ GetDropCount()
 	{
-		static auto DropCountOffset = GetOffset("DropCount");
+		static auto DropCountOffset = GetOffset("DropCount", false);
+		if (DropCountOffset == -1)
+			return 1;
 		return Get<int>(DropCountOffset);
 	}
 

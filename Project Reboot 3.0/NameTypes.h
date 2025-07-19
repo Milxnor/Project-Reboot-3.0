@@ -46,14 +46,14 @@ struct FName
 	FORCEINLINE bool operator==(const FName& Other) const // HMM??
 	{
 #if WITH_CASE_PRESERVING_NAME
-		return GetComparisonIndexFast() == Other.GetComparisonIndexFast() && GetNumber() == Other.GetNumber();
+		return GetComparisonIndexFast() == Other.GetComparisonIndexFast(); // && GetNumber() == Other.GetNumber();
 #else
 		// static_assert(sizeof(CompositeComparisonValue) == sizeof(*this), "ComparisonValue does not cover the entire FName state");
 		// return CompositeComparisonValue == Other.CompositeComparisonValue;
 #endif
 	}
 
-	int32 Compare(const FName& Other) const;
+	// int32 Compare(const FName& Other) const;
 
 	/* FORCEINLINE bool operator<(const FName& Other) const
 	{

@@ -1904,15 +1904,22 @@ static inline uint64 FindReplicateActor()
 		return Memcury::Scanner::FindPattern("48 8B C4 48 89 58 10 48 89 70 18 48 89 78 20 55 41 54 41 55 41 56 41 57 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 4C 8D 69 68").Get();
 	if (Fortnite_Version >= 21)
 	{
-		auto strRef = Memcury::Scanner::FindStringRef(L"STAT_NetReplicateActorTime");
-		return strRef.ScanFor({ 0x48, 0x8B, 0xC4 }, false).Get();
+		auto Addrr = Memcury::Scanner::FindStringRef(L"STAT_NetReplicateActorTime").Get();
 
-		auto addr = Memcury::Scanner::FindPattern("48 8B C4 48 89 58 ? 48 89 70 ? 48 89 78 ? 55 41 54 41 55 41 56 41 57 48 8D A8 ? ? ? ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 45 33 FF 4C 8D ? ? 44 38 3D", false).Get(); // 22.3
+		for (int i = 0; i < 1000; i++)
+		{
+			if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x40 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x55) // 24.40
+			{
+				return Addrr - i;
+			}
 
-		if (!addr)
-			addr = Memcury::Scanner::FindPattern("40 55 41 54 41 55 41 56 41 57 48 81 EC ? ? ? ? 48 8D 6C 24 ? 48 89 9D ? ? ? ? 48 89 B5 ? ? ? ? 48 89 BD ? ? ? ? 48 8B 05 ? ? ? ? 48 33 C5 48 89 85 ? ? ? ? 45 33 E4 4C 8D 69 68 44 38 25 ? ? ? ? 48 8D 05 ? ? ? ? 48 8B F9 49 8B 4D").Get(); // 23.40
+			if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x8B && *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0xC4)
+			{
+				return Addrr - i;
+			}
+		}
 
-		return addr;
+		return 0;
 	}
 
 	return 0;

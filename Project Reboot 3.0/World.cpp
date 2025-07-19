@@ -57,8 +57,7 @@ void UWorld::Listen()
 		return;
 	}
 
-	static auto NetDriverNameOffset = NewNetDriver->GetOffset("NetDriverName");
-	NewNetDriver->Get<FName>(NetDriverNameOffset) = GameNetDriverName;
+	NewNetDriver->GetNetDriverName() = GameNetDriverName;
 
 	static auto World_NetDriverOffset = GetWorld()->GetOffset("NetDriver");
 	GetWorld()->Get(World_NetDriverOffset) = NewNetDriver;

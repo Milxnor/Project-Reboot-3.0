@@ -308,6 +308,12 @@ AActor* AActor::GetClosestActor(UClass* ActorClass, float DistMax, std::function
 	return TargetActor;
 }
 
+FName& AActor::GetNetDriverName()
+{
+	static auto NetDriverNameOffset = GetOffset("NetDriverName");
+	return Get<FName>(NetDriverNameOffset);
+}
+
 bool AActor::IsAlwaysRelevant()
 {
 	static auto bAlwaysRelevantOffset = GetOffset("bAlwaysRelevant");

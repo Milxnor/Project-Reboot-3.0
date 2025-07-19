@@ -22,6 +22,7 @@ std::string FName::ToString() const
 	return Str;
 }
 
+#if 0
 int32 FName::Compare(const FName& Other) const
 {
 	if (GetComparisonIndexFast() == Other.GetComparisonIndexFast())
@@ -65,6 +66,7 @@ int32 FName::Compare(const FName& Other) const
 
 	return GetComparisonIndexFast() < Other.GetComparisonIndexFast();
 }
+#endif
 
 std::string FName::ToString()
 {

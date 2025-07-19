@@ -305,7 +305,7 @@ void UNetDriver::ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObj
 			if (Actor->IsPendingKillPending())
 				// if (Actor->IsPendingKill())
 			{
-				ActorsToRemove.push_back(Actor);
+				// ActorsToRemove.push_back(Actor);
 				continue;
 			}
 
@@ -313,11 +313,16 @@ void UNetDriver::ServerReplicateActors_BuildConsiderList(std::vector<FNetworkObj
 
 			if (Actor->Get<ENetRole>(RemoteRoleOffset) == ENetRole::ROLE_None)
 			{
-				ActorsToRemove.push_back(Actor);
+				// ActorsToRemove.push_back(Actor);
 				continue;
 			}
 
 			// We should add a NetDriverName check but I don't believe it is needed.
+			if (Actor->GetNetDriverName() != this->GetNetDriverName())
+			{
+				// ActorsToRemove.push_back(Actor);
+				continue;
+			}
 
 			// We should check if the actor is initialized here.
 
@@ -627,11 +632,11 @@ int32 UNetDriver::ServerReplicateActors()
 
 	ServerReplicateActors_BuildConsiderList(ConsiderList, ServerTickTime);
 
-	LOG_INFO(LogReplication, "Considering {} actors.", ConsiderList.size());
+	// LOG_INFO(LogReplication, "Considering {} actors.", ConsiderList.size());
 
 	static UChannel* (*CreateChannel)(UNetConnection*, int, bool, int32_t) = decltype(CreateChannel)(Addresses::CreateChannel);
 	static __int64 (*ReplicateActor)(UActorChannel*) = decltype(ReplicateActor)(Addresses::ReplicateActor);
-	static UObject* (*CreateChannelByName)(UNetConnection* Connection, FName* ChName, EChannelCreateFlags CreateFlags, int32_t ChannelIndex) = decltype(CreateChannelByName)(Addresses::CreateChannel);
+	static UObject* (*CreateChannelByName)(UNetConnection* Connection, const FName& ChName, EChannelCreateFlags CreateFlags, int32_t ChannelIndex) = decltype(CreateChannelByName)(Addresses::CreateChannel);
 	static __int64 (*SetChannelActor)(UActorChannel*, AActor*) = decltype(SetChannelActor)(Addresses::SetChannelActor);
 	static __int64 (*SetChannelActor2)(UActorChannel*, AActor*, ESetChannelActorFlags) = decltype(SetChannelActor2)(Addresses::SetChannelActor);
 	static FName ActorName = UKismetStringLibrary::Conv_StringToName(L"Actor");
@@ -733,7 +738,7 @@ int32 UNetDriver::ServerReplicateActors()
 			if (Engine_Version >= 422)
 			{
 				int ChannelIndex = -1; // 4294967295
-				Channel = (UActorChannel*)CreateChannelByName(Connection, &ActorName, EChannelCreateFlags::OpenedLocally, ChannelIndex);
+				Channel = (UActorChannel*)CreateChannelByName(Connection, ActorName, EChannelCreateFlags::OpenedLocally, ChannelIndex);
 			}
 			else
 			{
@@ -841,7 +846,7 @@ int32 UNetDriver::ServerReplicateActors()
 					if (Engine_Version >= 422)
 					{
 						int ChannelIndex = -1; // 4294967295
-						Channel = (UActorChannel*)CreateChannelByName(Connection, &ActorName, EChannelCreateFlags::OpenedLocally, ChannelIndex);
+						Channel = (UActorChannel*)CreateChannelByName(Connection, ActorName, EChannelCreateFlags::OpenedLocally, ChannelIndex);
 					}
 					else
 					{
@@ -850,10 +855,10 @@ int32 UNetDriver::ServerReplicateActors()
 
 					if (Channel)
 					{
-						if (Engine_Version >= 500)
-							SetChannelActor(Channel, Actor);
-						else
+						if (Engine_Version >= 424)
 							SetChannelActor2(Channel, Actor, ESetChannelActorFlags::None);
+						else
+							SetChannelActor(Channel, Actor);
 					}
 				}
 

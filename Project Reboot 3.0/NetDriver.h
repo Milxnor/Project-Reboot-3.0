@@ -136,6 +136,12 @@ public:
 		return Get<int>(MaxInternetClientRateOffset);
 	}
 
+	FName& GetNetDriverName()
+	{
+		static auto NetDriverNameOffset = GetOffset("NetDriverName");
+		return Get<FName>(NetDriverNameOffset);
+	}	
+
 	int& GetMaxClientRate()
 	{
 		static auto MaxClientRateOffset = GetOffset("MaxClientRate");

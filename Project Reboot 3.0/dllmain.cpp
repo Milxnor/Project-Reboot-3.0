@@ -1047,7 +1047,7 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook((PVOID)Addresses::GetNetMode, (PVOID)GetNetModeHook, nullptr);
     Hooking::MinHook::Hook((PVOID)Addresses::DispatchRequest, (PVOID)DispatchRequestHook, (PVOID*)&DispatchRequestOriginal);
 
-    Hooking::MinHook::Hook((PVOID)Addresses::ReplicateActor, (PVOID)ReplicateActorHook, (PVOID*)&ReplicateActorOriginal);
+    // Hooking::MinHook::Hook((PVOID)Addresses::ReplicateActor, (PVOID)ReplicateActorHook, (PVOID*)&ReplicateActorOriginal);
 
     GSRandSeed = FGenericPlatformTime::Cycles();
     ReplicationRandStream = FRandomStream(FGenericPlatformTime::Cycles());

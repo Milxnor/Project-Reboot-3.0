@@ -39,6 +39,8 @@ void AFortPickup::SpawnMovementComponent()
 
 AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 {
+	if (Fortnite_Version >= 24) return nullptr; // location is scrweed
+
 	if (PickupData.Source == -1)
 		PickupData.Source = 0;
 	if (PickupData.SourceType == -1)

@@ -181,7 +181,9 @@ void AFortGameModeAthena::HandleSpawnRateForActorClass(UClass* ActorClass, float
 
 void AFortGameModeAthena::StartAircraftPhase()
 {
-	if (Addresses::StartAircraftPhase)
+	if (Addresses::StartAircraftPhase 
+		&& Fortnite_Version < 24 // ig they load or sometrhing gg
+		) 
 	{
 		static void (*StartAircraftPhaseOriginal)(AFortGameModeAthena*, bool bDoNotSpawnAircraft) = decltype(StartAircraftPhaseOriginal)(Addresses::StartAircraftPhase);
 		StartAircraftPhaseOriginal(this, false); // love the double negative Fortnite
