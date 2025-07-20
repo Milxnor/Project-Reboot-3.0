@@ -943,7 +943,7 @@ DWORD WINAPI Main(LPVOID)
 
     bEnableRebooting = Addresses::RebootingDelegate && Addresses::FinishResurrection && Addresses::GetSquadIdForCurrentPlayer && false;
 
-#if CLIENT_ONLY // CONSOLE ONLY (FOR CLIENT)
+#ifdef CLIENT_ONLY // CONSOLE ONLY (FOR CLIENT)
     SetConsoleTitleA("Console");
 
     // Spawn Console unreal engine Gameviewport
@@ -954,7 +954,7 @@ DWORD WINAPI Main(LPVOID)
 
     auto ViewportConsolePtr = GameViewport->GetPtr("ViewportConsole");
 	*ViewportConsolePtr = UGameplayStatics::SpawnObject(FindObject<UClass>(L"/Script/Engine.Console"), GameViewport);
-nPnn
+
     return 0;
 #endif
 
