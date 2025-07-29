@@ -373,7 +373,7 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 {
     std::vector<LootDrop> LootDrops;
 
-    if (recursive > 6)
+    if (!TierGroupName.IsValid() || recursive > 6)
         return LootDrops;
 
     auto GameState = ((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena();

@@ -239,7 +239,7 @@ void AFortGameModeAthena::OverrideSupplyDrop(AFortGameStateAthena* GameState, UC
 
 	if (!MapInfo)
 	{
-		LOG_WARN(LogGame, "No MapInfo!");
+		LOG_WARN(LogGame, "[OverrideSupplyDrop] No MapInfo!");
 		return;
 	}
 
@@ -711,26 +711,31 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
-	static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
-	TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
+	constexpr bool bIsAthenaMap = false;
 
-	int ActorsNum = Actors.Num();
-
-	Actors.Free();
-
-	if (ActorsNum == 0)
+	if (bIsAthenaMap)
 	{
-		// LOG_INFO(LogDev, "No Actors!");
-		return false;
+		static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
+		static auto FortPlayerStartWarmupClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartWarmup");
+		TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), Globals::bCreative ? FortPlayerStartCreativeClass : FortPlayerStartWarmupClass);
+
+		int ActorsNum = Actors.Num();
+
+		Actors.Free();
+
+		if (ActorsNum == 0)
+		{
+			// LOG_INFO(LogDev, "No Actors!");
+			return false;
+		}
 	}
 	
 	// I don't think this map info check is proper.. We can loop through the Actors in the World's PersistentLevel and check if there is a MapInfo, if there is then we can wait, else don't.
 
 	auto MapInfo = GameState->GetMapInfo();
 
-	if (Engine_Version >= 421 && // todo recheck this version 
-		!MapInfo
+	if (Engine_Version >= 421 // todo recheck this version 
+		&& (bIsAthenaMap ? !MapInfo : false)
 		)
 		return false;
 

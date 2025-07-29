@@ -1328,6 +1328,35 @@ static inline void MainUI()
 				}
 			}
 
+			/*
+			if (ImGui::Button("Set countdown 10"))
+			{
+				bStartedBus = true;
+
+				auto GameMode = (AFortGameMode*)GetWorld()->GetGameMode();
+				auto GameState = Cast<AFortGameStateAthena>(GameMode->GetGameState());
+
+				AmountOfPlayersWhenBusStart = GameState->GetPlayersLeft();
+
+				static auto WarmupCountdownEndTimeOffset = GameState->GetOffset("WarmupCountdownEndTime");
+				// GameState->Get<float>(WarmupCountdownEndTimeOffset) = UGameplayStatics::GetTimeSeconds(GetWorld()) + 10;
+
+				float TimeSeconds = GameState->GetServerWorldTimeSeconds(); // UGameplayStatics::GetTimeSeconds(GetWorld());
+				float Duration = 10;
+				float EarlyDuration = Duration;
+
+				static auto WarmupCountdownStartTimeOffset = GameState->GetOffset("WarmupCountdownStartTime");
+				static auto WarmupCountdownDurationOffset = GameMode->GetOffset("WarmupCountdownDuration");
+				static auto WarmupEarlyCountdownDurationOffset = GameMode->GetOffset("WarmupEarlyCountdownDuration");
+
+				GameState->Get<float>(WarmupCountdownEndTimeOffset) = TimeSeconds + Duration;
+				GameMode->Get<float>(WarmupCountdownDurationOffset) = Duration;
+
+				// GameState->Get<float>(WarmupCountdownStartTimeOffset) = TimeSeconds;
+				GameMode->Get<float>(WarmupEarlyCountdownDurationOffset) = EarlyDuration;
+			}
+			*/
+
 			if (ImGui::Button("Dump Object Info"))
 			{
 				ObjectViewer::DumpContentsToFile(ObjectToDump, FileNameToSaveTo, bExcludeUnhandled);

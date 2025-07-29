@@ -703,14 +703,12 @@ void ChangeLevels()
         : Globals::bCreative ? L"Creative_NoApollo_Terrain"
         : L"Apollo_Terrain");
 
-    /* i think im dumb
-    if (bShouldUseMoleMap)
+    if (bShouldUseMoleMap) // erms
     {
         // FString MoleMap = L"/MoleGame/Maps/MoleGame_Layout.MoleGame_Layout";
         LevelB = L"open MoleGame_Layout";
         Level = L"MoleGame_Layout";
     }
-    */
 
     LOG_INFO(LogDev, "Using \"{}\" as our map.", bUseSwitchLevel ? Level.ToString() : LevelB.ToString());
 
@@ -991,7 +989,9 @@ DWORD WINAPI Main(LPVOID)
 
     // Globals::bAutoRestart = IsRestartingSupported();
 
-    static auto GameModeDefault = FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeBR")
+    bool isPlayspaceGamemode = PlaylistName == "/MoleGame/Playlists/Playlist_MoleGame.Playlist_MoleGame";
+    static auto GameModeDefault = isPlayspaceGamemode ? FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortPlayspaceGameMode")
+        : FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeBR")
         ? FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeBR") // 22.30 atleast
         : FindObject<AFortGameModeAthena>(L"/Script/FortniteGame.Default__FortGameModeAthena");
     static auto FortPlayerControllerZoneDefault = FindObject<AFortPlayerController>(L"/Script/FortniteGame.Default__FortPlayerControllerZone");
@@ -1126,7 +1126,7 @@ DWORD WINAPI Main(LPVOID)
 
     if (Fortnite_Version >= 16 && Fortnite_Version < 19)
     {
-        // Bus crash (only needed if we are calling StartAircraftPhase on seperate thread I THINK) (sometimes)
+        // Bus crash (only needed if we are calling StartAircraftPhase on separate thread I THINK) (sometimes)
         Hooking::MinHook::Hook(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 54 41 56 41 57 48 83 EC 40 48 8B 59 28 45 33 E4").GetAs<PVOID>(), (PVOID)EmptyHook); // also on 16.50
     }
 
