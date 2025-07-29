@@ -1612,6 +1612,12 @@ static inline uint64 FindGetNetMode()
 
 static inline uint64 FindApplyCharacterCustomization()
 {
+	if (std::floor(Fortnite_Version) == 10)
+	{
+		auto Addr = Memcury::Scanner::FindPattern("48 89 54 24 ? 55 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 80 B9 ? ? ? ? ? 48").Get(); // 10.00
+		if (Addr)
+			return Addr;
+	}
 	// if (std::floor(Fortnite_Version) == 4) // RetrieveCharacterParts return null if dedicated server?????
 		// return 0;
 
@@ -1629,8 +1635,7 @@ static inline uint64 FindApplyCharacterCustomization()
 
 		if (Fortnite_Version >= 15) // hm?
 		{
-			if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89 
-				&& (*(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x5C || *(uint8_t*)(uint8_t*)(Addrr - i + 2) == 0x54)) // 10.00
+			if (*(uint8_t*)(uint8_t*)(Addrr - i) == 0x48 && *(uint8_t*)(uint8_t*)(Addrr - i + 1) == 0x89)
 			{
 				return Addrr - i;
 			}
