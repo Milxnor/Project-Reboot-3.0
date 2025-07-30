@@ -715,7 +715,7 @@
                 return FindPatternEx(handle, pattern, mask, module, module + Memcury::PE::GetNTHeaders()->OptionalHeader.SizeOfImage);
             }
 
-            static auto FindPattern(const char* signature, bool bWarnIfNotFound = true) -> Scanner
+            static auto FindPattern(const char* signature, bool bWarnIfNotFound = true, int skip = 0) -> Scanner
             {
                 PE::Address add{ nullptr };
 
@@ -740,6 +740,11 @@
 
                     if (found)
                     {
+                        if (skip > 0)
+                        {
+                            return FindPattern(signature, bWarnIfNotFound, --skip);
+                        }
+
                         add = reinterpret_cast<uintptr_t>(&scanBytes[i]);
                         break;
                     }

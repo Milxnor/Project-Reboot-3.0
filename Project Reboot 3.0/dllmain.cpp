@@ -1269,7 +1269,13 @@ DWORD WINAPI Main(LPVOID)
 
             std::cout << "before byte: " << (int)*before << '\n';
 
+            DWORD dwProtection;
+            VirtualProtect((PVOID)before, 1, PAGE_EXECUTE_READWRITE, &dwProtection);
+
             *before = 0x74; // jump if zero
+
+            DWORD dwTemp;
+            VirtualProtect((PVOID)before, 1, dwProtection, &dwTemp);
         }
     }
 
