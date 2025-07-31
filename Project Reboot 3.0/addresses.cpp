@@ -96,6 +96,8 @@ void Addresses::SetupVersion()
 		Fortnite_Version = 1.72;
 	if (Fortnite_CL == 3724489)
 		Fortnite_Version = 1.8;
+	if (Fortnite_CL == 3741772)
+		Fortnite_Version = 1.8; // 1.8.2
 	if (Fortnite_CL == 3757339)
 		Fortnite_Version = 1.9;
 	if (Fortnite_CL == 3775276)
@@ -608,8 +610,8 @@ std::vector<uint64> Addresses::GetFunctionsToNull()
 	if (Engine_Version == 416)
 	{
 		toNull.push_back(Memcury::Scanner::FindPattern("4C 89 44 24 ? 88 54 24 ? 48 89 4C 24 ? 56 57 48 81 EC ? ? ? ? 33 C0 83 F8 ? 0F 84 ? ? ? ? B8").Get()); // 1.8 switch state
-		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 48 81 EC ? ? ? ? 48 8B 84 24 ? ? ? ? ? ? ? 48 8B 8C 24 ? ? ? ? FF 90 ? ? ? ? 48 89 84 24 ? ? ? ? 48 8B 84 24 ? ? ? ? 48").Get()); // trigger ui stuff 1.8
-		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 48 81 EC ? ? ? ? 48 8B 84 24 ? ? ? ? ? ? ? 48 8B 8C 24 ? ? ? ? FF 90 ? ? ? ? 48 89 84 24 ? ? ? ? 48 8B 84 24 ? ? ? ? 48", true, 1).Get()); // trigger ui stuff 1.8 ^^
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 48 81 EC ? ? ? ? 48 8B 84 24 ? ? ? ? 48 8B 00 48 8B 8C 24 ? ? ? ? FF 90 ? ? ? ? 48 89 84 24 ? ? ? ? 48 8B 84 24 ? ? ? ? 48 8B 80 ? ? ? ? 48 89 44 24 ? 48 83 7C 24 ? ? 74 1D 48 8B").Get()); // trigger ui stuff 1.8 & 1.9
+		// toNull.push_back(Memcury::Scanner::FindPattern("48 89 4C 24 ? 48 81 EC ? ? ? ? 48 8B 84 24 ? ? ? ? 48 8B 00 48 8B 8C 24 ? ? ? ? FF 90 ? ? ? ? 48 89 84 24 ? ? ? ? 48 8B 84 24 ? ? ? ? 48 8B 80 ? ? ? ? 48 89 44 24 ? 48 83 7C 24 ? ? 74 1D 48 8B", true, 1).Get()); // trigger ui stuff 1.8 & 1.9 ^^
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 54 24 ? 48 89 4C 24 ? 55 53 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 8B 41 ? C1 E8 ? A8 ? 0F 84 ? ? ? ? 80 3D").Get()); // widget class 1.8
 		toNull.push_back(Memcury::Scanner::FindPattern("48 89 54 24 ? 48 89 4C 24 ? 55 53 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 8B 41 08 C1 E8 05").Get()); // Widget class
 	}

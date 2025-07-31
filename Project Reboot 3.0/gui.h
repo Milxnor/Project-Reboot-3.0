@@ -1689,6 +1689,8 @@ static inline DWORD WINAPI GuiThread(LPVOID)
 			ResetDevice();
 	}
 
+	LOG_INFO(LogDev, "ImGUI has quit!");
+
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
