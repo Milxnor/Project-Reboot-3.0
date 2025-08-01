@@ -373,7 +373,9 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
 {
     std::vector<LootDrop> LootDrops;
 
-    if (!TierGroupName.IsValid() || recursive > 6)
+    if (!TierGroupName.IsValid() 
+        || Fortnite_Version >= 23 // RANDOMC RASH BRO???
+        || recursive > 6)
         return LootDrops;
 
     auto GameState = ((AFortGameModeAthena*)GetWorld()->GetGameMode())->GetGameStateAthena();

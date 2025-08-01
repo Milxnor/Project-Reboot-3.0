@@ -466,7 +466,7 @@ void ServerCheatHook(AFortPlayerControllerAthena* PlayerController, FString Msg)
 			CreateData.SpawnLocation = Location;
 			CreateData.bShouldFreeItemEntryWhenDeconstructed = true;
 
-			for (int i = 0; i < amount; i++)
+			for (int i = 0; i < amount; ++i)
 			{
 				AFortPickup::SpawnPickup(CreateData);
 			}

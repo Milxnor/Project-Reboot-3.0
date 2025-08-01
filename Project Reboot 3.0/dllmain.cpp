@@ -1258,7 +1258,7 @@ DWORD WINAPI Main(LPVOID)
             }
         }
 
-        LOG_INFO(LogMatchmaker, "Matchmaking will {}", (Engine_Version >= 420 && bMatchmakingSupported // since tcp for most isnt supported we wont say
+        LOG_INFO(LogMatchmaker, "Matchmaking will {}", (Engine_Version >= 420 && bMatchmakingSupported // since tcp for most isnt supported we wont say its supported
             ? "be supported" : "not be supported"));
 
         if (bMatchmakingSupported)

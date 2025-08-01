@@ -678,7 +678,7 @@ static inline uint64 FindOnDamageServer()
 {
 	if (Fortnite_Version >= 20) // pawn has one too gg
 	{
-		return 0;
+		// return 0;
 	}
 
 	auto Addr = FindFunctionCall(L"OnDamageServer", 

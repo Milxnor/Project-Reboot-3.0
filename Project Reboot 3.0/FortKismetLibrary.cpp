@@ -570,6 +570,8 @@ UObject* UFortKismetLibrary::GetAIGoalManagerHook(UObject* Context, FFrame& Stac
 
 AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldHook(UObject* Context, FFrame& Stack, AFortPickup** Ret)
 {
+	LOG_INFO(LogDev, "K2_SpawnPickupInWorldHook!");
+
 	UObject* WorldContextObject;                                       // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	UFortWorldItemDefinition* ItemDefinition;                                           // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int                                                NumberToSpawn;                                            // (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)

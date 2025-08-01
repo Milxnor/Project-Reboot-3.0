@@ -519,7 +519,11 @@ void Offsets::FindAll()
 	}
 	if (Fortnite_Version >= 23)
 	{
-		Offsets::ReplicationFrame = 0x440; // checked on 23.40 & 23.50
+		Offsets::ReplicationFrame = 0x440; // checked on 23.40 & 23.50 & 24.00 & 24.10 & 24.30 & 24.40
+	}
+	if (Fortnite_Version == 24.20) // GG
+	{
+		Offsets::ReplicationFrame = 0x438;
 	}
 
 	Offsets::IsNetRelevantFor = FindIsNetRelevantForOffset();

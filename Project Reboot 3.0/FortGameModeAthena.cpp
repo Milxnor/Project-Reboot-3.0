@@ -1426,7 +1426,7 @@ void AFortGameModeAthena::Athena_HandleStartingNewPlayerHook(AFortGameModeAthena
 
 				std::vector<LootDrop> LootDrops = PickLootDrops(SpawnIslandTierGroup, GameState->GetWorldLevel(), -1, bPrintWarmup);
 
-				for (auto& LootDrop : LootDrops)
+				for (LootDrop& LootDrop : LootDrops)
 				{
 					PickupCreateData CreateData;
 					CreateData.bToss = true;
