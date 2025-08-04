@@ -1596,7 +1596,9 @@ static inline uint64 FindGetNetMode()
 
 	for (int i = 0; i < 400; i++)
 	{
-		if ((*(uint8_t*)(uint8_t*)(BeginningFunction + i) == 0xE8) && (*(uint8_t*)(uint8_t*)(BeginningFunction + i - 1) != 0x8B)) // scuffed but idk how to guarantee its not a register
+		if ((*(uint8_t*)(uint8_t*)(BeginningFunction + i) == 0xE8) 
+			&& (*(uint8_t*)(uint8_t*)(BeginningFunction + i - 1) != 0x8B) // scuffed but idk how to guarantee its not a register
+			&& (*(uint8_t*)(uint8_t*)(BeginningFunction + i - 1) != 0xE7)) // ^^ 6.31
 		{
 			CallToFunc = BeginningFunction + i;
 			break;
@@ -1609,7 +1611,7 @@ static inline uint64 FindGetNetMode()
 		return 0;
 	}
 
-	LOG_INFO(LogDev, "CallToFunc: 0x{:x}", CallToFunc - __int64(GetModuleHandleW(0)));
+	LOG_INFO(LogDev, "GetNetMode Off: 0x{:x}", CallToFunc - __int64(GetModuleHandleW(0)));
 
 	return Memcury::Scanner(CallToFunc).RelativeOffset(1).Get();
 
