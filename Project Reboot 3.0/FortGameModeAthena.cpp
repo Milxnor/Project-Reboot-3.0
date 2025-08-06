@@ -542,7 +542,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 
 					if (AdditionalLevelsServerOnlyOffset != -1)
 					{
-						/* TArray<TSoftObjectPtr<UWorld>>& AdditionalLevelsServerOnly = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UWorld>>>(AdditionalLevelsServerOnlyOffset);
+						TArray<TSoftObjectPtr<UWorld>>& AdditionalLevelsServerOnly = CurrentPlaylist->Get<TArray<TSoftObjectPtr<UWorld>>>(AdditionalLevelsServerOnlyOffset);
 						LOG_INFO(LogPlaylist, "Loading {} playlist server levels.", AdditionalLevelsServerOnly.Num());
 
 						for (int i = 0; i < AdditionalLevelsServerOnly.Num(); i++)
@@ -553,7 +553,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 							auto LevelNameWStr = std::wstring(LevelNameStr.begin(), LevelNameStr.end());
 
 							GameState->AddToAdditionalPlaylistLevelsStreamed(LevelFName, true);
-						} */
+						} 
 					}
 
 					LOG_INFO(LogPlaylist, "Loading {} playlist levels.", AdditionalLevels.Num());
@@ -580,10 +580,27 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 						// There is another array of the ULevelStreaming, and I don't think this gets filled by the OnRep (since really our way is hacky as the OnRep has the implementation)
 					}
 
+
 					static auto OnRep_AdditionalPlaylistLevelsStreamedFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameState.OnRep_AdditionalPlaylistLevelsStreamed");
+					static auto OnFinishedStreamingAdditionalPlaylistLevelFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameState.OnFinishedStreamingAdditionalPlaylistLevel");
+					static auto HandleAllPlaylistLevelsVisibleFn = FindObject<UFunction>(L"/Script/FortniteGame.FortGameState.HandleAllPlaylistLevelsVisible");
 
 					if (OnRep_AdditionalPlaylistLevelsStreamedFn)
 						GameState->ProcessEvent(OnRep_AdditionalPlaylistLevelsStreamedFn);
+
+					if (OnFinishedStreamingAdditionalPlaylistLevelFn)
+						GameState->ProcessEvent(OnFinishedStreamingAdditionalPlaylistLevelFn);
+
+					if (HandleAllPlaylistLevelsVisibleFn)
+						GameState->ProcessEvent(HandleAllPlaylistLevelsVisibleFn);
+
+				}
+
+				if (Fortnite_Version >= 11.00)
+				{
+
+					SetupEverythingAI();
+
 				}
 			}
 		}

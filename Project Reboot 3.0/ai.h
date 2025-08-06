@@ -150,7 +150,7 @@ static void SetupServerBotManager()
     UFortServerBotManagerAthena*& ServerBotManager = GameMode->GetServerBotManager();
 
     if (!ServerBotManager)
-        ServerBotManager = (UFortServerBotManagerAthena*)UGameplayStatics::SpawnObject(FortServerBotManagerClass, GetTransientPackage());
+        ServerBotManager = (UFortServerBotManagerAthena*)UGameplayStatics::SpawnObject(FortServerBotManagerClass, GameMode);
 
     if (ServerBotManager)
     {
