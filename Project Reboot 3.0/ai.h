@@ -21,6 +21,7 @@ using UNavigationSystemConfig = UObject;
 using AAthenaNavSystemConfigOverride = UObject;
 using UAthenaNavSystem = UObject;
 using UAthenaNavSystemConfig = UObject;
+inline AFortAthenaMutator_Bots* BotMutator = nullptr;
 
 enum class EFNavigationSystemRunMode : uint8_t
 {
@@ -111,14 +112,14 @@ static inline AFortAthenaMutator_Bots* SpawnBotMutator() //sets up all the class
    auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
    static auto BGAClass = FindObject<UClass>(L"/Script/Engine.BlueprintGeneratedClass");
-   auto PhoebeMutatorClass = LoadObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_Phoebe_Mutator.BP_Phoebe_Mutator_C", BGAClass);
+   //auto PhoebeMutatorClass = LoadObject<UClass>(L"/Game/Athena/AI/Phoebe/BP_Phoebe_Mutator.BP_Phoebe_Mutator_C", BGAClass);
 
-   if (!PhoebeMutatorClass)
+   if (!AFortAthenaMutator_Bots::StaticClass())
    {
        return nullptr;
    }
 
-   auto BotMutator = GetWorld()->SpawnActor<AFortAthenaMutator_Bots>(PhoebeMutatorClass);
+    BotMutator = GetWorld()->SpawnActor<AFortAthenaMutator_Bots>(AFortAthenaMutator_Bots::StaticClass());
 
    if (!BotMutator)
    {
