@@ -2053,3 +2053,18 @@ static inline uint64 FindClearAbility()
 
 	return 0;
 }
+
+static inline uint64 SpawnBotRet()
+{
+	auto String = Memcury::Scanner::FindStringRef(L"Unable to create UFortAthenaAIBotCustomizationData object. BotClass = %s", true, 0, false).Get();
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if (*(uint8_t*)(String + i) == 0x48 && *(uint8_t*)(String + i + 1) == 0x8b && *(uint8_t*)(String + i + 2) == 0xd8)
+		{
+			return String + i;
+		}
+	}
+
+	return 0;
+}
