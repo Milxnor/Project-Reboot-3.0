@@ -1310,15 +1310,13 @@ DWORD WINAPI Main(LPVOID)
 
 	if (Fortnite_Version >= 12.00 && Fortnite_Version <= 13.40) // you cant spawn bosses using spawnbot on s14 and above
 	{
-	    if (Fortnite_Version != 12.61)
-	    {
-	        Hooking::MinHook::Hook(FindObject<UFortServerBotManagerAthena>(L"/Script/FortniteGame.Default__FortServerBotManagerAthena"), FindObject<UFunction>(L"/Script/FortniteGame.FortServerBotManagerAthena.SpawnBot"),
-	            UFortServerBotManagerAthena::SpawnBotHook, (PVOID*)&UFortServerBotManagerAthena::SpawnBotOriginal, false);
-	    }
-	    else
-	    {
-	        Hooking::MinHook::Hook((PVOID)SpawnBot(), (PVOID)UFortServerBotManagerAthena::SpawnBotHook, (PVOID*)&UFortServerBotManagerAthena::SpawnBotOriginal);
-	    }
+	    Hooking::MinHook::Hook(FindObject<UFortServerBotManagerAthena>(L"/Script/FortniteGame.Default__FortServerBotManagerAthena"), FindObject<UFunction>(L"/Script/FortniteGame.FortServerBotManagerAthena.SpawnBot"),
+	        UFortServerBotManagerAthena::SpawnBotHook, (PVOID*)&UFortServerBotManagerAthena::SpawnBotOriginal, false);
+	    // else
+	    // {
+	        // looking at this func, seems like this is the cause of the error
+	        // Hooking::MinHook::Hook((PVOID)SpawnBot(), (PVOID)UFortServerBotManagerAthena::SpawnBotHook, (PVOID*)&UFortServerBotManagerAthena::SpawnBotOriginal);
+	    // }
 	}
 
     Hooking::MinHook::Hook(GameModeDefault, FindObject<UFunction>(L"/Script/Engine.GameModeBase.SpawnDefaultPawnFor"),
