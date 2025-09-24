@@ -1652,36 +1652,42 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			PlayerController->GetStateName() = UKismetStringLibrary::Conv_StringToName(L"Spectating");
 		}
 
-		if (IsRestartingSupported() && Globals::bAutoRestart && !bIsInAutoRestart)
-		{
-			// wht
+        if (IsRestartingSupported() && Globals::bAutoRestart && !bIsInAutoRestart)
+        {
+            if (GameState->GetGamePhase() > EAthenaGamePhase::Warmup)
+            {
+                auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
 
-			if (GameState->GetGamePhase() > EAthenaGamePhase::Warmup)
-			{
-				auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
+//fixed by iron web10
+                int alivePlayersCount = 0;
+                bool bHasWinner = false;
 
-				bool bDidSomeoneWin = AllPlayerStates.Num() == 0;
+                for (int i = 0; i < AllPlayerStates.Num(); ++i)
+                {
+                    auto CurrentPlayerState = (AFortPlayerStateAthena*)AllPlayerStates.at(i);
+                    int placement = CurrentPlayerState->GetPlace();
 
-				for (int i = 0; i < AllPlayerStates.Num(); ++i)
-				{
-					auto CurrentPlayerState = (AFortPlayerStateAthena*)AllPlayerStates.at(i);
 
-					if (CurrentPlayerState->GetPlace() <= 1)
-					{
-						bDidSomeoneWin = true;
-						break;
-					}
-				}
+                    if (placement == 1)
+                    {
+                        bHasWinner = true;
+                    }
 
-				// LOG_INFO(LogDev, "bDidSomeoneWin: {}", bDidSomeoneWin);
 
-				// if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
-				if (bDidSomeoneWin)
-				{
-					CreateThread(0, 0, RestartThread, 0, 0, 0);
-				}
-			}
-		}
+                    if (placement <= 0)
+                    {
+                        alivePlayersCount++;
+                    }
+                }
+
+                bool bShouldRestart = bHasWinner || (alivePlayersCount <= 1 && AllPlayerStates.Num() > 0);
+
+                if (bShouldRestart)
+                {
+                    CreateThread(0, 0, RestartThread, 0, 0, 0);
+                }
+            }
+        }
 	}
 
 	if (DeadPlayerState->IsBot())
