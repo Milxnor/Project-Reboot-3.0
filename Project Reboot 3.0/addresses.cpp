@@ -96,6 +96,8 @@ void Addresses::SetupVersion()
 		Fortnite_Version = 1.72;
 	if (Fortnite_CL == 3724489)
 		Fortnite_Version = 1.8;
+	if (Fortnite_CL == 3729133)
+		Fortnite_Version = 1.8; // 1.8.1
 	if (Fortnite_CL == 3741772)
 		Fortnite_Version = 1.8; // 1.8.2
 	if (Fortnite_CL == 3757339)

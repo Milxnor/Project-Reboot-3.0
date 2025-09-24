@@ -748,7 +748,7 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		}
 	}
 
-	constexpr bool bIsAthenaMap = false;
+	constexpr bool bIsAthenaMap = true;
 
 	if (bIsAthenaMap)
 	{
