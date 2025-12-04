@@ -5,6 +5,7 @@
 #include "AthenaResurrectionComponent.h"
 #include "FortGameStateAthena.h"
 #include "FortGameModeAthena.h"
+#include "FortLootPackage.h"
 
 void ABuildingGameplayActorSpawnMachine::FinishResurrection(int SquadId)
 {
@@ -84,24 +85,8 @@ void ABuildingGameplayActorSpawnMachine::RebootingDelegateHook(ABuildingGameplay
 		ResurrectionComponent->GetResurrectionLocation().ObjectIndex = SpawnMachine->GetResurrectLocation()->InternalIndex;
 		ResurrectionComponent->GetResurrectionLocation().ObjectSerialNumber = GetItemByIndex(SpawnMachine->GetResurrectLocation()->InternalIndex)->SerialNumber;
 	}
-
-	auto StrongResurrectionLocation = ResurrectionComponent->GetResurrectionLocation().Get();
-
-	LOG_INFO(LogDev, "StrongResurrectionLocation: {} IsRespawnDataAvailable: {}", __int64(StrongResurrectionLocation), PlayerState->GetRespawnData()->IsRespawnDataAvailable());
-
-	if (!StrongResurrectionLocation)
-		return;
-
-	PlayerState->GetRespawnData()->IsRespawnDataAvailable() = false;
-	PlayerController->SetPlayerIsWaiting(true);
-	// PlayerController->ServerRestartPlayer();
-
-	bool bEnterSkydiving = false; // TODO get from like curve table iirc idk or the variable
-	PlayerController->RespawnPlayerAfterDeath(bEnterSkydiving);
-
+	GameMode->RestartPlayerAtPlayerStart(PlayerController, SpawnMachine->GetResurrectLocation());
 	AFortPlayerPawn* NewPawn = Cast<AFortPlayerPawn>(PlayerController->GetMyFortPawn());
-
-	LOG_INFO(LogDev, "NewPawn: {}", __int64(NewPawn));
 
 	if (!NewPawn) // Failed to restart player
 	{
@@ -109,10 +94,13 @@ void ABuildingGameplayActorSpawnMachine::RebootingDelegateHook(ABuildingGameplay
 		return;
 	}
 
-	PlayerController->ClientClearDeathNotification();
-
 	NewPawn->SetHealth(100);
 	NewPawn->SetMaxHealth(100);
+
+	PlayerState->ClearDeathInfo();
+	PlayerController->ClientClearDeathNotification();
+
+	LOG_INFO(LogDev, "NewPawn: {}", __int64(NewPawn));
 
 	static auto RebootCounterOffset = PlayerState->GetOffset("RebootCounter");
 	PlayerState->Get<int>(RebootCounterOffset)++;
@@ -135,5 +123,12 @@ void ABuildingGameplayActorSpawnMachine::RebootingDelegateHook(ABuildingGameplay
 	if (IsFinalPlayerToBeRebooted)
 	{
 		SpawnMachine->FinishResurrection(PlayerState->GetSquadId());
+	}
+
+	auto LootDrops = PickLootDrops(UKismetStringLibrary::Conv_StringToName(L"Loot_AthenaSCM"), GetWorld()->GetGameState()->Get<int>("WorldLevel"));
+	for (auto& LootDrop : LootDrops)
+	{
+		bool bYeah = true; //is this fuly necessary? idk its been a while sicne reboot
+		PlayerController->GetWorldInventory()->AddItem(LootDrop.ItemEntry,&bYeah);
 	}
 }
