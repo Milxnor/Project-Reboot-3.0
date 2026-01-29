@@ -62,6 +62,8 @@ public:
 		{
 			auto& RowMap = ((UDataTable*)this)->GetRowMap<FSimpleCurve>(); // its the same offset so
 			auto Curve = RowMap.Find(RowName);
+			if (!Curve)
+				return nullptr;
 			auto& Keys = Curve->GetKeys();
 			return Keys.Num() > Index ? &Curve->GetKeys().at(Index) : nullptr;
 		}
