@@ -141,6 +141,9 @@ public:
 
         if (wasSuccessful)
             *wasSuccessful = false;
+
+        static ValueType DummyValue{};
+        return DummyValue;
     }
     FORCEINLINE ValueType& Find(const KeyType& Key, bool* wasSuccessful = nullptr)
     {
