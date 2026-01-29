@@ -8,6 +8,8 @@
 #include "GameplayTagContainer.h"
 #include "BuildingActor.h"
 #include "FortPlayerPawnAthena.h"
+#include "FortKismetLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "GameplayAbilityTypes.h"
 
 struct FGameplayTagRequirements
@@ -61,7 +63,13 @@ struct FFortDeliveryInfoRequirementsFilter
 
 	bool DoesActorFollowsRequirements(AActor* Actor)
 	{
-		// TODO ADD TEAM CHECK! (We can use UFortKismetLibrary::GetActorTeam)
+		if (ShouldConsiderTeam())
+		{
+			const int ActorTeam = UFortKismetLibrary::GetActorTeam(Actor);
+
+			if (ActorTeam < 0 || ActorTeam == 255)
+				return false;
+		}
 
 		if (auto BuildingActor = Cast<ABuildingActor>(Actor))
 		{
@@ -165,8 +173,6 @@ public:
 		if (!Actor)
 			return;
 
-		// TODO Use the UAbilitySystemInterface or whatever
-
 		UAbilitySystemComponent* AbilitySystemComponent = nullptr;
 
 		if (auto BuildingActor = Cast<ABuildingActor>(Actor))
@@ -184,6 +190,19 @@ public:
 		{
 			static auto AbilitySystemComponentOffset = Pawn->GetOffset("AbilitySystemComponent");
 			AbilitySystemComponent = Pawn->Get<UAbilitySystemComponent*>(AbilitySystemComponentOffset);
+		}
+
+		if (!AbilitySystemComponent)
+		{
+			static auto AbilitySystemInterfaceClass = FindObject<UClass>(L"/Script/GameplayAbilities.AbilitySystemInterface");
+			static auto GetAbilitySystemComponentFn = FindObject<UFunction>(L"/Script/GameplayAbilities.AbilitySystemInterface.GetAbilitySystemComponent");
+
+			if (AbilitySystemInterfaceClass && GetAbilitySystemComponentFn && Actor->IsA(AbilitySystemInterfaceClass))
+			{
+				struct { UAbilitySystemComponent* ReturnValue; } Params{};
+				Actor->ProcessEvent(GetAbilitySystemComponentFn, &Params);
+				AbilitySystemComponent = Params.ReturnValue;
+			}
 		}
 
 		if (!AbilitySystemComponent)

@@ -170,7 +170,7 @@ AFortPickup* AFortPickup::SpawnPickup(PickupCreateData& PickupData)
 
 	if (Pickup->Get<AFortPawn*>(PawnWhoDroppedPickupOffset))
 	{
-		// TODO Add EFortItemEntryState::DroppedFromPickup or whatever if it isn't found already.
+		PrimaryPickupItemEntry->SetStateValue(EFortItemEntryState::FromDroppedPickup, 1);
 	}
 
 	PrimaryPickupItemEntry->GetCount() = PickupData.OverrideCount == -1 ? PickupData.ItemEntry->GetCount() : PickupData.OverrideCount;
@@ -382,7 +382,7 @@ char AFortPickup::CompletePickupAnimationHook(AFortPickup* Pickup)
 
 			if (ItemDefGoingInPrimary && IsPrimaryQuickbar(CurrentItemEntry->GetItemDefinition()))
 			{
-				int AmountOfSlotsTakenUp = 1; // TODO
+				int AmountOfSlotsTakenUp = 1;
 				PrimarySlotsFilled += AmountOfSlotsTakenUp;
 			}
 

@@ -14,7 +14,7 @@ struct FFortGameFeatureLootTableData
     TSoftObjectPtr<UDataTable> LootPackageData;
 };
 
-#define LOOTING_MAP_TYPE std::map // uhhh // TODO (Milxnor) switch bad to map
+#define LOOTING_MAP_TYPE std::map
 
 template <typename RowStructType = uint8>
 void CollectDataTablesRows(const std::vector<UDataTable*>& DataTables, LOOTING_MAP_TYPE<FName, RowStructType*>* OutMap, std::function<bool(FName, RowStructType*)> Check = []() { return true; })
@@ -104,9 +104,9 @@ float GetAmountOfLootPackagesToDrop(FFortLootTierData* LootTierData, int Origina
             {
                 auto LootPackageCategoryMaxArrayIt = LootTierData->GetLootPackageCategoryMaxArray().at(i);
 
-                float IDK = 0; // TODO
+                float CurrentMin = LootTierData->GetLootPackageCategoryMinArray().at(i);
 
-                if (LootPackageCategoryMaxArrayIt < 0 || IDK < LootPackageCategoryMaxArrayIt)
+                if (LootPackageCategoryMaxArrayIt < 0 || CurrentMin < LootPackageCategoryMaxArrayIt)
                 {
                     SumLootPackageCategoryWeightArray += LootTierData->GetLootPackageCategoryWeightArray().at(i);
                 }
@@ -397,8 +397,8 @@ std::vector<LootDrop> PickLootDrops(FName TierGroupName, int WorldLevel, int For
         LTDTables.clear();
         LPTables.clear();
 
-        if (Fortnite_Version == 12.00) // TODO
-            return LootDrops;
+        if (Fortnite_Version == 12.00)
+            LOG_INFO(LogLoot, "Fortnite 12.00 detected; falling back to default loot tables if playlist data is missing.");
 
         bool bFoundPlaylistTable = false;
 

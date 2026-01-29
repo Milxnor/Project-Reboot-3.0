@@ -833,12 +833,8 @@ void FKismetBytecodeDisassembler::ProcessCommon(int32& ScriptIndex, uint8 Opcode
 		Stream << std::format("{} PrimitiveCast of type {}", Indents, ConversionType);
 		AddIndent();
 
-		Stream << std::format("{} Argument:", Indents);
+		Stream << std::format("{} Expression:", Indents);
 		ProcessCastByte(ConversionType, ScriptIndex);
-
-		//@TODO:
-		//Ar.Logf(TEXT("%s Expression:"), *Indents);
-		//SerializeExpr( ScriptIndex );
 	}
 	else if (Opcode == EExprToken::GetSetSet())
 	{

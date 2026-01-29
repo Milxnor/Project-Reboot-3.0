@@ -129,7 +129,7 @@ public:
 		}
 		if (NewMax != PrevMax)
 		{
-			int ReserveCount = NewMax - PrevMax; // IDK TODO Milxnor
+			int ReserveCount = NewMax - PrevMax;
 			Reserve(ReserveCount, ElementSize);
 			// AllocatorInstance.ResizeAllocation(0, NewMax, ElementSize);
 		}
@@ -215,7 +215,7 @@ public:
 			// CheckInvariants();
 			// checkSlow((Count >= 0) & (Index >= 0) & (Index + Count <= ArrayNum));
 
-			// DestructItems(GetData() + Index, Count); // TODO milxnor
+			// DestructItems(GetData() + Index, Count);
 
 			// Skip memmove in the common case that there is nothing to move.
 			int32 NumToMove = ArrayNum - Index - Count;
@@ -227,13 +227,16 @@ public:
 					(uint8*)AllocatorInstance.GetAllocation() + (Index + Count) * sizeof(ElementType),
 					NumToMove * sizeof(ElementType)
 				); */
-				// memmove(Data + (Index) * sizeof(InElementType), Data + (Index + Count) * sizeof(InElementType), NumToMove * sizeof(InElementType)); // i think this wrong
+				const size_t ElementSize = sizeof(InElementType);
+				memmove((uint8*)Data + (Index * ElementSize),
+					(uint8*)Data + ((Index + Count) * ElementSize),
+					NumToMove * ElementSize);
 			}
 			ArrayNum -= Count;
 
 			if (bAllowShrinking)
 			{
-				// ResizeShrink(); // TODO milxnor
+				RefitArray(sizeof(InElementType));
 			}
 		}
 	}

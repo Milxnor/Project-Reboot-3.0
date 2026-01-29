@@ -7,6 +7,8 @@
 #include "BuildingSMActor.h"
 #include "FortPickup.h"
 
+class AActor;
+
 using UFortInventoryOwnerInterface = UObject;
 
 struct FSpawnItemVariantParams
@@ -83,10 +85,12 @@ public:
 	static inline void (*PickLootDropsWithNamedWeightsOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 	static inline UObject* (*GetAIDirectorOriginal)(UObject* Context, FFrame& Stack, UObject** Ret);
 	static inline UObject* (*GetAIGoalManagerOriginal)(UObject* Context, FFrame& Stack, UObject** Ret);
+	static inline void (*RemoveItemFromInventoryOwnerOriginal)(UObject* Context, FFrame& Stack, void* Ret);
 
 	static UFortResourceItemDefinition* K2_GetResourceItemDefinition(EFortResourceType ResourceType);
 	static void ApplyCharacterCosmetics(UObject* WorldContextObject, const TArray<UObject*>& CharacterParts, UObject* PlayerState, bool* bSuccess);
 	static FVector FindGroundLocationAt(UWorld* World, AActor* IgnoreActor, FVector InLocation, float TraceStartZ, float TraceEndZ, FName TraceName);
+	static int GetActorTeam(AActor* Actor);
 
 	static void PickLootDropsWithNamedWeightsHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void SpawnItemVariantPickupInWorldHook(UObject* Context, FFrame& Stack, void* Ret);
@@ -99,6 +103,7 @@ public:
 	static void K2_GiveItemToPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void K2_GiveBuildingResourceHook(UObject* Context, FFrame& Stack, void* Ret);
 	static void K2_RemoveFortItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret);
+	static void RemoveItemFromInventoryOwnerHook(UObject* Context, FFrame& Stack, void* Ret);
 	static AFortPickup* K2_SpawnPickupInWorldHook(UObject* Context, FFrame& Stack, AFortPickup** Ret);
 	static AFortPickup* K2_SpawnPickupInWorldWithClassHook(UObject* Context, FFrame& Stack, AFortPickup** Ret);
 	static UObject* GetAIDirectorHook(UObject* Context, FFrame& Stack, UObject** Ret);

@@ -34,6 +34,8 @@ public:
 	int TotalPlayersEncountered;
 	std::vector<BotPOI> POIsTraveled;
 	float NextJumpTime = 1.0f;
+	float NextBusJumpTime = 0.0f;
+	bool bHasJumpedFromBus = false;
 
 	void OnPlayerEncountered()
 	{
@@ -48,8 +50,15 @@ public:
 
 	static bool ShouldUseAIBotController()
 	{
-		return false;
-		return Fortnite_Version >= 11 && Engine_Version < 500;
+		static bool bShouldUse = []()
+		{
+			if (Fortnite_Version < 11 || Engine_Version >= 500)
+				return false;
+
+			return FindObject<UClass>(L"/Script/FortniteGame.FortAthenaAIBotController") != nullptr;
+		}();
+
+		return bShouldUse;
 	}
 
 	static void InitializeBotClasses()
@@ -86,7 +95,7 @@ public:
 		auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
 		auto GameMode = Cast<AFortGameModeAthena>(GetWorld()->GetGameMode());
 
-		if (!ShouldUseAIBotController()) // TODO REWRITE
+		if (!ShouldUseAIBotController())
 		{
 			AFortInventory** Inventory = nullptr;
 
@@ -142,7 +151,13 @@ public:
 					{
 						auto& StartingItem = StartingItems.at(i, FItemAndCount::GetStructSize());
 
-						// TODO: Check if it is FortSmartBuildingItemDefinition
+						static auto FortSmartBuildingItemDefinitionClass = FindObject<UClass>(L"/Script/FortniteGame.FortSmartBuildingItemDefinition");
+						if (FortSmartBuildingItemDefinitionClass && StartingItem.GetItem()
+							&& StartingItem.GetItem()->IsA(FortSmartBuildingItemDefinitionClass))
+						{
+							(*Inventory)->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
+							continue;
+						}
 
 						(*Inventory)->AddItem(StartingItem.GetItem(), nullptr, StartingItem.GetCount());
 					}
@@ -433,6 +448,37 @@ namespace Bots
 				CurrentPlayer->ProcessEvent(ServerThankBusDriverFn);
 			}
 
+			if (PlayerBot.bIsAthenaController && CurrentPlayerState->IsInAircraft() && !PlayerBot.bHasJumpedFromBus)
+			{
+				auto TimeNow = UGameplayStatics::GetTimeSeconds(GetWorld());
+
+				if (PlayerBot.NextBusJumpTime <= 0.f)
+					PlayerBot.NextBusJumpTime = TimeNow + (rand() % 10 + 5);
+
+					if (TimeNow >= PlayerBot.NextBusJumpTime)
+					{
+						const int JumpChance = rand() % 100;
+
+						if (JumpChance < 40)
+						{
+							if (auto FortController = Cast<AFortPlayerController>(CurrentPlayer))
+							{
+								FortController->ServerAttemptAircraftJumpHook(FortController, FRotator());
+							}
+							PlayerBot.bHasJumpedFromBus = true;
+						}
+					else
+					{
+						PlayerBot.NextBusJumpTime = TimeNow + (rand() % 5 + 2);
+					}
+				}
+			}
+			else if (!CurrentPlayerState->IsInAircraft())
+			{
+				PlayerBot.bHasJumpedFromBus = false;
+				PlayerBot.NextBusJumpTime = 0.f;
+			}
+
 			if (CurrentPawn)
 			{
 				if (PlayerBot.NextJumpTime <= UGameplayStatics::GetTimeSeconds(GetWorld()))
@@ -444,12 +490,6 @@ namespace Bots
 				}
 			}
 
-			/* bool bShouldJumpFromBus = CurrentPlayerState->IsInAircraft(); // TODO (Milxnor) add a random percent thing
-
-			if (bShouldJumpFromBus)
-			{
-				CurrentPlayer->ServerAttemptAircraftJumpHook(CurrentPlayer, FRotator());
-			} */
 		}
 
 		// AllBuildingContainers.Free();

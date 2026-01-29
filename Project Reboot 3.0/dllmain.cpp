@@ -929,7 +929,7 @@ DWORD WINAPI Main(LPVOID)
 
     Addresses::SetupVersion();
 
-    NumToSubtractFromSquadId = Engine_Version >= 424 ? 2 : Engine_Version >= 423 ? 3 : 0; // TODO: check this
+    NumToSubtractFromSquadId = Engine_Version >= 424 ? 2 : Engine_Version >= 423 ? 3 : 0;
     NumElementsPerChunk = std::floor(Fortnite_Version) >= 5 && Fortnite_Version <= 6 ? 0x10400 : 0x10000; // Idk what version tbh
 
     Offsets::FindAll(); // We have to do this before because FindCantBuild uses FortAIController.CreateBuildingActor
@@ -1479,8 +1479,20 @@ DWORD WINAPI Main(LPVOID)
     // if (false)
     if (Fortnite_Version > 6.20) // so on 6.20 & below there is a param and our little finder dont work for that so
     {
-        Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerGameplay.StartGhostMode"), // (Milxnor) TODO: This changes to a component in later seasons.
-            AFortPlayerControllerAthena::StartGhostModeHook, (PVOID*)&AFortPlayerControllerAthena::StartGhostModeOriginal, false, true); // We can exec hook since it only gets called via blueprint.
+        auto StartGhostModeFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerGameplay.StartGhostMode");
+        UObject* GhostModeTarget = FortPlayerControllerAthenaDefault;
+
+        if (!StartGhostModeFn)
+        {
+            StartGhostModeFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerGameplayComponent.StartGhostMode");
+            GhostModeTarget = FindObject(L"/Script/FortniteGame.Default__FortPlayerControllerGameplayComponent");
+        }
+
+        if (StartGhostModeFn && GhostModeTarget)
+        {
+            Hooking::MinHook::Hook(GhostModeTarget, StartGhostModeFn,
+                AFortPlayerControllerAthena::StartGhostModeHook, (PVOID*)&AFortPlayerControllerAthena::StartGhostModeOriginal, false, true); // We can exec hook since it only gets called via blueprint.
+        }
         
         auto EndGhostModeFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerControllerGameplay.EndGhostMode");
 
@@ -1621,7 +1633,12 @@ DWORD WINAPI Main(LPVOID)
     Hooking::MinHook::Hook(FortKismetLibraryDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.PickLootDropsWithNamedWeights"),
         UFortKismetLibrary::PickLootDropsWithNamedWeightsHook, (PVOID*)&UFortKismetLibrary::PickLootDropsWithNamedWeightsOriginal, false, true);
 
-    // TODO Add RemoveItemFromInventoryOwner
+    auto RemoveItemFromInventoryOwnerFn = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.RemoveItemFromInventoryOwner");
+    if (RemoveItemFromInventoryOwnerFn)
+    {
+        Hooking::MinHook::Hook(FortKismetLibraryDefault, RemoveItemFromInventoryOwnerFn,
+            UFortKismetLibrary::RemoveItemFromInventoryOwnerHook, (PVOID*)&UFortKismetLibrary::RemoveItemFromInventoryOwnerOriginal, false, true);
+    }
 
     Hooking::MinHook::Hook(FortPlayerControllerAthenaDefault, FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.SpawnToyInstance"),
         AFortPlayerController::SpawnToyInstanceHook, (PVOID*)&AFortPlayerController::SpawnToyInstanceOriginal, false, true);
@@ -1864,4 +1881,3 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved)
 
     return TRUE;
 }
-

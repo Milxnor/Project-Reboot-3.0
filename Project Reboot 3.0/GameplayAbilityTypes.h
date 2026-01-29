@@ -33,3 +33,19 @@ struct FScalableFloat // todo check where this actually goes
 		return *(FCurveTableRowHandle*)(__int64(this) + CurveOffset);
 	}
 };
+
+static inline float GetScalableFloatValue(const FScalableFloat& ScalableFloat, float DefaultValue = 0.f)
+{
+	auto& NonConstFloat = const_cast<FScalableFloat&>(ScalableFloat);
+	auto& Curve = NonConstFloat.GetCurve();
+
+	if (!Curve.CurveTable || Curve.RowName.ComparisonIndex.Value == 0)
+		return NonConstFloat.GetValue();
+
+	void* Key = Curve.CurveTable->GetKey(Curve.RowName, 0);
+
+	if (!Key)
+		return NonConstFloat.GetValue();
+
+	return Curve.CurveTable->GetValueOfKey(Key);
+}

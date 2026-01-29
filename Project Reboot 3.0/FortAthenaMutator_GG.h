@@ -74,15 +74,18 @@ public:
 	{
 		auto& AwardEntriesAtElimMap = GetAwardEntriesAtElimMap();
 
-		float Value = 0; // TODO Get from AwardAtElim
+		float Value = GetScalableFloatValue(AwardAtElim);
+		int AwardKey = static_cast<int>(Value);
 
 		for (auto& AwardEntry : AwardEntriesAtElimMap)
 		{
-			if (AwardEntry.First == Value)
+			if (AwardEntry.First == AwardKey)
 			{
 				return AwardEntry.Second;
 			}
 		}
+
+		return {};
 	}
 
 	static UClass* StaticClass()

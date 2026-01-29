@@ -23,7 +23,7 @@ struct FGameplayAbilitySpecHandle
 	} */
 };
 
-struct FGameplayAbilityActivationInfo // TODO Move
+struct FGameplayAbilityActivationInfo
 {
 	static UStruct* GetStruct()
 	{

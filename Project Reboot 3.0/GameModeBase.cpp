@@ -145,7 +145,9 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		return nullptr;
 	}
 
-	bool bIsRespawning = false; // reel
+	bool bIsRespawning = false;
+	if (auto RespawnData = PlayerStateAthena->GetRespawnData())
+		bIsRespawning = RespawnData->IsRespawnDataAvailable() || RespawnData->IsServerReady();
 
 	auto ASC = PlayerStateAthena->GetAbilitySystemComponent();
 	auto GameState = ((AFortGameModeAthena*)GameMode)->GetGameStateAthena();
@@ -172,7 +174,16 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 		{
 			if (!WorldInventory->GetPickaxeInstance())
 			{
-				// TODO Check Playlist->bRequirePickaxeInStartingInventory
+				bool bRequirePickaxe = true;
+				if (CurrentPlaylist)
+				{
+					static auto RequirePickaxeOffset = CurrentPlaylist->GetOffset("bRequirePickaxeInStartingInventory", false);
+					if (RequirePickaxeOffset != -1)
+					{
+						static auto RequirePickaxeMask = GetFieldMask(CurrentPlaylist->GetProperty("bRequirePickaxeInStartingInventory"));
+						bRequirePickaxe = CurrentPlaylist->ReadBitfieldValue(RequirePickaxeOffset, RequirePickaxeMask);
+					}
+				}
 
 				auto& StartingItems = ((AFortGameModeAthena*)GameMode)->GetStartingItems();
 
@@ -186,7 +197,7 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 					if (bShouldUpdate)
 						WorldInventory->Update();
 				}
-				else
+				else if (bRequirePickaxe)
 				{
 					NewPlayerAsAthena->AddPickaxeToInventory();
 				}
@@ -270,22 +281,8 @@ APawn* AGameModeBase::SpawnDefaultPawnForHook(AGameModeBase* GameMode, AControll
 	}
 	else
 	{
-		// TODO I DONT KNOW WHEN TO DO THIS
-
-		/*
-
-		static auto DeathInfoStruct = FindObject<UStruct>(L"/Script/FortniteGame.DeathInfo");
-		static auto DeathInfoStructSize = DeathInfoStruct->GetPropertiesSize();
-		RtlSecureZeroMemory(DeathInfo, DeathInfoStructSize); // TODO FREE THE DEATHTAGS
-
-		static auto OnRep_DeathInfoFn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerStateAthena.OnRep_DeathInfo");
-
-		if (OnRep_DeathInfoFn)
-		{
-			PlayerStateAthena->ProcessEvent(OnRep_DeathInfoFn);
-		}
-
-		*/
+		PlayerStateAthena->ClearDeathInfo();
+		PlayerStateAthena->OnRep_DeathInfo();
 
 		// NewPlayerAsAthena->ClientClearDeathNotification();
 		// NewPlayerAsAthena->RespawnPlayerAfterDeath(true);

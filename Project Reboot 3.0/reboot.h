@@ -365,12 +365,66 @@ static void CopyStruct(void* Dest, void* Src, size_t Size, UStruct* Struct = nul
 
 	if (Struct)
 	{
-		/* if (std::is_same<T, FFastArraySerializerItem>::value)
+		static auto ArrayPropertyClass = FindObject<UClass>(L"/Script/CoreUObject.ArrayProperty");
+		static auto ElementSizeOffset = FindOffsetStruct("/Script/CoreUObject.Property", "ElementSize", false);
+		static auto InnerOffset = FindOffsetStruct("/Script/CoreUObject.ArrayProperty", "Inner", false);
+
+		auto IsArrayProperty = [&](void* Property) -> bool
 		{
+			if (!Property || !ArrayPropertyClass)
+				return false;
 
-		} */
+			if (Fortnite_Version < 12.10)
+				return ((UField*)Property)->IsA(ArrayPropertyClass);
 
-		// TODO: Loop through all the children, check type, if it is ArrayProperty then we need to properly copy it over.
+			if (Offsets::PropertyClass)
+			{
+				auto PropertyClass = *(UClass**)(__int64(Property) + Offsets::PropertyClass);
+				return PropertyClass && (PropertyClass == ArrayPropertyClass || PropertyClass->IsA(ArrayPropertyClass));
+			}
+
+			return ((UObject*)Property)->IsA(ArrayPropertyClass);
+		};
+
+		for (auto CurrentClass = Struct; CurrentClass; CurrentClass = *(UStruct**)(__int64(CurrentClass) + Offsets::SuperStruct))
+		{
+			void* Property = *(void**)(__int64(CurrentClass) + Offsets::Children);
+
+			while (Property)
+			{
+				if (IsArrayProperty(Property))
+				{
+					const int Offset = *(int*)(__int64(Property) + Offsets::Offset_Internal);
+					int ElementSize = ElementSizeOffset != -1 ? *(int*)(__int64(Property) + ElementSizeOffset) : 0;
+
+					if (InnerOffset != -1)
+					{
+						auto InnerProperty = *(void**)(__int64(Property) + InnerOffset);
+
+						if (InnerProperty && ElementSizeOffset != -1)
+							ElementSize = *(int*)(__int64(InnerProperty) + ElementSizeOffset);
+					}
+
+					if (ElementSize > 0)
+					{
+						auto SrcArray = (TArray<uint8>*)(__int64(Src) + Offset);
+						auto DestArray = (TArray<uint8>*)(__int64(Dest) + Offset);
+
+						if (SrcArray->Num() > 0)
+						{
+							DestArray->ResizeArray(SrcArray->Num(), ElementSize);
+							memcpy_s(DestArray->GetData(), SrcArray->Num() * ElementSize, SrcArray->GetData(), SrcArray->Num() * ElementSize);
+						}
+						else
+						{
+							DestArray->FreeGood();
+						}
+					}
+				}
+
+				Property = GetNext(Property);
+			}
+		}
 	}
 }
 
