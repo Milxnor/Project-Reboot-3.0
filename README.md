@@ -13,7 +13,7 @@ Below are the key points about this project:
 
 ## Features
 
-1. **S3-S15 Support**: The project includes support for Fortnite seasons 5 through 12.
+1. **S3-S15 Support**: The project includes support for Fortnite seasons 3 through 12.
 2. **S1-S2 & S16-S19 Compatibility**: Seasons 1 and 2, and Season 16 through 19 might not work perfectly.
 3. **S20+ Branch**: We have an alternate branch if you really want to test S20. It is currently unstable though.
 4. **Rewrite and Improvements**: Project Reboot is a rewrite of the original Universal Walking Simulator. It's an ongoing effort to enhance and optimize the gameplay experience.
