@@ -586,7 +586,7 @@ std::vector<uint64> Addresses::GetFunctionsToReturnTrue()
 {
 	std::vector<uint64> toReturnTrue;
 
-	if (Fortnite_Version == 1.10 || Fortnite_Version == 1.11 || Fortnite_Version >= 2.2 && Fortnite_Version <= 2.4)
+	if (Fortnite_Version == 1.9 || Fortnite_Version == 1.10 || Fortnite_Version == 1.11 || Fortnite_Version >= 2.2 && Fortnite_Version <= 2.4)
 	{
 		toReturnTrue.push_back(Memcury::Scanner::FindPattern("48 89 5C 24 ? 48 89 6C 24 ? 57 41 56 41 57 48 81 EC ? ? ? ? 48 8B 01 49 8B E9 45 0F B6 F8").Get()); // No Reserve
 	}
