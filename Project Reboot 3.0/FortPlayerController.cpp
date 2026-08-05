@@ -25,6 +25,10 @@
 #include "FortAthenaMutator_InventoryOverride.h"
 #include "FortAthenaMutator_TDM.h"
 
+// --- Added Include for API calls ---
+#include <curl/curl.h>
+// --- end ---
+
 void AFortPlayerController::ClientReportDamagedResourceBuilding(ABuildingSMActor* BuildingSMActor, EFortResourceType PotentialResourceType, int PotentialResourceCount, bool bDestroyed, bool bJustHitWeakspot)
 {
 	static auto fn = FindObject<UFunction>(L"/Script/FortniteGame.FortPlayerController.ClientReportDamagedResourceBuilding");
@@ -1270,27 +1274,69 @@ uint8 ToDeathCause(const FGameplayTagContainer& TagContainer, bool bWasDBNO = fa
 	return sub_7FF7AB499410(TagContainer, bWasDBNO);
 }
 
+// --- improved RestartThread logic ---
 DWORD WINAPI RestartThread(LPVOID)
 {
-	// We should probably use unreal engine's timing system for this.
-	// There is no way to restart that I know of without closing the connection to the clients.
-
-	bIsInAutoRestart = true;
-
-	float SecondsBeforeRestart = 10;
-	Sleep(SecondsBeforeRestart * 1000);
+	// Use global configurable delay
+	float SecondsBeforeRestart = Globals::AutoRestartDelaySeconds;
+	Sleep((DWORD)(SecondsBeforeRestart * 1000.0f));
 
 	LOG_INFO(LogDev, "Auto restarting!");
 
 	Restart();
 
+	// If Restart() returns, clear the flag.
 	bIsInAutoRestart = false;
 
 	return 0;
 }
+// --- end ---
 
 void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerController, void* DeathReport)
 {
+	// --- API call on win ---
+	if (Globals::bEnableApi)
+	{
+		auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
+
+		for (int i = 0; i < AllPlayerStates.Num(); ++i)
+		{
+			auto CurrentPlayerState = Cast<AFortPlayerStateAthena>(AllPlayerStates.At(i));
+			if (!CurrentPlayerState) continue;
+			auto ControllerOwner = CurrentPlayerState->GetOwner();
+
+			if (ControllerOwner && ControllerOwner->IsA(AFortPlayerControllerAthena::StaticClass()) && CurrentPlayerState->GetPlace() == 1)
+			{
+				std::string PlayerName = CurrentPlayerState->GetPlayerName().ToString();
+				std::string reason = "Win";
+
+				std::string apiUrl1 = Globals::WinBaseUrl +
+					"?apikey=" + Globals::ApiKey +
+					"&username=" + PlayerName +
+					"&reason=" + reason;
+
+				CURL* curl;
+				CURLcode res;
+
+				curl = curl_easy_init();
+				if (curl)
+				{
+					curl_easy_setopt(curl, CURLOPT_URL, apiUrl1.c_str());
+					curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+					res = curl_easy_perform(curl);
+
+					curl_easy_cleanup(curl);
+				}
+				else
+				{
+					LOG_ERROR(LogDev, "Failed to initialize curl for {}.", PlayerName);
+				}
+			}
+		}
+	}
+	// --- end ---
+
 	auto GameState = Cast<AFortGameStateAthena>(((AFortGameMode*)GetWorld()->GetGameMode())->GetGameState());
 	auto DeadPawn = Cast<AFortPlayerPawn>(PlayerController->GetPawn());
 	auto DeadPlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
@@ -1381,6 +1427,37 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 
 		if (KillerPlayerState && KillerPlayerState != DeadPlayerState)
 		{
+			// --- API call on Kill ---
+			if (Globals::bEnableApi)
+			{
+				std::string username = KillerPlayerState->GetPlayerName().ToString();
+				std::string reason = "Kill";
+
+				std::string apiUrl = Globals::KillBaseUrl +
+					"?apikey=" + Globals::ApiKey +
+					"&username=" + username +
+					"&reason=" + reason;
+
+				CURL* curl;
+				CURLcode res;
+
+				curl = curl_easy_init();
+				if (curl)
+				{
+					curl_easy_setopt(curl, CURLOPT_URL, apiUrl.c_str());
+					curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+					res = curl_easy_perform(curl);
+
+					curl_easy_cleanup(curl);
+				}
+				else
+				{
+					LOG_ERROR(LogDev, "Failed to initialize curl for {}.", username);
+				}
+			}
+			// --- end ---
+
 			if (MemberOffsets::FortPlayerStateAthena::KillScore != -1)
 				KillerPlayerState->Get<int>(MemberOffsets::FortPlayerStateAthena::KillScore)++;
 
@@ -1652,36 +1729,25 @@ void AFortPlayerController::ClientOnPawnDiedHook(AFortPlayerController* PlayerCo
 			PlayerController->GetStateName() = UKismetStringLibrary::Conv_StringToName(L"Spectating");
 		}
 
+		// --- improved AutoRestart logic ---
 		if (IsRestartingSupported() && Globals::bAutoRestart && !bIsInAutoRestart)
 		{
-			// wht
-
-			if (GameState->GetGamePhase() > EAthenaGamePhase::Warmup)
+			// Only trigger restart when the match is actually decided.
+			// - EndGame phase, or
+			// - Only one player / team left.
+			if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame ||
+				GameState->GetPlayersLeft() <= 1 ||
+				GameState->GetTeamsLeft() <= 1)
 			{
-				auto AllPlayerStates = UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFortPlayerStateAthena::StaticClass());
+				LOG_INFO(LogDev, "AutoRestart conditions met. PlayersLeft: {}, TeamsLeft: {}, Phase: {}",
+					GameState->GetPlayersLeft(), GameState->GetTeamsLeft(), (int)GameState->GetGamePhase());
 
-				bool bDidSomeoneWin = AllPlayerStates.Num() == 0;
-
-				for (int i = 0; i < AllPlayerStates.Num(); ++i)
-				{
-					auto CurrentPlayerState = (AFortPlayerStateAthena*)AllPlayerStates.at(i);
-
-					if (CurrentPlayerState->GetPlace() <= 1)
-					{
-						bDidSomeoneWin = true;
-						break;
-					}
-				}
-
-				// LOG_INFO(LogDev, "bDidSomeoneWin: {}", bDidSomeoneWin);
-
-				// if (GameState->GetGamePhase() == EAthenaGamePhase::EndGame)
-				if (bDidSomeoneWin)
-				{
-					CreateThread(0, 0, RestartThread, 0, 0, 0);
-				}
+				// Set the flag BEFORE starting the thread to avoid race / double threads.
+				bIsInAutoRestart = true;
+				CreateThread(nullptr, 0, RestartThread, nullptr, 0, nullptr);
 			}
 		}
+		// --- end ---
 	}
 
 	if (DeadPlayerState->IsBot())
