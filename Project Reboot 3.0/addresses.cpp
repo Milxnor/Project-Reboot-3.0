@@ -12,6 +12,7 @@
 
 #include "finder.h"
 #include <regex>
+#include <cctype>
 
 #include "ai.h"
 #include "BuildingActor.h"
@@ -74,12 +75,20 @@ void Addresses::SetupVersion()
 		if (Fortnite_Version >= 16.00 && Fortnite_Version <= 18.40)
 			Engine_Version = 427; // 4.26.1;
 
-		// TODO: Fortnite_CL = X
+		auto CLPos = FullVersion.find("CL-");
+		if (CLPos != std::string::npos)
+		{
+			CLPos += 3;
+			size_t EndPos = CLPos;
+			while (EndPos < FullVersion.size() && isdigit(FullVersion[EndPos]))
+				++EndPos;
+
+			Fortnite_CL = std::stoi(FullVersion.substr(CLPos, EndPos - CLPos));
+		}
 	}
 
 	else
 	{
-		// TODO
 		// Engine_Version = FullVersion.contains(("Next")) ? 419 : 416;
 		CLStr = FullVersion.substr(FullVersion.find_first_of('-') + 1);
 		CLStr = CLStr.substr(0, CLStr.find_first_of('+'));

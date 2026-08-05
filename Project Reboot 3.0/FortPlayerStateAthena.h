@@ -2,6 +2,7 @@
 
 #include "FortPlayerState.h"
 #include "Stack.h"
+#include "GameplayTagContainer.h"
 
 struct FFortRespawnData
 {
@@ -137,7 +138,18 @@ public:
 
 	void ClearDeathInfo()
 	{
-		RtlSecureZeroMemory(GetDeathInfo(), FDeathInfo::GetStructSize()); // TODO FREE THE DEATHTAGS
+		auto DeathInfo = GetDeathInfo();
+
+		if (!DeathInfo)
+			return;
+
+		if (MemberOffsets::DeathInfo::DeathTags != -1)
+		{
+			auto DeathTags = (FGameplayTagContainer*)(__int64(DeathInfo) + MemberOffsets::DeathInfo::DeathTags);
+			DeathTags->Reset();
+		}
+
+		RtlSecureZeroMemory(DeathInfo, FDeathInfo::GetStructSize());
 	}
 
 	static void ServerSetInAircraftHook(UObject* Context, FFrame& Stack, void* Ret);

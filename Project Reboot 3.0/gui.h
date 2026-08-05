@@ -1,7 +1,5 @@
 #pragma once
 
-// TODO: Update ImGUI
-
 #pragma comment(lib, "d3d9.lib")
 
 #include <Windows.h>
@@ -21,6 +19,7 @@
 #include <set>
 #include <fstream>
 #include <olectl.h>
+#include <shellapi.h>
 
 #include "objectviewer.h"
 #include "FortAthenaMutator_Disco.h"
@@ -169,6 +168,24 @@ static inline void Restart() // todo move?
 	*/
 
 	// UGameplayStatics::OpenLevel(GetWorld(), UKismetStringLibrary::Conv_StringToName(LevelA), true, FString());
+}
+
+static inline void OpenWin64Folder()
+{
+	wchar_t ModulePath[MAX_PATH];
+	if (!GetModuleFileNameW(nullptr, ModulePath, MAX_PATH))
+		return;
+
+	for (int i = (int)wcslen(ModulePath) - 1; i >= 0; --i)
+	{
+		if (ModulePath[i] == L'\\' || ModulePath[i] == L'/')
+		{
+			ModulePath[i] = L'\0';
+			break;
+		}
+	}
+
+	ShellExecuteW(nullptr, L"open", ModulePath, nullptr, nullptr, SW_SHOWNORMAL);
 }
 
 static inline std::string wstring_to_utf8(const std::wstring& str)
@@ -1073,7 +1090,12 @@ static inline void MainUI()
 
 		else if (Tab == DUMP_TAB)
 		{
-			ImGui::Text("These will all be in your Win64 folder!"); // TODO: Make a button to open this directory
+			ImGui::Text("These will all be in your Win64 folder!");
+			ImGui::SameLine();
+			if (ImGui::Button("Open Win64 Folder"))
+			{
+				OpenWin64Folder();
+			}
 
 			static std::string FortniteVersionStr = std::format("Fortnite Version {}\n\n", std::to_string(Fortnite_Version));
 

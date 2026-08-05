@@ -830,7 +830,25 @@ int32 UNetDriver::ServerReplicateActors()
 					}
 					else
 					{
-						// TODO ?
+						auto OwningActor = Actor->GetNetOwner();
+						auto ConnectionController = Connection->GetPlayerController();
+						auto ConnectionPawn = ConnectionController ? ConnectionController->GetPawn() : nullptr;
+
+						const bool bOwnerMatch = OwningActor
+							&& (OwningActor == ConnectionController || OwningActor == ConnectionPawn);
+
+						if (!bOwnerMatch)
+						{
+							if (Channel)
+							{
+								if (Fortnite_Version > 20)
+									ActorChannelCloseParams(Channel, EChannelCloseReason::Relevancy);
+								else
+									ActorChannelClose(Channel);
+							}
+
+							continue;
+						}
 					}
 				}
 			}

@@ -4,6 +4,9 @@
 #include "FortLootPackage.h"
 #include "AbilitySystemComponent.h"
 #include "FortGameModeAthena.h"
+#include "FortPlayerStateAthena.h"
+#include "FortPlayerPawn.h"
+#include "BuildingActor.h"
 
 UFortResourceItemDefinition* UFortKismetLibrary::K2_GetResourceItemDefinition(EFortResourceType ResourceType)
 {
@@ -57,6 +60,44 @@ FVector UFortKismetLibrary::FindGroundLocationAt(UWorld* World, AActor* IgnoreAc
 	return UFortKismetLibrary_FindGroundLocationAt_Params.ReturnValue;
 }
 
+int UFortKismetLibrary::GetActorTeam(AActor* Actor)
+{
+	if (!Actor)
+		return -1;
+
+	static auto GetActorTeamFn = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.GetActorTeam");
+
+	if (GetActorTeamFn)
+	{
+		struct { AActor* Actor; int ReturnValue; } Params{ Actor };
+		static auto DefaultClass = StaticClass();
+		DefaultClass->ProcessEvent(GetActorTeamFn, &Params);
+		return Params.ReturnValue;
+	}
+
+	if (auto PlayerState = Cast<AFortPlayerStateAthena>(Actor))
+		return PlayerState->GetTeamIndex();
+
+	if (auto Pawn = Cast<AFortPlayerPawn>(Actor))
+	{
+		auto PawnPlayerState = Cast<AFortPlayerStateAthena>(Pawn->GetPlayerState());
+		return PawnPlayerState ? PawnPlayerState->GetTeamIndex() : -1;
+	}
+
+	if (auto BuildingActor = Cast<ABuildingActor>(Actor))
+	{
+		static auto TeamOffset = BuildingActor->GetOffset("Team", false);
+		if (TeamOffset != -1)
+			return BuildingActor->Get<uint8_t>(TeamOffset);
+
+		static auto TeamIndexOffset = BuildingActor->GetOffset("TeamIndex", false);
+		if (TeamIndexOffset != -1)
+			return BuildingActor->Get<uint8_t>(TeamIndexOffset);
+	}
+
+	return -1;
+}
+
 void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, const TArray<UObject*>& CharacterParts, UObject* PlayerState, bool* bSuccess)
 {
 	static auto fn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.ApplyCharacterCosmetics");
@@ -104,7 +145,37 @@ void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, co
 	}
 	else
 	{
-		// TODO Add character data support
+		static auto CharacterDataOffset = PlayerState->GetOffset("CharacterData", false);
+
+		if (CharacterDataOffset != -1)
+		{
+			auto CharacterData = PlayerState->GetPtr<__int64>(CharacterDataOffset);
+
+			static int CharacterDataPartsOffset = FindOffsetStruct("/Script/FortniteGame.FortPlayerStateCharacterData", "CharacterParts", false);
+
+			if (CharacterDataPartsOffset == -1)
+				CharacterDataPartsOffset = FindOffsetStruct("/Script/FortniteGame.PlayerStateCharacterData", "CharacterParts", false);
+
+			if (CharacterDataPartsOffset != -1)
+			{
+				auto CustomParts = (void*)(__int64(CharacterData) + CharacterDataPartsOffset);
+				static auto PartsOffset = FindOffsetStruct("/Script/FortniteGame.CustomCharacterParts", "Parts", false);
+
+				if (PartsOffset != -1)
+				{
+					auto Parts = (UObject**)(__int64(CustomParts) + PartsOffset);
+
+					for (int i = 0; i < CharacterParts.Num(); i++)
+					{
+						Parts[i] = CharacterParts.at(i);
+					}
+
+					static auto OnRep_CharacterPartsFn = FindObject<UFunction>("/Script/FortniteGame.FortPlayerState.OnRep_CharacterParts");
+					if (OnRep_CharacterPartsFn)
+						PlayerState->ProcessEvent(OnRep_CharacterPartsFn);
+				}
+			}
+		}
 	}
 }
 
@@ -305,6 +376,56 @@ void UFortKismetLibrary::GiveItemToInventoryOwnerHook(UObject* Context, FFrame& 
 		PlayerController->GetWorldInventory()->Update();
 
 	return GiveItemToInventoryOwnerOriginal(Context, Stack, Ret);
+}
+
+void UFortKismetLibrary::RemoveItemFromInventoryOwnerHook(UObject* Context, FFrame& Stack, void* Ret)
+{
+	static auto ItemVariantGuidOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.RemoveItemFromInventoryOwner", "ItemVariantGuid", false);
+	static auto AmountToRemoveOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.RemoveItemFromInventoryOwner", "AmountToRemove", false);
+	static auto bForceRemovalOffset = FindOffsetStruct("/Script/FortniteGame.FortKismetLibrary.RemoveItemFromInventoryOwner", "bForceRemoval", false);
+
+	TScriptInterface<UFortInventoryOwnerInterface> InventoryOwner;
+	UFortWorldItemDefinition* ItemDefinition = nullptr;
+	FGuid ItemVariantGuid{};
+	int AmountToRemove = 1;
+	bool bForceRemoval = false;
+
+	Stack.StepCompiledIn(&InventoryOwner);
+	Stack.StepCompiledIn(&ItemDefinition);
+	if (ItemVariantGuidOffset != -1) Stack.StepCompiledIn(&ItemVariantGuid);
+	if (AmountToRemoveOffset != -1) Stack.StepCompiledIn(&AmountToRemove);
+	if (bForceRemovalOffset != -1) Stack.StepCompiledIn(&bForceRemoval);
+
+	if (!ItemDefinition)
+		return RemoveItemFromInventoryOwnerOriginal(Context, Stack, Ret);
+
+	auto ObjectPointer = InventoryOwner.ObjectPointer;
+
+	if (!ObjectPointer)
+		return RemoveItemFromInventoryOwnerOriginal(Context, Stack, Ret);
+
+	auto PlayerController = Cast<AFortPlayerController>(ObjectPointer);
+
+	if (!PlayerController)
+		return RemoveItemFromInventoryOwnerOriginal(Context, Stack, Ret);
+
+	auto WorldInventory = PlayerController->GetWorldInventory();
+
+	if (!WorldInventory)
+		return RemoveItemFromInventoryOwnerOriginal(Context, Stack, Ret);
+
+	auto ItemInstance = WorldInventory->FindItemInstance(ItemDefinition);
+
+	if (!ItemInstance)
+		return RemoveItemFromInventoryOwnerOriginal(Context, Stack, Ret);
+
+	bool bShouldUpdate = false;
+	WorldInventory->RemoveItem(ItemInstance->GetItemEntry()->GetItemGuid(), &bShouldUpdate, AmountToRemove, bForceRemoval);
+
+	if (bShouldUpdate)
+		WorldInventory->Update();
+
+	return RemoveItemFromInventoryOwnerOriginal(Context, Stack, Ret);
 }
 
 void UFortKismetLibrary::K2_RemoveItemFromPlayerHook(UObject* Context, FFrame& Stack, void* Ret)

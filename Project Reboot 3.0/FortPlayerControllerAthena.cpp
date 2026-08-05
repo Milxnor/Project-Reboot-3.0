@@ -164,7 +164,10 @@ void AFortPlayerControllerAthena::EnterAircraftHook(UObject* PC, AActor* Aircraf
 
 	EnterAircraftOriginal(PC, Aircraft);
 
-	// TODO Check if the player successfully got in the aircraft.
+	auto PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->GetPlayerState());
+
+	if (!PlayerState || !PlayerState->IsInAircraft())
+		return;
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 
@@ -393,7 +396,23 @@ void AFortPlayerControllerAthena::ServerTeleportToPlaygroundLobbyIslandHook(AFor
 	if (!Pawn)
 		return;
 
-	// TODO IsTeleportToCreativeHubAllowed
+	auto GameState = Cast<AFortGameStateAthena>(GetWorld()->GetGameState());
+	auto CurrentPlaylist = GameState ? GameState->GetCurrentPlaylist() : nullptr;
+	bool bAllowed = Globals::bCreative;
+
+	if (CurrentPlaylist)
+	{
+		auto PlaylistPath = CurrentPlaylist->GetPathName();
+		bAllowed = PlaylistPath.find("Playground") != std::string::npos
+			|| PlaylistPath.find("Creative") != std::string::npos
+			|| PlaylistPath.find("Hub") != std::string::npos;
+	}
+
+	if (!bAllowed)
+	{
+		LOG_WARN(LogDev, "Teleport to creative hub denied for playlist.");
+		return;
+	}
 
 	static auto FortPlayerStartCreativeClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStartCreative");
 	auto AllCreativePlayerStarts = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartCreativeClass);

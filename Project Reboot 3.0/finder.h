@@ -510,8 +510,6 @@ static inline uint64 FindOnRep_ZiplineState()
 
 static inline uint64 FindGetMaxTickRate() // UEngine::getmaxtickrate
 {
-	// TODO switch to index maybe?
-
 	/* auto GetMaxTickRateIndex = *Memcury::Scanner::FindStringRef(L"GETMAXTICKRATE")
         .ScanFor({ 0x4D, 0x8B, 0xC7, 0xE8 })
         .RelativeOffset(4)
@@ -587,7 +585,7 @@ static inline uint64 FindActorChannelClose()
 	{
 		auto addr = Memcury::Scanner::FindPattern("40 55 53 56 57 41 56 48 8B EC 48 83 EC 40 4C 8B 41 68 40 8A F2 48 8B 51 28 48 8B D9 48 8D 4D 48 E8 ? ? ? ? 80", false).Get(); // 20.40
 
-		if (!addr) // TODO: Check 48 89 5C 24 ? 55 56 57 48 83 EC ? 4C 8B 41 ? 40 8A F2 48 8B 51 ? 48 8B
+		if (!addr)
 			addr = Memcury::Scanner::FindPattern("48 89 5C 24 ? 55 56 57 48 83 EC ? 4C 8B 41 ? 40 8A F2 48 8B 51 ? 48 8B ? 48 8D 4C 24 ? E8", false).Get(); // 22.30 + 23.40
 
 		if (!addr)
@@ -804,7 +802,7 @@ static inline uint64 FindCombinePickupLea() // kill me
 {
 	// return 0;
 
-	/* uint64 OnRep_PickupLocationDataAddr = 0; // TODO (Idea: Find SetupCombinePickupDelegates from this).
+	/* uint64 OnRep_PickupLocationDataAddr = 0;
 
 	if (!OnRep_PickupLocationDataAddr)
 		return 0; */

@@ -9,6 +9,7 @@
 #include "GameplayStatics.h"
 #include "FortVehicleItemDefinition.h"
 #include "FortDagwoodVehicle.h"
+#include "GameplayAbilityTypes.h"
 
 // Vehicle class name changes multiple times across versions, so I made it it's own file.
 
@@ -199,7 +200,31 @@ static inline AActor* SpawnVehicleFromSpawner(AActor* VehicleSpawner)
 
 			if (FortVehicleItemDefVariants.size() > 0)
 			{
-				VIDToSpawn = FortVehicleItemDefVariants.at(0, FVehicleWeightedDef::GetStructSize()).GetVehicleItemDef()->Get(UFortVehicleItemDefinition::StaticClass(), true); // TODO (Milxnor) Implement the weight
+				float TotalWeight = 0.f;
+				for (int i = 0; i < FortVehicleItemDefVariants.Num(); ++i)
+				{
+					auto Variant = FortVehicleItemDefVariants.AtPtr(i, FVehicleWeightedDef::GetStructSize());
+					TotalWeight += GetScalableFloatValue(*Variant->GetWeight());
+				}
+
+				float Roll = TotalWeight > 0.f ? (rand() * 0.000030518509f) * TotalWeight : 0.f;
+
+				for (int i = 0; i < FortVehicleItemDefVariants.Num(); ++i)
+				{
+					auto Variant = FortVehicleItemDefVariants.AtPtr(i, FVehicleWeightedDef::GetStructSize());
+					float Weight = GetScalableFloatValue(*Variant->GetWeight());
+
+					if (Roll <= Weight)
+					{
+						VIDToSpawn = Variant->GetVehicleItemDef()->Get(UFortVehicleItemDefinition::StaticClass(), true);
+						break;
+					}
+
+					Roll -= Weight;
+				}
+
+				if (!VIDToSpawn)
+					VIDToSpawn = FortVehicleItemDefVariants.at(0, FVehicleWeightedDef::GetStructSize()).GetVehicleItemDef()->Get(UFortVehicleItemDefinition::StaticClass(), true);
 			}
 		}
 	}

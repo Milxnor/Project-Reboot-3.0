@@ -93,8 +93,6 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 	static auto StoneItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/StoneItemData.StoneItemData");
 	static auto MetalItemData = FindObject<UFortResourceItemDefinition>(L"/Game/Items/ResourcePickups/MetalItemData.MetalItemData");
 
-	// TODO: Pull prices from datatables.
-
 	bool bLowerPrices = Fortnite_Version >= 5.20;
 
 	static int CommonPrice = bLowerPrices ? 75 : 100;
@@ -102,6 +100,26 @@ static inline void FillItemCollector(ABuildingItemCollectorActor* ItemCollector,
 	static int RarePrice = bLowerPrices ? 225 : 300;
 	static int EpicPrice = bLowerPrices ? 300 : 400;
 	static int LegendaryPrice = bLowerPrices ? 375 : 500;
+
+	auto GetCurveValue = [&](const std::wstring& RowName, int DefaultValue)
+	{
+		if (!FortGameData)
+			return DefaultValue;
+
+		auto Row = UKismetStringLibrary::Conv_StringToName(RowName.c_str());
+		void* Key = FortGameData->GetKey(Row, 0);
+
+		if (!Key)
+			return DefaultValue;
+
+		return static_cast<int>(FortGameData->GetValueOfKey(Key));
+	};
+
+	CommonPrice = GetCurveValue(L"Default.VendingMachine.Cost.Common", CommonPrice);
+	UncommonPrice = GetCurveValue(L"Default.VendingMachine.Cost.Uncommon", UncommonPrice);
+	RarePrice = GetCurveValue(L"Default.VendingMachine.Cost.Rare", RarePrice);
+	EpicPrice = GetCurveValue(L"Default.VendingMachine.Cost.Epic", EpicPrice);
+	LegendaryPrice = GetCurveValue(L"Default.VendingMachine.Cost.Legendary", LegendaryPrice);
 
 	if (Fortnite_Version >= 8.10)
 	{

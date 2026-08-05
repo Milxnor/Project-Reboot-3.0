@@ -59,7 +59,7 @@ void FNetworkObjectList::Remove(AActor* const Actor)
 
 		if (!NumDormantObjectsPerConnectionRef)
 		{
-			// We should add here TODO MILXNOR
+			LOG_WARN(LogNet, "Dormant count entry missing for connection {}, skipping decrement.", Connection->InternalIndex);
 		}
 
 		// check(NumDormantObjectsPerConnectionRef > 0);

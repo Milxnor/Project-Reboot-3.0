@@ -12,7 +12,16 @@ static inline bool IsPropertyA(void* Property, UClass* Class)
 	}
 	else
 	{
-		// TODO
+		if (Offsets::PropertyClass)
+		{
+			auto PropertyClass = *(UClass**)(__int64(Property) + Offsets::PropertyClass);
+
+			if (PropertyClass && (PropertyClass == Class || PropertyClass->IsA(Class)))
+				return true;
+		}
+
+		if (((UObject*)Property)->IsA(Class))
+			return true;
 	}
 
 	return false;

@@ -785,12 +785,16 @@ void AFortPlayerController::ServerAttemptAircraftJumpHook(AFortPlayerController*
 
 	auto NewPawnAsFort = PlayerController->GetMyFortPawn();
 
-	if (Fortnite_Version >= 18) // TODO (Milxnor) Find a better fix and move this
+	if (Fortnite_Version >= 18)
 	{
 		static auto StormEffectClass = FindObject<UClass>(L"/Game/Athena/SafeZone/GE_OutsideSafeZoneDamage.GE_OutsideSafeZoneDamage_C");
 		auto PlayerState = PlayerController->GetPlayerStateAthena();
+		auto AbilitySystemComponent = PlayerState ? PlayerState->GetAbilitySystemComponent() : nullptr;
 
-		PlayerState->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(StormEffectClass, 1, PlayerState->GetAbilitySystemComponent());
+		if (StormEffectClass && AbilitySystemComponent)
+		{
+			AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StormEffectClass, 1, AbilitySystemComponent);
+		}
 	}
 
 	if (NewPawnAsFort)
@@ -1070,7 +1074,19 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 			return;
 	}
 
-	// TODO If the player is in a vehicle and has a vehicle weapon, don't let them drop.
+	if (auto FortPawn = Cast<AFortPlayerPawn>(Pawn))
+	{
+		if (auto Vehicle = FortPawn->GetVehicle())
+		{
+			auto VehicleWeaponDefinition = FortPawn->GetVehicleWeaponDefinition(Vehicle);
+
+			if (VehicleWeaponDefinition)
+			{
+				LOG_INFO(LogDev, "Blocked dropping items while vehicle weapon is equipped.");
+				return;
+			}
+		}
+	}
 
 	auto WorldInventory = PlayerController->GetWorldInventory();
 	auto ReplicatedEntry = WorldInventory->FindReplicatedEntry(ItemGuid);

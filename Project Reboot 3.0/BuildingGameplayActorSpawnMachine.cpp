@@ -96,7 +96,20 @@ void ABuildingGameplayActorSpawnMachine::RebootingDelegateHook(ABuildingGameplay
 	PlayerController->SetPlayerIsWaiting(true);
 	// PlayerController->ServerRestartPlayer();
 
-	bool bEnterSkydiving = false; // TODO get from like curve table iirc idk or the variable
+	bool bEnterSkydiving = true;
+
+	if (auto GameStateAthena = Cast<AFortGameStateAthena>(GetWorld()->GetGameState()))
+	{
+		if (auto CurrentPlaylist = GameStateAthena->GetCurrentPlaylist())
+		{
+			static auto RebootSkydivingOffset = CurrentPlaylist->GetOffset("bRebootPlayersEnterSkydiving", false);
+			if (RebootSkydivingOffset != -1)
+			{
+				static auto RebootSkydivingMask = GetFieldMask(CurrentPlaylist->GetProperty("bRebootPlayersEnterSkydiving"));
+				bEnterSkydiving = CurrentPlaylist->ReadBitfieldValue(RebootSkydivingOffset, RebootSkydivingMask);
+			}
+		}
+	}
 	PlayerController->RespawnPlayerAfterDeath(bEnterSkydiving);
 
 	AFortPlayerPawn* NewPawn = Cast<AFortPlayerPawn>(PlayerController->GetMyFortPawn());
