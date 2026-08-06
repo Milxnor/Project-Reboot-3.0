@@ -858,8 +858,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		{
 			if (bEnableRebooting)
 			{
-				auto GameSessionDedicatedAthenaPatch = Memcury::Scanner::FindPattern("3B 41 38 7F ? 48 8B D0 48 8B 41 30 4C 39 04 D0 75 ? 48 8D 96", false).Get(); // todo check this sig more
-
+				auto GameSessionDedicatedAthenaPatch = Memcury::Scanner::FindPattern("3B 41 38 7F ? 48 8B D0 48 8B 41 30 4C 39 04 D0 75 ? 48 8D 96", std::floor(Fortnite_Version) < 18).Get(); // this sig sometimes has two results and im not sure if that causes issues
+				LOG_INFO(LogDev, "Patching GameSesionDedicatedAthena at Address {}", GameSessionDedicatedAthenaPatch - __int64(GetModuleHandleW(0)));
 				if (GameSessionDedicatedAthenaPatch)
 				{
 					PatchBytes(GameSessionDedicatedAthenaPatch, { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 });
@@ -952,7 +952,8 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 		{
 			auto CurrentRebootVan = (ABuildingGameplayActorSpawnMachine*)AllRebootVans.at(i);
 			static auto FortPlayerStartClass = FindObject<UClass>(L"/Script/FortniteGame.FortPlayerStart");
-			CurrentRebootVan->GetResurrectLocation() = CurrentRebootVan->GetClosestActor(FortPlayerStartClass, 450);
+			TArray<AActor*> Actors = UGameplayStatics::GetAllActorsOfClass(GetWorld(), FortPlayerStartClass);
+			CurrentRebootVan->GetResurrectLocation() = UFortKismetLibrary::GetClosestActorFromArray(CurrentRebootVan, Actors);
 		}
 
 		AllRebootVans.Free();

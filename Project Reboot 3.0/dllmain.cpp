@@ -939,7 +939,7 @@ DWORD WINAPI Main(LPVOID)
     Addresses::Init();
     Addresses::Print();
 
-    bEnableRebooting = Addresses::RebootingDelegate && Addresses::FinishResurrection && Addresses::GetSquadIdForCurrentPlayer && false;
+    bEnableRebooting = Addresses::RebootingDelegate && Addresses::FinishResurrection && Addresses::GetSquadIdForCurrentPlayer;
 
 #ifdef CLIENT_ONLY // CONSOLE ONLY (FOR CLIENT)
     SetConsoleTitleA("Console");
