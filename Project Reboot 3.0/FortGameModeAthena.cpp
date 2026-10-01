@@ -1035,7 +1035,25 @@ bool AFortGameModeAthena::Athena_ReadyToStartMatchHook(AFortGameModeAthena* Game
 			GameState->Get<float>("DefaultParachuteDeployTraceForGroundDistance") = 10000;
 		}
 
-		UptimeWebHook.send_message(std::format("Server up! {} {}", Fortnite_Version, PlaylistName)); // PlaylistName sometimes isn't always what we use!
+		// --- better server started message ---
+		std::string Version = std::to_string(Fortnite_Version);
+		Version = Version.substr(0, Version.find('.') + 2);
+
+		std::string Playlist = PlaylistName;
+		Playlist = Playlist.substr(Playlist.find(".Playlist_") + 10);
+
+		UptimeWebHook.send_embed(
+			"Gameserver Online",					// title
+			"**Version: ** " + Version + "\n"
+			"**Playlist: ** " + Playlist,			// description
+			0x57F287,								// color
+			"",										// headerText
+			"Gameserver",							// footerText
+			Information::EmbedFooterIconUrl,		// footerIconUrl
+			Information::EmbedThumbnailUrl,			// thumbnailUrl
+			true									// includeTimestamp
+		);
+		// --- end ---
 
 		static auto ReplicationDriverOffset = GetWorld()->GetNetDriver()->GetOffset("ReplicationDriver", false); // If netdriver is null the world blows up
 
