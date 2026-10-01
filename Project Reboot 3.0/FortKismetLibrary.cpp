@@ -57,6 +57,27 @@ FVector UFortKismetLibrary::FindGroundLocationAt(UWorld* World, AActor* IgnoreAc
 	return UFortKismetLibrary_FindGroundLocationAt_Params.ReturnValue;
 }
 
+class AActor* UFortKismetLibrary::GetClosestActorFromArray(const class AActor* Actor, const TArray<class AActor*>& ArrayOfActors)
+{
+	static class UFunction* Func = FindObject<UFunction>(L"/Script/FortniteGame.FortKismetLibrary.GetClosestActorFromArray");
+
+	struct FortKismetLibrary_GetClosestActorFromArray final
+	{
+	public:
+		const class AActor* Actor;                                             // 0x0000(0x0008)(ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		TArray<class AActor*>                         ArrayOfActors;                                     // 0x0008(0x0010)(ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+		class AActor* ReturnValue;                                       // 0x0018(0x0008)(Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	} Parms{};
+
+	Parms.Actor = Actor;
+	Parms.ArrayOfActors = std::move(ArrayOfActors);
+
+	static auto DefaultClass = StaticClass();
+	DefaultClass->ProcessEvent(Func, &Parms);
+
+	return Parms.ReturnValue;
+}
+
 void UFortKismetLibrary::ApplyCharacterCosmetics(UObject* WorldContextObject, const TArray<UObject*>& CharacterParts, UObject* PlayerState, bool* bSuccess)
 {
 	static auto fn = FindObject<UFunction>("/Script/FortniteGame.FortKismetLibrary.ApplyCharacterCosmetics");
